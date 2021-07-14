@@ -168,6 +168,7 @@ func (u *User) speedUpdater() {
 
 func (u *User) trafficUpdater(pst statistic.Persistencer) {
 	ticker := time.NewTicker(10 * time.Second)
+	var lastSent, lastRecv uint64
 	for {
 		select {
 		case <-u.ctx.Done():
@@ -175,10 +176,15 @@ func (u *User) trafficUpdater(pst statistic.Persistencer) {
 		case <-ticker.C:
 			if pst != nil {
 				sent, recv := u.GetTraffic()
-				log.Debugf("Update %s traffic", u.Hash)
-				err := pst.UpdateUserTraffic(u.Hash, sent, recv)
-				if err != nil {
-					log.Debugf("Update user %s traffic failed: %s", u.Hash, err)
+				if sent != lastSent || recv != lastRecv {
+					log.Debugf("Update %s traffic", u.Hash)
+					err := pst.UpdateUserTraffic(u.Hash, sent, recv)
+					if err != nil {
+						log.Debugf("Update user %s traffic failed: %s", u.Hash, err)
+						continue
+					}
+					lastRecv = recv
+					lastSent = sent
 				}
 			}
 		}
