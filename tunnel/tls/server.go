@@ -142,7 +142,7 @@ func (s *Server) acceptLoop() {
 				return
 			}
 
-			log.Info("tls connection from", conn.RemoteAddr())
+			log.Debug("tls connection from", conn.RemoteAddr())
 			state := tlsConn.ConnectionState()
 			log.Trace("tls handshake", tls.CipherSuiteName(state.CipherSuite), state.DidResume, state.NegotiatedProtocol)
 

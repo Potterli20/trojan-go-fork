@@ -52,7 +52,7 @@ func (p *Proxy) relayConnLoop() {
 						return
 					default:
 					}
-					log.Error(common.NewError("failed to accept connection").Base(err))
+					log.Debug(common.NewError("failed to accept connection").Base(err))
 					continue
 				}
 				go func(inbound tunnel.Conn) {
@@ -69,12 +69,14 @@ func (p *Proxy) relayConnLoop() {
 						_, err := io.CopyBuffer(dst, src, buffer)
 						errChan <- err
 					}
+					// log.Infof("[inbound:%s]: %s -> %s", inbound.Metadata().DomainName, inbound.LocalAddr().String(), inbound.RemoteAddr())
+					// log.Infof("[outbound]: %s -> %s", outbound.LocalAddr().String(), outbound.RemoteAddr())
 					go copyConn(inbound, outbound)
 					go copyConn(outbound, inbound)
 					select {
 					case err = <-errChan:
 						if err != nil {
-							log.Error(err)
+							log.Debug(err)
 						}
 					case <-p.ctx.Done():
 						log.Debug("shutting down conn relay")
@@ -99,14 +101,14 @@ func (p *Proxy) relayPacketLoop() {
 						return
 					default:
 					}
-					log.Error(common.NewError("failed to accept packet").Base(err))
+					log.Debug(common.NewError("failed to accept packet").Base(err))
 					continue
 				}
 				go func(inbound tunnel.PacketConn) {
 					defer inbound.Close()
 					outbound, err := p.sink.DialPacket(nil)
 					if err != nil {
-						log.Error(common.NewError("proxy failed to dial packet").Base(err))
+						log.Debug(common.NewError("proxy failed to dial packet").Base(err))
 						return
 					}
 					defer outbound.Close()
@@ -135,7 +137,7 @@ func (p *Proxy) relayPacketLoop() {
 					select {
 					case err = <-errChan:
 						if err != nil {
-							log.Error(err)
+							log.Debug(err)
 						}
 					case <-p.ctx.Done():
 						log.Debug("shutting down packet relay")

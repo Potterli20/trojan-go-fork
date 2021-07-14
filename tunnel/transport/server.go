@@ -51,7 +51,7 @@ func (s *Server) acceptLoop() {
 		}
 
 		go func(tcpConn net.Conn) {
-			log.Info("tcp connection from", tcpConn.RemoteAddr())
+			log.Debug("tcp connection from", tcpConn.RemoteAddr())
 			s.httpLock.RLock()
 			if s.nextHTTP { // plaintext mode enabled
 				s.httpLock.RUnlock()
