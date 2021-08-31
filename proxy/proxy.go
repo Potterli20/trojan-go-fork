@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/p4gefau1t/trojan-go/common"
 	"github.com/p4gefau1t/trojan-go/config"
@@ -41,6 +42,11 @@ func (p *Proxy) Close() error {
 }
 
 func (p *Proxy) relayConnLoop() {
+	bufPool := sync.Pool{
+		New: func() interface{} {
+			return make([]byte, p.relayBufferSize)
+		},
+	}
 	for _, source := range p.sources {
 		go func(source tunnel.Server) {
 			for {
@@ -65,7 +71,8 @@ func (p *Proxy) relayConnLoop() {
 					defer outbound.Close()
 					errChan := make(chan error, 2)
 					copyConn := func(dst io.Writer, src io.Reader) {
-						buffer := make([]byte, p.relayBufferSize)
+						buffer := bufPool.Get().([]byte)
+						defer bufPool.Put(buffer)
 						_, err := io.CopyBuffer(dst, src, buffer)
 						errChan <- err
 					}
@@ -90,6 +97,11 @@ func (p *Proxy) relayConnLoop() {
 }
 
 func (p *Proxy) relayPacketLoop() {
+	bufPool := sync.Pool{
+		New: func() interface{} {
+			return make([]byte, p.relayBufferSize)
+		},
+	}
 	for _, source := range p.sources {
 		go func(source tunnel.Server) {
 			for {
@@ -114,8 +126,9 @@ func (p *Proxy) relayPacketLoop() {
 					defer outbound.Close()
 					errChan := make(chan error, 2)
 					copyPacket := func(a, b tunnel.PacketConn) {
+						buf := bufPool.Get().([]byte)
+						defer bufPool.Put(buf)
 						for {
-							buf := make([]byte, p.relayBufferSize)
 							n, metadata, err := a.ReadWithMetadata(buf)
 							if err != nil {
 								errChan <- err
