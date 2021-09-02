@@ -45,10 +45,12 @@ func (c *PacketConn) Close() error {
 }
 
 func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error) {
+	newP := make([]byte, len(p))
+	copy(newP, p)
 	select {
 	case c.output <- &packetInfo{
 		metadata: m,
-		payload:  p,
+		payload:  newP,
 	}:
 		return len(p), nil
 	case <-c.ctx.Done():

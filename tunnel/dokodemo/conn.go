@@ -62,9 +62,11 @@ func (c *PacketConn) ReadWithMetadata(p []byte) (int, *tunnel.Metadata, error) {
 }
 
 func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error) {
+	newP := make([]byte, len(p))
+	copy(newP, p)
 	select {
-	case c.output <- p:
-		return len(p), nil
+	case c.output <- newP:
+		return len(newP), nil
 	case <-c.ctx.Done():
 		return 0, common.NewError("dokodemo packet conn failed to write")
 	}

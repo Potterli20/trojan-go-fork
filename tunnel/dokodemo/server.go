@@ -43,7 +43,9 @@ func (s *Server) dispatchLoop() {
 		log.Debug("udp packet from", addr)
 		s.mappingLock.Lock()
 		if conn, found := s.mapping[addr.String()]; found {
-			conn.input <- buf[:n]
+			toInput := make([]byte, n)
+			copy(toInput, buf)
+			conn.input <- toInput
 			s.mappingLock.Unlock()
 			continue
 		}
@@ -59,8 +61,9 @@ func (s *Server) dispatchLoop() {
 		}
 		s.mapping[addr.String()] = conn
 		s.mappingLock.Unlock()
-
-		conn.input <- buf[:n]
+		toInput := make([]byte, n)
+		copy(toInput, buf)
+		conn.input <- toInput
 		s.packetChan <- conn
 
 		go func(conn *PacketConn) {
