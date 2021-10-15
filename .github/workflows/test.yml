@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - latest
     paths:
       - "**/*.go"
       - "go.mod"
