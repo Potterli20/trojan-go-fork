@@ -1,6 +1,6 @@
 NAME := trojan-go
 PACKAGE_NAME := github.com/p4gefau1t/trojan-go
-VERSION := `git describe --dirty`
+VERSION := `git describe --tags`
 COMMIT := `git rev-parse HEAD`
 
 PLATFORM := linux
