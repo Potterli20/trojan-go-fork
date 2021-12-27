@@ -11,10 +11,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
+	"github.com/google/uuid"
 	"github.com/p4gefau1t/trojan-go/api"
 	"github.com/p4gefau1t/trojan-go/common"
 	"github.com/p4gefau1t/trojan-go/config"
 	"github.com/p4gefau1t/trojan-go/log"
+	"github.com/p4gefau1t/trojan-go/recorder"
 	"github.com/p4gefau1t/trojan-go/statistic"
 	"github.com/p4gefau1t/trojan-go/tunnel/trojan"
 )
@@ -179,6 +181,33 @@ func (s *ServerAPI) ListUsers(req *ListUsersRequest, stream TrojanServerService_
 		}
 	}
 	return nil
+}
+
+func (s *ServerAPI) GetRecords(stream TrojanServerService_GetRecordsServer) error {
+	log.Debug("API: GetRecords")
+	uid := uuid.Must(uuid.NewRandom()).String()
+	recordChan := recorder.Subscribe(uid)
+	defer recorder.Unsubscribe(uid)
+
+	for {
+		select {
+		case <-stream.Context().Done():
+			return nil
+		case r := <-recordChan:
+			err := stream.Send(&GetRecordsResponse{
+				Timestamp:  r.Timestamp,
+				UserHash:   r.UserHash,
+				ClientIp:   r.ClientIp,
+				ClientPort: r.ClientPort,
+				TargetHost: r.TargetHost,
+				TargetPort: r.TargetPort,
+				Transport:  r.Transport,
+			})
+			if err != nil {
+				return err
+			}
+		}
+	}
 }
 
 func newAPIServer(cfg *Config) (*grpc.Server, error) {
