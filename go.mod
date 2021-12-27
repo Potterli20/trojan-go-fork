@@ -1,6 +1,6 @@
 module github.com/p4gefau1t/trojan-go
 
-go 1.16
+go 1.17
 
 require (
 	github.com/go-sql-driver/mysql v1.6.0
@@ -23,4 +23,23 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gorm.io/driver/sqlite v1.1.4
 	gorm.io/gorm v1.21.10
+)
+
+require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/gopherjs/gopherjs v0.0.0-20210420193930-a4630ec28c79 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.2 // indirect
+	github.com/jtolds/gls v4.20.0+incompatible // indirect
+	github.com/mattn/go-sqlite3 v1.14.5 // indirect
+	github.com/pires/go-proxyproto v0.5.0 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
+	github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d // indirect
+	go.starlark.net v0.0.0-20210507152841-e9428d69d599 // indirect
+	golang.org/x/crypto v0.0.0-20210506145944-38f3c27a63bf // indirect
+	golang.org/x/sys v0.0.0-20210510120138-977fb7262007 // indirect
+	golang.org/x/text v0.3.6 // indirect
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 )
