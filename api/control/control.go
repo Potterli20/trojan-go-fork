@@ -37,6 +37,23 @@ func (apiController) Name() string {
 	return "api"
 }
 
+func (o *apiController) listRecords(apiClient service.TrojanServerServiceClient) error {
+	stream, err := apiClient.GetRecords(o.ctx)
+	if err != nil {
+		return err
+	}
+	defer stream.CloseSend()
+	for {
+		resp, err := stream.Recv()
+		if err != nil {
+			return err
+		}
+		data, err := json.MarshalIndent(resp, "", "    ")
+		common.Must(err)
+		fmt.Println(string(data))
+	}
+}
+
 func (o *apiController) listUsers(apiClient service.TrojanServerServiceClient) error {
 	stream, err := apiClient.ListUsers(o.ctx, &service.ListUsersRequest{})
 	if err != nil {
@@ -145,6 +162,11 @@ func (o *apiController) Handle() error {
 	defer conn.Close()
 	apiClient := service.NewTrojanServerServiceClient(conn)
 	switch *o.cmd {
+	case "record":
+		err := o.listRecords(apiClient)
+		if err != nil {
+			log.Error(err)
+		}
 	case "list":
 		err := o.listUsers(apiClient)
 		if err != nil {
@@ -172,7 +194,7 @@ func (o *apiController) Priority() int {
 
 func init() {
 	option.RegisterHandler(&apiController{
-		cmd:                flag.String("api", "", "Connect to a Trojan-Go API service. \"-api add/get/list\""),
+		cmd:                flag.String("api", "", "Connect to a Trojan-Go API service. \"-api set/get/list/record\""),
 		address:            flag.String("api-addr", "127.0.0.1:10000", "Address of Trojan-Go API service"),
 		password:           flag.String("target-password", "", "Password of the target user"),
 		hash:               flag.String("target-hash", "", "Hash of the target user"),

@@ -6,7 +6,9 @@ import (
 
 	"github.com/p4gefau1t/trojan-go/common"
 	"github.com/p4gefau1t/trojan-go/log"
+	"github.com/p4gefau1t/trojan-go/recorder"
 	"github.com/p4gefau1t/trojan-go/tunnel"
+	"github.com/p4gefau1t/trojan-go/tunnel/mux"
 	"github.com/p4gefau1t/trojan-go/tunnel/trojan"
 )
 
@@ -48,6 +50,7 @@ func (s *Server) acceptLoop() {
 				metadata: metadata,
 				Conn:     conn,
 			}
+			Record(conn, metadata)
 		case Associate:
 			s.packetChan <- &PacketConn{
 				PacketConn: trojan.PacketConn{
@@ -91,4 +94,18 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	go server.acceptLoop()
 	log.Debug("simplesocks server created")
 	return server, nil
+}
+
+func Record(conn tunnel.Conn, metadata *tunnel.Metadata) {
+	var userHash string
+	if muxConn, ok := conn.(*mux.Conn); ok {
+		c := muxConn.Conn
+		if trojanConn, ok2 := c.(*trojan.InboundConn); ok2 {
+			userHash = trojanConn.Hash()
+		}
+	}
+	if userHash != "" {
+		log.Debug("user", userHash, "from", conn.RemoteAddr(), "tunneling to", metadata.Address)
+		recorder.Add(userHash, conn.RemoteAddr(), metadata.Address, "TCP")
+	}
 }
