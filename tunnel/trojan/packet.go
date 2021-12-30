@@ -50,6 +50,7 @@ func (c *PacketConn) WriteWithMetadata(payload []byte, metadata *tunnel.Metadata
 	_, err := c.Conn.Write(w.Bytes())
 
 	log.Debug("udp packet remote", c.RemoteAddr(), "metadata", metadata, "size", length)
+	c.Record(metadata, payload)
 	return len(payload), err
 }
 
