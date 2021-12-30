@@ -12,6 +12,13 @@ import (
 var Capacity int = 10 // capacity of each subscriber
 var subscribers sync.Map
 
+type option struct {
+	recordChan     chan Record
+	transport      string
+	targetPort     string
+	includePayload bool
+}
+
 type Record struct {
 	Timestamp  string
 	UserHash   string
@@ -20,9 +27,10 @@ type Record struct {
 	TargetHost string
 	TargetPort string
 	Transport  string
+	Payload    []byte
 }
 
-func Add(hash string, clientAddr, targetAddr net.Addr, transport string) {
+func Add(hash string, clientAddr, targetAddr net.Addr, transport string, payload []byte) {
 	clientIP, clientPort, _ := net.SplitHostPort(clientAddr.String())
 	targetHost, targetPort, _ := net.SplitHostPort(targetAddr.String())
 
@@ -34,15 +42,21 @@ func Add(hash string, clientAddr, targetAddr net.Addr, transport string) {
 		TargetHost: targetHost,
 		TargetPort: targetPort,
 		Transport:  transport,
+		Payload:    payload,
 	}
 	broadcast(record)
 }
 
-func Subscribe(uid string) chan Record {
-	rc := make(chan Record, Capacity)
+func Subscribe(uid string, transport, targetPort string, includePayload bool) chan Record {
 	log.Debug("New recorder subscriber", uid)
-	subscribers.Store(uid, rc)
-	return rc
+	opt := option{
+		recordChan:     make(chan Record, Capacity),
+		transport:      transport,
+		targetPort:     targetPort,
+		includePayload: includePayload,
+	}
+	subscribers.Store(uid, opt)
+	return opt.recordChan
 }
 
 func Unsubscribe(uid string) {
@@ -51,10 +65,26 @@ func Unsubscribe(uid string) {
 }
 
 func broadcast(record Record) {
-	subscribers.Range(func(uuid, rc interface{}) bool {
-		c := rc.(chan Record)
+	payload := record.Payload
+
+	subscribers.Range(func(uid, o interface{}) bool {
+		opt := o.(option)
+		if opt.transport != "" && opt.transport != record.Transport {
+			return true
+		}
+		if opt.targetPort != "" && opt.targetPort != record.TargetPort {
+			return true
+		}
+		if opt.includePayload {
+			buf := make([]byte, len(payload))
+			copy(buf, payload)
+			record.Payload = buf
+		} else {
+			record.Payload = nil
+		}
+
 		select {
-		case c <- record:
+		case opt.recordChan <- record:
 		default:
 		}
 		return true

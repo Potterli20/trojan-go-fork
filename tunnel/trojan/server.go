@@ -110,7 +110,7 @@ func (c *InboundConn) Auth() error {
 
 func (c *InboundConn) Record() {
 	log.Debug("user", c.hash, "from", c.Conn.RemoteAddr(), "tunneling to", c.metadata.Address)
-	recorder.Add(c.hash, c.Conn.RemoteAddr(), c.metadata.Address, "TCP")
+	recorder.Add(c.hash, c.Conn.RemoteAddr(), c.metadata.Address, "TCP", nil)
 }
 
 func (c *InboundConn) Hash() string {

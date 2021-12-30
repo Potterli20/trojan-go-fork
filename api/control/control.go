@@ -38,7 +38,7 @@ func (apiController) Name() string {
 }
 
 func (o *apiController) listRecords(apiClient service.TrojanServerServiceClient) error {
-	stream, err := apiClient.GetRecords(o.ctx)
+	stream, err := apiClient.GetRecords(o.ctx, &service.GetRecordsRequest{IncludePayload: true})
 	if err != nil {
 		return err
 	}

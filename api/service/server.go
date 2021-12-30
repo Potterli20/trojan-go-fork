@@ -183,10 +183,10 @@ func (s *ServerAPI) ListUsers(req *ListUsersRequest, stream TrojanServerService_
 	return nil
 }
 
-func (s *ServerAPI) GetRecords(stream TrojanServerService_GetRecordsServer) error {
+func (s *ServerAPI) GetRecords(req *GetRecordsRequest, stream TrojanServerService_GetRecordsServer) error {
 	log.Debug("API: GetRecords")
 	uid := uuid.Must(uuid.NewRandom()).String()
-	recordChan := recorder.Subscribe(uid)
+	recordChan := recorder.Subscribe(uid, req.Transport, req.TargetPort, req.IncludePayload)
 	defer recorder.Unsubscribe(uid)
 
 	for {
@@ -202,6 +202,7 @@ func (s *ServerAPI) GetRecords(stream TrojanServerService_GetRecordsServer) erro
 				TargetHost: r.TargetHost,
 				TargetPort: r.TargetPort,
 				Transport:  r.Transport,
+				Payload:    r.Payload,
 			})
 			if err != nil {
 				return err

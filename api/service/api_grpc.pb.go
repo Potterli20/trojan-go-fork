@@ -115,7 +115,7 @@ type TrojanServerServiceClient interface {
 	// setup existing users' config
 	SetUsers(ctx context.Context, opts ...grpc.CallOption) (TrojanServerService_SetUsersClient, error)
 	// get traffic records
-	GetRecords(ctx context.Context, opts ...grpc.CallOption) (TrojanServerService_GetRecordsClient, error)
+	GetRecords(ctx context.Context, in *GetRecordsRequest, opts ...grpc.CallOption) (TrojanServerService_GetRecordsClient, error)
 }
 
 type trojanServerServiceClient struct {
@@ -220,27 +220,28 @@ func (x *trojanServerServiceSetUsersClient) Recv() (*SetUsersResponse, error) {
 	return m, nil
 }
 
-func (c *trojanServerServiceClient) GetRecords(ctx context.Context, opts ...grpc.CallOption) (TrojanServerService_GetRecordsClient, error) {
+func (c *trojanServerServiceClient) GetRecords(ctx context.Context, in *GetRecordsRequest, opts ...grpc.CallOption) (TrojanServerService_GetRecordsClient, error) {
 	stream, err := c.cc.NewStream(ctx, &TrojanServerService_ServiceDesc.Streams[3], "/trojan.api.TrojanServerService/GetRecords", opts...)
 	if err != nil {
 		return nil, err
 	}
 	x := &trojanServerServiceGetRecordsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
 	return x, nil
 }
 
 type TrojanServerService_GetRecordsClient interface {
-	Send(*GetRecordsRequest) error
 	Recv() (*GetRecordsResponse, error)
 	grpc.ClientStream
 }
 
 type trojanServerServiceGetRecordsClient struct {
 	grpc.ClientStream
-}
-
-func (x *trojanServerServiceGetRecordsClient) Send(m *GetRecordsRequest) error {
-	return x.ClientStream.SendMsg(m)
 }
 
 func (x *trojanServerServiceGetRecordsClient) Recv() (*GetRecordsResponse, error) {
@@ -262,7 +263,7 @@ type TrojanServerServiceServer interface {
 	// setup existing users' config
 	SetUsers(TrojanServerService_SetUsersServer) error
 	// get traffic records
-	GetRecords(TrojanServerService_GetRecordsServer) error
+	GetRecords(*GetRecordsRequest, TrojanServerService_GetRecordsServer) error
 	mustEmbedUnimplementedTrojanServerServiceServer()
 }
 
@@ -279,7 +280,7 @@ func (UnimplementedTrojanServerServiceServer) GetUsers(TrojanServerService_GetUs
 func (UnimplementedTrojanServerServiceServer) SetUsers(TrojanServerService_SetUsersServer) error {
 	return status.Errorf(codes.Unimplemented, "method SetUsers not implemented")
 }
-func (UnimplementedTrojanServerServiceServer) GetRecords(TrojanServerService_GetRecordsServer) error {
+func (UnimplementedTrojanServerServiceServer) GetRecords(*GetRecordsRequest, TrojanServerService_GetRecordsServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetRecords not implemented")
 }
 func (UnimplementedTrojanServerServiceServer) mustEmbedUnimplementedTrojanServerServiceServer() {}
@@ -369,12 +370,15 @@ func (x *trojanServerServiceSetUsersServer) Recv() (*SetUsersRequest, error) {
 }
 
 func _TrojanServerService_GetRecords_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(TrojanServerServiceServer).GetRecords(&trojanServerServiceGetRecordsServer{stream})
+	m := new(GetRecordsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TrojanServerServiceServer).GetRecords(m, &trojanServerServiceGetRecordsServer{stream})
 }
 
 type TrojanServerService_GetRecordsServer interface {
 	Send(*GetRecordsResponse) error
-	Recv() (*GetRecordsRequest, error)
 	grpc.ServerStream
 }
 
@@ -384,14 +388,6 @@ type trojanServerServiceGetRecordsServer struct {
 
 func (x *trojanServerServiceGetRecordsServer) Send(m *GetRecordsResponse) error {
 	return x.ServerStream.SendMsg(m)
-}
-
-func (x *trojanServerServiceGetRecordsServer) Recv() (*GetRecordsRequest, error) {
-	m := new(GetRecordsRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
 }
 
 // TrojanServerService_ServiceDesc is the grpc.ServiceDesc for TrojanServerService service.
@@ -423,7 +419,6 @@ var TrojanServerService_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "GetRecords",
 			Handler:       _TrojanServerService_GetRecords_Handler,
 			ServerStreams: true,
-			ClientStreams: true,
 		},
 	},
 	Metadata: "api.proto",
