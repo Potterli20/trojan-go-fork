@@ -106,6 +106,6 @@ func Record(conn tunnel.Conn, metadata *tunnel.Metadata) {
 	}
 	if userHash != "" {
 		log.Debug("user", userHash, "from", conn.RemoteAddr(), "tunneling to", metadata.Address)
-		recorder.Add(userHash, conn.RemoteAddr(), metadata.Address, "TCP")
+		recorder.Add(userHash, conn.RemoteAddr(), metadata.Address, "TCP", nil)
 	}
 }
