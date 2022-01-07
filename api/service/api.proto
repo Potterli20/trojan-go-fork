@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package trojan.api;
+option go_package = "github.com/Potterli20/trojan-go-fork/api/service";
+
+message Traffic {
+    uint64 upload_traffic = 1;
+    uint64 download_traffic = 2;
+}
+
+message Speed {
+    uint64 upload_speed = 1;
+    uint64 download_speed = 2;
+}
+
+message User {
+    string password = 1;
+    string hash = 2;
+}
+
+message UserStatus {
+    User user = 1;
+    Traffic traffic_total = 2;
+    Speed speed_current = 3;
+    Speed speed_limit = 4;
+    int32 ip_current = 5;
+    int32 ip_limit = 6;
+}
+
+message GetTrafficRequest {
+    User user = 1;
+}
+
+message GetTrafficResponse {
+    bool success = 1;
+    string info = 2;
+    Traffic traffic_total = 3;
+    Speed speed_current = 4;
+}
+
+message ListUsersRequest {
+
+}
+
+message ListUsersResponse {
+    UserStatus status = 1;
+}
+
+message GetUsersRequest {
+    User user = 1;
+}
+
+message GetUsersResponse {
+    bool success = 1;
+    string info = 2;
+    UserStatus status = 3;
+}
+
+message SetUsersRequest {
+    enum Operation {
+        Add = 0;
+        Delete = 1;
+        Modify = 2;
+    }
+    UserStatus status = 1;
+    Operation operation = 2;
+}
+
+message SetUsersResponse {
+    bool success = 1;
+    string info = 2;
+}
+message GetRecordsRequest {
+    string transport = 1;  // UDP, TCP
+    string target_port = 2;
+    bool include_payload = 3;
+}
+
+message GetRecordsResponse {
+    string timestamp = 1;
+    string user_hash = 2;
+    string client_ip = 3;
+    string client_port = 4;
+    string target_host = 5;
+    string target_port = 6;
+    string transport = 7;
+    bytes payload = 8;
+}
+
+service TrojanClientService {
+    rpc GetTraffic(GetTrafficRequest) returns(GetTrafficResponse){}
+}
+
+service TrojanServerService {
+    // list all users
+    rpc ListUsers(ListUsersRequest) returns(stream ListUsersResponse){}
+    // obtain specified user's info
+    rpc GetUsers(stream GetUsersRequest) returns(stream GetUsersResponse){}
+    // setup existing users' config
+    rpc SetUsers(stream SetUsersRequest) returns(stream SetUsersResponse){}
+    // get traffic records
+    rpc GetRecords(GetRecordsRequest) returns(stream GetRecordsResponse){}
+}
+}

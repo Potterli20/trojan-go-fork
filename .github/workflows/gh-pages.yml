@@ -1,0 +1,42 @@
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "docs/**"
+      - ".github/workflows/gh-pages.yml"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - master
+    paths:
+      - "docs/**"
+      - ".github/workflows/gh-pages.yml"
+name: github-pages
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true  # Fetch Hugo themes
+          fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: "0.83.1"
+          # extended: true
+
+      - name: Build
+        run: |
+          cd docs
+          make hugo-themes
+          hugo
+
+      - name: Deploy
+        if: ${{ github.event_name == 'push' }}
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/public
