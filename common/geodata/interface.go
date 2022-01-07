@@ -1,6 +1,6 @@
 package geodata
 
-import v2router "github.com/v2fly/v2ray-core/v5/app/router"
+import v2router "github.com/xtls/xray-core/app/router"
 
 type GeodataLoader interface {
 	LoadIP(filename, country string) ([]*v2router.CIDR, error)
