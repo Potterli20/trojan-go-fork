@@ -4,11 +4,11 @@ import (
 	"io/ioutil"
 	"strings"
 
-	v2router "github.com/v2fly/v2ray-core/v4/app/router"
+	v2router "github.com/v2fly/v2ray-core/v5/app/router"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/p4gefau1t/trojan-go/common"
-	"github.com/p4gefau1t/trojan-go/log"
+	"github.com/Potterli20/trojan-go-fork/common"
+	"github.com/Potterli20/trojan-go-fork/log"
 )
 
 type geoipCache map[string]*v2router.GeoIP

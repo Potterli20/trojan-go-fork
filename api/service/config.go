@@ -1,6 +1,6 @@
 package service
 
-import "github.com/p4gefau1t/trojan-go/config"
+import "github.com/Potterli20/trojan-go-fork/config"
 
 const Name = "API_SERVICE"
 

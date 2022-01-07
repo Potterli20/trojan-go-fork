@@ -1,7 +1,7 @@
 package memory
 
 import (
-	"github.com/p4gefau1t/trojan-go/config"
+	"github.com/Potterli20/trojan-go-fork/config"
 )
 
 type Config struct {

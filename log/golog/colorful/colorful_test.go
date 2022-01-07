@@ -10,7 +10,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/p4gefau1t/trojan-go/log/golog/buffer"
+	"github.com/Potterli20/trojan-go-fork/log/golog/buffer"
 )
 
 func TestColorBuffer(t *testing.T) {

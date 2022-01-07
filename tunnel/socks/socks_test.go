@@ -13,12 +13,12 @@ import (
 	"github.com/txthinking/socks5"
 	"golang.org/x/net/proxy"
 
-	"github.com/p4gefau1t/trojan-go/common"
-	"github.com/p4gefau1t/trojan-go/config"
-	"github.com/p4gefau1t/trojan-go/test/util"
-	"github.com/p4gefau1t/trojan-go/tunnel"
-	"github.com/p4gefau1t/trojan-go/tunnel/adapter"
-	"github.com/p4gefau1t/trojan-go/tunnel/socks"
+	"github.com/Potterli20/trojan-go-fork/common"
+	"github.com/Potterli20/trojan-go-fork/config"
+	"github.com/Potterli20/trojan-go-fork/test/util"
+	"github.com/Potterli20/trojan-go-fork/tunnel"
+	"github.com/Potterli20/trojan-go-fork/tunnel/adapter"
+	"github.com/Potterli20/trojan-go-fork/tunnel/socks"
 )
 
 func TestSocks(t *testing.T) {

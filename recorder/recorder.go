@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/p4gefau1t/trojan-go/log"
+	"github.com/Potterli20/trojan-go-fork/log"
 )
 
 var Capacity int = 10 // capacity of each subscriber

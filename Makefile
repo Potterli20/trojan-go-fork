@@ -1,5 +1,5 @@
-NAME := trojan-go
-PACKAGE_NAME := github.com/p4gefau1t/trojan-go
+NAME := trojan-go-fork
+PACKAGE_NAME := github.com/Potterli20/trojan-go-fork
 VERSION := `git describe --tags`
 COMMIT := `git rev-parse HEAD`
 
@@ -8,8 +8,8 @@ BUILD_DIR := build
 VAR_SETTING := -X $(PACKAGE_NAME)/constant.Version=$(VERSION) -X $(PACKAGE_NAME)/constant.Commit=$(COMMIT)
 GOBUILD = $(GO_DIR)go build -tags "full" -trimpath -ldflags="-s -w -buildid= $(VAR_SETTING)" -o $(BUILD_DIR)
 
-.PHONY: trojan-go release test
-normal: clean trojan-go
+.PHONY: trojan-go-fork release test
+normal: clean trojan-go-fork
 
 clean:
 	rm -rf $(BUILD_DIR)
@@ -26,11 +26,11 @@ test:
 	# Disable Bloomfilter when testing
 	SHADOWSOCKS_SF_CAPACITY="-1" $(GO_DIR)go test -v ./...
 
-trojan-go:
+trojan-go-fork:
 	mkdir -p $(BUILD_DIR)
 	$(GOBUILD)
 
-install: $(BUILD_DIR)/$(NAME) geoip.dat geosite.dat
+install: $(BUILD_DIR)/$(NAME) geoip.dat  geosite.dat
 	mkdir -p /etc/$(NAME)
 	mkdir -p /usr/share/$(NAME)
 	cp example/*.json /etc/$(NAME)
@@ -152,3 +152,7 @@ windows-armv6:
 windows-armv7:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=arm GOOS=windows GOARM=7 $(GOBUILD)/$@
+
+windows-arm64:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=arm64 GOOS=windows $(GOBUILD)/$@

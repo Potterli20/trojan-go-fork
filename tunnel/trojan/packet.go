@@ -7,11 +7,11 @@ import (
 	"io/ioutil"
 	"net"
 
-	"github.com/p4gefau1t/trojan-go/common"
-	"github.com/p4gefau1t/trojan-go/log"
-	"github.com/p4gefau1t/trojan-go/recorder"
-	"github.com/p4gefau1t/trojan-go/tunnel"
-	"github.com/p4gefau1t/trojan-go/tunnel/mux"
+	"github.com/Potterli20/trojan-go-fork/common"
+	"github.com/Potterli20/trojan-go-fork/log"
+	"github.com/Potterli20/trojan-go-fork/recorder"
+	"github.com/Potterli20/trojan-go-fork/tunnel"
+	"github.com/Potterli20/trojan-go-fork/tunnel/mux"
 )
 
 type PacketConn struct {
@@ -109,4 +109,8 @@ func (c *PacketConn) Record(addr net.Addr, payload []byte) {
 	}
 	log.Debug("user", userHash, "from", c.RemoteAddr(), "tunneling UDP to", addr)
 	recorder.Add(userHash, c.RemoteAddr(), addr, "UDP", payload)
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 00494e827beda367d5db93d11e3d8c1b85e4f73e

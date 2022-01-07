@@ -3,7 +3,7 @@ package sqlite
 import (
 	"errors"
 
-	"github.com/p4gefau1t/trojan-go/statistic"
+	"github.com/Potterli20/trojan-go-fork/statistic"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"

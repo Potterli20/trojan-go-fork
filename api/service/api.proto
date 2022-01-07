@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package trojan.api;
-option go_package = "github.com/p4gefau1t/trojan-go/api/service";
+option go_package = "github.com/Potterli20/trojan-go-fork/api/service";
 
 message Traffic {
     uint64 upload_traffic = 1;
@@ -70,7 +70,10 @@ message SetUsersResponse {
     bool success = 1;
     string info = 2;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 00494e827beda367d5db93d11e3d8c1b85e4f73e
 message GetRecordsRequest {
     string transport = 1;  // UDP, TCP
     string target_port = 2;
@@ -102,3 +105,7 @@ service TrojanServerService {
     // get traffic records
     rpc GetRecords(GetRecordsRequest) returns(stream GetRecordsResponse){}
 }
+<<<<<<< HEAD
+=======
+}
+>>>>>>> 00494e827beda367d5db93d11e3d8c1b85e4f73e

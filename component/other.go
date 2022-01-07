@@ -3,6 +3,6 @@
 package build
 
 import (
-	_ "github.com/p4gefau1t/trojan-go/easy"
-	_ "github.com/p4gefau1t/trojan-go/url"
+	_ "github.com/Potterli20/trojan-go-fork/easy"
+	_ "github.com/Potterli20/trojan-go-fork/url"
 )

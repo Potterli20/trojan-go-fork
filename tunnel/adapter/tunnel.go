@@ -3,7 +3,7 @@ package adapter
 import (
 	"context"
 
-	"github.com/p4gefau1t/trojan-go/tunnel"
+	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
 const Name = "ADAPTER"

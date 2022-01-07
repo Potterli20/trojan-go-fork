@@ -3,6 +3,6 @@
 package build
 
 import (
-	_ "github.com/p4gefau1t/trojan-go/api/control"
-	_ "github.com/p4gefau1t/trojan-go/api/service"
+	_ "github.com/Potterli20/trojan-go-fork/api/control"
+	_ "github.com/Potterli20/trojan-go-fork/api/service"
 )

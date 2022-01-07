@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 
-	_ "github.com/p4gefau1t/trojan-go/component"
-	"github.com/p4gefau1t/trojan-go/log"
-	"github.com/p4gefau1t/trojan-go/option"
+	_ "github.com/Potterli20/trojan-go-fork/component"
+	"github.com/Potterli20/trojan-go-fork/log"
+	"github.com/Potterli20/trojan-go-fork/option"
 )
 
 func main() {

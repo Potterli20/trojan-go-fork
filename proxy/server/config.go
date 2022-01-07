@@ -1,9 +1,8 @@
 package server
 
 import (
-	"github.com/p4gefau1t/trojan-go/config"
-	"github.com/p4gefau1t/trojan-go/proxy/client"
-)
+	"github.com/Potterli20/trojan-go-fork/config"
+	"github.com/Potterli20/trojan-go-fork/proxy/client"
 
 func init() {
 	config.RegisterConfigCreator(Name, func() interface{} {

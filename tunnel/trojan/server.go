@@ -7,17 +7,17 @@ import (
 	"net"
 	"sync/atomic"
 
-	"github.com/p4gefau1t/trojan-go/api"
-	"github.com/p4gefau1t/trojan-go/common"
-	"github.com/p4gefau1t/trojan-go/config"
-	"github.com/p4gefau1t/trojan-go/log"
-	"github.com/p4gefau1t/trojan-go/recorder"
-	"github.com/p4gefau1t/trojan-go/redirector"
-	"github.com/p4gefau1t/trojan-go/statistic"
-	"github.com/p4gefau1t/trojan-go/statistic/memory"
-	"github.com/p4gefau1t/trojan-go/statistic/mysql"
-	"github.com/p4gefau1t/trojan-go/tunnel"
-	"github.com/p4gefau1t/trojan-go/tunnel/mux"
+	"github.com/Potterli20/trojan-go-fork/api"
+	"github.com/Potterli20/trojan-go-fork/common"
+	"github.com/Potterli20/trojan-go-fork/config"
+	"github.com/Potterli20/trojan-go-fork/log"
+	"github.com/Potterli20/trojan-go-fork/recorder"
+	"github.com/Potterli20/trojan-go-fork/redirector"
+	"github.com/Potterli20/trojan-go-fork/statistic"
+	"github.com/Potterli20/trojan-go-fork/statistic/memory"
+	"github.com/Potterli20/trojan-go-fork/statistic/mysql"
+	"github.com/Potterli20/trojan-go-fork/tunnel"
+	"github.com/Potterli20/trojan-go-fork/tunnel/mux"
 )
 
 var Auth statistic.Authenticator
@@ -245,7 +245,11 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	if cfg.API.Enabled {
 		go api.RunService(ctx, Name+"_SERVER", Auth)
 	}
+<<<<<<< HEAD
 
+=======
+	
+>>>>>>> 00494e827beda367d5db93d11e3d8c1b85e4f73e
 	recorder.Capacity = cfg.RecordCapacity
 
 	redirAddr := tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort)

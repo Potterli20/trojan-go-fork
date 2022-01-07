@@ -9,9 +9,9 @@ import (
 
 	"github.com/txthinking/socks5"
 
-	"github.com/p4gefau1t/trojan-go/common"
-	"github.com/p4gefau1t/trojan-go/test/util"
-	"github.com/p4gefau1t/trojan-go/tunnel"
+	"github.com/Potterli20/trojan-go-fork/common"
+	"github.com/Potterli20/trojan-go-fork/test/util"
+	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
 func TestConn(t *testing.T) {

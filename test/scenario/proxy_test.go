@@ -13,18 +13,18 @@ import (
 
 	netproxy "golang.org/x/net/proxy"
 
-	_ "github.com/p4gefau1t/trojan-go/api"
-	_ "github.com/p4gefau1t/trojan-go/api/service"
-	"github.com/p4gefau1t/trojan-go/common"
-	_ "github.com/p4gefau1t/trojan-go/log/golog"
-	"github.com/p4gefau1t/trojan-go/proxy"
-	_ "github.com/p4gefau1t/trojan-go/proxy/client"
-	_ "github.com/p4gefau1t/trojan-go/proxy/forward"
-	_ "github.com/p4gefau1t/trojan-go/proxy/nat"
-	_ "github.com/p4gefau1t/trojan-go/proxy/server"
-	_ "github.com/p4gefau1t/trojan-go/statistic/memory"
-	"github.com/p4gefau1t/trojan-go/test/util"
-	"github.com/p4gefau1t/trojan-go/tunnel/trojan"
+	_ "github.com/Potterli20/trojan-go-fork/api"
+	_ "github.com/Potterli20/trojan-go-fork/api/service"
+	"github.com/Potterli20/trojan-go-fork/common"
+	_ "github.com/Potterli20/trojan-go-fork/log/golog"
+	"github.com/Potterli20/trojan-go-fork/proxy"
+	_ "github.com/Potterli20/trojan-go-fork/proxy/client"
+	_ "github.com/Potterli20/trojan-go-fork/proxy/forward"
+	_ "github.com/Potterli20/trojan-go-fork/proxy/nat"
+	_ "github.com/Potterli20/trojan-go-fork/proxy/server"
+	_ "github.com/Potterli20/trojan-go-fork/statistic/memory"
+	"github.com/Potterli20/trojan-go-fork/test/util"
+	"github.com/Potterli20/trojan-go-fork/tunnel/trojan"
 )
 
 // test key and cert
@@ -87,7 +87,6 @@ xiGQ1YfbqPMbovNUt1m0Es8=
 func init() {
 	ioutil.WriteFile("server.crt", []byte(cert), 0o777)
 	ioutil.WriteFile("server.key", []byte(key), 0o777)
-}
 
 func CheckClientServer(clientData, serverData string, socksPort int) (ok bool) {
 	trojan.Auth = nil
