@@ -245,11 +245,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	if cfg.API.Enabled {
 		go api.RunService(ctx, Name+"_SERVER", Auth)
 	}
-<<<<<<< HEAD
 
-=======
-	
->>>>>>> 00494e827beda367d5db93d11e3d8c1b85e4f73e
 	recorder.Capacity = cfg.RecordCapacity
 
 	redirAddr := tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort)
