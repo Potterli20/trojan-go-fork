@@ -35,14 +35,12 @@ require (
 	github.com/jinzhu/now v1.1.4 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/kierdavis/cfb8 v0.0.0-20180105024805-3a17c36ee2f8 // indirect
-	github.com/kr/pretty v0.3.0 // indirect
 	github.com/lucas-clemente/quic-go v0.24.0 // indirect
 	github.com/marten-seemann/qtls-go1-17 v0.1.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.10 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pires/go-proxyproto v0.6.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/smartystreets/assertions v1.2.1 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20210608031112-152c7c4432bf // indirect
 	github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe // indirect
@@ -53,6 +51,5 @@ require (
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20220106181925-4b6d468c965f // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	inet.af/netaddr v0.0.0-20211027220019-c74959edd3b6 // indirect
 )
