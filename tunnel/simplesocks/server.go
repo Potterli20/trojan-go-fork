@@ -108,8 +108,4 @@ func Record(conn tunnel.Conn, metadata *tunnel.Metadata) {
 		log.Debug("user", userHash, "from", conn.RemoteAddr(), "tunneling to", metadata.Address)
 		recorder.Add(userHash, conn.RemoteAddr(), metadata.Address, "TCP", nil)
 	}
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 00494e827beda367d5db93d11e3d8c1b85e4f73e
