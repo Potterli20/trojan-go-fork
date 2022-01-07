@@ -109,4 +109,4 @@ func (c *PacketConn) Record(addr net.Addr, payload []byte) {
 	}
 	log.Debug("user", userHash, "from", c.RemoteAddr(), "tunneling UDP to", addr)
 	recorder.Add(userHash, c.RemoteAddr(), addr, "UDP", payload)
-}}
+}
