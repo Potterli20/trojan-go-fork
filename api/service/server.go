@@ -146,7 +146,7 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 	}
 }
 
-func (s *ServerAPI) GetRecords(req *GetRecordsRequest, stream TrojanServerService_GetRecordsServer) error {
+func (s *ServerAPI) ListUsers(req *ListUsersRequest, stream TrojanServerService_ListUsersServer) error {
 	log.Debug("API: ListUsers")
 	users := s.auth.ListUsers()
 	for _, user := range users {
@@ -183,7 +183,7 @@ func (s *ServerAPI) GetRecords(req *GetRecordsRequest, stream TrojanServerServic
 	return nil
 }
 
-func (s *ServerAPI) GetRecords(stream TrojanServerService_GetRecordsServer) error {
+func (s *ServerAPI) GetRecords(req *GetRecordsRequest, stream TrojanServerService_GetRecordsServer) error {
 	log.Debug("API: GetRecords")
 	uid := uuid.Must(uuid.NewRandom()).String()
 	recordChan := recorder.Subscribe(uid, req.Transport, req.TargetPort, req.IncludePayload)
