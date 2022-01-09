@@ -1,11 +1,9 @@
 ## 由于原项目作者已经不再维护，也不能再合入PR，同时原项目存在诸多的问题与bug。Fork了一个分支到个人项目进行维护
 ## 还存在其他bug或者需求可以提Issue
 
-=======
 fork[@p4gefau1t](https://github.com/p4gefau1t/trojan-go) and [@fregie](https://github.com/fregie/trojan-go)
 
 # Trojan-Go 
->>>>>>> 00494e827beda367d5db93d11e3d8c1b85e4f73e
 
 使用 Go 实现的完整 Trojan 代理，兼容原版 Trojan 协议及配置文件格式。安全、高效、轻巧、易用。
 

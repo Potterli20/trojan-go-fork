@@ -12,7 +12,7 @@ require (
 	github.com/txthinking/socks5 v0.0.0-20211121111206-e03c1217a50b
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/xray-core v1.5.2
-	golang.org/x/net v0.0.0-20220106012031-21a9c9cfe9c3
+	golang.org/x/net v0.0.0-20220107192237-5cfca573fb4d
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11
 	google.golang.org/grpc v1.43.0
@@ -47,6 +47,6 @@ require (
 	golang.org/x/crypto v0.0.0-20211215165025-cf75a172585e // indirect
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/genproto v0.0.0-20220106181925-4b6d468c965f // indirect
+	google.golang.org/genproto v0.0.0-20220107163113-42d7afdf6368 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 )
