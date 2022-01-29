@@ -1,0 +1,27 @@
+package simplesocks
+
+import (
+	"context"
+
+	"github.com/Potterli20/trojan-go-fork/tunnel"
+)
+
+const Name = "SIMPLESOCKS"
+
+type Tunnel struct{}
+
+func (*Tunnel) Name() string {
+	return Name
+}
+
+func (*Tunnel) NewServer(ctx context.Context, underlay tunnel.Server) (tunnel.Server, error) {
+	return NewServer(ctx, underlay)
+}
+
+func (*Tunnel) NewClient(ctx context.Context, underlay tunnel.Client) (tunnel.Client, error) {
+	return NewClient(ctx, underlay)
+}
+
+func init() {
+	tunnel.RegisterTunnel(Name, &Tunnel{})
+}
