@@ -26,6 +26,8 @@ const (
 	XRD = "xtls-rprx-direct"
 	// XRO is constant for XTLS origin mode
 	XRO = "xtls-rprx-origin"
+	// XRO is constant for XTLS splice mode
+ 	XRO = "xtls-rprx-splice"
 )
 
 // Client is a tls client
@@ -82,7 +84,7 @@ func (c *Client) DialConn(_ *tunnel.Address, overlay tunnel.Tunnel) (tunnel.Conn
 	// use xtls if applicable
 	if c.flow != "" {
 		switch c.flow {
-		case XRD, XRO, XRD + "-udp2083", XRO + "-udp2083":
+		case XRD, XRO, XRD + "-udp443", XRO + "-udp443":
 			xtlsConn := xtls.Client(conn, &xtls.Config{
 				InsecureSkipVerify:     !c.verify,
 				ServerName:             c.sni,
