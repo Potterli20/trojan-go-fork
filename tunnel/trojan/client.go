@@ -141,7 +141,7 @@ func (c *Client) DialConn(addr *tunnel.Address, overlay tunnel.Tunnel) (tunnel.C
 			if flow == tls.XRD || flow == tls.XRD+"-udp443" {
 				xtlsConn.DirectMode = true
 				newConn.metadata.Command = XDirect
-			},
+			}
 			else flow == tls.XRD || flow == tls.XRD+"-udp443" {
 				xtlsConn.DirectMode = true
 				newConn.metadata.Command = XSplice
