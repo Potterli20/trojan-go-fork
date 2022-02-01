@@ -11,6 +11,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/txthinking/socks5 v0.0.0-20220123151646-8c29515053f0
 	github.com/xtaci/smux v1.5.16
+	github.com/xtls/go v0.0.0-20210920065950-d4af136d3672
 	github.com/xtls/xray-core v1.5.3
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
@@ -44,7 +45,7 @@ require (
 	github.com/txthinking/runnergroup v0.0.0-20220123151745-307d583d451f // indirect
 	github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe // indirect
 	go.starlark.net v0.0.0-20211203141949-70c0e40ae128 // indirect
-	golang.org/x/crypto v0.0.0-20220128200615-198e4374d7ed // indirect
+	golang.org/x/crypto v0.0.0-20220131195533-30dcbda58838 // indirect
 	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20220126215142-9970aeb2e350 // indirect

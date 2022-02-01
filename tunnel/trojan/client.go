@@ -16,6 +16,10 @@ import (
 	"github.com/Potterli20/trojan-go-fork/statistic/memory"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"github.com/Potterli20/trojan-go-fork/tunnel/mux"
+
+	"github.com/Potterli20/trojan-go-fork/tunnel/tls"
+	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
+	xtls "github.com/xtls/go"
 )
 
 const (
@@ -25,6 +29,8 @@ const (
 const (
 	Connect   tunnel.Command = 1
 	Associate tunnel.Command = 3
+	XDirect   tunnel.Command = 0xf0
+	XOrigin   tunnel.Command = 0xf1
 	Mux       tunnel.Command = 0x7f
 )
 
@@ -123,7 +129,22 @@ func (c *Client) DialConn(addr *tunnel.Address, overlay tunnel.Tunnel) (tunnel.C
 	if _, ok := overlay.(*mux.Tunnel); ok {
 		newConn.metadata.Command = Mux
 	}
-
+	if tlsClient, ok := c.underlay.(*tls.Client); ok {
+		flow := tlsClient.GetFlow()
+		xtlsConn := conn.(*transport.Conn).Conn.(*xtls.Conn)
+		switch flow {
+		case tls.XRD, tls.XRO, tls.XRD + "-udp2083", tls.XRO + "-udp2083":
+			xtlsConn.RPRX = true
+			newConn.metadata.Command = XOrigin
+			if flow == tls.XRD || flow == tls.XRD+"-udp2083" {
+				xtlsConn.DirectMode = true
+				newConn.metadata.Command = XDirect
+			}
+		case "":
+		default:
+			return nil, common.NewError("xtls doesn't support this type of flow yet")
+		}
+	}
 	go func(newConn *OutboundConn) {
 		// if the trojan header is still buffered after 100 ms, the client may expect data from the server
 		// so we flush the trojan header
@@ -137,6 +158,16 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	fakeAddr := &tunnel.Address{
 		DomainName:  "UDP_CONN",
 		AddressType: tunnel.DomainName,
+	}
+	if tlsClient, ok := c.underlay.(*tls.Client); ok {
+		flow := tlsClient.GetFlow()
+		switch flow {
+		case tls.XRD, tls.XRO:
+			return nil, common.NewError("flow stopped UDP/2083")
+		case tls.XRD + "-udp2083", tls.XRO + "-udp2083", "":
+		default:
+			return nil, common.NewError("trojan doesn't support this type of flow yet")
+		}
 	}
 	conn, err := c.underlay.DialConn(fakeAddr, &Tunnel{})
 	if err != nil {

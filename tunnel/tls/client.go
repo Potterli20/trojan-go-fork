@@ -17,6 +17,15 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"github.com/Potterli20/trojan-go-fork/tunnel/tls/fingerprint"
 	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
+
+	xtls "github.com/xtls/go"
+)
+
+const (
+	// XRD is constant for XTLS direct mode
+	XRD = "xtls-rprx-direct"
+	// XRO is constant for XTLS origin mode
+	XRO = "xtls-rprx-origin"
 )
 
 // Client is a tls client
@@ -25,12 +34,17 @@ type Client struct {
 	sni           string
 	ca            *x509.CertPool
 	cipher        []uint16
+	flow          string
 	sessionTicket bool
 	reuseSession  bool
 	fingerprint   string
 	helloID       utls.ClientHelloID
 	keyLogger     io.WriteCloser
 	underlay      tunnel.Client
+}
+
+func (c *Client) GetFlow() string {
+	return c.flow
 }
 
 func (c *Client) Close() error {
@@ -64,6 +78,29 @@ func (c *Client) DialConn(_ *tunnel.Address, overlay tunnel.Tunnel) (tunnel.Conn
 		return &transport.Conn{
 			Conn: tlsConn,
 		}, nil
+	}
+	// use xtls if applicable
+	if c.flow != "" {
+		switch c.flow {
+		case XRD, XRO, XRD + "-udp2083", XRO + "-udp2083":
+			xtlsConn := xtls.Client(conn, &xtls.Config{
+				InsecureSkipVerify:     !c.verify,
+				ServerName:             c.sni,
+				RootCAs:                c.ca,
+				KeyLogWriter:           c.keyLogger,
+				CipherSuites:           c.cipher,
+				SessionTicketsDisabled: !c.sessionTicket,
+			})
+			err = xtlsConn.Handshake()
+			if err != nil {
+				return nil, common.NewError("xtls failed to handshake with remote server").Base(err)
+			}
+			return &transport.Conn{
+				Conn: xtlsConn,
+			}, nil
+		default:
+			return nil, common.NewError("xtls flow not supported yet")
+		}
 	}
 	// golang default tls library
 	tlsConn := tls.Client(conn, &tls.Config{
@@ -111,6 +148,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		underlay:      underlay,
 		verify:        cfg.TLS.Verify,
 		sni:           cfg.TLS.SNI,
+		flow:          cfg.TLS.Flow,
 		cipher:        fingerprint.ParseCipher(strings.Split(cfg.TLS.Cipher, ":")),
 		sessionTicket: cfg.TLS.ReuseSession,
 		fingerprint:   cfg.TLS.Fingerprint,
