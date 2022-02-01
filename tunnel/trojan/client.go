@@ -168,7 +168,7 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	if tlsClient, ok := c.underlay.(*tls.Client); ok {
 		flow := tlsClient.GetFlow()
 		switch flow {
-		case tls.XRD, tls.XRO, tls XRS:
+		case tls.XRD, tls.XRO, tls.XRS:
 			return nil, common.NewError("flow stopped UDP/443")
 		case tls.XRD + "-udp443", tls.XRO + "-udp443", tls.XRS + "-udp443", "":
 		default:

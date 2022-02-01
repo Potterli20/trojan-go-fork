@@ -196,7 +196,7 @@ func (s *Server) acceptLoop() {
 					if inboundConn.metadata.Command == XDirect {
 						xtlsConn.DirectMode = true
 					}
-					else inboundConn.metadata.Command == XSplice {
+					if inboundConn.metadata.Command == XSplice {
 						xtlsConn.DirectMode = true
 					}
 					s.connChan <- inboundConn
