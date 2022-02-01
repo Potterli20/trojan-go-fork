@@ -28,10 +28,7 @@ type TLSConfig struct {
 	FallbackHost         string   `json:"fallback_addr" yaml:"fallback-addr"`
 	FallbackPort         int      `json:"fallback_port" yaml:"fallback-port"`
 	ReuseSession         bool     `json:"reuse_session" yaml:"reuse-session"`
-<<<<<<< HEAD
-=======
 	Flow                 string   `json:"flow" yaml:"flow"`
->>>>>>> 2df0363a538ec8bcd8e8d0665d0111f9dfef6613
 	ALPN                 []string `json:"alpn" yaml:"alpn"`
 	Curves               string   `json:"curves" yaml:"curves"`
 	Fingerprint          string   `json:"fingerprint" yaml:"fingerprint"`
