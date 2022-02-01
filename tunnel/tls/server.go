@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
 	"io"
@@ -25,6 +24,7 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel/tls/fingerprint"
 	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
 	"github.com/Potterli20/trojan-go-fork/tunnel/websocket"
+	xtls "github.com/xtls/go"
 )
 
 // Server is a tls server
@@ -34,12 +34,12 @@ type Server struct {
 	sni                string
 	alpn               []string
 	PreferServerCipher bool
-	keyPair            []tls.Certificate
+	keyPair            []xtls.Certificate
 	keyPairLock        sync.RWMutex
 	httpResp           []byte
 	cipherSuite        []uint16
 	sessionTicket      bool
-	curve              []tls.CurveID
+	curve              []xtls.CurveID
 	keyLogger          io.WriteCloser
 	connChan           chan tunnel.Conn
 	wsChan             chan tunnel.Conn
@@ -80,13 +80,13 @@ func (s *Server) acceptLoop() {
 			return
 		}
 		go func(conn net.Conn) {
-			tlsConfig := &tls.Config{
+			xtlsConfig := &xtls.Config{
 				CipherSuites:             s.cipherSuite,
 				PreferServerCipherSuites: s.PreferServerCipher,
 				SessionTicketsDisabled:   !s.sessionTicket,
 				NextProtos:               s.alpn,
 				KeyLogWriter:             s.keyLogger,
-				GetCertificate: func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+				GetCertificate: func(hello *xtls.ClientHelloInfo) (*xtls.Certificate, error) {
 					s.keyPairLock.RLock()
 					defer s.keyPairLock.RUnlock()
 					sni := s.keyPair[0].Leaf.Subject.CommonName
@@ -113,15 +113,15 @@ func (s *Server) acceptLoop() {
 			handshakeRewindConn := common.NewRewindConn(conn)
 			handshakeRewindConn.SetBufferSize(2048)
 
-			tlsConn := tls.Server(handshakeRewindConn, tlsConfig)
-			err = tlsConn.Handshake()
+			xtlsConn := xtls.Server(handshakeRewindConn, xtlsConfig)
+			err = xtlsConn.Handshake()
 			handshakeRewindConn.StopBuffering()
 
 			if err != nil {
 				if strings.Contains(err.Error(), "first record does not look like a TLS handshake") {
 					// not a valid tls client hello
 					handshakeRewindConn.Rewind()
-					log.Error(common.NewError("failed to perform tls handshake with " + tlsConn.RemoteAddr().String() + ", redirecting").Base(err))
+					log.Error(common.NewError("failed to perform tls handshake with " + xtlsConn.RemoteAddr().String() + ", redirecting").Base(err))
 					switch {
 					case s.fallbackAddress != nil:
 						s.redir.Redirect(&redirector.Redirection{
@@ -136,18 +136,18 @@ func (s *Server) acceptLoop() {
 					}
 				} else {
 					// in other cases, simply close it
-					tlsConn.Close()
+					xtlsConn.Close()
 					log.Error(common.NewError("tls handshake failed").Base(err))
 				}
 				return
 			}
 
 			log.Debug("tls connection from", conn.RemoteAddr())
-			state := tlsConn.ConnectionState()
-			log.Trace("tls handshake", tls.CipherSuiteName(state.CipherSuite), state.DidResume, state.NegotiatedProtocol)
+			state := xtlsConn.ConnectionState()
+			log.Trace("tls handshake", xtls.CipherSuiteName(state.CipherSuite), state.DidResume, state.NegotiatedProtocol)
 
 			// we use a real http header parser to mimic a real http server
-			rewindConn := common.NewRewindConn(tlsConn)
+			rewindConn := common.NewRewindConn(xtlsConn)
 			rewindConn.SetBufferSize(1024)
 			r := bufio.NewReader(rewindConn)
 			httpReq, err := http.ReadRequest(r)
@@ -227,7 +227,7 @@ func (s *Server) checkKeyPairLoop(checkRate time.Duration, keyPath string, certP
 				continue
 			}
 			s.keyPairLock.Lock()
-			s.keyPair = []tls.Certificate{*keyPair}
+			s.keyPair = []xtls.Certificate{*keyPair}
 			s.keyPairLock.Unlock()
 			lastKeyBytes = keyBytes
 			lastCertBytes = certBytes
@@ -244,7 +244,7 @@ func (s *Server) checkKeyPairLoop(checkRate time.Duration, keyPath string, certP
 	}
 }
 
-func loadKeyPair(keyPath string, certPath string, password string) (*tls.Certificate, error) {
+func loadKeyPair(keyPath string, certPath string, password string) (xtls.Certificate, error) {
 	if password != "" {
 		keyFile, err := ioutil.ReadFile(keyPath)
 		if err != nil {
@@ -265,7 +265,7 @@ func loadKeyPair(keyPath string, certPath string, password string) (*tls.Certifi
 			return nil, common.NewError("failed to decode cert file").Base(err)
 		}
 
-		keyPair, err := tls.X509KeyPair(certBlock.Bytes, decryptedKey)
+		keyPair, err := xtls.X509KeyPair(certBlock.Bytes, decryptedKey)
 		if err != nil {
 			return nil, err
 		}
@@ -276,7 +276,7 @@ func loadKeyPair(keyPath string, certPath string, password string) (*tls.Certifi
 
 		return &keyPair, nil
 	}
-	keyPair, err := tls.LoadX509KeyPair(certPath, keyPath)
+	keyPair, err := xtls.LoadX509KeyPair(certPath, keyPath)
 	if err != nil {
 		return nil, common.NewError("failed to load key pair").Base(err)
 	}
@@ -350,7 +350,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		connChan:           make(chan tunnel.Conn, 32),
 		wsChan:             make(chan tunnel.Conn, 32),
 		redir:              redirector.NewRedirector(ctx),
-		keyPair:            []tls.Certificate{*keyPair},
+		keyPair:            []xtls.Certificate{*keyPair},
 		keyLogger:          keyLogger,
 		cipherSuite:        cipherSuite,
 		ctx:                ctx,
