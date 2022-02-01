@@ -135,14 +135,14 @@ func (c *Client) DialConn(addr *tunnel.Address, overlay tunnel.Tunnel) (tunnel.C
 		flow := tlsClient.GetFlow()
 		xtlsConn := conn.(*transport.Conn).Conn.(*xtls.Conn)
 		switch flow {
-		case tls.XRD, tls.XRO, tls.XRD, tls.XRD + "-udp443", tls.XRO + "-udp443", tls.XRO + "-udp443":
+		case tls.XRD, tls.XRO, tls.XRS, tls.XRD + "-udp443", tls.XRO + "-udp443", tls.XRS + "-udp443":
 			xtlsConn.RPRX = true
 			newConn.metadata.Command = XOrigin
 			if flow == tls.XRD || flow == tls.XRD+"-udp443" {
 				xtlsConn.DirectMode = true
 				newConn.metadata.Command = XDirect
 			}
-			else flow == tls.XRD || flow == tls.XRD+"-udp443" {
+			else flow == tls.XRS || flow == tls.XRS+"-udp443" {
 				xtlsConn.DirectMode = true
 				newConn.metadata.Command = XSplice
 			}
@@ -168,9 +168,9 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	if tlsClient, ok := c.underlay.(*tls.Client); ok {
 		flow := tlsClient.GetFlow()
 		switch flow {
-		case tls.XRD, tls.XRO:
+		case tls.XRD, tls.XRO, tls XRS:
 			return nil, common.NewError("flow stopped UDP/4433")
-		case tls.XRD + "-udp443", tls.XRO + "-udp443", "":
+		case tls.XRD + "-udp443", tls.XRO + "-udp443", tls.XRS + "-udp443", "":
 		default:
 			return nil, common.NewError("trojan doesn't support this type of flow yet")
 		}
