@@ -195,9 +195,6 @@ func (s *Server) acceptLoop() {
 					if inboundConn.metadata.Command == XDirect {
 						xtlsConn.DirectMode = true
 					}
-					if inboundConn.metadata.Command == XSplice {
-						xtlsConn.DirectMode = true
-					}
 					s.connChan <- inboundConn
 				} else {
 					log.Error(common.NewError("failed to use xtls command, maybe \"security\" is not \"xtls\""))
