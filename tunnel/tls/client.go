@@ -84,7 +84,7 @@ func (c *Client) DialConn(_ *tunnel.Address, overlay tunnel.Tunnel) (tunnel.Conn
 	// use xtls if applicable
 	if c.flow != "" {
 		switch c.flow {
-		case XRD, XRO, XDS, XRD + "-udp443", XRO + "-udp443", XRS + "-udp443":
+		case XRD, XRO, XRS, XRD + "-udp443", XRO + "-udp443", XRS + "-udp443":
 			xtlsConn := xtls.Client(conn, &xtls.Config{
 				InsecureSkipVerify:     !c.verify,
 				ServerName:             c.sni,
