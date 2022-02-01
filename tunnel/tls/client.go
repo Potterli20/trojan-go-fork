@@ -17,6 +17,8 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"github.com/Potterli20/trojan-go-fork/tunnel/tls/fingerprint"
 	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
+
+	xtls "github.com/xtls/go"
 )
 
 const (
