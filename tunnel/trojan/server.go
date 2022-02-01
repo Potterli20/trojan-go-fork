@@ -189,7 +189,7 @@ func (s *Server) acceptLoop() {
 					Conn: inboundConn,
 				}
 				log.Debug("trojan udp connection")
-			case XDirect, XOrigin:
+			case XDirect, XOrigin, XSplice:
 				if _, ok := s.underlay.(*tls.Server); ok {
 					xtlsConn := conn.(*transport.Conn).Conn.(*common.RewindConn).Conn.(*xtls.Conn)
 					xtlsConn.RPRX = true
