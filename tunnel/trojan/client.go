@@ -142,7 +142,7 @@ func (c *Client) DialConn(addr *tunnel.Address, overlay tunnel.Tunnel) (tunnel.C
 				xtlsConn.DirectMode = true
 				newConn.metadata.Command = XDirect
 			}
-			else flow == tls.XRS || flow == tls.XRS+"-udp443" {
+			if flow == tls.XRS || flow == tls.XRS+"-udp443" {
 				xtlsConn.DirectMode = true
 				newConn.metadata.Command = XSplice
 			}
@@ -169,7 +169,7 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 		flow := tlsClient.GetFlow()
 		switch flow {
 		case tls.XRD, tls.XRO, tls XRS:
-			return nil, common.NewError("flow stopped UDP/4433")
+			return nil, common.NewError("flow stopped UDP/443")
 		case tls.XRD + "-udp443", tls.XRO + "-udp443", tls.XRS + "-udp443", "":
 		default:
 			return nil, common.NewError("trojan doesn't support this type of flow yet")
