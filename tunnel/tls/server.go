@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
 	"io"
@@ -24,7 +25,6 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel/tls/fingerprint"
 	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
 	"github.com/Potterli20/trojan-go-fork/tunnel/websocket"
-	xtls "github.com/xtls/go"
 )
 
 // Server is a tls server

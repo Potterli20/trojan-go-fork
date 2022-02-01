@@ -18,10 +18,8 @@ import (
 	"github.com/Potterli20/trojan-go-fork/statistic/mysql"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"github.com/Potterli20/trojan-go-fork/tunnel/mux"
-
 	"github.com/Potterli20/trojan-go-fork/tunnel/tls"
 	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
-	xtls "github.com/xtls/go"
 )
 
 var Auth statistic.Authenticator
