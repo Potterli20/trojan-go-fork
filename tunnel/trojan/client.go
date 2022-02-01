@@ -31,6 +31,7 @@ const (
 	Associate tunnel.Command = 3
 	XDirect   tunnel.Command = 0xf0
 	XOrigin   tunnel.Command = 0xf1
+	XSplice   tunnel.Command = 0xf2
 	Mux       tunnel.Command = 0x7f
 )
 
