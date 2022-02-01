@@ -227,8 +227,8 @@ func (s *Server) checkKeyPairLoop(checkRate time.Duration, keyPath string, certP
 				continue
 			}
 			s.keyPairLock.Lock()
-			s.keyPair = []xtls.Certificate{*keyPair}
 			s.keyPairLock.Unlock()
+			s.keyPair = []xtls.Certificate{*keyPair}
 			lastKeyBytes = keyBytes
 			lastCertBytes = certBytes
 		}
@@ -244,7 +244,7 @@ func (s *Server) checkKeyPairLoop(checkRate time.Duration, keyPath string, certP
 	}
 }
 
-func loadKeyPair(keyPath string, certPath string, password string) (xtls.Certificate, error) {
+func loadKeyPair(keyPath string, certPath string, password string) (*xtls.Certificate, error) {
 	if password != "" {
 		keyFile, err := ioutil.ReadFile(keyPath)
 		if err != nil {
