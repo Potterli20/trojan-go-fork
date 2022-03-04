@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	v2router "github.com/v2fly/v2ray-core/v4/app/router"
+	v2router "github.com/xtls/xray-core/app/router"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/common/geodata"
