@@ -3,7 +3,7 @@ package shadowsocks
 import (
 	"context"
 
-	"github.com/Shadowsocks-NET/outline-ss-server/shadowsocks"
+	"github.com/ClashDotNetFramework/go-shadowsocks2/core"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
