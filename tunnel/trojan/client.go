@@ -134,7 +134,8 @@ func (c *Client) DialConn(addr *tunnel.Address, overlay tunnel.Tunnel) (tunnel.C
 		flow := tlsClient.GetFlow()
 		xtlsConn := conn.(*transport.Conn).Conn.(*xtls.Conn)
 		switch flow {
-			case tls.XRD, tls.XRO, tls.XRS, tls.XRD + "-udp443", tls.XRO + "-udp443", tls.XRS + "-udp443":			xtlsConn.RPRX = true
+		case tls.XRD, tls.XRO, tls.XRS, tls.XRD + "-udp443", tls.XRO + "-udp443", tls.XRS + "-udp443":
+			xtlsConn.RPRX = true
 			newConn.metadata.Command = XOrigin
 			if flow == tls.XRD || flow == tls.XRD+"-udp443" {
 				xtlsConn.DirectMode = true

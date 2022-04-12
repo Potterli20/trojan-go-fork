@@ -19,18 +19,18 @@ const (
 )
 
 type Logger interface {
-	Fatal(v ...interface{})
-	Fatalf(format string, v ...interface{})
-	Error(v ...interface{})
-	Errorf(format string, v ...interface{})
-	Warn(v ...interface{})
-	Warnf(format string, v ...interface{})
-	Info(v ...interface{})
-	Infof(format string, v ...interface{})
-	Debug(v ...interface{})
-	Debugf(format string, v ...interface{})
-	Trace(v ...interface{})
-	Tracef(format string, v ...interface{})
+	Fatal(v ...any)
+	Fatalf(format string, v ...any)
+	Error(v ...any)
+	Errorf(format string, v ...any)
+	Warn(v ...any)
+	Warnf(format string, v ...any)
+	Info(v ...any)
+	Infof(format string, v ...any)
+	Debug(v ...any)
+	Debugf(format string, v ...any)
+	Trace(v ...any)
+	Tracef(format string, v ...any)
 	SetLogLevel(level LogLevel)
 	SetOutput(io.Writer)
 }
@@ -41,77 +41,77 @@ type EmptyLogger struct{}
 
 func (l *EmptyLogger) SetLogLevel(LogLevel) {}
 
-func (l *EmptyLogger) Fatal(v ...interface{}) { os.Exit(1) }
+func (l *EmptyLogger) Fatal(v ...any) { os.Exit(1) }
 
-func (l *EmptyLogger) Fatalf(format string, v ...interface{}) { os.Exit(1) }
+func (l *EmptyLogger) Fatalf(format string, v ...any) { os.Exit(1) }
 
-func (l *EmptyLogger) Error(v ...interface{}) {}
+func (l *EmptyLogger) Error(v ...any) {}
 
-func (l *EmptyLogger) Errorf(format string, v ...interface{}) {}
+func (l *EmptyLogger) Errorf(format string, v ...any) {}
 
-func (l *EmptyLogger) Warn(v ...interface{}) {}
+func (l *EmptyLogger) Warn(v ...any) {}
 
-func (l *EmptyLogger) Warnf(format string, v ...interface{}) {}
+func (l *EmptyLogger) Warnf(format string, v ...any) {}
 
-func (l *EmptyLogger) Info(v ...interface{}) {}
+func (l *EmptyLogger) Info(v ...any) {}
 
-func (l *EmptyLogger) Infof(format string, v ...interface{}) {}
+func (l *EmptyLogger) Infof(format string, v ...any) {}
 
-func (l *EmptyLogger) Debug(v ...interface{}) {}
+func (l *EmptyLogger) Debug(v ...any) {}
 
-func (l *EmptyLogger) Debugf(format string, v ...interface{}) {}
+func (l *EmptyLogger) Debugf(format string, v ...any) {}
 
-func (l *EmptyLogger) Trace(v ...interface{}) {}
+func (l *EmptyLogger) Trace(v ...any) {}
 
-func (l *EmptyLogger) Tracef(format string, v ...interface{}) {}
+func (l *EmptyLogger) Tracef(format string, v ...any) {}
 
 func (l *EmptyLogger) SetOutput(w io.Writer) {}
 
-func Error(v ...interface{}) {
+func Error(v ...any) {
 	logger.Error(v...)
 }
 
-func Errorf(format string, v ...interface{}) {
+func Errorf(format string, v ...any) {
 	logger.Errorf(format, v...)
 }
 
-func Warn(v ...interface{}) {
+func Warn(v ...any) {
 	logger.Warn(v...)
 }
 
-func Warnf(format string, v ...interface{}) {
+func Warnf(format string, v ...any) {
 	logger.Warnf(format, v...)
 }
 
-func Info(v ...interface{}) {
+func Info(v ...any) {
 	logger.Info(v...)
 }
 
-func Infof(format string, v ...interface{}) {
+func Infof(format string, v ...any) {
 	logger.Infof(format, v...)
 }
 
-func Debug(v ...interface{}) {
+func Debug(v ...any) {
 	logger.Debug(v...)
 }
 
-func Debugf(format string, v ...interface{}) {
+func Debugf(format string, v ...any) {
 	logger.Debugf(format, v...)
 }
 
-func Trace(v ...interface{}) {
+func Trace(v ...any) {
 	logger.Trace(v...)
 }
 
-func Tracef(format string, v ...interface{}) {
+func Tracef(format string, v ...any) {
 	logger.Tracef(format, v...)
 }
 
-func Fatal(v ...interface{}) {
+func Fatal(v ...any) {
 	logger.Fatal(v...)
 }
 
-func Fatalf(format string, v ...interface{}) {
+func Fatalf(format string, v ...any) {
 	logger.Fatalf(format, v...)
 }
 

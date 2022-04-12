@@ -10,7 +10,7 @@ import (
 var creators = make(map[string]Creator)
 
 // Creator creates default config struct for a module
-type Creator func() interface{}
+type Creator func() any
 
 // RegisterConfigCreator registers a config struct for parsing
 func RegisterConfigCreator(name string, creator Creator) {
@@ -18,8 +18,8 @@ func RegisterConfigCreator(name string, creator Creator) {
 	creators[name] = creator
 }
 
-func parseJSON(data []byte) (map[string]interface{}, error) {
-	result := make(map[string]interface{})
+func parseJSON(data []byte) (map[string]any, error) {
+	result := make(map[string]any)
 	for name, creator := range creators {
 		config := creator()
 		if err := json.Unmarshal(data, config); err != nil {
@@ -30,8 +30,8 @@ func parseJSON(data []byte) (map[string]interface{}, error) {
 	return result, nil
 }
 
-func parseYAML(data []byte) (map[string]interface{}, error) {
-	result := make(map[string]interface{})
+func parseYAML(data []byte) (map[string]any, error) {
+	result := make(map[string]any)
 	for name, creator := range creators {
 		config := creator()
 		if err := yaml.Unmarshal(data, config); err != nil {
@@ -43,7 +43,7 @@ func parseYAML(data []byte) (map[string]interface{}, error) {
 }
 
 func WithJSONConfig(ctx context.Context, data []byte) (context.Context, error) {
-	var configs map[string]interface{}
+	var configs map[string]any
 	var err error
 	configs, err = parseJSON(data)
 	if err != nil {
@@ -56,7 +56,7 @@ func WithJSONConfig(ctx context.Context, data []byte) (context.Context, error) {
 }
 
 func WithYAMLConfig(ctx context.Context, data []byte) (context.Context, error) {
-	var configs map[string]interface{}
+	var configs map[string]any
 	var err error
 	configs, err = parseYAML(data)
 	if err != nil {
@@ -68,12 +68,12 @@ func WithYAMLConfig(ctx context.Context, data []byte) (context.Context, error) {
 	return ctx, nil
 }
 
-func WithConfig(ctx context.Context, name string, cfg interface{}) context.Context {
+func WithConfig(ctx context.Context, name string, cfg any) context.Context {
 	name += "_CONFIG"
 	return context.WithValue(ctx, name, cfg)
 }
 
 // FromContext extracts config from a context
-func FromContext(ctx context.Context, name string) interface{} {
+func FromContext(ctx context.Context, name string) any {
 	return ctx.Value(name + "_CONFIG")
 }

@@ -19,7 +19,7 @@ type Config struct {
 }
 
 func init() {
-	config.RegisterConfigCreator(Name, func() interface{} {
+	config.RegisterConfigCreator(Name, func() any {
 		return &Config{
 			MySQL: MySQLConfig{
 				ServerPort: 3306,

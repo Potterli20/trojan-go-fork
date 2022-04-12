@@ -67,7 +67,7 @@ func Unsubscribe(uid string) {
 func broadcast(record Record) {
 	payload := record.Payload
 
-	subscribers.Range(func(uid, o interface{}) bool {
+	subscribers.Range(func(uid, o any) bool {
 		opt := o.(option)
 		if opt.transport != "" && opt.transport != record.Transport {
 			return true

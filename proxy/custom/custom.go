@@ -12,15 +12,15 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
-func convert(i interface{}) interface{} {
+func convert(i any) any {
 	switch x := i.(type) {
-	case map[interface{}]interface{}:
-		m2 := map[string]interface{}{}
+	case map[any]any:
+		m2 := map[string]any{}
 		for k, v := range x {
 			m2[k.(string)] = convert(v)
 		}
 		return m2
-	case []interface{}:
+	case []any:
 		for i, v := range x {
 			x[i] = convert(v)
 		}

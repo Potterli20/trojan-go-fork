@@ -25,7 +25,7 @@ func NewError(info string) *Error {
 	}
 }
 
-func NewErrorf(format string, a ...interface{}) *Error {
+func NewErrorf(format string, a ...any) *Error {
 	return NewError(fmt.Sprintf(format, a...))
 }
 
@@ -36,7 +36,7 @@ func Must(err error) {
 	}
 }
 
-func Must2(_ interface{}, err error) {
+func Must2(_ any, err error) {
 	if err != nil {
 		fmt.Println(err)
 		panic(err)

@@ -1,3 +1,4 @@
+//go:build linux
 // +build linux
 
 package tproxy
@@ -11,7 +12,7 @@ type Config struct {
 }
 
 func init() {
-	config.RegisterConfigCreator(Name, func() interface{} {
+	config.RegisterConfigCreator(Name, func() any {
 		return &Config{
 			UDPTimeout: 60,
 		}

@@ -14,9 +14,9 @@ require (
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/go v0.0.0-20210920065950-d4af136d3672
 	github.com/xtls/xray-core v1.5.4
-	golang.org/x/net v0.0.0-20220401154927-543a649e0bdd
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
-	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65
+	golang.org/x/net v0.0.0-20220412020605-290c469a71a5
+	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171
+	golang.org/x/time v0.0.0-20220411224347-583f2d630306
 	google.golang.org/grpc v1.45.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
@@ -47,10 +47,10 @@ require (
 	github.com/txthinking/runnergroup v0.0.0-20220212043759-8da8edb7dae8 // indirect
 	github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe // indirect
 	go.starlark.net v0.0.0-20220328144851-d1966c6b9fcd // indirect
-	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29 // indirect
-	golang.org/x/sys v0.0.0-20220330033206-e17cdc41300f // indirect
+	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
+	golang.org/x/sys v0.0.0-20220412015802-83041a38b14a // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/genproto v0.0.0-20220401170504-314d38edb7de // indirect
+	google.golang.org/genproto v0.0.0-20220407144326-9054f6ed7bac // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	lukechampine.com/blake3 v1.1.7 // indirect
 )

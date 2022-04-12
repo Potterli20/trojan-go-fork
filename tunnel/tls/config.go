@@ -37,7 +37,7 @@ type TLSConfig struct {
 }
 
 func init() {
-	config.RegisterConfigCreator(Name, func() interface{} {
+	config.RegisterConfigCreator(Name, func() any {
 		return &Config{
 			TLS: TLSConfig{
 				Verify:         true,

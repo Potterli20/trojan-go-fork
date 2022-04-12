@@ -295,7 +295,7 @@ func (l *Logger) Output(depth int, prefix Prefix, data string) error {
 }
 
 // Fatal print fatal message to output and quit the application with status 1
-func (l *Logger) Fatal(v ...interface{}) {
+func (l *Logger) Fatal(v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 4 {
 		l.Output(1, FatalPrefix, fmt.Sprintln(v...))
 	}
@@ -304,7 +304,7 @@ func (l *Logger) Fatal(v ...interface{}) {
 
 // Fatalf print formatted fatal message to output and quit the application
 // with status 1
-func (l *Logger) Fatalf(format string, v ...interface{}) {
+func (l *Logger) Fatalf(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 4 {
 		l.Output(1, FatalPrefix, fmt.Sprintf(format, v...))
 	}
@@ -312,70 +312,70 @@ func (l *Logger) Fatalf(format string, v ...interface{}) {
 }
 
 // Error print error message to output
-func (l *Logger) Error(v ...interface{}) {
+func (l *Logger) Error(v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 3 {
 		l.Output(1, ErrorPrefix, fmt.Sprintln(v...))
 	}
 }
 
 // Errorf print formatted error message to output
-func (l *Logger) Errorf(format string, v ...interface{}) {
+func (l *Logger) Errorf(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 3 {
 		l.Output(1, ErrorPrefix, fmt.Sprintf(format, v...))
 	}
 }
 
 // Warn print warning message to output
-func (l *Logger) Warn(v ...interface{}) {
+func (l *Logger) Warn(v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 2 {
 		l.Output(1, WarnPrefix, fmt.Sprintln(v...))
 	}
 }
 
 // Warnf print formatted warning message to output
-func (l *Logger) Warnf(format string, v ...interface{}) {
+func (l *Logger) Warnf(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 2 {
 		l.Output(1, WarnPrefix, fmt.Sprintf(format, v...))
 	}
 }
 
 // Info print informational message to output
-func (l *Logger) Info(v ...interface{}) {
+func (l *Logger) Info(v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 1 {
 		l.Output(1, InfoPrefix, fmt.Sprintln(v...))
 	}
 }
 
 // Infof print formatted informational message to output
-func (l *Logger) Infof(format string, v ...interface{}) {
+func (l *Logger) Infof(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 1 {
 		l.Output(1, InfoPrefix, fmt.Sprintf(format, v...))
 	}
 }
 
 // Debug print debug message to output if debug output enabled
-func (l *Logger) Debug(v ...interface{}) {
+func (l *Logger) Debug(v ...any) {
 	if atomic.LoadInt32(&l.logLevel) == 0 {
 		l.Output(1, DebugPrefix, fmt.Sprintln(v...))
 	}
 }
 
 // Debugf print formatted debug message to output if debug output enabled
-func (l *Logger) Debugf(format string, v ...interface{}) {
+func (l *Logger) Debugf(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) == 0 {
 		l.Output(1, DebugPrefix, fmt.Sprintf(format, v...))
 	}
 }
 
 // Trace print trace message to output if debug output enabled
-func (l *Logger) Trace(v ...interface{}) {
+func (l *Logger) Trace(v ...any) {
 	if atomic.LoadInt32(&l.logLevel) == 0 {
 		l.Output(1, TracePrefix, fmt.Sprintln(v...))
 	}
 }
 
 // Tracef print formatted trace message to output if debug output enabled
-func (l *Logger) Tracef(format string, v ...interface{}) {
+func (l *Logger) Tracef(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) == 0 {
 		l.Output(1, TracePrefix, fmt.Sprintf(format, v...))
 	}

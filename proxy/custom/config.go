@@ -5,9 +5,9 @@ import "github.com/Potterli20/trojan-go-fork/config"
 const Name = "CUSTOM"
 
 type NodeConfig struct {
-	Protocol string      `json:"protocol" yaml:"protocol"`
-	Tag      string      `json:"tag" yaml:"tag"`
-	Config   interface{} `json:"config" yaml:"config"`
+	Protocol string `json:"protocol" yaml:"protocol"`
+	Tag      string `json:"tag" yaml:"tag"`
+	Config   any    `json:"config" yaml:"config"`
 }
 
 type StackConfig struct {
@@ -21,7 +21,7 @@ type Config struct {
 }
 
 func init() {
-	config.RegisterConfigCreator(Name, func() interface{} {
+	config.RegisterConfigCreator(Name, func() any {
 		return new(Config)
 	})
 }

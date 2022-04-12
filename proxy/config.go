@@ -10,7 +10,7 @@ type Config struct {
 }
 
 func init() {
-	config.RegisterConfigCreator(Name, func() interface{} {
+	config.RegisterConfigCreator(Name, func() any {
 		return &Config{
 			LogLevel:        1,
 			RelayBufferSize: 4 * 1024,

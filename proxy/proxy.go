@@ -43,7 +43,7 @@ func (p *Proxy) Close() error {
 
 func (p *Proxy) relayConnLoop() {
 	bufPool := sync.Pool{
-		New: func() interface{} {
+		New: func() any {
 			return make([]byte, p.relayBufferSize)
 		},
 	}
@@ -98,7 +98,7 @@ func (p *Proxy) relayConnLoop() {
 
 func (p *Proxy) relayPacketLoop() {
 	bufPool := sync.Pool{
-		New: func() interface{} {
+		New: func() any {
 			return make([]byte, p.relayBufferSize)
 		},
 	}

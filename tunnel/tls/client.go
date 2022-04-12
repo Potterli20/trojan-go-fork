@@ -27,7 +27,7 @@ const (
 	// XRO is constant for XTLS origin mode
 	XRO = "xtls-rprx-origin"
 	// XRS is constant for XTLS splice mode
- 	XRS = "xtls-rprx-splice"
+	XRS = "xtls-rprx-splice"
 )
 
 // Client is a tls client

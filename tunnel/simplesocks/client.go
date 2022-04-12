@@ -23,7 +23,7 @@ func (c *Client) DialConn(addr *tunnel.Address, t tunnel.Tunnel) (tunnel.Conn, e
 	if err != nil {
 		return nil, common.NewError("simplesocks failed to dial using underlying tunnel").Base(err)
 	}
-	simplesocks :=  &Conn{
+	simplesocks := &Conn{
 		Conn:       conn,
 		isOutbound: true,
 		metadata: &tunnel.Metadata{

@@ -18,7 +18,7 @@ type TestStruct struct {
 	Field3 []Foo  `json,yaml:"field3"`
 }
 
-func creator() interface{} {
+func creator() any {
 	return &TestStruct{}
 }
 

@@ -11,7 +11,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/google/uuid"
 	"github.com/Potterli20/trojan-go-fork/api"
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -19,6 +18,7 @@ import (
 	"github.com/Potterli20/trojan-go-fork/recorder"
 	"github.com/Potterli20/trojan-go-fork/statistic"
 	"github.com/Potterli20/trojan-go-fork/tunnel/trojan"
+	"github.com/google/uuid"
 )
 
 type ServerAPI struct {

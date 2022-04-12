@@ -15,7 +15,7 @@ type Config struct {
 }
 
 func init() {
-	config.RegisterConfigCreator(Name, func() interface{} {
+	config.RegisterConfigCreator(Name, func() any {
 		return &Config{
 			Shadowsocks: ShadowsocksConfig{
 				Method: "AES-128-GCM",

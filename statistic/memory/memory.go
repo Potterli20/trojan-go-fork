@@ -250,7 +250,7 @@ func (a *Authenticator) DelUser(hash string) error {
 
 func (a *Authenticator) ListUsers() []statistic.User {
 	result := make([]statistic.User, 0)
-	a.users.Range(func(k, v interface{}) bool {
+	a.users.Range(func(k, v any) bool {
 		result = append(result, v.(*User))
 		return true
 	})

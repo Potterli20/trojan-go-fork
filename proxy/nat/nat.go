@@ -1,3 +1,4 @@
+//go:build linux
 // +build linux
 
 package nat
@@ -39,7 +40,7 @@ func init() {
 }
 
 func init() {
-	config.RegisterConfigCreator(Name, func() interface{} {
+	config.RegisterConfigCreator(Name, func() any {
 		return new(client.Config)
 	})
 }

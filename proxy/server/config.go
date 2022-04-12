@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-		config.RegisterConfigCreator(Name, func() interface{} {
-			return new(client.Config)
-		})
+	config.RegisterConfigCreator(Name, func() any {
+		return new(client.Config)
+	})
 }

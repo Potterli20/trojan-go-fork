@@ -21,7 +21,7 @@ type RouterConfig struct {
 }
 
 func init() {
-	config.RegisterConfigCreator(Name, func() interface{} {
+	config.RegisterConfigCreator(Name, func() any {
 		cfg := &Config{
 			Router: RouterConfig{
 				DefaultPolicy:   "proxy",
