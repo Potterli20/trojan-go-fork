@@ -21,4 +21,4 @@ build/
 *.crt
 *.key
 *.dat
-trojan-go.*
+trojan-go-*
