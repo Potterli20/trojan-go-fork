@@ -13,11 +13,11 @@ require (
 	github.com/v2fly/v2ray-core/v4 v4.44.0
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/go v0.0.0-20210920065950-d4af136d3672
-	github.com/xtls/xray-core v1.5.4
+	github.com/xtls/xray-core v1.5.5
 	golang.org/x/net v0.0.0-20220421235706-1d1ef9303861
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306
-	google.golang.org/grpc v1.45.0
+	google.golang.org/grpc v1.46.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	gorm.io/driver/sqlite v1.3.1
@@ -50,7 +50,7 @@ require (
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/sys v0.0.0-20220422013727-9388b58f7150 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/genproto v0.0.0-20220421151946-72621c1f0bd3 // indirect
+	google.golang.org/genproto v0.0.0-20220422154200-b37d22cd5731 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
 	lukechampine.com/blake3 v1.1.7 // indirect
 )
