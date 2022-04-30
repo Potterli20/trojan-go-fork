@@ -1,4 +1,4 @@
-name: Crawl blocked domains and ips from Greatfire Analyzer
+name: make-release
 on:
   workflow_dispatch:
   schedule:
