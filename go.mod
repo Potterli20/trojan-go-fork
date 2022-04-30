@@ -6,7 +6,7 @@ require (
 	github.com/ClashDotNetFramework/go-shadowsocks2 v0.1.8
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
-	github.com/refraction-networking/utls v1.0.0
+	github.com/refraction-networking/utls v1.1.0
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.7.1
 	github.com/txthinking/socks5 v0.0.0-20220212043548-414499347d4a
