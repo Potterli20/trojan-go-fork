@@ -2,7 +2,7 @@ name: make-release
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 20 * * *"
+    - cron: "0 20 * *  1"
 jobs:
   crawl:
     runs-on: ubuntu-latest
