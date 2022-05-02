@@ -10,7 +10,7 @@ require (
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.7.1
 	github.com/txthinking/socks5 v0.0.0-20220212043548-414499347d4a
-	github.com/v2fly/v2ray-core/v4 v4.44.0
+	github.com/v2fly/v2ray-core/v4 v4.45.0
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/go v0.0.0-20210920065950-d4af136d3672
 	github.com/xtls/xray-core v1.5.5
