@@ -24,17 +24,15 @@ jobs:
       - name: Get project dependencies & run
         run: |
           make release -j$(nproc)
-          
-      - name: Git push assets to "release" branch
-        run: |
-          git init
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git gc 
-          git add trojan-go-*.zip
-          git commit -m "${{ env.RELEASE_NAME }}"
-          git remote add publish "https://${{ github.actor }}:${{ secrets.GITHUBTOKEN }}@github.com/${{ github.repository }}"
-          git push -f -u publish release
+
+      - name: Release
+        uses: svenstaro/upload-release-action@master
+        with:
+          repo_token: ${{ secrets.GITHUBTOKEN }}
+          tag: ${{ env.TAG_NAME }}
+          file: ./trojan-go-*.zip
+          file_glob: true
+          prerelease: true
           
     # 删除无用 workflow runs;
       - name: Delete workflow runs
