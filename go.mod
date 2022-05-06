@@ -10,7 +10,7 @@ require (
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.7.1
 	github.com/txthinking/socks5 v0.0.0-20220212043548-414499347d4a
-	github.com/v2fly/v2ray-core/v4 v4.45.0
+	github.com/v2fly/v2ray-core/v5 v5.0.6
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/go v0.0.0-20210920065950-d4af136d3672
 	github.com/xtls/xray-core v1.5.5
@@ -32,6 +32,7 @@ require (
 	github.com/dgryski/go-rc2 v0.0.0-20150621095337-8a9021637152 // indirect
 	github.com/geeksbaek/seed v0.0.0-20180909040025-2a7f5fb92e22 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20220104163920-15ed2e8cf2bd // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
