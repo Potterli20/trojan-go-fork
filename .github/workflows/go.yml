@@ -29,8 +29,8 @@ jobs:
           git gc
           git add .
           git commit -m "$(date +' %j date %c')"
-          git remote add origin  "https://${{ github.actor }}:${{ secrets.GITHUBTOKEN }}@github.com/${{ github.repository }}"
-          git push -f -u origin master
+          git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUBTOKEN }}@github.com/${{ github.repository }}"
+          git push -f -u
           
     # 删除无用 workflow runs;
       - name: Delete workflow runs
