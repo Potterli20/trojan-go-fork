@@ -2,6 +2,7 @@ run:
   timeout: 5m
   skip-files:
     - \.pb\.go$
+  go: '1.18'
 
 issues:
   new: true
