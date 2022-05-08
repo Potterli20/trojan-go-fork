@@ -26,8 +26,8 @@ jobs:
           git init
           git config --local user.name "github-actions[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git gc
-          git add .
+          git gc -aggressive
+          git add --all
           git commit -m "$(date +' %j date %c')"
           git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUBTOKEN }}@github.com/${{ github.repository }}"
           git push -f -u
