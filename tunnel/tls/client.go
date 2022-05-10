@@ -130,9 +130,9 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	if cfg.TLS.Fingerprint != "" {
 		switch cfg.TLS.Fingerprint {
 		case "firefox":
-			helloID = utls.HelloFirefox_100
+			helloID = utls.HelloFirefox_Auto
 		case "chrome":
-			helloID = utls.HelloChrome_100
+			helloID = utls.HelloChrome_Auto
 		case "ios":
 			helloID = utls.HelloIOS_Auto
 		default:
