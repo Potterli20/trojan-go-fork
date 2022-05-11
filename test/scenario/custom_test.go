@@ -298,3 +298,7 @@ outbound:
 		t.Fail()
 	}
 }
+
+func CheckClientServer(clientData, serverData string, socksPort int) {
+	panic("unimplemented")
+}

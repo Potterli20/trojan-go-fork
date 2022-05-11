@@ -18,9 +18,6 @@ import (
 	"github.com/Potterli20/trojan-go-fork/statistic/mysql"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"github.com/Potterli20/trojan-go-fork/tunnel/mux"
-	"github.com/Potterli20/trojan-go-fork/tunnel/tls"
-	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
-	xtls "github.com/xtls/go"
 )
 
 var Auth statistic.Authenticator
@@ -188,20 +185,6 @@ func (s *Server) acceptLoop() {
 					Conn: inboundConn,
 				}
 				log.Debug("trojan udp connection")
-			case XDirect, XOrigin, XSplice:
-				if _, ok := s.underlay.(*tls.Server); ok {
-					xtlsConn := conn.(*transport.Conn).Conn.(*common.RewindConn).Conn.(*xtls.Conn)
-					xtlsConn.RPRX = true
-					if inboundConn.metadata.Command == XDirect {
-						xtlsConn.DirectMode = true
-					}
-					if inboundConn.metadata.Command == XSplice {
-						xtlsConn.DirectMode = true
-					}
-					s.connChan <- inboundConn
-				} else {
-					log.Error(common.NewError("failed to use xtls command, maybe \"security\" is not \"xtls\""))
-				}
 			case Mux:
 				s.muxChan <- inboundConn
 				log.Debug("mux connection")
