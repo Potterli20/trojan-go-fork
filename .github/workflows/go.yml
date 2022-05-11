@@ -18,8 +18,8 @@ jobs:
       - name: go
         run: |
           go mod tidy -compat=1.18
-          go mod download
           go get -u
+          go mod download
 
       - name: Git push 
         run: |
