@@ -38,7 +38,7 @@ KnkNNFtbgo96
 -----END CERTIFICATE-----
 `
 
-var key string = `
+var rsa2048Key string = `
 -----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCtu+FX0nKcVlX9
 VJaqZ/JGNNHJwdtXw40q/reUhxAvJM4ou7NFr4KBkSyhjdHu6JOVH73Or3YJdCwj
