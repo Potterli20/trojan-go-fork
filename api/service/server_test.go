@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -158,7 +158,7 @@ func TestServerAPI(t *testing.T) {
 	cancel()
 }
 
-func TestTLS(t *testing.T) {
+func TestTLSRSA(t *testing.T) {
 	port := common.PickPort("tcp", "127.0.0.1")
 	cfg := &Config{
 		API: APIConfig{
@@ -167,10 +167,10 @@ func TestTLS(t *testing.T) {
 			APIPort: port,
 			SSL: SSLConfig{
 				Enabled:        true,
-				CertPath:       "server.crt",
-				KeyPath:        "server.key",
+				CertPath:       "server-rsa2048.crt",
+				KeyPath:        "server-rsa2048.key",
 				VerifyClient:   false,
-				ClientCertPath: []string{"client.crt"},
+				ClientCertPath: []string{"client-rsa2048.crt"},
 			},
 		},
 	}
@@ -188,11 +188,11 @@ func TestTLS(t *testing.T) {
 	}()
 	time.Sleep(time.Second)
 	pool := x509.NewCertPool()
-	certBytes, err := ioutil.ReadFile("server.crt")
+	certBytes, err := os.ReadFile("server-rsa2048.crt")
 	common.Must(err)
 	pool.AppendCertsFromPEM(certBytes)
 
-	certificate, err := tls.LoadX509KeyPair("client.crt", "client.key")
+	certificate, err := tls.LoadX509KeyPair("client-rsa2048.crt", "client-rsa2048.key")
 	common.Must(err)
 	creds := credentials.NewTLS(&tls.Config{
 		ServerName:   "localhost",
@@ -208,7 +208,57 @@ func TestTLS(t *testing.T) {
 	conn.Close()
 }
 
-var serverCert = `
+func TestTLSECC(t *testing.T) {
+	port := common.PickPort("tcp", "127.0.0.1")
+	cfg := &Config{
+		API: APIConfig{
+			Enabled: true,
+			APIHost: "127.0.0.1",
+			APIPort: port,
+			SSL: SSLConfig{
+				Enabled:        true,
+				CertPath:       "server-ecc.crt",
+				KeyPath:        "server-ecc.key",
+				VerifyClient:   false,
+				ClientCertPath: []string{"client-ecc.crt"},
+			},
+		},
+	}
+
+	ctx := config.WithConfig(context.Background(), Name, cfg)
+	ctx = config.WithConfig(ctx, memory.Name,
+		&memory.Config{
+			Passwords: []string{},
+		})
+
+	auth, err := memory.NewAuthenticator(ctx)
+	common.Must(err)
+	go func() {
+		common.Must(RunServerAPI(ctx, auth))
+	}()
+	time.Sleep(time.Second)
+	pool := x509.NewCertPool()
+	certBytes, err := os.ReadFile("server-ecc.crt")
+	common.Must(err)
+	pool.AppendCertsFromPEM(certBytes)
+
+	certificate, err := tls.LoadX509KeyPair("client-ecc.crt", "client-ecc.key")
+	common.Must(err)
+	creds := credentials.NewTLS(&tls.Config{
+		ServerName:   "localhost",
+		RootCAs:      pool,
+		Certificates: []tls.Certificate{certificate},
+	})
+	conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(creds))
+	common.Must(err)
+	server := NewTrojanServerServiceClient(conn)
+	stream, err := server.ListUsers(ctx, &ListUsersRequest{})
+	common.Must(err)
+	stream.CloseSend()
+	conn.Close()
+}
+
+var serverRSA2048Cert = `
 -----BEGIN CERTIFICATE-----
 MIIDZTCCAk2gAwIBAgIQBIBNupbq+KyHd0S1pzXEQDANBgkqhkiG9w0BAQsFADAR
 MQ8wDQYDVQQDDAZmcmVnaWUwIBcNMjExMDE1MDI0NjU5WhgPMjEyMTA5MjEwMjQ2
@@ -232,7 +282,7 @@ KnkNNFtbgo96
 -----END CERTIFICATE-----
 `
 
-var serverKey = `
+var serverRSA2048Key = `
 -----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCtu+FX0nKcVlX9
 VJaqZ/JGNNHJwdtXw40q/reUhxAvJM4ou7NFr4KBkSyhjdHu6JOVH73Or3YJdCwj
@@ -263,7 +313,28 @@ xiGQ1YfbqPMbovNUt1m0Es8=
 -----END PRIVATE KEY-----
 `
 
-var clientKey = `
+var clientRSA2048Cert = `
+-----BEGIN CERTIFICATE-----
+MIIC5TCCAc2gAwIBAgIJAKD1wSl+Mnk7MA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNV
+BAMMCWxvY2FsaG9zdDAeFw0yMTA5MTQwNjE2MDBaFw0yNjA5MTMwNjE2MDBaMBQx
+EjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
+ggEBAJeDu630louuf2V4sw396cGiAnxmTseVRMG+m3PnZ831puAsApm3IWSEcOqI
+UMk6s1pgSLysg6GxRZhX4L/ljErjMO4+y8riZjqqR0wd0GnhuNxuXaSUsEmKdDZb
+cICqXkZeZRn4jw/7L0xgdAdM2w3LXR6aq6CwveFY3/JncEZFQHH5mnorZdpbheR6
+rhvIL6AAI0YEY9uzuQBSrzOml3f7D+x5Xll14HoMN0kCysWt8jSP/An5yP8pL5RO
+pn5kNBc8Bx8lykuV1uS8ogncSM7JzmpP1SeAViOq8CqXlJtUbUqVPckMmdfMMtbI
+qIO7R5/8imrdhLMi25fAOnfmDzcCAwEAAaM6MDgwFAYDVR0RBA0wC4IJbG9jYWxo
+b3N0MAsGA1UdDwQEAwIHgDATBgNVHSUEDDAKBggrBgEFBQcDATANBgkqhkiG9w0B
+AQsFAAOCAQEAFu2QPE3x1Sm3SfnHzAhvdjviYkbWvM8rQziIlIevbvA9Nl+vxDBf
+N5aRR6Hpxq02J2G/w7tzrKB9IluWdMU1+tilph5bCnwx3QUh/GR4oTsFiTvTZ5br
+SNf3xfTyIsL+Hf6iLvEgSt15ziY/334wu9NmQrU0FNZ+Lcc7Mx0OgvuP9Zim+6oo
+/FW80R3pUSzUZcUQgsI4Sz7/6nJTxhsc+kqtnOXIQLPC9GA06kP8eN6XjTsavP7f
+eZq/yozddOk0dqx8uwmKUOb1Rg+pS8VIhQBRv3UPb4L/07AWSTZSMZLf1+CMgzMY
+Jtsxa1MLqPkB7fiAR6SFUFW7Q36gDp/Mdw==
+-----END CERTIFICATE-----
+`
+
+var clientRSA2048Key = `
 -----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDSuMxahZt4QeSn
 CwDbi0J2rGiI68IJn905TjgVOeZigt1b80CZI59/g4hTV2eOcPxF+rtU29EFvrcK
@@ -294,7 +365,33 @@ kDzS1fnKn+jNfFEsew02CbE=
 -----END PRIVATE KEY-----
 `
 
-var clientCert = `
+var serverECCCert = `
+-----BEGIN CERTIFICATE-----
+MIICTDCCAfKgAwIBAgIQDtCrO8cNST2eY2tA/AGrsDAKBggqhkjOPQQDAjBeMQsw
+CQYDVQQGEwJDTjEOMAwGA1UEChMFTXlTU0wxKzApBgNVBAsTIk15U1NMIFRlc3Qg
+RUNDIC0gRm9yIHRlc3QgdXNlIG9ubHkxEjAQBgNVBAMTCU15U1NMLmNvbTAeFw0y
+MTA5MTQwNjQ1MzNaFw0yNjA5MTMwNjQ1MzNaMCExCzAJBgNVBAYTAkNOMRIwEAYD
+VQQDEwlsb2NhbGhvc3QwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASvYy/r7XR1
+Y39lC2JpRJh582zR2CTNynbuolK9a1jsbXaZv+hpBlHkgzMHsWu7LY9Pnb/Dbp4i
+1lRASOddD/rLo4HOMIHLMA4GA1UdDwEB/wQEAwIFoDAdBgNVHSUEFjAUBggrBgEF
+BQcDAQYIKwYBBQUHAwIwHwYDVR0jBBgwFoAUWxGyVxD0fBhTy3tH4eKznRFXFCYw
+YwYIKwYBBQUHAQEEVzBVMCEGCCsGAQUFBzABhhVodHRwOi8vb2NzcC5teXNzbC5j
+b20wMAYIKwYBBQUHMAKGJGh0dHA6Ly9jYS5teXNzbC5jb20vbXlzc2x0ZXN0ZWNj
+LmNydDAUBgNVHREEDTALgglsb2NhbGhvc3QwCgYIKoZIzj0EAwIDSAAwRQIgDQUa
+GEdmKstLMHUmmPMGm/P9S4vvSZV2VHsb3+AEyIUCIQCdJpbyTCz+mEyskhwrGOw/
+blh3WBONv6MBtqPpmgE1AQ==
+-----END CERTIFICATE-----
+`
+
+var serverECCKey = `
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIB8G2suYKuBLoodNIwRMp3JPN1fcZxCt3kcOYIx4nbcPoAoGCCqGSM49
+AwEHoUQDQgAEr2Mv6+10dWN/ZQtiaUSYefNs0dgkzcp27qJSvWtY7G12mb/oaQZR
+5IMzB7Fruy2PT52/w26eItZUQEjnXQ/6yw==
+-----END EC PRIVATE KEY-----
+`
+
+var clientECCCert = `
 -----BEGIN CERTIFICATE-----
 MIIDUTCCAjmgAwIBAgIQQaKDB58uncpXiosDdR9roTANBgkqhkiG9w0BAQsFADAR
 MQ8wDQYDVQQDDAZmcmVnaWUwHhcNMjExMDE1MDI1MzMwWhcNMjQwOTI5MDI1MzMw
@@ -318,8 +415,13 @@ OhJo6IZuhOPHL/xzbaDEzkXur3dJRG1CsVaP/W9AR5kNNHWPqw==
 `
 
 func init() {
-	ioutil.WriteFile("server.crt", []byte(serverCert), 0o777)
-	ioutil.WriteFile("server.key", []byte(serverKey), 0o777)
-	ioutil.WriteFile("client.crt", []byte(clientCert), 0o777)
-	ioutil.WriteFile("client.key", []byte(clientKey), 0o777)
+	os.WriteFile("server-rsa2048.crt", []byte(serverRSA2048Cert), 0o777)
+	os.WriteFile("server-rsa2048.key", []byte(serverRSA2048Key), 0o777)
+	os.WriteFile("client-rsa2048.crt", []byte(clientRSA2048Cert), 0o777)
+	os.WriteFile("client-rsa2048.key", []byte(clientRSA2048Key), 0o777)
+
+	os.WriteFile("server-ecc.crt", []byte(serverECCCert), 0o777)
+	os.WriteFile("server-ecc.key", []byte(serverECCKey), 0o777)
+	os.WriteFile("client-ecc.crt", []byte(clientECCCert), 0o777)
+	os.WriteFile("client-ecc.key", []byte(clientECCKey), 0o777)
 }

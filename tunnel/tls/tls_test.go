@@ -2,8 +2,8 @@ package tls
 
 import (
 	"context"
-	"io/ioutil"
 	"net"
+	"os"
 	"sync"
 	"testing"
 
@@ -14,7 +14,7 @@ import (
 	"github.com/p4gefau1t/trojan-go/tunnel/transport"
 )
 
-var cert string = `
+var rsa2048Cert = `
 -----BEGIN CERTIFICATE-----
 MIIDZTCCAk2gAwIBAgIQBIBNupbq+KyHd0S1pzXEQDANBgkqhkiG9w0BAQsFADAR
 MQ8wDQYDVQQDDAZmcmVnaWUwIBcNMjExMDE1MDI0NjU5WhgPMjEyMTA5MjEwMjQ2
@@ -69,15 +69,41 @@ xiGQ1YfbqPMbovNUt1m0Es8=
 -----END PRIVATE KEY-----
 `
 
-func TestDefaultTLS(t *testing.T) {
-	ioutil.WriteFile("server.crt", []byte(cert), 0o777)
-	ioutil.WriteFile("server.key", []byte(key), 0o777)
+var eccCert = `
+-----BEGIN CERTIFICATE-----
+MIICTDCCAfKgAwIBAgIQDtCrO8cNST2eY2tA/AGrsDAKBggqhkjOPQQDAjBeMQsw
+CQYDVQQGEwJDTjEOMAwGA1UEChMFTXlTU0wxKzApBgNVBAsTIk15U1NMIFRlc3Qg
+RUNDIC0gRm9yIHRlc3QgdXNlIG9ubHkxEjAQBgNVBAMTCU15U1NMLmNvbTAeFw0y
+MTA5MTQwNjQ1MzNaFw0yNjA5MTMwNjQ1MzNaMCExCzAJBgNVBAYTAkNOMRIwEAYD
+VQQDEwlsb2NhbGhvc3QwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASvYy/r7XR1
+Y39lC2JpRJh582zR2CTNynbuolK9a1jsbXaZv+hpBlHkgzMHsWu7LY9Pnb/Dbp4i
+1lRASOddD/rLo4HOMIHLMA4GA1UdDwEB/wQEAwIFoDAdBgNVHSUEFjAUBggrBgEF
+BQcDAQYIKwYBBQUHAwIwHwYDVR0jBBgwFoAUWxGyVxD0fBhTy3tH4eKznRFXFCYw
+YwYIKwYBBQUHAQEEVzBVMCEGCCsGAQUFBzABhhVodHRwOi8vb2NzcC5teXNzbC5j
+b20wMAYIKwYBBQUHMAKGJGh0dHA6Ly9jYS5teXNzbC5jb20vbXlzc2x0ZXN0ZWNj
+LmNydDAUBgNVHREEDTALgglsb2NhbGhvc3QwCgYIKoZIzj0EAwIDSAAwRQIgDQUa
+GEdmKstLMHUmmPMGm/P9S4vvSZV2VHsb3+AEyIUCIQCdJpbyTCz+mEyskhwrGOw/
+blh3WBONv6MBtqPpmgE1AQ==
+-----END CERTIFICATE-----
+`
+
+var eccKey = `
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIB8G2suYKuBLoodNIwRMp3JPN1fcZxCt3kcOYIx4nbcPoAoGCCqGSM49
+AwEHoUQDQgAEr2Mv6+10dWN/ZQtiaUSYefNs0dgkzcp27qJSvWtY7G12mb/oaQZR
+5IMzB7Fruy2PT52/w26eItZUQEjnXQ/6yw==
+-----END EC PRIVATE KEY-----
+`
+
+func TestDefaultTLSRSA2048(t *testing.T) {
+	os.WriteFile("server-rsa2048.crt", []byte(rsa2048Cert), 0o777)
+	os.WriteFile("server-rsa2048.key", []byte(rsa2048Key), 0o777)
 	serverCfg := &Config{
 		TLS: TLSConfig{
 			VerifyHostName: true,
 			CertCheckRate:  1,
-			KeyPath:        "server.key",
-			CertPath:       "server.crt",
+			KeyPath:        "server-rsa2048.key",
+			CertPath:       "server-rsa2048.crt",
 		},
 	}
 	clientCfg := &Config{
@@ -131,9 +157,71 @@ func TestDefaultTLS(t *testing.T) {
 	conn2.Close()
 }
 
-func TestUTLS(t *testing.T) {
-	ioutil.WriteFile("server.crt", []byte(cert), 0o777)
-	ioutil.WriteFile("server.key", []byte(key), 0o777)
+func TestDefaultTLSECC(t *testing.T) {
+	os.WriteFile("server-ecc.crt", []byte(eccCert), 0o777)
+	os.WriteFile("server-ecc.key", []byte(eccKey), 0o777)
+	serverCfg := &Config{
+		TLS: TLSConfig{
+			VerifyHostName: true,
+			CertCheckRate:  1,
+			KeyPath:        "server-ecc.key",
+			CertPath:       "server-ecc.crt",
+		},
+	}
+	clientCfg := &Config{
+		TLS: TLSConfig{
+			Verify:      false,
+			SNI:         "localhost",
+			Fingerprint: "",
+		},
+	}
+	sctx := config.WithConfig(context.Background(), Name, serverCfg)
+	cctx := config.WithConfig(context.Background(), Name, clientCfg)
+
+	port := common.PickPort("tcp", "127.0.0.1")
+	transportConfig := &transport.Config{
+		LocalHost:  "127.0.0.1",
+		LocalPort:  port,
+		RemoteHost: "127.0.0.1",
+		RemotePort: port,
+	}
+	ctx := config.WithConfig(context.Background(), transport.Name, transportConfig)
+	ctx = config.WithConfig(ctx, freedom.Name, &freedom.Config{})
+	tcpClient, err := transport.NewClient(ctx, nil)
+	common.Must(err)
+	tcpServer, err := transport.NewServer(ctx, nil)
+	common.Must(err)
+	common.Must(err)
+	s, err := NewServer(sctx, tcpServer)
+	common.Must(err)
+	c, err := NewClient(cctx, tcpClient)
+	common.Must(err)
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	var conn1, conn2 net.Conn
+	go func() {
+		conn2, err = s.AcceptConn(nil)
+		common.Must(err)
+		wg.Done()
+	}()
+	conn1, err = c.DialConn(nil, nil)
+	common.Must(err)
+
+	common.Must2(conn1.Write([]byte("12345678\r\n")))
+	wg.Wait()
+	buf := [10]byte{}
+	conn2.Read(buf[:])
+	if !util.CheckConn(conn1, conn2) {
+		t.Fail()
+	}
+	conn1.Close()
+	conn2.Close()
+}
+
+func TestUTLSRSA2048(t *testing.T) {
+	os.WriteFile("server-rsa2048.crt", []byte(rsa2048Cert), 0o777)
+	os.WriteFile("server-rsa2048.key", []byte(rsa2048Key), 0o777)
 	fingerprints := []string{
 		"chrome",
 		"firefox",
@@ -143,8 +231,78 @@ func TestUTLS(t *testing.T) {
 		serverCfg := &Config{
 			TLS: TLSConfig{
 				CertCheckRate: 1,
-				KeyPath:       "server.key",
-				CertPath:      "server.crt",
+				KeyPath:       "server-rsa2048.key",
+				CertPath:      "server-rsa2048.crt",
+			},
+		}
+		clientCfg := &Config{
+			TLS: TLSConfig{
+				Verify:      false,
+				SNI:         "localhost",
+				Fingerprint: s,
+			},
+		}
+		sctx := config.WithConfig(context.Background(), Name, serverCfg)
+		cctx := config.WithConfig(context.Background(), Name, clientCfg)
+
+		port := common.PickPort("tcp", "127.0.0.1")
+		transportConfig := &transport.Config{
+			LocalHost:  "127.0.0.1",
+			LocalPort:  port,
+			RemoteHost: "127.0.0.1",
+			RemotePort: port,
+		}
+		ctx := config.WithConfig(context.Background(), transport.Name, transportConfig)
+		ctx = config.WithConfig(ctx, freedom.Name, &freedom.Config{})
+		tcpClient, err := transport.NewClient(ctx, nil)
+		common.Must(err)
+		tcpServer, err := transport.NewServer(ctx, nil)
+		common.Must(err)
+
+		s, err := NewServer(sctx, tcpServer)
+		common.Must(err)
+		c, err := NewClient(cctx, tcpClient)
+		common.Must(err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		var conn1, conn2 net.Conn
+		go func() {
+			conn2, err = s.AcceptConn(nil)
+			common.Must(err)
+			wg.Done()
+		}()
+		conn1, err = c.DialConn(nil, nil)
+		common.Must(err)
+
+		common.Must2(conn1.Write([]byte("12345678\r\n")))
+		wg.Wait()
+		buf := [10]byte{}
+		conn2.Read(buf[:])
+		if !util.CheckConn(conn1, conn2) {
+			t.Fail()
+		}
+		conn1.Close()
+		conn2.Close()
+		s.Close()
+		c.Close()
+	}
+}
+
+func TestUTLSECC(t *testing.T) {
+	os.WriteFile("server-ecc.crt", []byte(eccCert), 0o777)
+	os.WriteFile("server-ecc.key", []byte(eccKey), 0o777)
+	fingerprints := []string{
+		"chrome",
+		"firefox",
+		"ios",
+	}
+	for _, s := range fingerprints {
+		serverCfg := &Config{
+			TLS: TLSConfig{
+				CertCheckRate: 1,
+				KeyPath:       "server-ecc.key",
+				CertPath:      "server-ecc.crt",
 			},
 		}
 		clientCfg := &Config{
