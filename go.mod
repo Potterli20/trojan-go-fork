@@ -19,7 +19,6 @@ require (
 	google.golang.org/grpc v1.40.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
-	gorm.io/driver/sqlite v1.1.4
 	gorm.io/gorm v1.21.10
 )
 
@@ -30,7 +29,6 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
-	github.com/mattn/go-sqlite3 v1.14.6 // indirect
 	github.com/pires/go-proxyproto v0.6.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
@@ -42,8 +40,9 @@ require (
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 )
 
+require github.com/cloudquery/sqlite v1.0.1
+
 require (
-	github.com/cloudquery/sqlite v1.0.1 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20210608031112-152c7c4432bf // indirect
