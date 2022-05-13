@@ -30,7 +30,7 @@ jobs:
           git add --all
           git commit -m "$(date +%Y%m%d%H%M)"
           git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUBTOKEN }}@github.com/${{ github.repository }}"
-          git push -f -u
+          git push -f -u origin master
           
     # 删除无用 workflow runs;
       - name: Delete workflow runs
