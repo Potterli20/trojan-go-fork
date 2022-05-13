@@ -4,6 +4,9 @@ import (
 	"context"
 	"io"
 	"math/rand"
+	"time"
+
+	//"net"
 	"os"
 	"strings"
 	"sync"
@@ -16,13 +19,16 @@ import (
 
 const Name = "PROXY"
 
+const (
+	MaxPacketSize = 1024 * 8
+)
+
 // Proxy relay connections and packets
 type Proxy struct {
-	sources         []tunnel.Server
-	sink            tunnel.Client
-	ctx             context.Context
-	cancel          context.CancelFunc
-	relayBufferSize int
+	sources []tunnel.Server
+	sink    tunnel.Client
+	ctx     context.Context
+	cancel  context.CancelFunc
 }
 
 func (p *Proxy) Run() error {
@@ -41,12 +47,20 @@ func (p *Proxy) Close() error {
 	return nil
 }
 
+var bufPool = sync.Pool{
+	New: func() interface{} {
+		return make([]byte, 8*1024, 8*1024)
+	},
+}
+
 func (p *Proxy) relayConnLoop() {
-	bufPool := sync.Pool{
-		New: func() any {
-			return make([]byte, p.relayBufferSize)
-		},
+	copyConn := func(dst io.Writer, src io.Reader, errChan chan error) {
+		buffer := bufPool.Get().([]byte)
+		_, err := io.CopyBuffer(dst, src, buffer)
+		bufPool.Put(buffer)
+		errChan <- err
 	}
+
 	for _, source := range p.sources {
 		go func(source tunnel.Server) {
 			for {
@@ -58,7 +72,7 @@ func (p *Proxy) relayConnLoop() {
 						return
 					default:
 					}
-					log.Debug(common.NewError("failed to accept connection").Base(err))
+					log.Error(common.NewError("failed to accept connection").Base(err))
 					continue
 				}
 				go func(inbound tunnel.Conn) {
@@ -70,24 +84,23 @@ func (p *Proxy) relayConnLoop() {
 					}
 					defer outbound.Close()
 					errChan := make(chan error, 2)
-					copyConn := func(dst io.Writer, src io.Reader) {
-						buffer := bufPool.Get().([]byte)
-						defer bufPool.Put(buffer)
-						_, err := io.CopyBuffer(dst, src, buffer)
-						errChan <- err
-					}
-					// log.Infof("[inbound:%s]: %s -> %s", inbound.Metadata().DomainName, inbound.LocalAddr().String(), inbound.RemoteAddr())
-					// log.Infof("[outbound]: %s -> %s", outbound.LocalAddr().String(), outbound.RemoteAddr())
-					go copyConn(inbound, outbound)
-					go copyConn(outbound, inbound)
+
+					go copyConn(inbound, outbound, errChan)
+					time.Sleep(time.Millisecond * 10)
+					go copyConn(outbound, inbound, errChan)
 					select {
 					case err = <-errChan:
 						if err != nil {
-							log.Debug(err)
+							log.Error(err)
 						}
 					case <-p.ctx.Done():
 						log.Debug("shutting down conn relay")
 						return
+					//Exit goroutine when Timeout, avoid goroutine leakage.
+					case <-time.After(time.Duration(time.Second * 30)):
+						log.Debug("timeout conn relay")
+						return
+
 					}
 					log.Debug("conn relay ends")
 				}(inbound)
@@ -97,11 +110,30 @@ func (p *Proxy) relayConnLoop() {
 }
 
 func (p *Proxy) relayPacketLoop() {
-	bufPool := sync.Pool{
-		New: func() any {
-			return make([]byte, p.relayBufferSize)
-		},
+
+	copyPacket := func(a, b tunnel.PacketConn, errChan chan error) {
+		for {
+			//buf := make([]byte, MaxPacketSize)
+			buf := bufPool.Get().([]byte)
+			defer bufPool.Put(buf)
+
+			n, metadata, err := a.ReadWithMetadata(buf)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			if n == 0 {
+				errChan <- nil
+				return
+			}
+			_, err = b.WriteWithMetadata(buf[:n], metadata)
+			if err != nil {
+				errChan <- err
+				return
+			}
+		}
 	}
+
 	for _, source := range p.sources {
 		go func(source tunnel.Server) {
 			for {
@@ -113,48 +145,35 @@ func (p *Proxy) relayPacketLoop() {
 						return
 					default:
 					}
-					log.Debug(common.NewError("failed to accept packet").Base(err))
+					log.Error(common.NewError("failed to accept packet").Base(err))
 					continue
 				}
 				go func(inbound tunnel.PacketConn) {
 					defer inbound.Close()
 					outbound, err := p.sink.DialPacket(nil)
 					if err != nil {
-						log.Debug(common.NewError("proxy failed to dial packet").Base(err))
+						log.Error(common.NewError("proxy failed to dial packet").Base(err))
 						return
 					}
 					defer outbound.Close()
 					errChan := make(chan error, 2)
-					copyPacket := func(a, b tunnel.PacketConn) {
-						buf := bufPool.Get().([]byte)
-						defer bufPool.Put(buf)
-						for {
-							n, metadata, err := a.ReadWithMetadata(buf)
-							if err != nil {
-								errChan <- err
-								return
-							}
-							if n == 0 {
-								errChan <- nil
-								return
-							}
-							_, err = b.WriteWithMetadata(buf[:n], metadata)
-							if err != nil {
-								errChan <- err
-								return
-							}
-						}
-					}
-					go copyPacket(inbound, outbound)
-					go copyPacket(outbound, inbound)
+
+					go copyPacket(inbound, outbound, errChan)
+					time.Sleep(time.Millisecond * 10)
+					go copyPacket(outbound, inbound, errChan)
 					select {
 					case err = <-errChan:
 						if err != nil {
-							log.Debug(err)
+							log.Error(err)
 						}
 					case <-p.ctx.Done():
 						log.Debug("shutting down packet relay")
+					//Exit goroutine when Timeout, avoid goroutine leakage.
+					case <-time.After(time.Duration(time.Second * 30)):
+						log.Debug("timeout packet relay")
+						return
 					}
+
 					log.Debug("packet relay ends")
 				}(inbound)
 			}
@@ -163,13 +182,11 @@ func (p *Proxy) relayPacketLoop() {
 }
 
 func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.Server, sink tunnel.Client) *Proxy {
-	cfg := config.FromContext(ctx, Name).(*Config)
 	return &Proxy{
-		sources:         sources,
-		sink:            sink,
-		ctx:             ctx,
-		cancel:          cancel,
-		relayBufferSize: cfg.RelayBufferSize,
+		sources: sources,
+		sink:    sink,
+		ctx:     ctx,
+		cancel:  cancel,
 	}
 }
 
