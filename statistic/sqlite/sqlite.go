@@ -1,3 +1,5 @@
+//go:build linux && (amd64 || 386 || arm || arm64)
+
 package sqlite
 
 import (
