@@ -3,15 +3,16 @@ package scenario
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
 	"sync"
 	"testing"
 	"time"
 
 	netproxy "golang.org/x/net/proxy"
+	"google.golang.org/genproto/googleapis/cloud/oslogin/v1"
 
 	_ "github.com/Potterli20/trojan-go-fork/api"
 	_ "github.com/Potterli20/trojan-go-fork/api/service"
@@ -85,8 +86,8 @@ xiGQ1YfbqPMbovNUt1m0Es8=
 `
 
 func init() {
-	ioutil.WriteFile("server.crt", []byte(cert), 0o777)
-	ioutil.WriteFile("server.key", []byte(key), 0o777)
+	os.WriteFile("server.crt", []byte(cert), 0o777)
+	os.WriteFile("server.key", []byte(key), 0o777)
 
 func CheckClientServer(clientData, serverData string, socksPort int) (ok bool) {
 	trojan.Auth = nil
