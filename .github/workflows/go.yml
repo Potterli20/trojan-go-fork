@@ -28,7 +28,7 @@ jobs:
           git gc --aggressive
           git add --all
           git commit -m "$(date +%Y%m%d%H%M)"
-          git push -f -u origin master
+          git push -f -u
           
     # 删除无用 workflow runs;
       - name: Delete workflow runs
