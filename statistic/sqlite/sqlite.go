@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/Potterli20/trojan-go-fork/statistic"
-	"github.com/cloudquery/sqlite"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
