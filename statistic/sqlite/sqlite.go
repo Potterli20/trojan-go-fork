@@ -4,9 +4,9 @@ import (
 	"errors"
 
 	"github.com/Potterli20/trojan-go-fork/statistic"
-	"github.com/go-gorm/sqlite"
-	"github.com/go-gorm/gorm"
-	"github.com/go-gorm/gorm/clause"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 const Name = "sqlite"
