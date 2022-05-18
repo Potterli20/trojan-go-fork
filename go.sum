@@ -3,6 +3,8 @@ cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220518065216-6cd486b3d86c h1:vxfTaJ6QM4o38ZEcYPqXjYwpRAYS5VJF7j8Fq6hfPjI=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220518065216-6cd486b3d86c/go.mod h1:4Cr4q2NpoNypvhe5LZ5mPMNVvwH/i9ohd44IN2YB9ZA=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220518071429-acf3c902ecd5 h1:DJLHCB/p9ovE58UMsDm45gdLn7yp5fvp3EVioBQAEQQ=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220518071429-acf3c902ecd5/go.mod h1:4Cr4q2NpoNypvhe5LZ5mPMNVvwH/i9ohd44IN2YB9ZA=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
