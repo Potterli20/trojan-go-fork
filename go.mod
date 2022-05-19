@@ -16,7 +16,7 @@ require (
 	golang.org/x/net v0.0.0-20220517181318-183a9ca12b87
 	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306
-	google.golang.org/genproto v0.0.0-20220505152158-f39f71e6c8f3
+	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd
 	google.golang.org/grpc v1.46.2
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99
@@ -41,6 +41,6 @@ require (
 	github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe // indirect
 	go.starlark.net v0.0.0-20220328144851-d1966c6b9fcd // indirect
 	golang.org/x/crypto v0.0.0-20220518034528-6f7dac969898 // indirect
-	golang.org/x/sys v0.0.0-20220517195934-5e4e11fc645e // indirect
+	golang.org/x/sys v0.0.0-20220519141025-dcacdad47464 // indirect
 	golang.org/x/text v0.3.7 // indirect
 )
