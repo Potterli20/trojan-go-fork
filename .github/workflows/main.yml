@@ -25,14 +25,24 @@ jobs:
         run: |
           make release -j$(nproc)
 
-      - name: Release
-        uses: svenstaro/upload-release-action@master
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@master
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          repo_token: ${{ secrets.GITHUBTOKEN }}
-          tag: ${{ env.TAG_NAME }}
-          file: ./trojan-go-*.zip
-          file_glob: true
-          prerelease: true
+          distribution: goreleaser
+          version: latest
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
+
+      #- name: Release
+      #  uses: svenstaro/upload-release-action@master
+      #  with:
+      #    repo_token: ${{ secrets.GITHUBTOKEN }}
+       #   tag: ${{ env.TAG_NAME }}
+       #   file: ./trojan-go-*.zip
+       #   file_glob: true
+        #  prerelease: true
           
     # 删除无用 workflow runs;
       - name: Delete workflow runs
