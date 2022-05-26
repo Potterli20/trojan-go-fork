@@ -13,10 +13,10 @@ require (
 	github.com/v2fly/v2ray-core/v5 v5.0.6
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/xray-core v1.5.5
-	golang.org/x/net v0.0.0-20220524220425-1d687d428aca
+	golang.org/x/net v0.0.0-20220526153639-5463443f8c37
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306
-	google.golang.org/genproto v0.0.0-20220525015930-6ca3db687a9d
+	google.golang.org/genproto v0.0.0-20220526192754-51939a95c655
 	google.golang.org/grpc v1.46.2
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v3 v3.0.0
