@@ -14,7 +14,7 @@ require (
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/xray-core v1.5.5
 	golang.org/x/net v0.0.0-20220524220425-1d687d428aca
-	golang.org/x/term v0.0.0-20220411215600-e5f449aeb171
+	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306
 	google.golang.org/genproto v0.0.0-20220525015930-6ca3db687a9d
 	google.golang.org/grpc v1.46.2
@@ -40,7 +40,7 @@ require (
 	github.com/txthinking/runnergroup v0.0.0-20220212043759-8da8edb7dae8 // indirect
 	github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe // indirect
 	go.starlark.net v0.0.0-20220328144851-d1966c6b9fcd // indirect
-	golang.org/x/crypto v0.0.0-20220518034528-6f7dac969898 // indirect
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a // indirect
 	golang.org/x/text v0.3.7 // indirect
 )
