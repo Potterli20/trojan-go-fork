@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: "0 20 * *  1"
 jobs:
-  go:
+  make-release:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go 1.x.y
@@ -25,24 +25,14 @@ jobs:
         run: |
           make release -j$(nproc)
 
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@master
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Release
+        uses: svenstaro/upload-release-action@master
         with:
-          distribution: goreleaser
-          version: latest
-          args: release --rm-dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
-
-      #- name: Release
-      #  uses: svenstaro/upload-release-action@master
-      #  with:
-      #    repo_token: ${{ secrets.GITHUBTOKEN }}
-       #   tag: ${{ env.TAG_NAME }}
-       #   file: ./trojan-go-*.zip
-       #   file_glob: true
-        #  prerelease: true
+          repo_token: ${{ secrets.GITHUBTOKEN }}
+          tag: ${{ env.TAG_NAME }}
+          file: ./trojan-go-*.zip
+          file_glob: true
+          prerelease: true
           
     # 删除无用 workflow runs;
       - name: Delete workflow runs
