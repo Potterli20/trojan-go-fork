@@ -1,5 +1,12 @@
 ## 由于原项目作者已经不再维护，也不能再合入PR，同时原项目存在诸多的问题与bug。Fork了一个分支到个人项目进行维护
 ## 还存在其他bug或者需求可以提Issue
+### 基于原版已修改内容
+- [x] 修复多处data race风险
+- [x] 修复服务端增加用户后使用websocket访问无效问题
+- [x] 服务端支持使用sqlite实现用户数据持久化（仅linux）
+- [x] 支持指定转发buffer大小及数量限制，可以更好的控制内存占用
+- [x] 服务端修复上行限速无效的问题
+- [ ] 修复连接转发时阻塞可能导致goroutin泄露的问题
 
 # Trojan-Go [![Go Report Card](https://goreportcard.com/badge/github.com/p4gefau1t/trojan-go)](https://goreportcard.com/report/github.com/p4gefau1t/trojan-go) [![Downloads](https://img.shields.io/github/downloads/p4gefau1t/trojan-go/total?label=downloads&logo=github&style=flat-square)](https://img.shields.io/github/downloads/p4gefau1t/trojan-go/total?label=downloads&logo=github&style=flat-square)
 
