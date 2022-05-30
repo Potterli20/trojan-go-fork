@@ -3,24 +3,7 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 20 * *  1"
-  branches:
-      - master
-    paths:
-      - "**/*.go"
-      - "go.mod"
-      - "go.sum"
-      - "Makefile"
-      - ".github/workflows/main.yml"
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches:
-      - master
-    paths:
-      - "**/*.go"
-      - "go.mod"
-      - "go.sum"
-      - "Makefile"
-      - ".github/workflows/main.yml"
+
 jobs:
   make-release:
     runs-on: ubuntu-latest
