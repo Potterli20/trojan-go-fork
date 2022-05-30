@@ -1,10 +1,10 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220530111343-be48b9349a0d h1:i5xyRHq5XZsAfzFNbsR2b/IuRy6pn6WN4+tdVtc0lQQ=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220530111343-be48b9349a0d/go.mod h1:l46qqF7FdC6uqqrz5uvtNKe5gfHpdyR9gEeLC3OUfUg=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220530134550-10476a586830 h1:DnoJPs2GxNhjg+uTJTS7Zd7YYg7u6afM7q5lGf7wcLQ=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220530134550-10476a586830/go.mod h1:l46qqF7FdC6uqqrz5uvtNKe5gfHpdyR9gEeLC3OUfUg=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220530154511-02831fcd7989 h1:2O9rGO4zMh3v89qqSGmWobSshsDitEXT9NGNQc/rqSE=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220530154511-02831fcd7989/go.mod h1:3cwlJKdmZSk3fUE2UOaWZjaTlS80qiKKEdhIleXcUXY=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
@@ -86,7 +86,6 @@ github.com/jtolds/gls v4.20.0+incompatible h1:xdiiI2gbIgH/gLH7ADydsJ1uDOEzR8yvV7
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 h1:Z9n2FFNUXsshfwJMBgNA0RU6/i7WVaAegv3PtuIHPMs=
 github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51/go.mod h1:CzGEWj7cYgsdH8dAjBGEr58BoE7ScuLd+fwFZ44+/x8=
-github.com/klauspost/cpuid v1.2.3 h1:CCtW0xUnWGVINKvE/WWOYKdsPV6mawAtvQuSl8guwQs=
 github.com/klauspost/cpuid/v2 v2.0.9/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
 github.com/klauspost/cpuid/v2 v2.0.12 h1:p9dKCg8i4gmOxtv35DvrYoWqYzQrvEVdjQ762Y0OqZE=
 github.com/klauspost/cpuid/v2 v2.0.12/go.mod h1:g2LTdtYhdyuGPqyWyv7qRAmj1WBqxuObKfj5c0PQa7c=
