@@ -88,6 +88,10 @@ xiGQ1YfbqPMbovNUt1m0Es8=
 func init() {
 	os.WriteFile("server.crt", []byte(cert), 0o777)
 	os.WriteFile("server.key", []byte(key), 0o777)
+<<<<<<< HEAD
+=======
+}
+>>>>>>> a151f5bd59d5c53618e7b48326e074ad8b3f7bc2
 
 func CheckClientServer(clientData, serverData string, socksPort int) (ok bool) {
 	trojan.Auth = nil

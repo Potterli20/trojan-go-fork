@@ -1,10 +1,13 @@
+//go:build linux && (amd64 || 386 || arm || arm64)
+
 package sqlite
 
 import (
 	"errors"
 
 	"github.com/Potterli20/trojan-go-fork/statistic"
-	"gorm.io/driver/sqlite"
+	"github.com/cloudquery/sqlite"
+	"github.com/p4gefau1t/trojan-go/statistic"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

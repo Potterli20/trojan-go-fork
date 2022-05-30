@@ -161,4 +161,8 @@ windows-armv7:
 
 windows-arm64:
 	mkdir -p $(BUILD_DIR)/$@
+<<<<<<< HEAD
 	GOARCH=arm64 GOOS=windows $(GOBUILD)/$@
+=======
+	GOARCH=arm64 GOOS=windows $(GOBUILD)/$@
+>>>>>>> a151f5bd59d5c53618e7b48326e074ad8b3f7bc2
