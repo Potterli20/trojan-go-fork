@@ -7,7 +7,6 @@ import (
 
 	"github.com/Potterli20/trojan-go-fork/statistic"
 	"github.com/cloudquery/sqlite"
-	"github.com/p4gefau1t/trojan-go/statistic"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
