@@ -112,9 +112,7 @@ github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0 h1:OdAsTTz6O
 github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr8meMVVGxhp+QBTqY91tM8HjEuMjGg=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
-github.com/sagernet/sing v0.0.0-20220528022605-7ba6439364fa h1:h6VfxGy7dxiLn65xilHfETBYuA3UiS//iHCs0YZldnc=
 github.com/sagernet/sing v0.0.0-20220605012533-e0f722558141 h1:YN9EeHRIFYKei1woz2OucLTSpiNrULAHH+jl6upDemQ=
-github.com/sagernet/sing-shadowsocks v0.0.0-20220528022643-c8403614f554 h1:YpkHkuWrjHZ5m/Qd4RRwqCwyXEXH9pOMxZCHbvlxAXw=
 github.com/sagernet/sing-shadowsocks v0.0.0-20220605012719-1e22882ea853 h1:t1pn8v3kPvlaST/fY7GsPV8yIUFJDXzNcmSYQ+nrbEM=
 github.com/seiflotfy/cuckoofilter v0.0.0-20220411075957-e3b120b3f5fb h1:XfLJSPIOUX+osiMraVgIrMR27uMXnRJWGm1+GL8/63U=
 github.com/smartystreets/assertions v1.2.0 h1:42S6lae5dvLc7BrLu/0ugRtcFVjoJNMC/N3yZFZkDFs=
@@ -139,8 +137,6 @@ github.com/v2fly/v2ray-core/v5 v5.0.6/go.mod h1:Rv8eq9KRQWZt177euFJb7i2MOqrzfokV
 github.com/xtaci/smux v1.5.16 h1:FBPYOkW8ZTjLKUM4LI4xnnuuDC8CQ/dB04HD519WoEk=
 github.com/xtaci/smux v1.5.16/go.mod h1:OMlQbT5vcgl2gb49mFkYo6SMf+zP3rcjcwQz7ZU7IGY=
 github.com/xtls/go v0.0.0-20210920065950-d4af136d3672 h1:4mkzGhKqt3JO1BWYjtD3iRFyAx4ow67hmSqOcGjuxqQ=
-github.com/xtls/xray-core v1.5.6 h1:yJHvJUC/IlC++IPLs4QzhNzDZm4UOudHBp+xPyZnw0k=
-github.com/xtls/xray-core v1.5.6/go.mod h1:U/1/w4LUdfdQD6BjWV5QExmQnGHnl2TmIYErmzd/X60=
 github.com/xtls/xray-core v1.5.7 h1:xQqUpRtzVHL/to2sDmvgn9GelD0jIwC0I8B36hbDgDo=
 github.com/xtls/xray-core v1.5.7/go.mod h1:H4q5qoCwtsYeF06Zsb0tk8oV8UuaQ9NdnOaPv49Cj7I=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
@@ -178,7 +174,6 @@ golang.org/x/sync v0.0.0-20181108010431-42b317875d0f/go.mod h1:RxMgew5VJxzue5/jJ
 golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20190423024810-112230192c58/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
-golang.org/x/sync v0.0.0-20220513210516-0976fa681c29 h1:w8s32wxx3sY+OjLlv9qltkLU5yvJzxjjgiHWLjdIcw4=
 golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f h1:Ax0t5p6N38Ga0dThY21weqDEyz2oklo4IvDkpigvkD8=
 golang.org/x/sys v0.0.0-20180830151530-49385e6e1522/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
