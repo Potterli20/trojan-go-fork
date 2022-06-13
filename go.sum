@@ -132,8 +132,8 @@ github.com/txthinking/socks5 v0.0.0-20220212043548-414499347d4a/go.mod h1:7NloQc
 github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe h1:gMWxZxBFRAXqoGkwkYlPX2zvyyKNWJpxOxCrjqJkm5A=
 github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe/go.mod h1:WgqbSEmUYSjEV3B1qmee/PpP2NYEz4bL9/+mF1ma+s4=
 github.com/v2fly/ss-bloomring v0.0.0-20210312155135-28617310f63e h1:5QefA066A1tF8gHIiADmOVOV5LS43gt3ONnlEl3xkwI=
-github.com/v2fly/v2ray-core/v5 v5.0.6 h1:YTE2Ax2T6BpiDw39iGe9RrvwtID0SbQzEYY/5f3ID/I=
-github.com/v2fly/v2ray-core/v5 v5.0.6/go.mod h1:Rv8eq9KRQWZt177euFJb7i2MOqrzfokVmuHGhlfo/zw=
+github.com/v2fly/v2ray-core/v5 v5.0.7 h1:wR8x5KyYpe0W35tcJz/dlkpCClDhc/xe+36BQjVV3EM=
+github.com/v2fly/v2ray-core/v5 v5.0.7/go.mod h1:whgevEWmA6LrAfnPoM97IGMYhUF8837sAZ4U6MNJfzk=
 github.com/xtaci/smux v1.5.16 h1:FBPYOkW8ZTjLKUM4LI4xnnuuDC8CQ/dB04HD519WoEk=
 github.com/xtaci/smux v1.5.16/go.mod h1:OMlQbT5vcgl2gb49mFkYo6SMf+zP3rcjcwQz7ZU7IGY=
 github.com/xtls/go v0.0.0-20210920065950-d4af136d3672 h1:4mkzGhKqt3JO1BWYjtD3iRFyAx4ow67hmSqOcGjuxqQ=
