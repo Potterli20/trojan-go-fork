@@ -3,21 +3,21 @@ module github.com/Potterli20/trojan-go-fork
 go 1.18
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20220612100636-867c249487b9
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20220615100715-a793f9d597fc
 	github.com/cloudquery/sqlite v1.0.1
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.1.0
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.7.2
-	github.com/txthinking/socks5 v0.0.0-20220212043548-414499347d4a
+	github.com/txthinking/socks5 v0.0.0-20220615051428-39268faee3e6
 	github.com/v2fly/v2ray-core/v5 v5.0.7
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/xray-core v1.5.7
-	golang.org/x/net v0.0.0-20220614195744-fb05da6f9022
+	golang.org/x/net v0.0.0-20220615171555-694bf12d69de
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
-	google.golang.org/genproto v0.0.0-20220614165028-45ed7f3ff16e
+	google.golang.org/genproto v0.0.0-20220615141314-f1464d18c36b
 	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v3 v3.0.1
