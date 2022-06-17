@@ -2,14 +2,7 @@ FROM golang:alpine AS builder
 WORKDIR /
 ARG REF
 RUN apk add git make &&\
-    git clone https://github.com/p4gefau1t/trojan-go.git
-RUN if [[ -z "${REF}" ]]; then \
-        echo "No specific commit provided, use the latest one." \
-    ;else \
-        echo "Use commit ${REF}" &&\
-        cd trojan-go &&\
-        git checkout ${REF} \
-    ;fi
+    git clone https://github.com/lakwsh/trojan-go.git
 RUN cd trojan-go &&\
     make &&\
     wget https://github.com/v2fly/domain-list-community/raw/release/dlc.dat -O build/geosite.dat &&\
