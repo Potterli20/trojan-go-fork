@@ -131,6 +131,14 @@ linux-mips64le:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=mips64le GOOS=linux $(GOBUILD)/$@
 
+linux-ppc64le:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=mips64le GOOS=linux $(GOBUILD)/$@
+	
+linux-s390x:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=s390x GOOS=linux $(GOBUILD)/$@
+	
 freebsd-386:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=386 GOOS=freebsd $(GOBUILD)/$@
