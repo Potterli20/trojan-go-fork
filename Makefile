@@ -194,9 +194,13 @@ openbsd-arm:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=arm GOOS=openbsd $(GOBUILD)/$@
 
-openbdd-arm64:
+openbsd-arm64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=arm64 GOOS=openbsd $(GOBUILD)/$@
+
+openbsd-mips64:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=mips64 GOOS=openbsd $(GOBUILD)/$@
 
 windows-386:
 	mkdir -p $(BUILD_DIR)/$@
