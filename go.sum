@@ -3,6 +3,8 @@ cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220623100738-854f65ca3557 h1:NTorWt8MEST3086s1DFnjl7MqM2AshPai0qigEmudeA=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220623100738-854f65ca3557/go.mod h1:91zw1IL4YpcxIDB+/tzuKvjIfayzxOePjViX9arXoSY=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220624100649-a04c86828824 h1:FBEFseZmknDGIrtxkbbdJy+Sjssq1SzF/bowQaFlr38=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220624100649-a04c86828824/go.mod h1:91zw1IL4YpcxIDB+/tzuKvjIfayzxOePjViX9arXoSY=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
@@ -226,6 +228,8 @@ google.golang.org/genproto v0.0.0-20200513103714-09dca8ec2884/go.mod h1:55QSHmfG
 google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013/go.mod h1:NbSheEEYHJ7i3ixzK3sjbqSGDJWnxyFXZblF3eUsNvo=
 google.golang.org/genproto v0.0.0-20220623142657-077d458a5694 h1:itnFmgk4Ls5nT+mYO2ZK6F0DpKsGZLhB5BB9y5ZL2HA=
 google.golang.org/genproto v0.0.0-20220623142657-077d458a5694/go.mod h1:KEWEmljWE5zPzLBa/oHl6DaEt9LmfH6WtH1OHIvleBA=
+google.golang.org/genproto v0.0.0-20220624142145-8cd45d7dbd1f h1:hJ/Y5SqPXbarffmAsApliUlcvMU+wScNGfyop4bZm8o=
+google.golang.org/genproto v0.0.0-20220624142145-8cd45d7dbd1f/go.mod h1:KEWEmljWE5zPzLBa/oHl6DaEt9LmfH6WtH1OHIvleBA=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
 google.golang.org/grpc v1.23.0/go.mod h1:Y5yQAOtifL1yxbo5wqy6BxZv8vAUGQwXBOALyacEbxg=
 google.golang.org/grpc v1.25.1/go.mod h1:c3i+UQWmh7LiEpx4sFZnkU36qjEYZ0imhYfXVyQciAY=
