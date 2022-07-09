@@ -3,7 +3,7 @@ module github.com/Potterli20/trojan-go-fork
 go 1.18
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20220708101830-e473f6cd76ab
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20220709100806-fed8014e9ae2
 	github.com/cloudquery/sqlite v1.0.1
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
@@ -14,7 +14,7 @@ require (
 	github.com/v2fly/v2ray-core/v5 v5.0.7
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/xray-core v1.5.8
-	golang.org/x/net v0.0.0-20220706163947-c90051bbdb60
+	golang.org/x/net v0.0.0-20220708220712-1185a9018129
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
 	golang.org/x/time v0.0.0-20220609170525-579cf78fd858
 	google.golang.org/genproto v0.0.0-20220708155623-50e5f4832e73
