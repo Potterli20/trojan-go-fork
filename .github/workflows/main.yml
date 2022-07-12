@@ -24,23 +24,7 @@ jobs:
       - name: Get project dependencies & run
         run: |
           make release -j$(nproc)
-
-      - name: Release
-        uses: svenstaro/upload-release-action@master
-        with:
-          repo_token: ${{ secrets.GITHUBTOKEN }}
-          tag: ${{ env.TAG_NAME }}
-          file: ./trojan-go-*.zip
-          file_glob: true
-          prerelease: true
           
-    # 删除无用 workflow runs;
-      - name: Delete workflow runs
-        uses: GitRML/delete-workflow-runs@main
-        with:
-          retain_days: 0.1
-          keep_minimum_runs: 1
-
       - name: Remove old Releases
         uses: dev-drprasad/delete-older-releases@master
         if: env.UPLOAD_RELEASE == 'true' && !cancelled()
@@ -49,3 +33,20 @@ jobs:
          delete_tags: true
         env:
          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
+
+      - name: Release
+        uses: svenstaro/upload-release-action@master
+        with:
+          repo_token: ${{ secrets.GITHUBTOKEN }}
+          tag: ${{ env.TAG_NAME }}
+          file: ./trojan-go-*.zip
+          file_glob: true
+          
+    # 删除无用 workflow runs;
+      - name: Delete workflow runs
+        uses: GitRML/delete-workflow-runs@main
+        with:
+          retain_days: 0.1
+          keep_minimum_runs: 1
+
+
