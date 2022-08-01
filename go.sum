@@ -1,10 +1,10 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220731014922-81b270b3c464 h1:N2McaY+iwSyUmag6oAvEGLQOCmndgLfau2aiXh1aq/I=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220731014922-81b270b3c464/go.mod h1:Id8BxJLr8x8mgnazGeHghYannJs1gjEjW7xpZjdFzPw=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220801014643-a42b4bc2e4b1 h1:sOMTBG0qNenu2rB9OVd27aum9diYvCnoe0VYM7w4C8A=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220801014643-a42b4bc2e4b1/go.mod h1:AmxQjRvRo7mGEGtz63hQh3A6w9Stno0/KQ5dp1gtXis=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220801123159-87c1d044a39c h1:ngdBUrIGJIvkHTlmES23kMa+rTvM+DuQP5xI/JYAcQ8=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220801123159-87c1d044a39c/go.mod h1:AmxQjRvRo7mGEGtz63hQh3A6w9Stno0/KQ5dp1gtXis=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
@@ -201,8 +201,6 @@ golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.0.0-20220730100132-1609e554cd39 h1:aNCnH+Fiqs7ZDTFH6oEFjIfbX2HvgQXJ6uQuUbTobjk=
-golang.org/x/sys v0.0.0-20220730100132-1609e554cd39/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220731174439-a90be440212d h1:Sv5ogFZatcgIMMtBSTTAgMYsicp25MXBubjXNDKwm80=
 golang.org/x/sys v0.0.0-20220731174439-a90be440212d/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
