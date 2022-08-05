@@ -113,8 +113,8 @@ github.com/pires/go-proxyproto v0.6.2 h1:KAZ7UteSOt6urjme6ZldyFm4wDe/z0ZUP0Yv0Do
 github.com/pires/go-proxyproto v0.6.2/go.mod h1:Odh9VFOZJCf9G8cLW5o435Xf1J95Jw9Gw5rnCjcwzAY=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/potterli20/smux v0.0.0-20220805041114-8764cb9b81ee h1:PtDr7xsyPgQ5p++56hGqc90BdXgtg+Nweuwth4g8KSI=
-github.com/potterli20/smux v0.0.0-20220805041114-8764cb9b81ee/go.mod h1:Yw9uaQ8pzJYPI57xMa6Y9rOq2opaWbU07btBUGNC/nA=
+github.com/potterli20/smux v0.0.0-20220805051222-570359a31274 h1:pB5UmdPkJvqjSTLtigVJ5BWc0XH8YihwgMmQTV3xZdo=
+github.com/potterli20/smux v0.0.0-20220805051222-570359a31274/go.mod h1:Yw9uaQ8pzJYPI57xMa6Y9rOq2opaWbU07btBUGNC/nA=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/refraction-networking/utls v1.1.1 h1:4p66eNC+MOrL3tI7oMdA5Z8d1TgQXB8fxfuueE9DA7U=
 github.com/refraction-networking/utls v1.1.1/go.mod h1:+D89TUtA8+NKVFj1IXWr0p3tSdX1+SqUB7rL0QnGqyg=
@@ -147,8 +147,6 @@ github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe/go.mod h1:WgqbSEmUYSj
 github.com/v2fly/ss-bloomring v0.0.0-20210312155135-28617310f63e h1:5QefA066A1tF8gHIiADmOVOV5LS43gt3ONnlEl3xkwI=
 github.com/v2fly/v2ray-core/v5 v5.0.7 h1:wR8x5KyYpe0W35tcJz/dlkpCClDhc/xe+36BQjVV3EM=
 github.com/v2fly/v2ray-core/v5 v5.0.7/go.mod h1:whgevEWmA6LrAfnPoM97IGMYhUF8837sAZ4U6MNJfzk=
-github.com/xtaci/smux v1.5.16 h1:FBPYOkW8ZTjLKUM4LI4xnnuuDC8CQ/dB04HD519WoEk=
-github.com/xtaci/smux v1.5.16/go.mod h1:OMlQbT5vcgl2gb49mFkYo6SMf+zP3rcjcwQz7ZU7IGY=
 github.com/xtls/go v0.0.0-20210920065950-d4af136d3672 h1:4mkzGhKqt3JO1BWYjtD3iRFyAx4ow67hmSqOcGjuxqQ=
 github.com/xtls/xray-core v1.5.9 h1:48tuXmyyrDou/tcrPcGJ5Zfk2Oy2JNH8VK4ytrYd9Yg=
 github.com/xtls/xray-core v1.5.9/go.mod h1:r/AMLNtolbKbr/dA+yAllgusOeK1kBqP71Y3RTQcKis=
