@@ -3,7 +3,7 @@ package mux
 import (
 	"context"
 
-	"github.com/xtaci/smux"
+	"github.com/potterli20/smux"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
