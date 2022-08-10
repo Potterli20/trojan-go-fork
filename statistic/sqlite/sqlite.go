@@ -6,7 +6,7 @@ import (
 	"errors"
 
 	"github.com/Potterli20/trojan-go-fork/statistic"
-	"github.com/cloudquery/sqlite"
+	"github.com/Potterli20/sqlite-go"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
