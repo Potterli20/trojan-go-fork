@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/potterli20/smux"
+	"github.com/xtaci/smux"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -15,7 +15,7 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
-type muxID uint32
+type muxID uint64
 
 func generateMuxID() muxID {
 	return muxID(rand.Uint32())
