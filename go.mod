@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20220809123501-68938f53434e
-	github.com/Potterli20/sqlite-go v0.0.0-20220810105053-4c11180aa031
+	github.com/Potterli20/sqlite v0.0.0-20220810125610-4f05aed8d9a3
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.1.1

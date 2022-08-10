@@ -3,8 +3,8 @@ cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220809123501-68938f53434e h1:ln58aLAXVXwgX2hvHC4X1UUfXrFSXXYd9CO/RlA5FHc=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220809123501-68938f53434e/go.mod h1:/VB9DTobi+pjFqmaX8dapeazVxBcUEn3r0sL1xYwTVs=
-github.com/Potterli20/sqlite-go v0.0.0-20220810105053-4c11180aa031 h1:U7AiVMhNf5Z6u3iDw1im3sCWBcB5i7zHfuy5if5ufFY=
-github.com/Potterli20/sqlite-go v0.0.0-20220810105053-4c11180aa031/go.mod h1:szxYCevlcJDV5aEPNhVK3BkqtRfvSRWxwNx8vtCFNMg=
+github.com/Potterli20/sqlite v0.0.0-20220810125610-4f05aed8d9a3 h1:rslGAzX8UPZmJ+FdpTH0cMa7Y4S2VWRSPDSodOy6Mpo=
+github.com/Potterli20/sqlite v0.0.0-20220810125610-4f05aed8d9a3/go.mod h1:0KgzvqAnN85e5gFknnIwDv+pOSbvB14m6pZKXncfc+o=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
