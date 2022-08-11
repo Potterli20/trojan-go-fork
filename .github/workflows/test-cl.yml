@@ -15,4 +15,4 @@ jobs:
         go-version: 1.19.0
     - uses: actions/checkout@main
     - name: Test
-      run: go test -v -cover .
+      run: go test -v .
