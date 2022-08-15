@@ -35,7 +35,7 @@ require (
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pires/go-proxyproto v0.6.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -43,7 +43,7 @@ require (
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20220212043759-8da8edb7dae8 // indirect
 	github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe // indirect
-	go.starlark.net v0.0.0-20220714194419-4cadf0a12139 // indirect
+	go.starlark.net v0.0.0-20220815112429-e1b9ebd162dd // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab // indirect
