@@ -1,10 +1,10 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220818014518-5db3179ff7f0 h1:+BH7gbzWpAAN6T/EKCHeOENEkSdW79VUki0VVHZy+nw=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220818014518-5db3179ff7f0/go.mod h1:g/UkilDY3M6CV2PNx1av4megkPemojOP/oIuDaXFFh8=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220818123313-3849fdf00271 h1:KvwLzfGiabGRIZlnQ5CBtw68lkyjlrEZFBlfjo1F1fg=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220818123313-3849fdf00271/go.mod h1:g/UkilDY3M6CV2PNx1av4megkPemojOP/oIuDaXFFh8=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220819014107-10b7c335be96 h1:6RdN10iklDFqj/bEn58ctO2UoNqCWW+wFrIKJwBrtQg=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220819014107-10b7c335be96/go.mod h1:AhhIoWQSAHvtnFodFpPySwfemurigaegP6OxliyeZhs=
 github.com/Potterli20/sqlite v0.0.0-20220811011726-6e86cf635710 h1:m9zeDqkOq0+cCVx9ZzjSo8eUfp28AUfQLrK0Y4qazmE=
 github.com/Potterli20/sqlite v0.0.0-20220811011726-6e86cf635710/go.mod h1:lI83ok93h/oz9tlxH8cC8ZkWDt4/CkVriq0kCG4GwhE=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
@@ -197,8 +197,6 @@ golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.0.0-20220817070843-5a390386f1f2 h1:fqTvyMIIj+HRzMmnzr9NtpHP6uVpvB5fkHcgPDC4nu8=
-golang.org/x/sys v0.0.0-20220817070843-5a390386f1f2/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220818161305-2296e01440c6 h1:Sx/u41w+OwrInGdEckYmEuU5gHoGSL4QbDz3S9s6j4U=
 golang.org/x/sys v0.0.0-20220818161305-2296e01440c6/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
