@@ -3,8 +3,12 @@ cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220819123046-1e7c8c491968 h1:UN8h3oF4EJBAnjOyOBP3CCKUps+VtaYM3t5BdWxj+EQ=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220819123046-1e7c8c491968/go.mod h1:AhhIoWQSAHvtnFodFpPySwfemurigaegP6OxliyeZhs=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220824014520-7977eaf8a8b3 h1:qlE3aOwu+kr5z4gCSFNSNeqTCmiGTy3uCXN0kFT0kzE=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220824014520-7977eaf8a8b3/go.mod h1:whQUBt4bSMWEjb2LxCjJb5Md6zTe7a6waJukf0l7l5w=
 github.com/Potterli20/sqlite v0.0.0-20220822062424-4156fce7a6e0 h1:BoUn0pvHygikFDzbuy3nyL7BKdrzwhgyxpmuZ++OCJA=
 github.com/Potterli20/sqlite v0.0.0-20220822062424-4156fce7a6e0/go.mod h1:1SJYV0fwpGkJXueuDob9AIVxXA4ayZD+vhyn9uFnEhQ=
+github.com/Potterli20/sqlite v0.0.0-20220824005310-e208b301e0b7 h1:eXa/tUIA2u1n0q6qoVHc9MPQxGYHFpNkBRHlw88Z+KQ=
+github.com/Potterli20/sqlite v0.0.0-20220824005310-e208b301e0b7/go.mod h1:VIl/oTYaKsW99pcPBXd6jSR5QDMzcs3ZUvXvyP0iQn0=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
@@ -197,6 +201,8 @@ golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220818161305-2296e01440c6 h1:Sx/u41w+OwrInGdEckYmEuU5gHoGSL4QbDz3S9s6j4U=
 golang.org/x/sys v0.0.0-20220818161305-2296e01440c6/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20220823224334-20c2bfdbfe24 h1:TyKJRhyo17yWxOMCTHKWrc5rddHORMlnZ/j57umaUd8=
+golang.org/x/sys v0.0.0-20220823224334-20c2bfdbfe24/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/term v0.0.0-20220722155259-a9ba230a4035 h1:Q5284mrmYTpACcm+eAKjKJH48BBwSyfJqmmGDTtT8Vc=
 golang.org/x/term v0.0.0-20220722155259-a9ba230a4035/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=
@@ -237,6 +243,8 @@ google.golang.org/grpc v1.33.1/go.mod h1:fr5YgcSWrqhRRxogOsw7RzIpsmvOZ6IcH4kBYTp
 google.golang.org/grpc v1.36.0/go.mod h1:qjiiYl8FncCW8feJPdyg3v6XW24KsRHe+dy9BAGRRjU=
 google.golang.org/grpc v1.48.0 h1:rQOsyJ/8+ufEDJd/Gdsz7HG220Mh9HAhFHRGnIjda0w=
 google.golang.org/grpc v1.48.0/go.mod h1:vN9eftEi1UMyUsIF80+uQXhHjbXYbm0uXoFCACuMGWk=
+google.golang.org/grpc v1.49.0 h1:WTLtQzmQori5FUH25Pq4WT22oCsv8USpQ+F6rqtsmxw=
+google.golang.org/grpc v1.49.0/go.mod h1:ZgQEeidpAuNRZ8iRrlBKXZQP1ghovWIVhdJRyCDK+GI=
 google.golang.org/protobuf v0.0.0-20200109180630-ec00e32a8dfd/go.mod h1:DFci5gLYBciE7Vtevhsrf46CRTquxDuWsQurQQe4oz8=
 google.golang.org/protobuf v0.0.0-20200221191635-4d8936d0db64/go.mod h1:kwYJMbMJ01Woi6D6+Kah6886xMZcty6N08ah7+eCXa0=
 google.golang.org/protobuf v0.0.0-20200228230310-ab0ca4ff8a60/go.mod h1:cfTl7dwQJ+fmap5saPgwCLgHXTUD7jkjRqWcaiX5VyM=
