@@ -3,8 +3,8 @@ module github.com/Potterli20/trojan-go-fork
 go 1.19
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20220826123155-560ce5811b25
-	github.com/Potterli20/sqlite v0.0.0-20220827004935-e78b0e0b09b4
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20220827014112-f325b8edc794
+	github.com/Potterli20/sqlite v0.0.0-20220827121940-f609b6fc5054
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.1.1
@@ -52,11 +52,11 @@ require (
 	lukechampine.com/uint128 v1.2.0 // indirect
 	modernc.org/cc/v3 v3.36.3 // indirect
 	modernc.org/ccgo/v3 v3.16.9 // indirect
-	modernc.org/libc v1.17.0 // indirect
+	modernc.org/libc v1.17.1 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.2.1 // indirect
 	modernc.org/opt v0.1.3 // indirect
 	modernc.org/sqlite v1.18.1 // indirect
-	modernc.org/strutil v1.1.2 // indirect
-	modernc.org/token v1.0.0 // indirect
+	modernc.org/strutil v1.1.3 // indirect
+	modernc.org/token v1.0.1 // indirect
 )
