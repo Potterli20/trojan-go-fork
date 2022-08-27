@@ -3,8 +3,8 @@ module github.com/Potterli20/trojan-go-fork
 go 1.19
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20220826014745-265e6e528637
-	github.com/Potterli20/sqlite v0.0.0-20220826121912-f0bd2b3f5718
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20220826123155-560ce5811b25
+	github.com/Potterli20/sqlite v0.0.0-20220827004935-e78b0e0b09b4
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.1.1
@@ -14,7 +14,7 @@ require (
 	github.com/v2fly/v2ray-core/v5 v5.0.8
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/xray-core v1.5.9
-	golang.org/x/net v0.0.0-20220822230855-b0a4917ee28c
+	golang.org/x/net v0.0.0-20220826154423-83b083e8dc8b
 	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9
 	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc
@@ -44,7 +44,7 @@ require (
 	github.com/txthinking/runnergroup v0.0.0-20220212043759-8da8edb7dae8 // indirect
 	github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe // indirect
 	go.starlark.net v0.0.0-20220817180228-f738f5508c12 // indirect
-	golang.org/x/crypto v0.0.0-20220824171710-5757bc0c5503 // indirect
+	golang.org/x/crypto v0.0.0-20220826181053-bd7e27e6170d // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/sys v0.0.0-20220825204002-c680a09ffe64 // indirect
 	golang.org/x/text v0.3.7 // indirect
@@ -54,7 +54,7 @@ require (
 	modernc.org/ccgo/v3 v3.16.9 // indirect
 	modernc.org/libc v1.17.0 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
-	modernc.org/memory v1.2.0 // indirect
+	modernc.org/memory v1.2.1 // indirect
 	modernc.org/opt v0.1.3 // indirect
 	modernc.org/sqlite v1.18.1 // indirect
 	modernc.org/strutil v1.1.2 // indirect
