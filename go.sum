@@ -2,8 +2,6 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220830123418-76c4c8da1ba5 h1:Mdxi8W5NQSAHVkau96AVTR+bnHJq1G0D8lx2mxDyhoM=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220830123418-76c4c8da1ba5/go.mod h1:akveyTWUgJm4i0SGwl96FrTMzldAABjd2NzV5hgWd0Y=
-github.com/Potterli20/sqlite v0.0.0-20220905121842-7d2d7bb34d80 h1:dAJ2wrIHE1g4Yb3iWYczmIWHXdPQ6U5vSEZUWXTz/zg=
-github.com/Potterli20/sqlite v0.0.0-20220905121842-7d2d7bb34d80/go.mod h1:mUjx20MUSB3fDWJca5dnOfhm3pBUltWToIpPAqvgj5U=
 github.com/Potterli20/sqlite v0.0.0-20220906005602-1b0b892c6733 h1:6ffFSedX/DDCkYlsWMe1E35S2+lnQZmfG+yrJo/jz/4=
 github.com/Potterli20/sqlite v0.0.0-20220906005602-1b0b892c6733/go.mod h1:mUjx20MUSB3fDWJca5dnOfhm3pBUltWToIpPAqvgj5U=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
