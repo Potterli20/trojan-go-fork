@@ -11,7 +11,7 @@ require (
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.8.0
 	github.com/txthinking/socks5 v0.0.0-20220615051428-39268faee3e6
-	github.com/v2fly/v2ray-core/v5 v5.0.8
+	github.com/v2fly/v2ray-core/v5 v5.1.0
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/xray-core v1.5.10
 	golang.org/x/net v0.0.0-20220906165146-f3363e06e74c
