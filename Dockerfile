@@ -1,7 +1,7 @@
 FROM golang:alpine AS builder
 WORKDIR /
 ARG REF
-RUN apk update
+RUN apk update &&\
     apk add --no-cache git make wget build-base &&\
     git clone https://github.com/Potterli20/trojan-go-fork.git
 RUN if [[ -z "${REF}" ]]; then \
