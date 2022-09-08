@@ -1,0 +1,53 @@
+name: docker-release
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 20 * *  1"
+    
+jobs:
+  build:
+    if: github.repository == 'Potterli20/trojan-go-fork'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@main
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERUSERNAME }}
+          password: ${{ secrets.DOCKERPASSWORD }}
+
+      - name: Prepare
+        id: prepare
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo ::set-output name=version::${GITHUB_REF#refs/tags/}
+            echo ::set-output name=ref::${GITHUB_REF#refs/tags/}
+          else
+            echo ::set-output name=version::snapshot
+            echo ::set-output name=ref::${{ github.sha }}
+          fi
+          echo ::set-output name=docker_platforms::linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/s390x
+          echo ::set-output name=docker_image::${{ secrets.DOCKER_USERNAME }}/trojan-go-fork
+      - name: Build and push docker image
+        run: |
+          docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
+          --output "type=image,push=true" \
+          --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}" \
+          --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
+          --build-arg REF=${{ steps.prepare.outputs.ref }} \
+          --file Dockerfile .
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test docker image
+        run: |
+          docker run --rm --entrypoint /usr/local/bin/trojan-go ${{ secrets.DOCKERUSERNAME }}/trojan-go-fork -version
