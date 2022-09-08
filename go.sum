@@ -1,11 +1,7 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220907123425-535450b4f9ba h1:EKoKBSNHTHJC0EZrd7CHyQFZ6+bSa/c+QhuD1EiYe6o=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220907123425-535450b4f9ba/go.mod h1:lSsNKupVk+kNzoZgkB+O6X+LcC4NaJKVFGB4UHG3NeM=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220908014848-f383a9c709ab h1:6yktB2wGSU1gHGH7OodYnzPHA1MTLljBcl3HC4+L9lw=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220908014848-f383a9c709ab/go.mod h1:lSsNKupVk+kNzoZgkB+O6X+LcC4NaJKVFGB4UHG3NeM=
-github.com/Potterli20/sqlite v0.0.0-20220907005954-bd975cbd513c h1:reJ/Xn/iwY/8Cg9rQ65B/mlR8gNrZmgKyUBL/arAZas=
-github.com/Potterli20/sqlite v0.0.0-20220907005954-bd975cbd513c/go.mod h1:x91yq/GMgJI+Sj6TyP+fZoXuqD/OgUeLrry8kuP0Cd0=
 github.com/Potterli20/sqlite v0.0.0-20220908005650-f16dba164996 h1:nvTb1pJ3/Z1AlxLyJVzH0eROH4JCIQJIx4HvsPjduBQ=
 github.com/Potterli20/sqlite v0.0.0-20220908005650-f16dba164996/go.mod h1:jUsGFmPonrIjxoMnhF4XQzHwmixEtoEGRI3sYmgQJww=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
@@ -151,8 +147,6 @@ golang.org/x/net v0.0.0-20190620200207-3b0461eec859/go.mod h1:z5CRVTTTmAJ677TzLL
 golang.org/x/net v0.0.0-20201021035429-f5854403a974/go.mod h1:sp8m0HH+o8qH0wwXwYZr8TS3Oi6o0r6Gce1SSxlDquU=
 golang.org/x/net v0.0.0-20210226172049-e18ecbb05110/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=
 golang.org/x/net v0.0.0-20211111160137-58aab5ef257a/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
-golang.org/x/net v0.0.0-20220906165146-f3363e06e74c h1:yKufUcDwucU5urd+50/Opbt4AYpqthk7wHpHok8f1lo=
-golang.org/x/net v0.0.0-20220906165146-f3363e06e74c/go.mod h1:YDH+HFinaLZZlnHAfSS6ZXJJ9M9t4Dl22yv3iI2vPwk=
 golang.org/x/net v0.0.0-20220907135653-1e95f45603a7 h1:1WGATo9HAhkWMbfyuVU0tEFP88OIkUvwaHFveQPvzCQ=
 golang.org/x/net v0.0.0-20220907135653-1e95f45603a7/go.mod h1:YDH+HFinaLZZlnHAfSS6ZXJJ9M9t4Dl22yv3iI2vPwk=
 golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
