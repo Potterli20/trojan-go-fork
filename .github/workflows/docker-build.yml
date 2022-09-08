@@ -1,14 +1,13 @@
 name: docker-release
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 20 * *  1"
   push:
     branches:
       - master
     paths-ignore:
       - '**.md'
       - 'docs/**'
+    tags: # let the GitHub CI with new tag release trigger this docker build GitHub CI
     
 jobs:
   build:
