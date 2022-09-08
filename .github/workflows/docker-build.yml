@@ -8,6 +8,7 @@ on:
       - '**.md'
       - 'docs/**'
     tags: # let the GitHub CI with new tag release trigger this docker build GitHub CI
+      - '**' # Push events to every tag including hierarchical tags like v1.0/beta
     
 jobs:
   build:
