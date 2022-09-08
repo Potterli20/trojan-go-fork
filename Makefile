@@ -15,11 +15,11 @@ for ARCH in ${ARCHS[@]}; do
     if [ "${ARCH}" = "arm" ]; then
         for V in ${ARMS[@]}; do
             echo "Building trojan-go-dev_linux_${ARCH}${V}"
-            env CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} GOARM=${V} go build -v -tags "full" -ldflags "${LDFLAGS}" -o ${cur_dir}/trojan-go-dev_linux_${ARCH}${V}
+            GOBUILD = env CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} GOARM=${V} go build -v -tags "full" -ldflags "${LDFLAGS}" -o ${cur_dir}/trojan-go-dev_linux_${ARCH}${V}
         done
     else
         echo "Building trojan-go-dev_linux_${ARCH}"
-        env CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build -v -tags "full" -ldflags "${LDFLAGS}" -o ${cur_dir}/trojan-go-dev_linux_${ARCH}
+        GOBUILD = env CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${ARCH} go build -v -tags "full" -ldflags "${LDFLAGS}" -o ${cur_dir}/trojan-go-dev_linux_${ARCH}
     fi
 done
 
