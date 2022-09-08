@@ -29,7 +29,7 @@ test:
 	# Disable Bloomfilter when testing
 	SHADOWSOCKS_SF_CAPACITY="-1" $(GO_DIR)go test -v ./...
 
-trojan-go:
+trojan-go-fork:
 	mkdir -p $(BUILD_DIR)
 	$(GOBUILD)
 
