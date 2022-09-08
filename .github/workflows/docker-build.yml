@@ -1,14 +1,14 @@
 name: docker-release
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 20 * *  1"
   push:
     branches:
       - master
     paths-ignore:
       - '**.md'
       - 'docs/**'
+    tags: # let the GitHub CI with new tag release trigger this docker build GitHub CI
+      - '**' # Push events to every tag including hierarchical tags like v1.0/beta
     
 jobs:
   build:
@@ -56,4 +56,4 @@ jobs:
     steps:
       - name: Test docker image
         run: |
-          docker run --rm --entrypoint /usr/local/bin/trojan-go ${{ secrets.DOCKERUSERNAME }}/trojan-go-fork -version
+          docker run --rm --entrypoint /usr/local/bin/trojan-go-fork ${{ secrets.DOCKERUSERNAME }}/trojan-go-fork -version

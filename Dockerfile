@@ -21,7 +21,7 @@ FROM alpine
 WORKDIR /
 RUN apk add --no-cache tzdata ca-certificates
 COPY --from=builder /trojan-go-fork/build /usr/local/bin/
-COPY --from=builder /trojan-go-fork/example/server.json /etc/trojan-go/config.json
+COPY --from=builder /trojan-go-fork/example/server.json /etc/trojan-go-fork/config.json
 
-ENTRYPOINT ["/usr/local/bin/trojan-go", "-config"]
-CMD ["/etc/trojan-go/config.json"]
+ENTRYPOINT ["/usr/local/bin/trojan-go-fork", "-config"]
+CMD ["/etc/trojan-go-fork/config.json"]
