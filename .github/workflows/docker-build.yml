@@ -40,7 +40,7 @@ jobs:
             echo ::set-output name=version::snapshot
             echo ::set-output name=ref::${{ github.sha }}
           fi
-          echo ::set-output name=docker_platforms::linux/amd64,linux/arm64,linux/riscv64,linux/ppc64le,linux/s390x,linux/386,linux/mips64le,linux/mips64,linux/arm/v7,linux/arm/v6
+          echo ::set-output name=docker_platforms::linux/amd64,linux/arm64,linux/ppc64le,linux/s390x,linux/386,linux/arm64/v8,linux/arm/v7,linux/arm/v6
           echo ::set-output name=docker_image::${{ secrets.DOCKERUSERNAME }}/trojan-go-fork
       - name: Build and push docker image
         run: |
