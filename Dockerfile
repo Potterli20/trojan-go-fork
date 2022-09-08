@@ -10,7 +10,7 @@ RUN if [[ -z "${REF}" ]]; then \
         cd trojan-go-fork &&\
         git checkout ${REF} \
     ;fi
-RUN cd trojan-go &&\
+RUN cd trojan-go-frok &&\
     make &&\
     wget https://github.com/v2fly/domain-list-community/raw/release/dlc.dat -O build/geosite.dat &&\
     wget https://github.com/v2fly/geoip/raw/release/geoip.dat -O build/geoip.dat &&\
