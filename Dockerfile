@@ -1,7 +1,7 @@
 FROM golang:alpine AS builder
 WORKDIR /
 ARG REF
-RUN apk add git make &&\
+RUN apk add git make wget &&\
     git clone https://github.com/Potterli20/trojan-go-fork.git
 RUN if [[ -z "${REF}" ]]; then \
         echo "No specific commit provided, use the latest one." \
@@ -12,6 +12,7 @@ RUN if [[ -z "${REF}" ]]; then \
     ;fi
 RUN cd trojan-go-fork &&\
     make &&\
+    mkdir build &&\
     wget https://github.com/v2fly/domain-list-community/raw/release/dlc.dat -O build/geosite.dat &&\
     wget https://github.com/v2fly/geoip/raw/release/geoip.dat -O build/geoip.dat &&\
     wget https://github.com/v2fly/geoip/raw/release/geoip-only-cn-private.dat -O build/geoip-only-cn-private.dat
