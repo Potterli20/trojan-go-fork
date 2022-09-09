@@ -1,0 +1,32 @@
+ame: Linter
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "**/*.go"
+      - ".github/workflows/linter.yml"
+      - ".github/linters/.golangci.yml"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - master
+    paths:
+      - "**/*.go"
+      - ".github/workflows/linter.yml"
+      - ".github/linters/.golangci.yml"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@main
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@master
+        with:
+          version: latest
+          args: --config=.github/linters/.golangci.yml
+          only-new-issues: true
