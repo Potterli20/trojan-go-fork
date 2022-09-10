@@ -3,8 +3,8 @@ module github.com/Potterli20/trojan-go-fork
 go 1.19
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20220908014848-f383a9c709ab
-	github.com/Potterli20/sqlite v0.0.0-20220908005650-f16dba164996
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20220910014903-2220756fc474
+	github.com/Potterli20/sqlite v0.0.0-20220910005810-99648bdf08c6
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.1.2
@@ -14,10 +14,10 @@ require (
 	github.com/v2fly/v2ray-core/v5 v5.1.0
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/xray-core v1.5.10
-	golang.org/x/net v0.0.0-20220907135653-1e95f45603a7
+	golang.org/x/net v0.0.0-20220909164309-bea034e7d591
 	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9
-	google.golang.org/genproto v0.0.0-20220908141613-51c1cc9bc6d0
+	google.golang.org/genproto v0.0.0-20220909194730-69f6226f97e5
 	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -46,17 +46,17 @@ require (
 	go.starlark.net v0.0.0-20220817180228-f738f5508c12 // indirect
 	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
+	golang.org/x/sys v0.0.0-20220909162455-aba9fc2a8ff2 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.12 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect
-	modernc.org/cc/v3 v3.38.0 // indirect
+	modernc.org/cc/v3 v3.38.1 // indirect
 	modernc.org/ccgo/v3 v3.16.9 // indirect
 	modernc.org/libc v1.18.0 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
 	modernc.org/memory v1.3.0 // indirect
 	modernc.org/opt v0.1.3 // indirect
-	modernc.org/sqlite v1.18.1 // indirect
+	modernc.org/sqlite v1.18.2 // indirect
 	modernc.org/strutil v1.1.3 // indirect
 	modernc.org/token v1.0.1 // indirect
 )
