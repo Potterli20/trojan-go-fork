@@ -1,13 +1,11 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220914014732-110e14e9e226 h1:ULLiYG8gaCicP5mWy2tz5rKWvhZNNfTfLqy9Js30t7g=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220914014732-110e14e9e226/go.mod h1:0PmiB9ZBL8+14u/4QlF4wgS4P0wI6CGXGLCpXDDHjnU=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220914123520-52853b2ad881 h1:YwLUJiUQVXV7PbyLIvqW92VhM7c0ZjdT6tj2/cCRWgg=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220914123520-52853b2ad881/go.mod h1:0PmiB9ZBL8+14u/4QlF4wgS4P0wI6CGXGLCpXDDHjnU=
-github.com/Potterli20/sqlite v0.0.0-20220914005611-8b0742b0aafb h1:pw34lI7FBHaH71zAkVqfYsH6mdKDqWFZne8KqjSy+vs=
-github.com/Potterli20/sqlite v0.0.0-20220914005611-8b0742b0aafb/go.mod h1:7mcL81zjEjbWUQNvXYS6SNuICX5JdqsWBFUHAbbk85c=
 github.com/Potterli20/sqlite v0.0.0-20220915010019-d62acc4dab27 h1:Oj0Z22p6shOI9x2k9ZPd+Al1q0z3BZbxpoEplbJbvgE=
 github.com/Potterli20/sqlite v0.0.0-20220915010019-d62acc4dab27/go.mod h1:6qDoBTNYaEwXmj2cWD0tbqJUYXFPHVpyKqZFAYi5QYM=
+github.com/Potterli20/sqlite v0.0.0-20220915122306-9e7e9e06aab2 h1:9FcdKjxYP8bIn9vkA2Tc4atHwswN1CE3sB250LA4GZA=
+github.com/Potterli20/sqlite v0.0.0-20220915122306-9e7e9e06aab2/go.mod h1:6qDoBTNYaEwXmj2cWD0tbqJUYXFPHVpyKqZFAYi5QYM=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
@@ -201,8 +199,6 @@ google.golang.org/appengine v1.4.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7
 google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8/go.mod h1:JiN7NxoALGmiZfu7CAH4rXhgtRTLTxftemlI0sWmxmc=
 google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55/go.mod h1:DMBHOl98Agz4BDEuKkezgsaosCRResVns1a3J2ZsMNc=
 google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013/go.mod h1:NbSheEEYHJ7i3ixzK3sjbqSGDJWnxyFXZblF3eUsNvo=
-google.golang.org/genproto v0.0.0-20220913154956-18f8339a66a5 h1:ou3VRVAif8UJqz3l1r4Isoz7rrUWHWDHBonShMNYoQs=
-google.golang.org/genproto v0.0.0-20220913154956-18f8339a66a5/go.mod h1:0Nb8Qy+Sk5eDzHnzlStwW3itdNaWoZA5XeSG+R3JHSo=
 google.golang.org/genproto v0.0.0-20220914210030-581e60b4ef85 h1:lkYqfLZL9+9C+SltHOTeOHL6uueWYYkGp5NoeOZQsis=
 google.golang.org/genproto v0.0.0-20220914210030-581e60b4ef85/go.mod h1:0Nb8Qy+Sk5eDzHnzlStwW3itdNaWoZA5XeSG+R3JHSo=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
@@ -247,8 +243,6 @@ modernc.org/ccorpus v1.11.6/go.mod h1:2gEUTrWqdpH2pXsmTM1ZkjeSrUWDpjMu2T6m29L/Er
 modernc.org/httpfs v1.0.6 h1:AAgIpFZRXuYnkjftxTAZwMIiwEqAfk8aVB2/oA6nAeM=
 modernc.org/httpfs v1.0.6/go.mod h1:7dosgurJGp0sPaRanU53W4xZYKh14wfzX420oZADeHM=
 modernc.org/libc v1.17.0/go.mod h1:XsgLldpP4aWlPlsjqKRdHPqCxCjISdHfM/yeWC5GyW0=
-modernc.org/libc v1.18.2 h1:3pMI+TsEHOlOohXIPvH8g3ITfuKe+1iNDgxJMvebp/E=
-modernc.org/libc v1.18.2/go.mod h1:vj6zehR5bfc98ipowQOM2nIDUZnVew/wNC/2tOGS+q0=
 modernc.org/libc v1.19.0 h1:bXyVhGQg6KIClTr8FMVIDPl7jtbcs7aS5WP7vLDaxPs=
 modernc.org/libc v1.19.0/go.mod h1:ZRfIaEkgrYgZDl6pa4W39HgN5G/yDW+NRmNKZBDFrk0=
 modernc.org/mathutil v1.2.2/go.mod h1:mZW8CKdRPY1v87qxC/wUdX5O1qDzXMP5TH3wjfpga6E=
@@ -256,8 +250,6 @@ modernc.org/mathutil v1.4.1/go.mod h1:mZW8CKdRPY1v87qxC/wUdX5O1qDzXMP5TH3wjfpga6
 modernc.org/mathutil v1.5.0 h1:rV0Ko/6SfM+8G+yKiyI830l3Wuz1zRutdslNoQ0kfiQ=
 modernc.org/mathutil v1.5.0/go.mod h1:mZW8CKdRPY1v87qxC/wUdX5O1qDzXMP5TH3wjfpga6E=
 modernc.org/memory v1.2.0/go.mod h1:/0wo5ibyrQiaoUoH7f9D8dnglAmILJ5/cxZlRECf+Nw=
-modernc.org/memory v1.3.0 h1:6ZIOLb5ronARPxEPxtZz1WbSRllgA09FCvNNyql5kZg=
-modernc.org/memory v1.3.0/go.mod h1:PkUhL0Mugw21sHPeskwZW4D6VscE/GQJOnIpCnW6pSU=
 modernc.org/memory v1.4.0 h1:crykUfNSnMAXaOJnnxcSzbUGMqkLWjklJKkBK2nwZwk=
 modernc.org/memory v1.4.0/go.mod h1:PkUhL0Mugw21sHPeskwZW4D6VscE/GQJOnIpCnW6pSU=
 modernc.org/opt v0.1.1/go.mod h1:WdSiB5evDcignE70guQKxYUl14mgWtbClRi5wmkkTX0=
