@@ -1,3 +1,8 @@
+## docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
+```shell
+ docker pull trliwork/trojan-go-fork:latest
+```
+
 ## 由于原项目作者已经不再维护，也不能再合入PR，同时原项目存在诸多的问题与bug。Fork了一个分支到个人项目进行维护
 ## 还存在其他bug或者需求可以提Issue
 ### 基于原版已修改内容
