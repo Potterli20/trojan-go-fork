@@ -3,8 +3,8 @@ module github.com/Potterli20/trojan-go-fork
 go 1.19
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20220916123255-a1b3f31050a9
-	github.com/Potterli20/sqlite v0.0.0-20220918121800-d2a9ab8a354e
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20220919123719-c6aa75f5cae9
+	github.com/Potterli20/sqlite v0.0.0-20220920005949-6befc6a994f9
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.1.2
@@ -14,10 +14,10 @@ require (
 	github.com/v2fly/v2ray-core/v5 v5.1.0
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/xray-core v1.6.0
-	golang.org/x/net v0.0.0-20220909164309-bea034e7d591
-	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035
+	golang.org/x/net v0.0.0-20220919232410-f2f64ebce3c1
+	golang.org/x/term v0.0.0-20220919170432-7a66f970e087
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9
-	google.golang.org/genproto v0.0.0-20220916172020-2692e8806bfa
+	google.golang.org/genproto v0.0.0-20220919141832-68c03719ef51
 	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -44,7 +44,7 @@ require (
 	github.com/txthinking/runnergroup v0.0.0-20220212043759-8da8edb7dae8 // indirect
 	github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe // indirect
 	go.starlark.net v0.0.0-20220817180228-f738f5508c12 // indirect
-	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90 // indirect
+	golang.org/x/crypto v0.0.0-20220919173607-35f4265a4bc0 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
 	golang.org/x/sys v0.0.0-20220919091848-fb04ddd9f9c8 // indirect
 	golang.org/x/text v0.3.7 // indirect
