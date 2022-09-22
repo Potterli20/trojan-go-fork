@@ -53,6 +53,7 @@ func (a *Authenticator) updater() {
 			time.Sleep(a.updateDuration)
 			continue
 		}
+		userMap := make(map[string]bool)
 		for rows.Next() {
 			var hash string
 			var quota, download, upload int64
@@ -61,10 +62,16 @@ func (a *Authenticator) updater() {
 				log.Error(common.NewError("failed to obtain data from the query result").Base(err))
 				break
 			}
+			userMap[hash] = true
 			if download+upload < quota || quota < 0 {
 				a.AddUser(hash)
 			} else {
 				a.DelUser(hash)
+			}
+		}
+		for _, user := range a.ListUsers() {
+			if _, ok := userMap[user.GetHash()]; !ok {
+				a.DelUser(user.GetHash())
 			}
 		}
 
