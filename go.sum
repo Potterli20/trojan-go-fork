@@ -1,7 +1,5 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220924015115-722143232b24 h1:/pFMXzNqkjnQXPtGrOlQNJQZdwckiqsUFTPQnd8d7aE=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220924015115-722143232b24/go.mod h1:ukedGWOEYagFIffwpovkacWeBfMipPgR6an82FuyECw=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220924123300-470e5dba3f48 h1:iEAB0tEV3GlnmM2QNMHHlBl4sFeIO9tVVtH5590yPL8=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220924123300-470e5dba3f48/go.mod h1:ukedGWOEYagFIffwpovkacWeBfMipPgR6an82FuyECw=
 github.com/Potterli20/sqlite v0.0.0-20220923010059-d86e14601fa4 h1:VHldv+6nFj0kADz1RDqDFuoKOkj+5f87JapNET5vwc4=
