@@ -1,13 +1,13 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220927123820-ffb3c1f466be h1:tfg60TlBYpjFfaFXkGK+VKxW20u7DGaZyFy8n2UOJNk=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220927123820-ffb3c1f466be/go.mod h1:1cmeH9q1cAggCO7pxP/cMTA4LHrrspsQcCNQ4Q4xS9k=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220928015002-2bddf8f8ef49 h1:cZnE9USw5KekbS5h7bw5W9VLs4/cV5Ds8ieB3hCtig0=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220928015002-2bddf8f8ef49/go.mod h1:85NbavFMtdKyCUOtEs9Gz2cM/znAOXhLN1XjlQSrHPs=
-github.com/Potterli20/sqlite v0.0.0-20220928010225-75a6cd20807c h1:qc9VdIBOzuqmOQCsDf2MeJ4WK5haVfn0pkPTf/8EcnM=
-github.com/Potterli20/sqlite v0.0.0-20220928010225-75a6cd20807c/go.mod h1:nlDiw6JI7rcd0VBuxsWtppwBZV6FimgD748z3uJSBPQ=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220928123619-2a325b5d5e8a h1:FLgfLCgKTS7ZtcSKZwj89G/lfQcc7o4hEZRSfbteke4=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220928123619-2a325b5d5e8a/go.mod h1:85NbavFMtdKyCUOtEs9Gz2cM/znAOXhLN1XjlQSrHPs=
 github.com/Potterli20/sqlite v0.0.0-20220928122131-3967f13070d6 h1:TsGfWWxUNp6BANaPy2CJL1VHjlJPojkHK/H/GSkytPc=
 github.com/Potterli20/sqlite v0.0.0-20220928122131-3967f13070d6/go.mod h1:nlDiw6JI7rcd0VBuxsWtppwBZV6FimgD748z3uJSBPQ=
+github.com/Potterli20/sqlite v0.0.0-20220929010706-e7c716e54527 h1:ykkiyeft3XVb3TK0TnFs+wDt/WfM1P1xHmCHHVjgqIU=
+github.com/Potterli20/sqlite v0.0.0-20220929010706-e7c716e54527/go.mod h1:z2H/ArwCSECmrFMUnDITaTo5ztMFJTz8usjhRL5TaDY=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
@@ -125,8 +125,6 @@ github.com/xtls/go v0.0.0-20220914232946-0441cf4cf837 h1:AHhUwwFJGl27E46OpdJHplZ
 github.com/xtls/xray-core v1.6.0 h1:5kqFV/BbMb0vn3ymyRIxtnJbS7ctb0Fgb7P3slaYdzI=
 github.com/xtls/xray-core v1.6.0/go.mod h1:wLbZAk/dz5JEnsMZ3QeGTeKyOB50ZqKYKPGRnv0MrWI=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
-go.starlark.net v0.0.0-20220926145019-14b050677505 h1:W0MibAL5BiEenQR+F/EF/a4HJhgLngHVvm6jbtUW0PM=
-go.starlark.net v0.0.0-20220926145019-14b050677505/go.mod h1:qsNirHv+Awo5xHuNyQ/0niov6kDxdBs+bqpVMBCW77k=
 go.starlark.net v0.0.0-20220928063852-5fccb4daaf6d h1:aF+anaRVZu22kdETjLavnIn/cvD+arhmik6vMU3joW4=
 go.starlark.net v0.0.0-20220928063852-5fccb4daaf6d/go.mod h1:kIVgS18CjmEC3PqMd5kaJSGEifyV/CeB9x506ZJ1Vbk=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
@@ -174,6 +172,8 @@ golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220927170352-d9d178bc13c6 h1:cy1ko5847T/lJ45eyg/7uLprIE/amW5IXxGtEnQdYMI=
 golang.org/x/sys v0.0.0-20220927170352-d9d178bc13c6/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec h1:BkDtF2Ih9xZ7le9ndzTA7KJow28VbQW3odyk/8drmuI=
+golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/term v0.0.0-20220526004731-065cf7ba2467/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=
 golang.org/x/term v0.0.0-20220919170432-7a66f970e087 h1:tPwmk4vmvVCMdr98VgL4JH+qZxPL8fqlUOHnyOM8N3w=
