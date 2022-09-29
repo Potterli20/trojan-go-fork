@@ -34,22 +34,29 @@ jobs:
         id: prepare
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
-            echo ::set-output name=version::${GITHUB_REF#refs/tags/}
             echo ::set-output name=ref::${GITHUB_REF#refs/tags/}
           else
-            echo ::set-output name=version::snapshot
             echo ::set-output name=ref::${{ github.sha }}
           fi
           echo ::set-output name=docker_platforms::linux/amd64,linux/arm64,linux/ppc64le,linux/s390x,linux/386
           echo ::set-output name=docker_image::${{ secrets.DOCKERUSERNAME }}/trojan-go-fork
       - name: Build and push docker image
         run: |
-          docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
-          --output "type=image,push=true" \
-          --tag "${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}" \
-          --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
-          --build-arg REF=${{ steps.prepare.outputs.ref }} \
-          --file Dockerfile .
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
+            --output "type=image,push=true" \
+            --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}" \
+            --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
+            --build-arg REF=${{ steps.prepare.outputs.ref }} \
+            --file Dockerfile .
+          else
+            docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
+            --output "type=image,push=true" \
+            --tag "${{ steps.prepare.outputs.docker_image }}:snapshot" \
+            --build-arg REF=${{ steps.prepare.outputs.ref }} \
+            --file Dockerfile .
+          fi
+
   test:
     needs: build
     runs-on: ubuntu-latest
