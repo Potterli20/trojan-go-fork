@@ -1,13 +1,13 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220928015002-2bddf8f8ef49 h1:cZnE9USw5KekbS5h7bw5W9VLs4/cV5Ds8ieB3hCtig0=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220928015002-2bddf8f8ef49/go.mod h1:85NbavFMtdKyCUOtEs9Gz2cM/znAOXhLN1XjlQSrHPs=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220928123619-2a325b5d5e8a h1:FLgfLCgKTS7ZtcSKZwj89G/lfQcc7o4hEZRSfbteke4=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220928123619-2a325b5d5e8a/go.mod h1:85NbavFMtdKyCUOtEs9Gz2cM/znAOXhLN1XjlQSrHPs=
-github.com/Potterli20/sqlite v0.0.0-20220928122131-3967f13070d6 h1:TsGfWWxUNp6BANaPy2CJL1VHjlJPojkHK/H/GSkytPc=
-github.com/Potterli20/sqlite v0.0.0-20220928122131-3967f13070d6/go.mod h1:nlDiw6JI7rcd0VBuxsWtppwBZV6FimgD748z3uJSBPQ=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220929015506-94af3ee2e1fb h1:mDKjdSIsxU1AbEzHtt0le4Y5kZNRG6HcjUV0tgEV3NE=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220929015506-94af3ee2e1fb/go.mod h1:bJujmF3t1g0dz/Y1e1zUO1pc7n9xob6B7NGBYljuun8=
 github.com/Potterli20/sqlite v0.0.0-20220929010706-e7c716e54527 h1:ykkiyeft3XVb3TK0TnFs+wDt/WfM1P1xHmCHHVjgqIU=
 github.com/Potterli20/sqlite v0.0.0-20220929010706-e7c716e54527/go.mod h1:z2H/ArwCSECmrFMUnDITaTo5ztMFJTz8usjhRL5TaDY=
+github.com/Potterli20/sqlite v0.0.0-20220929122112-6e5d85f6a452 h1:LjdnylDKd4Pn7vm5qOcRbUHVf2jMB14CHCjt0istPTg=
+github.com/Potterli20/sqlite v0.0.0-20220929122112-6e5d85f6a452/go.mod h1:z2H/ArwCSECmrFMUnDITaTo5ztMFJTz8usjhRL5TaDY=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
@@ -116,6 +116,8 @@ github.com/txthinking/socks5 v0.0.0-20220615051428-39268faee3e6 h1:8DkPbOq/EPxbD
 github.com/txthinking/socks5 v0.0.0-20220615051428-39268faee3e6/go.mod h1:7NloQcrxaZYKURWph5HLxVDlIwMHJXCPkeWPtpftsIg=
 github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe h1:gMWxZxBFRAXqoGkwkYlPX2zvyyKNWJpxOxCrjqJkm5A=
 github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe/go.mod h1:WgqbSEmUYSjEV3B1qmee/PpP2NYEz4bL9/+mF1ma+s4=
+github.com/txthinking/x v0.0.0-20220929041811-1b4d914e9133 h1:fUw8+3ruX0uv2gAko4D0v6IpLmSI2soOkGl6YYmiBrM=
+github.com/txthinking/x v0.0.0-20220929041811-1b4d914e9133/go.mod h1:WgqbSEmUYSjEV3B1qmee/PpP2NYEz4bL9/+mF1ma+s4=
 github.com/v2fly/ss-bloomring v0.0.0-20210312155135-28617310f63e h1:5QefA066A1tF8gHIiADmOVOV5LS43gt3ONnlEl3xkwI=
 github.com/v2fly/v2ray-core/v5 v5.1.0 h1:r437j80lZcVDpSw57kmsqughVxI+ztig2Azdr7aMQgc=
 github.com/v2fly/v2ray-core/v5 v5.1.0/go.mod h1:2qao7xME2I10GRDEO0jJIJ2l0yfnc4j0B2A9RnsYstQ=
@@ -170,8 +172,6 @@ golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.0.0-20220927170352-d9d178bc13c6 h1:cy1ko5847T/lJ45eyg/7uLprIE/amW5IXxGtEnQdYMI=
-golang.org/x/sys v0.0.0-20220927170352-d9d178bc13c6/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec h1:BkDtF2Ih9xZ7le9ndzTA7KJow28VbQW3odyk/8drmuI=
 golang.org/x/sys v0.0.0-20220928140112-f11e5e49a4ec/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
