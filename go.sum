@@ -1,13 +1,13 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220928123619-2a325b5d5e8a h1:FLgfLCgKTS7ZtcSKZwj89G/lfQcc7o4hEZRSfbteke4=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220928123619-2a325b5d5e8a/go.mod h1:85NbavFMtdKyCUOtEs9Gz2cM/znAOXhLN1XjlQSrHPs=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220929015506-94af3ee2e1fb h1:mDKjdSIsxU1AbEzHtt0le4Y5kZNRG6HcjUV0tgEV3NE=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20220929015506-94af3ee2e1fb/go.mod h1:bJujmF3t1g0dz/Y1e1zUO1pc7n9xob6B7NGBYljuun8=
-github.com/Potterli20/sqlite v0.0.0-20220929010706-e7c716e54527 h1:ykkiyeft3XVb3TK0TnFs+wDt/WfM1P1xHmCHHVjgqIU=
-github.com/Potterli20/sqlite v0.0.0-20220929010706-e7c716e54527/go.mod h1:z2H/ArwCSECmrFMUnDITaTo5ztMFJTz8usjhRL5TaDY=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220929123620-5c678ff76374 h1:3GhmKHJUl2LIrtlgCBn4MuMGcXbt+DK2CQQwcKUUgaQ=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20220929123620-5c678ff76374/go.mod h1:bJujmF3t1g0dz/Y1e1zUO1pc7n9xob6B7NGBYljuun8=
 github.com/Potterli20/sqlite v0.0.0-20220929122112-6e5d85f6a452 h1:LjdnylDKd4Pn7vm5qOcRbUHVf2jMB14CHCjt0istPTg=
 github.com/Potterli20/sqlite v0.0.0-20220929122112-6e5d85f6a452/go.mod h1:z2H/ArwCSECmrFMUnDITaTo5ztMFJTz8usjhRL5TaDY=
+github.com/Potterli20/sqlite v0.0.0-20220930011916-40a23e506fd1 h1:kmCWyKEZ4iwUkyOIhPACuoAyembTuibg0Ww+KxPCL/8=
+github.com/Potterli20/sqlite v0.0.0-20220930011916-40a23e506fd1/go.mod h1:UA573x9CLDNqQbgEirVdFEnzKPoh9qpAbRen+IR1Woc=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
@@ -114,7 +114,6 @@ github.com/txthinking/runnergroup v0.0.0-20220212043759-8da8edb7dae8 h1:iYc+JnXt
 github.com/txthinking/runnergroup v0.0.0-20220212043759-8da8edb7dae8/go.mod h1:CLUSJbazqETbaR+i0YAhXBICV9TrKH93pziccMhmhpM=
 github.com/txthinking/socks5 v0.0.0-20220615051428-39268faee3e6 h1:8DkPbOq/EPxbD5VJajKuvssiYZJSrlpeetcGfrBoBVE=
 github.com/txthinking/socks5 v0.0.0-20220615051428-39268faee3e6/go.mod h1:7NloQcrxaZYKURWph5HLxVDlIwMHJXCPkeWPtpftsIg=
-github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe h1:gMWxZxBFRAXqoGkwkYlPX2zvyyKNWJpxOxCrjqJkm5A=
 github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe/go.mod h1:WgqbSEmUYSjEV3B1qmee/PpP2NYEz4bL9/+mF1ma+s4=
 github.com/txthinking/x v0.0.0-20220929041811-1b4d914e9133 h1:fUw8+3ruX0uv2gAko4D0v6IpLmSI2soOkGl6YYmiBrM=
 github.com/txthinking/x v0.0.0-20220929041811-1b4d914e9133/go.mod h1:WgqbSEmUYSjEV3B1qmee/PpP2NYEz4bL9/+mF1ma+s4=
@@ -206,6 +205,8 @@ google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55/go.mod h1:DMBHOl98
 google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013/go.mod h1:NbSheEEYHJ7i3ixzK3sjbqSGDJWnxyFXZblF3eUsNvo=
 google.golang.org/genproto v0.0.0-20220927151529-dcaddaf36704 h1:H1AcWFV69NFCMeBJ8nVLtv8uHZZ5Ozcgoq012hHEFuU=
 google.golang.org/genproto v0.0.0-20220927151529-dcaddaf36704/go.mod h1:woMGP53BroOrRY3xTxlbr8Y3eB/nzAvvFM83q7kG2OI=
+google.golang.org/genproto v0.0.0-20220929141241-1ce7b20da813 h1:buul04Ikd79A5tP8nGhKEyMfr+/HplsO6nqSUapWZ/M=
+google.golang.org/genproto v0.0.0-20220929141241-1ce7b20da813/go.mod h1:woMGP53BroOrRY3xTxlbr8Y3eB/nzAvvFM83q7kG2OI=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
 google.golang.org/grpc v1.23.0/go.mod h1:Y5yQAOtifL1yxbo5wqy6BxZv8vAUGQwXBOALyacEbxg=
 google.golang.org/grpc v1.27.0/go.mod h1:qbnxyOmOxrQa7FizSgH+ReBfzJrCY1pSN7KXBS8abTk=
@@ -241,6 +242,8 @@ lukechampine.com/uint128 v1.2.0/go.mod h1:c4eWIwlEGaxC/+H1VguhU4PHXNWDCDMUlWdIWl
 modernc.org/cc/v3 v3.36.2/go.mod h1:NFUHyPn4ekoC/JHeZFfZurN6ixxawE1BnVonP/oahEI=
 modernc.org/cc/v3 v3.39.0 h1:sd+UyMj63acEV1jaFqxFGPQfllSncJgL+roJjFlo6lI=
 modernc.org/cc/v3 v3.39.0/go.mod h1:vtL+3mdHx/wcj3iEGz84rQa8vEqR6XM84v5Lcvfph20=
+modernc.org/cc/v3 v3.40.0 h1:P3g79IUS/93SYhtoeaHW+kRCIrYaxJ27MFPv+7kaTOw=
+modernc.org/cc/v3 v3.40.0/go.mod h1:/bTg4dnWkSXowUO6ssQKnOV0yMVxDYNIsIrzqTFDGH0=
 modernc.org/ccgo/v3 v3.16.9 h1:AXquSwg7GuMk11pIdw7fmO1Y/ybgazVkMhsZWCV0mHM=
 modernc.org/ccgo/v3 v3.16.9/go.mod h1:zNMzC9A9xeNUepy6KuZBbugn3c0Mc9TeiJO4lgvkJDo=
 modernc.org/ccorpus v1.11.6 h1:J16RXiiqiCgua6+ZvQot4yUuUy8zxgqbqEEUuGPlISk=
