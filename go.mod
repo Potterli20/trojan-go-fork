@@ -14,7 +14,7 @@ require (
 	github.com/v2fly/v2ray-core/v5 v5.1.0
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/xray-core v1.6.0
-	golang.org/x/net v0.0.0-20221002022538-bcab6841153b
+	golang.org/x/net v0.0.0-20221004154528-8021a29435af
 	golang.org/x/term v0.0.0-20220919170432-7a66f970e087
 	golang.org/x/time v0.0.0-20220922220347-f3bd1da661af
 	google.golang.org/genproto v0.0.0-20220930163606-c98284e70a91
