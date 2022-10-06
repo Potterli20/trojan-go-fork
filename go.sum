@@ -1,13 +1,11 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220929123620-5c678ff76374 h1:3GhmKHJUl2LIrtlgCBn4MuMGcXbt+DK2CQQwcKUUgaQ=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20220929123620-5c678ff76374/go.mod h1:bJujmF3t1g0dz/Y1e1zUO1pc7n9xob6B7NGBYljuun8=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20221006013806-460547be6d50 h1:0FKxYVvZsHo4H2fXjzRbbTzl2XuA4C7XOJV2DEwswUU=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20221006013806-460547be6d50/go.mod h1:1FHANgYcFIr2UEEQOItKnRGG3OyhhgbsYUz1ViaTYRk=
-github.com/Potterli20/sqlite v0.0.0-20220930122305-6d6a02966082 h1:Q+NrAu4gZE68RjKtmVNCMAZ9TMudk5QVdqryNYxuahM=
-github.com/Potterli20/sqlite v0.0.0-20220930122305-6d6a02966082/go.mod h1:UA573x9CLDNqQbgEirVdFEnzKPoh9qpAbRen+IR1Woc=
 github.com/Potterli20/sqlite v0.0.0-20221006010112-3b59f8187345 h1:2O49IoQ7Hw/ilVW2Nf1ebcVGzslof96/FRk/5katYQ4=
 github.com/Potterli20/sqlite v0.0.0-20221006010112-3b59f8187345/go.mod h1:T9VFn1BxiuCQRxIEswbEVRNIfsS4qNAEd8m6Jb1i0FQ=
+github.com/Potterli20/sqlite v0.0.0-20221006122235-832f64614f6c h1:eoYi4mS02NEH4VV1H/n2s0ZmRdoSsOnKVxAaP5GTvf8=
+github.com/Potterli20/sqlite v0.0.0-20221006122235-832f64614f6c/go.mod h1:T9VFn1BxiuCQRxIEswbEVRNIfsS4qNAEd8m6Jb1i0FQ=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
@@ -247,8 +245,6 @@ modernc.org/ccorpus v1.11.6/go.mod h1:2gEUTrWqdpH2pXsmTM1ZkjeSrUWDpjMu2T6m29L/Er
 modernc.org/httpfs v1.0.6 h1:AAgIpFZRXuYnkjftxTAZwMIiwEqAfk8aVB2/oA6nAeM=
 modernc.org/httpfs v1.0.6/go.mod h1:7dosgurJGp0sPaRanU53W4xZYKh14wfzX420oZADeHM=
 modernc.org/libc v1.17.0/go.mod h1:XsgLldpP4aWlPlsjqKRdHPqCxCjISdHfM/yeWC5GyW0=
-modernc.org/libc v1.20.0 h1:MEbCfCKpuDC/LRb3HOCM9fZOqnPx8le3kzTJVmUGDbU=
-modernc.org/libc v1.20.0/go.mod h1:ZRfIaEkgrYgZDl6pa4W39HgN5G/yDW+NRmNKZBDFrk0=
 modernc.org/libc v1.20.2 h1:9/C6hYLe+SNLricCd+WYkIGatWrQTZegOfmOcz5fPmY=
 modernc.org/libc v1.20.2/go.mod h1:ZRfIaEkgrYgZDl6pa4W39HgN5G/yDW+NRmNKZBDFrk0=
 modernc.org/mathutil v1.2.2/go.mod h1:mZW8CKdRPY1v87qxC/wUdX5O1qDzXMP5TH3wjfpga6E=
