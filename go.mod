@@ -5,13 +5,12 @@ go 1.19
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20221007145455-67564452a6e6
 	github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a
-	github.com/Potterli20/sqlite v0.0.0-20221007122227-38957e07d4af
+	github.com/Potterli20/sqlite v0.0.0-20221007150054-ed8c44d9a994
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.1.2
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.8.0
-	github.com/txthinking/socks5 v0.0.0-20220615051428-39268faee3e6
 	github.com/v2fly/v2ray-core/v5 v5.1.0
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/xray-core v1.6.0
@@ -37,7 +36,6 @@ require (
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
-	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pires/go-proxyproto v0.6.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20220927061507-ef77025ab5aa // indirect
