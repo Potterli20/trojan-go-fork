@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/txthinking/socks5"
+	"github.com/Potterli20/socks5-fork"
 	"golang.org/x/net/proxy"
 
 	"github.com/Potterli20/trojan-go-fork/common"
