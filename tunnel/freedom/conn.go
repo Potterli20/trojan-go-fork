@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"net"
 
-	"github.com/txthinking/socks5"
+	"github.com/Potterli20/socks5-fork"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
