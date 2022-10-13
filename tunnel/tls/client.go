@@ -97,7 +97,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		case "ios":
 			helloID = utls.HelloIOS_Auto
 		case "edge":
-			helloID = utls.Helloedge_Auto
+			helloID = utls.HelloEdge_Auto
 		case "360browesr":
 			helloID = utls.Hello360_Auto
 		case "qqbrowesr":
