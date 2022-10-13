@@ -96,8 +96,14 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 			helloID = utls.HelloChrome_Auto
 		case "ios":
 			helloID = utls.HelloIOS_Auto
+		case "edge":
+			helloID = utls.Hellodge_Auto
+		case "360browesr":
+			helloID = utls.Hello360_Auto
+		case "qqbrowesr":
+			helloID = utls.HelloQQ_Auto
 		default:
-			return nil, common.NewError("invalid fingerprint " + cfg.TLS.Fingerprint)
+			return nil, common.NewError("Invalid 'fingerprint' value in configuration: '" + cfg.TLS.Fingerprint + "'. Possible values are 'chrome' (default), 'ios', 'firefox', 'edge', 'safari', '360browser', or 'qqbrowser'.")
 		}
 		log.Info("tls fingerprint", cfg.TLS.Fingerprint, "applied")
 	}
