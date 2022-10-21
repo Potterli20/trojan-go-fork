@@ -1,15 +1,13 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20221020015034-df6c1b926d9e h1:vUc8LR2ksPt73enU3egXNKeobzTKGHwIMbjCdn1ZUOo=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20221020015034-df6c1b926d9e/go.mod h1:JrcV6En0YqlaJAsLjNQgdQpQTDsOgXWYXn8qs4tqI+g=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20221020123958-55005a678181 h1:O555Oq9keG0vhWE5bn58gwUKxNyQU0zpFBWShJ9RNng=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20221020123958-55005a678181/go.mod h1:JrcV6En0YqlaJAsLjNQgdQpQTDsOgXWYXn8qs4tqI+g=
 github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a h1:pAQ40742Qi0SJT82lX9LcE3GvjjRxhk3n4gQ8lHVQlM=
 github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a/go.mod h1:URAwKqWqdZXzm0j/TbbIgyyHQKWU8ntmqVQ8ipdKTJk=
-github.com/Potterli20/sqlite v0.0.0-20221020122212-2907ce2975a5 h1:kVHQfXkIYNAPQdEMDH+P2/Tor/3kRkYYW69P7u2wT5k=
-github.com/Potterli20/sqlite v0.0.0-20221020122212-2907ce2975a5/go.mod h1:e1pMRau/u89ECvZq52S3yEqE0U3gX4oKTwcKObiaglM=
 github.com/Potterli20/sqlite v0.0.0-20221021010026-48f518473411 h1:C310p8f/K3hewLLvMQeTdZeN4jA1NzoYPIRFeclzjD0=
 github.com/Potterli20/sqlite v0.0.0-20221021010026-48f518473411/go.mod h1:o6DM/+NESi4rSOd3ynr2x2lHoZJ9J9U/+IQT2NqBVnQ=
+github.com/Potterli20/sqlite v0.0.0-20221021122310-109c59d84334 h1:+I9dKj5r1dTIZBYhAp5ao4C7HG/GgBDdhMk704Byy88=
+github.com/Potterli20/sqlite v0.0.0-20221021122310-109c59d84334/go.mod h1:o6DM/+NESi4rSOd3ynr2x2lHoZJ9J9U/+IQT2NqBVnQ=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
@@ -118,8 +116,6 @@ github.com/xtaci/smux v1.5.16/go.mod h1:OMlQbT5vcgl2gb49mFkYo6SMf+zP3rcjcwQz7ZU7
 github.com/xtls/go v0.0.0-20220914232946-0441cf4cf837 h1:AHhUwwFJGl27E46OpdJHplZkK09m7aETNBNzhT6t15M=
 github.com/xtls/xray-core v1.6.0 h1:5kqFV/BbMb0vn3ymyRIxtnJbS7ctb0Fgb7P3slaYdzI=
 github.com/xtls/xray-core v1.6.0/go.mod h1:wLbZAk/dz5JEnsMZ3QeGTeKyOB50ZqKYKPGRnv0MrWI=
-go.starlark.net v0.0.0-20221019144234-6ce4ce37fe55 h1:UETCDFV7xVE6L29SnwA1vzkJEYGwffjjmxURPkstP6A=
-go.starlark.net v0.0.0-20221019144234-6ce4ce37fe55/go.mod h1:kIVgS18CjmEC3PqMd5kaJSGEifyV/CeB9x506ZJ1Vbk=
 go.starlark.net v0.0.0-20221020143700-22309ac47eac h1:gBO5Qfcw5V9404yzsu2FEIsxK/u2mBNTNogK0uIoVhk=
 go.starlark.net v0.0.0-20221020143700-22309ac47eac/go.mod h1:kIVgS18CjmEC3PqMd5kaJSGEifyV/CeB9x506ZJ1Vbk=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
@@ -175,8 +171,6 @@ golang.org/x/tools v0.0.0-20190226205152-f727befe758c/go.mod h1:9Yl7xja0Znq3iFh3
 golang.org/x/tools v0.0.0-20190311212946-11955173bddd/go.mod h1:LCzVGOaR6xXOjkQ3onu1FJEFr0SW1gC7cKk1uF8kGRs=
 golang.org/x/tools v0.0.0-20190328211700-ab21143f2384/go.mod h1:LCzVGOaR6xXOjkQ3onu1FJEFr0SW1gC7cKk1uF8kGRs=
 golang.org/x/tools v0.0.0-20190524140312-2c0ae7006135/go.mod h1:RgjU9mgBXZiqYHBnxXauZ1Gv1EHHAz9KjViQ78xBX0Q=
-golang.org/x/tools v0.1.12 h1:VveCTK38A2rkS8ZqFY25HIDFscX5X9OoEhJd3quQmXU=
-golang.org/x/tools v0.1.12/go.mod h1:hNGJHUnrk76NpqgfD5Aqm5Crs+Hm0VOH/i9J2+nxYbc=
 golang.org/x/tools v0.2.0 h1:G6AHpWxTMGY1KyEYoAQ5WTtIekUUvDNjan3ugu60JvE=
 golang.org/x/tools v0.2.0/go.mod h1:y4OqIKeOV/fWJetJ8bXPU1sEVniLMIyDAZWeHdV+NTA=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
@@ -225,8 +219,6 @@ modernc.org/ccgo/v3 v3.16.13-0.20221017192402-261537637ce8 h1:0+dsXf0zeLx9ixj4ni
 modernc.org/ccgo/v3 v3.16.13-0.20221017192402-261537637ce8/go.mod h1:fUB3Vn0nVPReA+7IG7yZDfjv1TMWjhQP8gCxrFAtL5g=
 modernc.org/ccorpus v1.11.6 h1:J16RXiiqiCgua6+ZvQot4yUuUy8zxgqbqEEUuGPlISk=
 modernc.org/httpfs v1.0.6 h1:AAgIpFZRXuYnkjftxTAZwMIiwEqAfk8aVB2/oA6nAeM=
-modernc.org/libc v1.21.0 h1:NYW3gvGh6vaJe8XxGB0BgipUxGKAKwwc/31rDixUYkY=
-modernc.org/libc v1.21.0/go.mod h1:przBsL5RDOZajTVslkugzLBj1evTue36jEomFQOoYuI=
 modernc.org/libc v1.21.1 h1:BczrQEMmuz/0YWRvD4DcJ77sh1wF5ELAKdIfWCD+Lso=
 modernc.org/libc v1.21.1/go.mod h1:przBsL5RDOZajTVslkugzLBj1evTue36jEomFQOoYuI=
 modernc.org/mathutil v1.5.0 h1:rV0Ko/6SfM+8G+yKiyI830l3Wuz1zRutdslNoQ0kfiQ=
