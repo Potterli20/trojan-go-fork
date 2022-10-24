@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.1.5
 	github.com/smartystreets/goconvey v1.7.2
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	github.com/v2fly/v2ray-core/v5 v5.1.0
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/xray-core v1.6.1
