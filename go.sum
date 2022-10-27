@@ -4,10 +4,10 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20221020123958-55005a678181 h1:O555
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20221020123958-55005a678181/go.mod h1:JrcV6En0YqlaJAsLjNQgdQpQTDsOgXWYXn8qs4tqI+g=
 github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a h1:pAQ40742Qi0SJT82lX9LcE3GvjjRxhk3n4gQ8lHVQlM=
 github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a/go.mod h1:URAwKqWqdZXzm0j/TbbIgyyHQKWU8ntmqVQ8ipdKTJk=
-github.com/Potterli20/sqlite v0.0.0-20221026005538-a1dcfc91c7c9 h1:ybXGy0ZDQtE/+P+yQzu26arwZJj13cBGboyALJVtEaI=
-github.com/Potterli20/sqlite v0.0.0-20221026005538-a1dcfc91c7c9/go.mod h1:fMRHTO+xHG0jzQc1/E+ceIG/EbTw+EhA7YSDtZk9CyQ=
 github.com/Potterli20/sqlite v0.0.0-20221026122221-52f234d3cba3 h1:eyS1JJMVnrZnpcM/84dDPn/75iWym7IYPrQT9A0Sx04=
 github.com/Potterli20/sqlite v0.0.0-20221026122221-52f234d3cba3/go.mod h1:p5jr/Z+stMp0Ob/FndQCiQkdDtMiJfCQ75oIZkDilpI=
+github.com/Potterli20/sqlite v0.0.0-20221027005544-a171af36ad3b h1:fe/2SlFTJxPIgwpYQlX+X8I9m6Exy6RphXd2jhYguB8=
+github.com/Potterli20/sqlite v0.0.0-20221027005544-a171af36ad3b/go.mod h1:p5jr/Z+stMp0Ob/FndQCiQkdDtMiJfCQ75oIZkDilpI=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
@@ -69,6 +69,8 @@ github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51/go.mod h1:C
 github.com/klauspost/compress v1.15.9/go.mod h1:PhcZ0MbTNciWF3rruxRgKxI5NkcHHrHUDtV4Yw2GlzU=
 github.com/klauspost/compress v1.15.11 h1:Lcadnb3RKGin4FYM/orgq0qde+nc15E5Cbqg4B9Sx9c=
 github.com/klauspost/compress v1.15.11/go.mod h1:QPwzmACJjUTFsnSHH934V6woptycfrDDJnH7hvFVbGM=
+github.com/klauspost/compress v1.15.12 h1:YClS/PImqYbn+UILDnqxQCZ3RehC9N318SU3kElDUEM=
+github.com/klauspost/compress v1.15.12/go.mod h1:QPwzmACJjUTFsnSHH934V6woptycfrDDJnH7hvFVbGM=
 github.com/klauspost/cpuid v1.2.3 h1:CCtW0xUnWGVINKvE/WWOYKdsPV6mawAtvQuSl8guwQs=
 github.com/klauspost/cpuid/v2 v2.1.2 h1:XhdX4fqAJUA0yj+kUwMavO0hHrSPAecYdYf1ZmxHvak=
 github.com/lucas-clemente/quic-go v0.29.2 h1:O8Mt0O6LpvEW+wfC40vZdcw0DngwYzoxq5xULZNzSI8=
@@ -221,8 +223,6 @@ modernc.org/ccgo/v3 v3.16.13-0.20221017192402-261537637ce8 h1:0+dsXf0zeLx9ixj4ni
 modernc.org/ccgo/v3 v3.16.13-0.20221017192402-261537637ce8/go.mod h1:fUB3Vn0nVPReA+7IG7yZDfjv1TMWjhQP8gCxrFAtL5g=
 modernc.org/ccorpus v1.11.6 h1:J16RXiiqiCgua6+ZvQot4yUuUy8zxgqbqEEUuGPlISk=
 modernc.org/httpfs v1.0.6 h1:AAgIpFZRXuYnkjftxTAZwMIiwEqAfk8aVB2/oA6nAeM=
-modernc.org/libc v1.21.3 h1:ZAUp7wdcCLJixyKiBq9yZD5EW+i5Ewhal9hxq88ofUo=
-modernc.org/libc v1.21.3/go.mod h1:przBsL5RDOZajTVslkugzLBj1evTue36jEomFQOoYuI=
 modernc.org/libc v1.21.4 h1:CzTlumWeIbPV5/HVIMzYHNPCRP8uiU/CWiN2gtd/Qu8=
 modernc.org/libc v1.21.4/go.mod h1:przBsL5RDOZajTVslkugzLBj1evTue36jEomFQOoYuI=
 modernc.org/mathutil v1.5.0 h1:rV0Ko/6SfM+8G+yKiyI830l3Wuz1zRutdslNoQ0kfiQ=
