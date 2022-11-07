@@ -65,7 +65,7 @@ func (c *InboundConn) Read(p []byte) (int, error) {
 func (c *InboundConn) Close() error {
 	log.Debug("user", c.hash, "from", c.Conn.RemoteAddr(), "tunneling to", c.metadata.Address, "closed",
 		"sent:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.sent)), "recv:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.recv)))
-	c.user.DelIP(c.ip)
+	c.user.DelIP(c.ipX)
 	return c.Conn.Close()
 }
 
