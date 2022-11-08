@@ -348,6 +348,7 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 	for _, password := range cfg.Passwords {
 		hash := common.SHA224String(password)
 		a.AddUser(hash)
+		a.SetUserIPLimit(hash, cfg.MaxIPPerUser)
 	}
 	log.Debug("memory authenticator created")
 	return a, nil
