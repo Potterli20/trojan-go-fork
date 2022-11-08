@@ -222,7 +222,6 @@ func (a *Authenticator) AddUser(hash string) error {
 		Hash:     hash,
 		ctx:      ctx,
 		cancel:   cancel,
-		MaxIPNum: 1,
 	}
 	go meter.speedUpdater()
 	a.users.Store(hash, meter)
