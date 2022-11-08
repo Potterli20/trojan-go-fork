@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20221020123958-55005a678181
 	github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a
-	github.com/Potterli20/sqlite v0.0.0-20221105005439-1c96e40d4b6b
+	github.com/Potterli20/sqlite v0.0.0-20221108005156-9489a1db1a62
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.1.5
@@ -15,9 +15,9 @@ require (
 	github.com/xtaci/smux v1.5.16
 	github.com/xtls/xray-core v1.6.3
 	golang.org/x/net v0.1.0
-	golang.org/x/term v0.1.0
-	golang.org/x/time v0.1.0
-	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c
+	golang.org/x/term v0.2.0
+	golang.org/x/time v0.2.0
+	google.golang.org/genproto v0.0.0-20221107162902-2d387536bcdd
 	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -25,7 +25,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/oslogin v1.6.0 // indirect
+	cloud.google.com/go/oslogin v1.7.0 // indirect
 	github.com/adrg/xdg v0.4.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -46,7 +46,7 @@ require (
 	go.starlark.net v0.0.0-20221028183056-acb66ad56dd2 // indirect
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect
-	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/sys v0.2.0 // indirect
 	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect
