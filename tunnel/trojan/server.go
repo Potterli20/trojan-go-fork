@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"reflect"
+	"strings"
 	"sync/atomic"
 
 	"github.com/Potterli20/trojan-go-fork/api"
@@ -18,6 +20,7 @@ import (
 	"github.com/Potterli20/trojan-go-fork/statistic/mysql"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"github.com/Potterli20/trojan-go-fork/tunnel/mux"
+	"github.com/Potterli20/trojan-go-fork/tunnel/websocket"
 )
 
 var Auth statistic.Authenticator
@@ -38,6 +41,7 @@ type InboundConn struct {
 	hash     string
 	metadata *tunnel.Metadata
 	ip       string
+	ipX      string
 }
 
 func (c *InboundConn) Metadata() *tunnel.Metadata {
@@ -61,7 +65,7 @@ func (c *InboundConn) Read(p []byte) (int, error) {
 func (c *InboundConn) Close() error {
 	log.Debug("user", c.hash, "from", c.Conn.RemoteAddr(), "tunneling to", c.metadata.Address, "closed",
 		"sent:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.sent)), "recv:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.recv)))
-	c.user.DelIP(c.ip)
+	c.user.DelIP(c.ipX)
 	return c.Conn.Close()
 }
 
@@ -84,8 +88,17 @@ func (c *InboundConn) Auth() error {
 		return common.NewError("failed to parse host:" + c.Conn.RemoteAddr().String()).Base(err)
 	}
 
+	ipX := ip
+	RewConn := reflect.ValueOf(c.Conn).Elem().Interface().(common.RewindConn)
+	WSInConn := reflect.ValueOf(RewConn.Conn).Elem().Interface().(websocket.InboundConn)
+	for k, v := range WSInConn.OutboundConn.Request().Header {
+		if k == "X-Forwarded-For" {
+			ipX = strings.Join(v, ", ")
+		}
+	}
 	c.ip = ip
-	ok := user.AddIP(ip)
+	c.ipX = ipX
+	ok := user.AddIP(ipX)
 	if !ok {
 		return common.NewError("ip limit reached")
 	}
