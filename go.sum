@@ -2,8 +2,6 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 cloud.google.com/go/oslogin v1.7.0 h1:pKGDPfeZHDybtw48WsnVLjoIPMi9Kw62kUE5TXCLCN4=
 cloud.google.com/go/oslogin v1.7.0/go.mod h1:e04SN0xO1UNJ1M5GP0vzVBFicIe4O53FOfcixIqTyXo=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20221108012334-f12edb7e3f4d h1:7VvdoC6u51GKZaiiJAokPVlXk72lx74XmpeCxhspTKA=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20221108012334-f12edb7e3f4d/go.mod h1:/lpONlPmsRR+WmWKJ3eBWi8PQBbwV5jkHIIN2Hwlrww=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20221108123600-78989a1547bd h1:8IhCSHYhh4WXk0LZVMfTltwtGydQ6Jf82W3v760Q20s=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20221108123600-78989a1547bd/go.mod h1:/lpONlPmsRR+WmWKJ3eBWi8PQBbwV5jkHIIN2Hwlrww=
 github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a h1:pAQ40742Qi0SJT82lX9LcE3GvjjRxhk3n4gQ8lHVQlM=
@@ -139,8 +137,6 @@ golang.org/x/net v0.0.0-20190213061140-3a22650c66bd/go.mod h1:mL1N/T3taQHkDXs73r
 golang.org/x/net v0.0.0-20190311183353-d8887717615a/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
 golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2/go.mod h1:9nx3DQGgdP8bBQD5qxJ1jj9UTztislL4KSBs9R2vV5Y=
 golang.org/x/net v0.0.0-20220909164309-bea034e7d591/go.mod h1:YDH+HFinaLZZlnHAfSS6ZXJJ9M9t4Dl22yv3iI2vPwk=
-golang.org/x/net v0.1.0 h1:hZ/3BUoy5aId7sCpA/Tc5lt8DkFgdVS2onTpJsZ/fl0=
-golang.org/x/net v0.1.0/go.mod h1:Cx3nUiGt4eDBEyega/BKRp+/AlGL8hYe7U9odMt2Cco=
 golang.org/x/net v0.2.0 h1:sZfSu1wtKLGlWI4ZZayP0ck9Y73K1ynO6gqzTdBVdPU=
 golang.org/x/net v0.2.0/go.mod h1:KqCZLdyyvdV855qA2rE3GC2aiw5xGR5TEjj8smXukLY=
 golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
