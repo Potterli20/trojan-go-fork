@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"reflect"
 	"strings"
 	"sync/atomic"
 
@@ -89,9 +88,7 @@ func (c *InboundConn) Auth() error {
 	}
 
 	ipX := ip
-	RewConn := reflect.ValueOf(c.Conn).Elem().Interface().(common.RewindConn)
-	WSInConn := reflect.ValueOf(RewConn.Conn).Elem().Interface().(websocket.InboundConn)
-	for k, v := range WSInConn.OutboundConn.Request().Header {
+	for k, v := range c.Conn.(*common.RewindConn).Conn.(*websocket.InboundConn).Request().Header {
 		if k == "X-Forwarded-For" {
 			ipX = strings.Join(v, ", ")
 		}
