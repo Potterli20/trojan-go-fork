@@ -20,7 +20,7 @@ import (
 const Name = "PROXY"
 
 const (
-	MaxPacketSize = 1024 * 3
+	MaxPacketSize = 1024 * 4
 )
 
 // Proxy relay connections and packets
