@@ -20,7 +20,7 @@ import (
 const Name = "PROXY"
 
 const (
-	MaxPacketSize = 1024 * 3
+	MaxPacketSize = 1024 * 8
 )
 
 // Proxy relay connections and packets
@@ -49,7 +49,7 @@ func (p *Proxy) Close() error {
 
 var bufPool = sync.Pool{
 	New: func() interface{} {
-		return make([]byte, 3*1024, 3*1024)
+		return make([]byte, 8*1024, 8*1024)
 	},
 }
 
@@ -97,7 +97,7 @@ func (p *Proxy) relayConnLoop() {
 						log.Debug("shutting down conn relay")
 						return
 					//Exit goroutine when Timeout, avoid goroutine leakage.
-					case <-time.After(time.Duration(time.Second * 3540)):
+					case <-time.After(time.Duration(time.Second * 30)):
 						log.Debug("timeout conn relay")
 						return
 
@@ -169,7 +169,7 @@ func (p *Proxy) relayPacketLoop() {
 					case <-p.ctx.Done():
 						log.Debug("shutting down packet relay")
 					//Exit goroutine when Timeout, avoid goroutine leakage.
-					case <-time.After(time.Duration(time.Second * 3540)):
+					case <-time.After(time.Duration(time.Second * 30)):
 						log.Debug("timeout packet relay")
 						return
 					}
