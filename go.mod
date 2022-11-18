@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/sqlite v0.0.0-20221114122031-c0dfd7ac75c5
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.3.0
-	github.com/refraction-networking/utls v1.1.5
+	github.com/refraction-networking/utls v1.2.0
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.8.1
 	github.com/v2fly/v2ray-core/v5 v5.1.0
@@ -17,7 +17,7 @@ require (
 	golang.org/x/net v0.2.0
 	golang.org/x/term v0.2.0
 	golang.org/x/time v0.2.0
-	google.golang.org/genproto v0.0.0-20221116193143-41c2ba794472
+	google.golang.org/genproto v0.0.0-20221117204609-8f9c96812029
 	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v3 v3.0.1
