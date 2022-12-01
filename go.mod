@@ -12,7 +12,7 @@ require (
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.8.1
 	github.com/v2fly/v2ray-core/v5 v5.1.0
-	github.com/xtaci/smux v1.5.16
+	github.com/xtaci/smux v1.5.17
 	github.com/xtls/xray-core v1.6.5
 	golang.org/x/net v0.2.0
 	golang.org/x/term v0.2.0
