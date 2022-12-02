@@ -9,7 +9,7 @@ on:
       - 'docs/**'
     tags: # let the GitHub CI with new tag release trigger this docker build GitHub CI
       - '**' # Push events to every tag including hierarchical tags like v1.0/beta
-    
+
 jobs:
   build:
     if: github.repository == 'Potterli20/trojan-go-fork'
@@ -57,10 +57,13 @@ jobs:
             --file Dockerfile .
           fi
 
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Test docker image
+      - name: Build and export to Docker
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Test
         run: |
           docker run --rm --entrypoint /usr/local/bin/trojan-go-fork ${{ secrets.DOCKERUSERNAME }}/trojan-go-fork -version
