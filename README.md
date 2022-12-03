@@ -3,8 +3,8 @@
  docker pull trliwork/trojan-go-fork:latest
 ```
 
-## 由于原项目作者已经不再维护，也不能再合入PR，同时原项目存在诸多的问题与bug。Fork了一个分支到个人项目进行维护
-## 还存在其他bug或者需求可以提Issue
+## 本fork项目作者只会更新go.mod和git fetch 其他都不会
+
 ### 基于原版已修改内容
 - [x] 修复多处data race风险
 - [x] 修复服务端增加用户后使用websocket访问无效问题
@@ -13,8 +13,8 @@
 - [x] 服务端修复上行限速无效的问题
 - [ ] 修复连接转发时阻塞可能导致goroutin泄露的问题
 
-fork[@p4gefau1t](https://github.com/p4gefau1t/trojan-go) and [@fregie](https://github.com/fregie/trojan-go)
-
+fork[@p4gefau1t](https://github.com/p4gefau1t/trojan-go) and [@fregie](https://github.com/fregie/trojan-go)、[@lakwsh](https://github.com/lakwsh/trojan-go)
+### 由于原项目作者已经不再维护，也不能再合入PR，同时原项目存在诸多的问题与bug。Fork了一个分支到个人项目进行维护,还存在其他bug或者需求可以提Issue
 # Trojan-Go 
 
 使用 Go 实现的完整 Trojan 代理，兼容原版 Trojan 协议及配置文件格式。安全、高效、轻巧、易用。
