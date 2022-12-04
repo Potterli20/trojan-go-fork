@@ -69,24 +69,31 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
 
 	helloID := tls.ClientHelloID{}
+	// keep the parameter name consistent with upstream
+	// https://github.com/refraction-networking/utls/blob/35e5b05fc4b6f8c4351d755f2570bc293f30aaf6/u_common.go#L114-L132
 	if cfg.TLS.Fingerprint != "" {
-		switch cfg.TLS.Fingerprint {
-		case "firefox":
-			helloID = utls.HelloFirefox_Auto
+		switch strings.ToLower(cfg.TLS.Fingerprint) {
 		case "chrome":
-			helloID = utls.HelloChrome_Auto
+			helloID = tls.HelloChrome_Auto
 		case "ios":
-			helloID = utls.HelloIOS_Auto
+			helloID = tls.HelloIOS_Auto
+		case "firefox":
+			helloID = tls.HelloFirefox_Auto
 		case "edge":
-			helloID = utls.HelloEdge_Auto
-		case "360browesr":
-			helloID = utls.Hello360_Auto
-		case "qqbrowesr":
-			helloID = utls.HelloQQ_Auto
+			helloID = tls.HelloEdge_Auto
+		case "safari":
+			helloID = tls.HelloSafari_Auto
+		case "360browser":
+			helloID = tls.Hello360_Auto
+		case "qqbrowser":
+			helloID = tls.HelloQQ_Auto
 		default:
 			return nil, common.NewError("Invalid 'fingerprint' value in configuration: '" + cfg.TLS.Fingerprint + "'. Possible values are 'chrome' (default), 'ios', 'firefox', 'edge', 'safari', '360browser', or 'qqbrowser'.")
 		}
-		log.Info("tls fingerprint", cfg.TLS.Fingerprint, "applied")
+		log.Info("Your trojan's TLS fingerprint will look like", cfg.TLS.Fingerprint)
+	} else {
+		helloID = tls.HelloChrome_Auto
+		log.Info("No 'fingerprint' value specified in your configuration. Your trojan's TLS fingerprint will look like Chrome by default.")
 	}
 
 	if cfg.TLS.SNI == "" {
