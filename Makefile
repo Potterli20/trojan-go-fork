@@ -17,13 +17,13 @@ clean:
 	rm -f *.dat
 
 geoip.dat:
-	wget https://github.com/v2fly/geoip/raw/release/geoip.dat
+	wget https://github.com/Loyalsoldier/geoip/raw/release/geoip.dat
 
 geoip-only-cn-private.dat:
-	wget https://github.com/v2fly/geoip/raw/release/geoip-only-cn-private.dat
+	wget https://github.com/Loyalsoldier/geoip/raw/release/geoip-only-cn-private.dat
 
 geosite.dat:
-	wget https://github.com/v2fly/domain-list-community/raw/release/dlc.dat -O geosite.dat
+	wget https://github.com/Loyalsoldier/domain-list-community/raw/release/dlc.dat -O geosite.dat
 
 test:
 	# Disable Bloomfilter when testing
@@ -72,8 +72,8 @@ release: geosite.dat geoip.dat geoip-only-cn-private.dat darwin-amd64.zip darwin
 	freebsd-386.zip freebsd-amd64.zip freebsd-arm.zip freebsd-arm64.zip \
 	netbsd-386.zip netbsd-amd64.zip netbsd-arm.zip netbsd-arm64.zip \
 	openbsd-386.zip openbsd-amd64.zip openbsd-arm.zip openbsd-arm64.zip openbsd-mips64.zip \
-	windows-386.zip windows-amd64.zip windows-arm.zip windows-armv6.zip windows-armv7.zip windows-arm64.zip 
-	
+	windows-386.zip windows-amd64.zip windows-arm.zip windows-armv6.zip windows-armv7.zip windows-arm64.zip
+
 
 darwin-amd64:
 	mkdir -p $(BUILD_DIR)/$@
@@ -146,11 +146,11 @@ linux-mips64le:
 linux-ppc64le:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=mips64le GOOS=linux $(GOBUILD)/$@
-	
+
 linux-s390x:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=s390x GOOS=linux $(GOBUILD)/$@
-	
+
 freebsd-386:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=386 GOOS=freebsd $(GOBUILD)/$@
@@ -179,7 +179,7 @@ netbsd-arm:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=arm GOOS=netbsd $(GOBUILD)/$@
 
-netbsd-arm64:	
+netbsd-arm64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=arm64 GOOS=netbsd $(GOBUILD)/$@
 
