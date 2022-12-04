@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20221117123235-3e306431e264
 	github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a
-	github.com/Potterli20/sqlite v0.0.0-20221129121701-6bf5c646df54
+	github.com/Potterli20/sqlite v0.0.0-20221204121521-573c244cfa49
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.2.0
@@ -44,7 +44,7 @@ require (
 	modernc.org/ccgo/v3 v3.16.13 // indirect
 	modernc.org/libc v1.21.5 // indirect
 	modernc.org/mathutil v1.5.0 // indirect
-	modernc.org/memory v1.4.0 // indirect
+	modernc.org/memory v1.5.0 // indirect
 	modernc.org/opt v0.1.3 // indirect
 	modernc.org/sqlite v1.20.0 // indirect
 	modernc.org/strutil v1.1.3 // indirect
