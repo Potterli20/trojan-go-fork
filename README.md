@@ -12,6 +12,7 @@ docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
  ```shell
  docker pull dockerproxy.com/trliwork/trojan-go-fork:latest
 ```
+ </details>
  
 <details>
 <summary><code><strong>本fork项目作者只会更新go.mod和git fetch 其他都不会<br/></strong></code></summary>
