@@ -3,9 +3,9 @@ module github.com/Potterli20/trojan-go-fork
 go 1.19
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20221117123235-3e306431e264
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20221205010651-c72cf645fdbc
 	github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a
-	github.com/Potterli20/sqlite v0.0.0-20221204121521-573c244cfa49
+	github.com/Potterli20/sqlite v0.0.0-20221205004059-6ff5149c5e51
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.2.0
@@ -13,7 +13,7 @@ require (
 	github.com/xtls/xray-core v1.6.5
 	golang.org/x/net v0.2.0
 	golang.org/x/term v0.2.0
-	golang.org/x/time v0.2.0
+	golang.org/x/time v0.3.0
 	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -35,8 +35,8 @@ require (
 	go.starlark.net v0.0.0-20221202143044-42872f4d8faa // indirect
 	golang.org/x/crypto v0.3.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/text v0.5.0 // indirect
 	golang.org/x/tools v0.3.0 // indirect
 	google.golang.org/genproto v0.0.0-20221202195650-67e5cbc046fd // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect
