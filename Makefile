@@ -17,10 +17,10 @@ clean:
 	rm -f *.dat
 
 geoip.dat:
-	wget https://github.com/Loyalsoldier/geoip/raw/release/geoip.dat
+	wget https://github.com/Loyalsoldier/geoip/raw/release/geoip.dat -O geoip.dat
 
 geoip-only-cn-private.dat:
-	wget https://github.com/Loyalsoldier/geoip/raw/release/geoip-only-cn-private.dat
+	wget https://github.com/Loyalsoldier/geoip/raw/release/geoip-only-cn-private.dat -O geoip-only-cn-private.dat
 
 geosite.dat:
 	wget https://github.com/Loyalsoldier/domain-list-community/raw/release/dlc.dat -O geosite.dat
