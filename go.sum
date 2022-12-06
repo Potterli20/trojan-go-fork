@@ -4,6 +4,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20221117123235-3e306431e264 h1:Hc2q
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20221117123235-3e306431e264/go.mod h1:/Y8gqcffQHgOGeoKuET/BOTRuYtBcxjgPYo0UhQQPLA=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20221205010651-c72cf645fdbc h1:t2xSE7LFFPlhCLSwvKxgMFjDmNpIYMahU9tJgPrjzys=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20221205010651-c72cf645fdbc/go.mod h1:qGNG9bNzJ8rYSlv7J2XxjJJs95lF33pPY2joUrsCKQQ=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20221205122659-1af8cae2e870 h1:XPpBcgaG/gCuQNJkzCYSLdzPBgbdfnvz28JgmyIgN98=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20221205122659-1af8cae2e870/go.mod h1:qGNG9bNzJ8rYSlv7J2XxjJJs95lF33pPY2joUrsCKQQ=
 github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a h1:pAQ40742Qi0SJT82lX9LcE3GvjjRxhk3n4gQ8lHVQlM=
 github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a/go.mod h1:URAwKqWqdZXzm0j/TbbIgyyHQKWU8ntmqVQ8ipdKTJk=
 github.com/Potterli20/sqlite v0.0.0-20221129121701-6bf5c646df54 h1:f+qPh3Hq92hrWa67WbR/rko1/lu9wNtcKa63K+B74EI=
@@ -80,6 +82,8 @@ go.starlark.net v0.0.0-20221201204445-3d7c6cd99570 h1:ZcrJbIWeOLByCST6LsQxFZRcEL
 go.starlark.net v0.0.0-20221201204445-3d7c6cd99570/go.mod h1:kIVgS18CjmEC3PqMd5kaJSGEifyV/CeB9x506ZJ1Vbk=
 go.starlark.net v0.0.0-20221202143044-42872f4d8faa h1:/vMjImmCj+gnBEGvdda7/uo17b/slDH9gv6psUMnqZc=
 go.starlark.net v0.0.0-20221202143044-42872f4d8faa/go.mod h1:kIVgS18CjmEC3PqMd5kaJSGEifyV/CeB9x506ZJ1Vbk=
+go.starlark.net v0.0.0-20221205180719-3fd0dac74452 h1:JZtNuL6LPB+scU5yaQ6hqRlJFRiddZm2FwRt2AQqtHA=
+go.starlark.net v0.0.0-20221205180719-3fd0dac74452/go.mod h1:kIVgS18CjmEC3PqMd5kaJSGEifyV/CeB9x506ZJ1Vbk=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.3.0 h1:a06MkbcxBrEFc0w0QIZWXrH/9cCX6KJyWbBOIwAn+7A=
 golang.org/x/crypto v0.3.0/go.mod h1:hebNnKkNXi2UzZN1eVRvBB7co0a+JxK6XbPiWVs/3J4=
@@ -137,6 +141,8 @@ google.golang.org/genproto v0.0.0-20221201204527-e3fa12d562f3 h1:BCcW+lhENGqZ2R2
 google.golang.org/genproto v0.0.0-20221201204527-e3fa12d562f3/go.mod h1:rZS5c/ZVYMaOGBfO68GWtjOw/eLaZM1X6iVtgjZ+EWg=
 google.golang.org/genproto v0.0.0-20221202195650-67e5cbc046fd h1:OjndDrsik+Gt+e6fs45z9AxiewiKyLKYpA45W5Kpkks=
 google.golang.org/genproto v0.0.0-20221202195650-67e5cbc046fd/go.mod h1:cTsE614GARnxrLsqKREzmNYJACSWWpAWdNMwnD7c2BE=
+google.golang.org/genproto v0.0.0-20221205194025-8222ab48f5fc h1:nUKKji0AarrQKh6XpFEpG3p1TNztxhe7C8TcUvDgXqw=
+google.golang.org/genproto v0.0.0-20221205194025-8222ab48f5fc/go.mod h1:1dOng4TWOomJrDGhpXjfCD35wQC6jnC7HpRmOFRqEV0=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
 google.golang.org/grpc v1.23.0/go.mod h1:Y5yQAOtifL1yxbo5wqy6BxZv8vAUGQwXBOALyacEbxg=
 google.golang.org/grpc v1.27.0/go.mod h1:qbnxyOmOxrQa7FizSgH+ReBfzJrCY1pSN7KXBS8abTk=
