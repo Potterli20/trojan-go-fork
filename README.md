@@ -2,6 +2,7 @@
 <summary><code><strong>docker镜像<br/></strong></code></summary>
 docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
 
+国际网络
  ```shell
  docker pull trliwork/trojan-go-fork:latest
 ```
@@ -10,8 +11,13 @@ docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
  podman pull trliwork/trojan-go-fork:latest
 ```
  
+国内网络
  ```shell
  docker pull dockerproxy.com/trliwork/trojan-go-fork:latest
+```
+
+ ```shell
+ podman pull dockerproxy.com/trliwork/trojan-go-fork:latest
 ```
  </details>
  
