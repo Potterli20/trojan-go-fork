@@ -6,12 +6,12 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20221207160813-082fb8e46236
 	github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a
 	github.com/Potterli20/sqlite v0.0.0-20221207121510-e7dcb3808f35
-	github.com/Potterli20/utls-fork v0.0.0-20221208094303-1f01720b626f
+	github.com/Potterli20/utls-fork v0.0.0-20221212004946-e7450182bd26
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.2.0
 	github.com/xtaci/smux v1.5.17
-	github.com/xtls/xray-core v1.6.5
+	github.com/xtls/xray-core v1.6.6
 	golang.org/x/net v0.4.0
 	golang.org/x/term v0.3.0
 	golang.org/x/time v0.3.0

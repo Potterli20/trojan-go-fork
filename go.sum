@@ -24,6 +24,8 @@ github.com/Potterli20/sqlite v0.0.0-20221207121510-e7dcb3808f35 h1:2EULAtH4vu3Ki
 github.com/Potterli20/sqlite v0.0.0-20221207121510-e7dcb3808f35/go.mod h1:dT00462dV+64FZrehRlACXM6RVyJugDQJOeYrkRXoNM=
 github.com/Potterli20/utls-fork v0.0.0-20221208094303-1f01720b626f h1:pbwIrOlybP/1uHhvIZJlBbh1OUhIGR1H9EnnS9cGOEA=
 github.com/Potterli20/utls-fork v0.0.0-20221208094303-1f01720b626f/go.mod h1:02ezxc0VrVFqcEz7km0/wlhrtN5B2F290PhmDrifyls=
+github.com/Potterli20/utls-fork v0.0.0-20221212004946-e7450182bd26 h1:jgF2WM3//e35IfIy40WjEh5Hjof9o3Sqfnv/VfE1q0Q=
+github.com/Potterli20/utls-fork v0.0.0-20221212004946-e7450182bd26/go.mod h1:NyNHpOM+V2y1vBIYWP9A2b7dVJTU55konqTGrtEc9GE=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
 github.com/andybalholm/brotli v1.0.4/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
@@ -88,6 +90,8 @@ github.com/xtaci/smux v1.5.17 h1:1V9FZ8kNProe0JqFj6EjttdAqNBzqANhzsDrBjN/L0k=
 github.com/xtaci/smux v1.5.17/go.mod h1:OMlQbT5vcgl2gb49mFkYo6SMf+zP3rcjcwQz7ZU7IGY=
 github.com/xtls/xray-core v1.6.5 h1:orN/xTYAtEz6UyF7OMKliYOBNAfYLuZDIKzcKgzRS2w=
 github.com/xtls/xray-core v1.6.5/go.mod h1:zim9x2y26FB2qD19HyvcLvwtOy8nw+Fa9g8bCEUwaNw=
+github.com/xtls/xray-core v1.6.6 h1:rslJajSFR4tCR4j7VJfbWyowGd8UM1hRW7+TBGVAADI=
+github.com/xtls/xray-core v1.6.6/go.mod h1:bqnmkLoUNEk+cmfn/dxYnGPOvB+zcighC6X8aKI0/lo=
 go.starlark.net v0.0.0-20221201204445-3d7c6cd99570 h1:ZcrJbIWeOLByCST6LsQxFZRcEL87JXkux9GaHI+Oxmk=
 go.starlark.net v0.0.0-20221201204445-3d7c6cd99570/go.mod h1:kIVgS18CjmEC3PqMd5kaJSGEifyV/CeB9x506ZJ1Vbk=
 go.starlark.net v0.0.0-20221202143044-42872f4d8faa h1:/vMjImmCj+gnBEGvdda7/uo17b/slDH9gv6psUMnqZc=
