@@ -333,6 +333,11 @@ make install #安装systemd服务等，可选
 
 或者使用 Go 自行编译：
 
+[Jrohy/go-install](https://github.com/Jrohy/go-install)
+```shell
+source <(curl -L https://go-install.netlify.app/install.sh)
+```
+
 ```shell
 go build -tags "full"
 ```
