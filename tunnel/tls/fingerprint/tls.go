@@ -3,7 +3,7 @@ package fingerprint
 import (
 	"crypto/tls"
 	
-	"github.com/p4gefau1t/trojan-go/common"
+	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
 	. "github.com/Potterli20/utls-fork"
 )
