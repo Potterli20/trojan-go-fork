@@ -16,7 +16,6 @@ jobs:
 
       - name: go
         run: |
-          go mod download
           go get -u
           go mod download
 
