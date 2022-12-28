@@ -7,9 +7,9 @@ import (
 )
 
 
-func ParseCipher(s []string) []uint32 {
+func ParseCipher(s []string) []uint16 {
 	all := tls.CipherSuites()
-	var result []uint32
+	var result []uint16
 	for _, p := range s {
 		found := true
 		for _, q := range all {
