@@ -9,6 +9,7 @@ require (
 	github.com/Potterli20/utls-fork v0.0.0-20221212004946-e7450182bd26
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
+	github.com/p4gefau1t/trojan-go v0.10.6
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.8.1
 	github.com/v2fly/v2ray-core/v5 v5.2.0
