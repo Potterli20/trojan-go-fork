@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	tls "github.com/Potterli20/utls-fork"
+	tls "github.com/refraction-networking/utls"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
