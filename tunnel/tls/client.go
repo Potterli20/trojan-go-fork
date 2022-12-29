@@ -91,7 +91,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 			return nil, common.NewError("invalid fingerprint " + cfg.TLS.Fingerprint)
 		}
 		log.Info("tls fingerprint", cfg.TLS.Fingerprint, "applied")
-	
+	}
 
 	if cfg.TLS.SNI == "" {
 		cfg.TLS.SNI = cfg.RemoteHost
