@@ -49,24 +49,42 @@ func (c *Client) DialConn(_ *tunnel.Address, overlay tunnel.Tunnel) (tunnel.Conn
 		return nil, common.NewError("tls failed to dial conn").Base(err)
 	}
 
-	// utls fingerprint
-	tlsConn := tls.UClient(conn, &tls.Config{
-		RootCAs:            c.ca,
-		ServerName:         c.sni,
-		InsecureSkipVerify: !c.verify,
-		KeyLogWriter:       c.keyLogger,
-	}, c.helloID)
-	if err := tlsConn.Handshake(); err != nil {
+	if c.fingerprint != "" {
+		// utls fingerprint
+		tlsConn := tls.UClient(conn, &utls.Config{
+			RootCAs:            c.ca,
+			ServerName:         c.sni,
+			InsecureSkipVerify: !c.verify,
+			KeyLogWriter:       c.keyLogger,
+		}, c.helloID)
+		if err := tlsConn.Handshake(); err != nil {
+			return nil, common.NewError("tls failed to handshake with remote server").Base(err)
+		}
+		return &transport.Conn{
+			Conn: tlsConn,
+		}, nil
+	}
+	// golang default tls library
+	tlsConn := tls.Client(conn, &tls.Config{
+		InsecureSkipVerify:     !c.verify,
+		ServerName:             c.sni,
+		RootCAs:                c.ca,
+		KeyLogWriter:           c.keyLogger,
+		CipherSuites:           c.cipher,
+		SessionTicketsDisabled: !c.sessionTicket,
+	})
+	err = tlsConn.Handshake()
+	if err != nil {
 		return nil, common.NewError("tls failed to handshake with remote server").Base(err)
 	}
 	return &transport.Conn{
 		Conn: tlsConn,
 	}, nil
 }
-
 // NewClient creates a tls client
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
+	
 
 	helloID := tls.ClientHelloID{}
 	// keep the parameter name consistent with upstream
