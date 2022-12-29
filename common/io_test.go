@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	"testing"
 
-	"github.com/v2fly/v2ray-core/v5/common"
+	"github.com/xtls/xray-core/common"
 )
 
 func TestBufferedReader(t *testing.T) {
