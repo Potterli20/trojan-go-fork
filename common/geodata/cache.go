@@ -4,34 +4,34 @@ import (
 	"io/ioutil"
 	"strings"
 
-	v2router "github.com/v2fly/v2ray-core/v5/app/router"
+	v2router "github.com/v2fly/v2ray-core/v4/app/router"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
 )
 
-type geoipCache map[string]*v2router.Geoip
+type geoipCache map[string]*v2router.GeoIP
 
 func (g geoipCache) Has(key string) bool {
 	return !(g.Get(key) == nil)
 }
 
-func (g geoipCache) Get(key string) *v2router.Geoip {
+func (g geoipCache) Get(key string) *v2router.GeoIP {
 	if g == nil {
 		return nil
 	}
 	return g[key]
 }
 
-func (g geoipCache) Set(key string, value *v2router.Geoip) {
+func (g geoipCache) Set(key string, value *v2router.GeoIP) {
 	if g == nil {
-		g = make(map[string]*v2router.Geoip)
+		g = make(map[string]*v2router.GeoIP)
 	}
 	g[key] = value
 }
 
-func (g geoipCache) Unmarshal(filename, code string) (*v2router.Geoip, error) {
+func (g geoipCache) Unmarshal(filename, code string) (*v2router.GeoIP, error) {
 	asset := common.GetAssetLocation(filename)
 	idx := strings.ToLower(asset + ":" + code)
 	if g.Has(idx) {
@@ -42,7 +42,7 @@ func (g geoipCache) Unmarshal(filename, code string) (*v2router.Geoip, error) {
 	geoipBytes, err := Decode(asset, code)
 	switch err {
 	case nil:
-		var geoip v2router.Geoip
+		var geoip v2router.GeoIP
 		if err := proto.Unmarshal(geoipBytes, &geoip); err != nil {
 			return nil, err
 		}
