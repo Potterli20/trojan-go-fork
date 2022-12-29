@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	tls "golang.org/x/crypto/tls"
+	tls "github.com/Potterli20/utls-fork"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
