@@ -3,7 +3,6 @@ package tls
 import (
 	"context"
 	"crypto/x509"
-	"crypto/tls"
 	"encoding/pem"
 	"io"
 	"io/ioutil"
