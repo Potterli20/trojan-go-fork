@@ -3,7 +3,7 @@ package geodata
 import (
 	"runtime"
 
-	v2router "github.com/xtls/xray-core/app/router"
+	v2router "github.com/v2fly/v2ray-core/v5/app/router"
 )
 
 type geodataCache struct {
