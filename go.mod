@@ -6,7 +6,7 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20221213014842-dff567512332
 	github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a
 	github.com/Potterli20/sqlite v0.0.0-20221218003951-08f0f7a7c6c8
-	github.com/Potterli20/utls-fork v0.0.0-20221228182827-f1443e4909d0
+	github.com/Potterli20/utls-fork v0.0.0-20221229012337-673dcb6c3d78
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
 	github.com/xtaci/smux v1.5.17
