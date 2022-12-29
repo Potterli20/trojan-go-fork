@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"strings"
 
-	tls "github.com/Potterli20/utls-fork"
+	tls "github.com/refraction-networking/utls"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -88,13 +88,10 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		case "qqbrowser":
 			helloID = tls.HelloQQ_Auto
 		default:
-			return nil, common.NewError("Invalid 'fingerprint' value in configuration: '" + cfg.TLS.Fingerprint + "'. Possible values are 'chrome' (default), 'ios', 'firefox', 'edge', 'safari', '360browser', or 'qqbrowser'.")
+			return nil, common.NewError("invalid fingerprint " + cfg.TLS.Fingerprint)
 		}
-		log.Info("Your trojan's TLS fingerprint will look like", cfg.TLS.Fingerprint)
-	} else {
-		helloID = tls.HelloChrome_Auto
-		log.Info("No 'fingerprint' value specified in your configuration. Your trojan's TLS fingerprint will look like Chrome by default.")
-	}
+		log.Info("tls fingerprint", cfg.TLS.Fingerprint, "applied")
+	
 
 	if cfg.TLS.SNI == "" {
 		cfg.TLS.SNI = cfg.RemoteHost
