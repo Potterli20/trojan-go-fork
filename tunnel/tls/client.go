@@ -106,9 +106,12 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		case "qqbrowser":
 			helloID = tls.HelloQQ_Auto
 		default:
-			return nil, common.NewError("invalid fingerprint " + cfg.TLS.Fingerprint)
+			return nil, common.NewError("Invalid 'fingerprint' value in configuration: '" + cfg.TLS.Fingerprint + "'. Possible values are 'chrome' (default), 'ios', 'firefox', 'edge', 'safari', '360browser', or 'qqbrowser'.")
 		}
-		log.Info("tls fingerprint", cfg.TLS.Fingerprint, "applied")
+		log.Info("Your trojan's TLS fingerprint will look like", cfg.TLS.Fingerprint)
+	} else {
+		helloID = tls.HelloChrome_Auto
+		log.Info("No 'fingerprint' value specified in your configuration. Your trojan's TLS fingerprint will look like Chrome by default.")
 	}
 
 	if cfg.TLS.SNI == "" {
