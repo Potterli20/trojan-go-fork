@@ -11,27 +11,27 @@ import (
 	"github.com/Potterli20/trojan-go-fork/log"
 )
 
-type geoipCache map[string]*v2router.GeoIP
+type geoipCache map[string]*v2router.Geoip
 
 func (g geoipCache) Has(key string) bool {
 	return !(g.Get(key) == nil)
 }
 
-func (g geoipCache) Get(key string) *v2router.GeoIP {
+func (g geoipCache) Get(key string) *v2router.Geoip {
 	if g == nil {
 		return nil
 	}
 	return g[key]
 }
 
-func (g geoipCache) Set(key string, value *v2router.GeoIP) {
+func (g geoipCache) Set(key string, value *v2router.Geoip) {
 	if g == nil {
-		g = make(map[string]*v2router.GeoIP)
+		g = make(map[string]*v2router.Geoip)
 	}
 	g[key] = value
 }
 
-func (g geoipCache) Unmarshal(filename, code string) (*v2router.GeoIP, error) {
+func (g geoipCache) Unmarshal(filename, code string) (*v2router.Geoip, error) {
 	asset := common.GetAssetLocation(filename)
 	idx := strings.ToLower(asset + ":" + code)
 	if g.Has(idx) {
@@ -42,7 +42,7 @@ func (g geoipCache) Unmarshal(filename, code string) (*v2router.GeoIP, error) {
 	geoipBytes, err := Decode(asset, code)
 	switch err {
 	case nil:
-		var geoip v2router.GeoIP
+		var geoip v2router.Geoip
 		if err := proto.Unmarshal(geoipBytes, &geoip); err != nil {
 			return nil, err
 		}
