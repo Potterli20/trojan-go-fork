@@ -3,12 +3,13 @@ package tls
 import (
 	"context"
 	"crypto/x509"
+	"crypto/tls"
 	"encoding/pem"
 	"io"
 	"io/ioutil"
 	"strings"
 
-	tls "github.com/Potterli20/utls-fork"
+	tls "golang.org/x/crypto/tls"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
