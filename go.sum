@@ -16,6 +16,8 @@ github.com/Potterli20/utls-fork v0.0.0-20221229012337-673dcb6c3d78 h1:mEKyGN0GPx
 github.com/Potterli20/utls-fork v0.0.0-20221229012337-673dcb6c3d78/go.mod h1:NyNHpOM+V2y1vBIYWP9A2b7dVJTU55konqTGrtEc9GE=
 github.com/Potterli20/utls-fork v0.0.0-20221229024230-eb5a772a10e5 h1:i9LXuU3pWajKBmSRorAhoiR5amDpLWPrjyMoWuceDig=
 github.com/Potterli20/utls-fork v0.0.0-20221229024230-eb5a772a10e5/go.mod h1:NyNHpOM+V2y1vBIYWP9A2b7dVJTU55konqTGrtEc9GE=
+github.com/Potterli20/utls-fork v0.0.0-20221229043404-f74ae9361309 h1:Yw39BPDSET0aSadqf1845pWCYGz/Z5f45vhzSp7KsRc=
+github.com/Potterli20/utls-fork v0.0.0-20221229043404-f74ae9361309/go.mod h1:NyNHpOM+V2y1vBIYWP9A2b7dVJTU55konqTGrtEc9GE=
 github.com/adrg/xdg v0.4.0 h1:RzRqFcjH4nE5C6oTAxhBtoE2IRyjBSa62SCbyPidvls=
 github.com/adrg/xdg v0.4.0/go.mod h1:N6ag73EX4wyxeaoeHctc1mas01KZgsj5tYiAIwqJE/E=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
