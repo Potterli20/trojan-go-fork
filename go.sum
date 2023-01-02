@@ -8,6 +8,8 @@ github.com/Potterli20/sqlite v0.0.0-20221229121411-f7de7e6ce28f h1:ceX0JCG76h2xQ
 github.com/Potterli20/sqlite v0.0.0-20221229121411-f7de7e6ce28f/go.mod h1:iJDE2f3uxL2vcVsBJaxpcGPKzmGeg6kUJ4uv1SDYG/E=
 github.com/Potterli20/sqlite v0.0.0-20221230001509-091df169d0d8 h1:KpQyYhYK3/20E/ehBpGHE1s064eUVmRuHVXGJANwbLE=
 github.com/Potterli20/sqlite v0.0.0-20221230001509-091df169d0d8/go.mod h1:ufcOqY0mAj3aY48xkhd5geDeBUOCZqU+5Wur8FaEG8s=
+github.com/Potterli20/sqlite v0.0.0-20230102004116-70ddc3af0185 h1:Ry40eHVQS7GPV6zdKTZho0kKMILNpt06SUHkwDAc9Rg=
+github.com/Potterli20/sqlite v0.0.0-20230102004116-70ddc3af0185/go.mod h1:8xP1tkobwM2qk0ZtEUJA1xOFvv4OMwXci1mAxXDmcow=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
 github.com/andybalholm/brotli v1.0.4/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
@@ -147,6 +149,8 @@ gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gorm.io/gorm v1.24.2 h1:9wR6CFD+G8nOusLdvkZelOEhpJVwwHzpQOUM+REd6U0=
 gorm.io/gorm v1.24.2/go.mod h1:DVrVomtaYTbqs7gB/x2uVvqnXzv0nqjB396B8cG4dBA=
+gorm.io/gorm v1.24.3 h1:WL2ifUmzR/SLp85CSURAfybcHnGZ+yLSGSxgYXlFBHg=
+gorm.io/gorm v1.24.3/go.mod h1:DVrVomtaYTbqs7gB/x2uVvqnXzv0nqjB396B8cG4dBA=
 honnef.co/go/tools v0.0.0-20190102054323-c2f93a96b099/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc/go.mod h1:rf3lG4BRIbNafJWhAfAdb/ePZxsR/4RtNHQocxwk9r4=
 lukechampine.com/uint128 v1.2.0 h1:mBi/5l91vocEN8otkC5bDLhi2KdCticRiwbdB0O+rjI=
