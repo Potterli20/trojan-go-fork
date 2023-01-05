@@ -13,7 +13,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/xtaci/smux v1.5.17
 	github.com/xtls/xray-core v1.7.0
-	golang.org/x/net v0.4.0
+	golang.org/x/net v0.5.0
 	golang.org/x/term v0.4.0
 	golang.org/x/time v0.3.0
 	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef
@@ -50,7 +50,7 @@ require (
 	golang.org/x/crypto v0.4.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect
-	golang.org/x/text v0.5.0 // indirect
+	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/tools v0.4.0 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect
 	modernc.org/cc/v3 v3.40.0 // indirect
