@@ -16,6 +16,8 @@ github.com/Potterli20/sqlite v0.0.0-20230105004226-9d616b7684a7 h1:TEX0NEhHcirsP
 github.com/Potterli20/sqlite v0.0.0-20230105004226-9d616b7684a7/go.mod h1:vTLdX+W2ZAbLn/oi7hkBdPJhq5TEBmYySqPwsW+uQFw=
 github.com/Potterli20/sqlite v0.0.0-20230105121536-41f16666114f h1:mCZIcH7FxklKt3ES9fytuyMMXQHto8FS0s9ubWtjmGw=
 github.com/Potterli20/sqlite v0.0.0-20230105121536-41f16666114f/go.mod h1:vTLdX+W2ZAbLn/oi7hkBdPJhq5TEBmYySqPwsW+uQFw=
+github.com/Potterli20/sqlite v0.0.0-20230107004110-3f85c20fa4c3 h1:/g0r7m1u3BSifemTxG3Wjy0aVBWChnhun2Ph6wuRGsI=
+github.com/Potterli20/sqlite v0.0.0-20230107004110-3f85c20fa4c3/go.mod h1:9+IzbzitwgSzNr0oA65sSu3JC9THELSM3Vtg2ffTF9o=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
 github.com/andybalholm/brotli v1.0.4/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
@@ -197,6 +199,8 @@ google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef h1:uQ2vjV/sHTsWSqd
 google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef/go.mod h1:RGgjbofJ8xD9Sq1VVhDM1Vok1vRONV+rg+CjzG4SZKM=
 google.golang.org/genproto v0.0.0-20230104163317-caabf589fcbf h1:/JqRexUvugu6JURQ0O7RfV1EnvgrOxUV4tSjuAv0Sr0=
 google.golang.org/genproto v0.0.0-20230104163317-caabf589fcbf/go.mod h1:RGgjbofJ8xD9Sq1VVhDM1Vok1vRONV+rg+CjzG4SZKM=
+google.golang.org/genproto v0.0.0-20230106154932-a12b697841d9 h1:3wPBShTLWQnEkZ9VW/HZZ8zT/9LLtleBtq7l8SKtJIA=
+google.golang.org/genproto v0.0.0-20230106154932-a12b697841d9/go.mod h1:RGgjbofJ8xD9Sq1VVhDM1Vok1vRONV+rg+CjzG4SZKM=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
 google.golang.org/grpc v1.23.0/go.mod h1:Y5yQAOtifL1yxbo5wqy6BxZv8vAUGQwXBOALyacEbxg=
 google.golang.org/grpc v1.27.0/go.mod h1:qbnxyOmOxrQa7FizSgH+ReBfzJrCY1pSN7KXBS8abTk=
@@ -244,6 +248,8 @@ modernc.org/opt v0.1.3 h1:3XOZf2yznlhC+ibLltsDGzABUGVx8J6pnFMS3E4dcq4=
 modernc.org/opt v0.1.3/go.mod h1:WdSiB5evDcignE70guQKxYUl14mgWtbClRi5wmkkTX0=
 modernc.org/sqlite v1.20.1 h1:z6qRLw72B0VfRrJjs3l6hWkzYDx1bo0WGVrBGP4ohhM=
 modernc.org/sqlite v1.20.1/go.mod h1:fODt+bFmc/j8LcoCbMSkAuKuGmhxjG45KGc25N2705M=
+modernc.org/sqlite v1.20.2 h1:9AaVzJH1Yf0u9iOZRjjuvqxLoGqybqVFbAUC5rvi9u8=
+modernc.org/sqlite v1.20.2/go.mod h1:zKcGyrICaxNTMEHSr1HQ2GUraP0j+845GYw37+EyT6A=
 modernc.org/strutil v1.1.3 h1:fNMm+oJklMGYfU9Ylcywl0CO5O6nTfaowNsh2wpPjzY=
 modernc.org/strutil v1.1.3/go.mod h1:MEHNA7PdEnEwLvspRMtWTNnp2nnyvMfkimT1NKNAGbw=
 modernc.org/tcl v1.15.0 h1:oY+JeD11qVVSgVvodMJsu7Edf8tr5E/7tuhF5cNYz34=
