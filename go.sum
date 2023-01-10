@@ -210,6 +210,8 @@ google.golang.org/genproto v0.0.0-20230104163317-caabf589fcbf h1:/JqRexUvugu6JUR
 google.golang.org/genproto v0.0.0-20230104163317-caabf589fcbf/go.mod h1:RGgjbofJ8xD9Sq1VVhDM1Vok1vRONV+rg+CjzG4SZKM=
 google.golang.org/genproto v0.0.0-20230106154932-a12b697841d9 h1:3wPBShTLWQnEkZ9VW/HZZ8zT/9LLtleBtq7l8SKtJIA=
 google.golang.org/genproto v0.0.0-20230106154932-a12b697841d9/go.mod h1:RGgjbofJ8xD9Sq1VVhDM1Vok1vRONV+rg+CjzG4SZKM=
+google.golang.org/genproto v0.0.0-20230109162033-3c3c17ce83e6 h1:uUn6GsgKK2eCI0bWeRMgRCcqDaQXYDuB+5tXA5Xeg/8=
+google.golang.org/genproto v0.0.0-20230109162033-3c3c17ce83e6/go.mod h1:RGgjbofJ8xD9Sq1VVhDM1Vok1vRONV+rg+CjzG4SZKM=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
 google.golang.org/grpc v1.23.0/go.mod h1:Y5yQAOtifL1yxbo5wqy6BxZv8vAUGQwXBOALyacEbxg=
 google.golang.org/grpc v1.27.0/go.mod h1:qbnxyOmOxrQa7FizSgH+ReBfzJrCY1pSN7KXBS8abTk=
