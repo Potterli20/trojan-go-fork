@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20230105122606-a4869f52795a
 	github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a
-	github.com/Potterli20/sqlite v0.0.0-20230107121304-43c254fe2a20
+	github.com/Potterli20/sqlite v0.0.0-20230114004011-5dbf769ee515
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.2.0
@@ -16,7 +16,7 @@ require (
 	golang.org/x/net v0.5.0
 	golang.org/x/term v0.4.0
 	golang.org/x/time v0.3.0
-	google.golang.org/genproto v0.0.0-20230112194545-e10362b5ecf9
+	google.golang.org/genproto v0.0.0-20230113154510-dbe35b8444a5
 	google.golang.org/grpc v1.52.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -27,7 +27,7 @@ require (
 	cloud.google.com/go/oslogin v1.7.0 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dustin/go-humanize v1.0.0 // indirect
+	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
