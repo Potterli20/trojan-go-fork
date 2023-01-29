@@ -168,6 +168,8 @@ go.starlark.net v0.0.0-20230118143110-ddd531cdb2da h1:TckyegD9V0g1yvueWiMQ4BfEGe
 go.starlark.net v0.0.0-20230118143110-ddd531cdb2da/go.mod h1:1NtVfE+l6AHFaY4GmUPGHeLIW8/THkXnym5iweVgCwU=
 go.starlark.net v0.0.0-20230122040757-066229b0515d h1:CTI+tbxvlfu7QlBj+4QjF8YPHoDh71h0/l2tXOM2k0o=
 go.starlark.net v0.0.0-20230122040757-066229b0515d/go.mod h1:1NtVfE+l6AHFaY4GmUPGHeLIW8/THkXnym5iweVgCwU=
+go.starlark.net v0.0.0-20230128213706-3f75dec8e403 h1:jPeC7Exc+m8OBJUlWbBLh0O5UZPM7yU5W4adnhhbG4U=
+go.starlark.net v0.0.0-20230128213706-3f75dec8e403/go.mod h1:jxU+3+j+71eXOW14274+SmmuW82qJzl6iZSeqEtTGds=
 go.uber.org/atomic v1.10.0 h1:9qC72Qh0+3MqyJbAn8YU5xVq1frD8bn3JtD2oXtafVQ=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.4.0 h1:UVQgzMY87xqpKNgb+kDsll2Igd33HszWHFLmpaRMq/8=
