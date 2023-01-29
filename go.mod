@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20230105122606-a4869f52795a
 	github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a
-	github.com/Potterli20/sqlite v0.0.0-20230127004442-e74e96f3d495
+	github.com/Potterli20/sqlite v0.0.0-20230129121400-591802468f34
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.2.0
@@ -39,7 +39,7 @@ require (
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/pires/go-proxyproto v0.6.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/remyoudompheng/bigfft v0.0.0-20230126093431-47fa9a501578 // indirect
+	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/smartystreets/assertions v1.2.0 // indirect
