@@ -5,8 +5,8 @@ package sqlite
 import (
 	"errors"
 
-	"github.com/Potterli20/trojan-go-fork/statistic"
 	"github.com/Potterli20/sqlite"
+	"github.com/Potterli20/trojan-go-fork/statistic"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -41,6 +41,7 @@ func (p *Persistencer) SaveUser(u statistic.Metadata) error {
 	usr := &User{
 		Hash:      u.GetHash(),
 		MaxIPNum:  u.GetIPLimit(),
+		Password:  u.GetKeyShare(),
 		SendLimit: ls,
 		RecvLimit: lr,
 		Sent:      make([]byte, 8),

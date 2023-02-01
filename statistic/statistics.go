@@ -14,6 +14,7 @@ const Name = "STATISTICS"
 
 type Metadata interface {
 	GetHash() string
+	GetKeyShare() string
 	GetTraffic() (sent, recv uint64)
 	GetSpeedLimit() (sent, recv int)
 	GetIPLimit() int

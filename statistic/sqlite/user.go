@@ -10,6 +10,7 @@ type User struct {
 	Sent      []byte `gorm:"type:TEXT"`
 	Recv      []byte `gorm:"type:TEXT"`
 	MaxIPNum  int
+	Password  string
 	SendLimit int
 	RecvLimit int
 }
@@ -42,4 +43,8 @@ func (u *User) GetSpeedLimit() (sent, recv int) {
 
 func (u *User) GetIPLimit() int {
 	return u.MaxIPNum
+}
+
+func (u *User) GetKeyShare() string {
+	return u.Password
 }
