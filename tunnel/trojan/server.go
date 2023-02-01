@@ -3,12 +3,6 @@ package trojan
 import (
 	"context"
 	"fmt"
-	"io"
-	"net"
-	"reflect"
-	"strings"
-	"sync/atomic"
-
 	"github.com/Potterli20/trojan-go-fork/api"
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -21,6 +15,10 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"github.com/Potterli20/trojan-go-fork/tunnel/mux"
 	"github.com/Potterli20/trojan-go-fork/tunnel/websocket"
+	"io"
+	"net"
+	"strings"
+	"sync/atomic"
 )
 
 var Auth statistic.Authenticator
@@ -42,6 +40,7 @@ type InboundConn struct {
 	metadata *tunnel.Metadata
 	ip       string
 	ipX      string
+	password string
 }
 
 func (c *InboundConn) Metadata() *tunnel.Metadata {
@@ -63,10 +62,18 @@ func (c *InboundConn) Read(p []byte) (int, error) {
 }
 
 func (c *InboundConn) Close() error {
-	log.Debug("user", c.hash, "from", c.Conn.RemoteAddr(), "tunneling to", c.metadata.Address, "closed",
+	log.Debug("user", c.hash, "KeyShare ", c.password, " RealIP", c.ipX, "from", c.Conn.RemoteAddr(), "tunneling to", c.metadata.Address, "closed",
 		"sent:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.sent)), "recv:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.recv)))
-	c.user.DelIP(c.ipX)
 	return c.Conn.Close()
+}
+
+func GetRealIP(c *InboundConn) (string, error) {
+	for name, value := range c.Conn.(*common.RewindConn).Conn.(*websocket.InboundConn).OutboundConn.Request().Header {
+		if name == "X-Forwarded-For" || name == "X-Real-Ip" {
+			return strings.Join(value, ", "), nil
+		}
+	}
+	return "", common.NewError("Does not use CDN!")
 }
 
 func (c *InboundConn) Auth() error {
@@ -88,19 +95,17 @@ func (c *InboundConn) Auth() error {
 		return common.NewError("failed to parse host:" + c.Conn.RemoteAddr().String()).Base(err)
 	}
 
-	ipX := ip
-	RewConn := reflect.ValueOf(c.Conn).Elem().Interface().(common.RewindConn)
-	WSInConn := reflect.ValueOf(RewConn.Conn).Elem().Interface().(websocket.InboundConn)
-	for k, v := range WSInConn.OutboundConn.Request().Header {
-		if k == "X-Forwarded-For" {
-			ipX = strings.Join(v, ", ")
-		}
-	}
 	c.ip = ip
-	c.ipX = ipX
-	ok := user.AddIP(ipX)
+	RealIP, error := GetRealIP(c)
+	if error != nil {
+		c.ipX = ip
+	} else {
+		c.ipX = RealIP
+	}
+
+	ok := user.AddIP(RealIP)
 	if !ok {
-		return common.NewError("ip limit reached")
+		return common.NewError("ip limit reached, UserPassword: " + user.GetKeyShare() + " UserHash: " + c.hash + " RealIP: " + RealIP)
 	}
 
 	crlf := [2]byte{}

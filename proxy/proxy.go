@@ -53,14 +53,14 @@ var bufPool = sync.Pool{
 	},
 }
 
-func (p *Proxy) relayConnLoop() {
-	copyConn := func(dst io.Writer, src io.Reader, errChan chan error) {
-		buffer := bufPool.Get().([]byte)
-		_, err := io.CopyBuffer(dst, src, buffer)
-		bufPool.Put(buffer)
-		errChan <- err
-	}
+func copyConn(dst io.Writer, src io.Reader, errChan chan error) {
+	buffer := bufPool.Get().([]byte)
+	_, err := io.CopyBuffer(dst, src, buffer)
+	bufPool.Put(buffer)
+	errChan <- err
+}
 
+func (p *Proxy) relayConnLoop() {
 	for _, source := range p.sources {
 		go func(source tunnel.Server) {
 			for {
@@ -86,7 +86,7 @@ func (p *Proxy) relayConnLoop() {
 					errChan := make(chan error, 2)
 
 					go copyConn(inbound, outbound, errChan)
-					time.Sleep(time.Millisecond * 10)
+					time.Sleep(time.Millisecond * 3)
 					go copyConn(outbound, inbound, errChan)
 					select {
 					case err = <-errChan:
@@ -97,7 +97,7 @@ func (p *Proxy) relayConnLoop() {
 						log.Debug("shutting down conn relay")
 						return
 					//Exit goroutine when Timeout, avoid goroutine leakage.
-					case <-time.After(time.Duration(time.Second * 30)):
+					case <-time.After(time.Duration(time.Second * 3540)):
 						log.Debug("timeout conn relay")
 						return
 
@@ -108,32 +108,29 @@ func (p *Proxy) relayConnLoop() {
 		}(source)
 	}
 }
+func copyPacket(a, b tunnel.PacketConn, errChan chan error) {
+	for {
+		//buf := make([]byte, MaxPacketSize)
+		buf := bufPool.Get().([]byte)
+		defer bufPool.Put(buf)
 
-func (p *Proxy) relayPacketLoop() {
-
-	copyPacket := func(a, b tunnel.PacketConn, errChan chan error) {
-		for {
-			//buf := make([]byte, MaxPacketSize)
-			buf := bufPool.Get().([]byte)
-			defer bufPool.Put(buf)
-
-			n, metadata, err := a.ReadWithMetadata(buf)
-			if err != nil {
-				errChan <- err
-				return
-			}
-			if n == 0 {
-				errChan <- nil
-				return
-			}
-			_, err = b.WriteWithMetadata(buf[:n], metadata)
-			if err != nil {
-				errChan <- err
-				return
-			}
+		n, metadata, err := a.ReadWithMetadata(buf)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		if n == 0 {
+			errChan <- nil
+			return
+		}
+		_, err = b.WriteWithMetadata(buf[:n], metadata)
+		if err != nil {
+			errChan <- err
+			return
 		}
 	}
-
+}
+func (p *Proxy) relayPacketLoop() {
 	for _, source := range p.sources {
 		go func(source tunnel.Server) {
 			for {
@@ -157,9 +154,8 @@ func (p *Proxy) relayPacketLoop() {
 					}
 					defer outbound.Close()
 					errChan := make(chan error, 2)
-
 					go copyPacket(inbound, outbound, errChan)
-					time.Sleep(time.Millisecond * 10)
+					time.Sleep(time.Millisecond * 3)
 					go copyPacket(outbound, inbound, errChan)
 					select {
 					case err = <-errChan:
@@ -169,7 +165,7 @@ func (p *Proxy) relayPacketLoop() {
 					case <-p.ctx.Done():
 						log.Debug("shutting down packet relay")
 					//Exit goroutine when Timeout, avoid goroutine leakage.
-					case <-time.After(time.Duration(time.Second * 30)):
+					case <-time.After(time.Duration(time.Second * 3540)):
 						log.Debug("timeout packet relay")
 						return
 					}

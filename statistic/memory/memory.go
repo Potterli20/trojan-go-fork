@@ -30,6 +30,7 @@ type User struct {
 	sendSpeed   uint64
 	recvSpeed   uint64
 	Hash        string
+	password    string
 	ipTable     sync.Map
 	ipNum       int32
 	MaxIPNum    int
@@ -47,6 +48,7 @@ func (u *User) Close() error {
 }
 
 func (u *User) AddIP(ip string) bool {
+	u.limiterLock.RLock()
 	if u.MaxIPNum <= 0 {
 		return true
 	}
@@ -59,11 +61,18 @@ func (u *User) AddIP(ip string) bool {
 	}
 	u.ipTable.Store(ip, true)
 	atomic.AddInt32(&u.ipNum, 1)
+	u.limiterLock.RUnlock()
+	go u.DelIP(ip)
 	return true
 }
 
 func (u *User) DelIP(ip string) bool {
+	time.Sleep(30 * time.Second)
+	u.limiterLock.RLock()
 	if u.MaxIPNum <= 0 {
+		return true
+	}
+	if u.ipNum <= 0 {
 		return true
 	}
 	_, found := u.ipTable.Load(ip)
@@ -72,6 +81,7 @@ func (u *User) DelIP(ip string) bool {
 	}
 	u.ipTable.Delete(ip)
 	atomic.AddInt32(&u.ipNum, -1)
+	u.limiterLock.RUnlock()
 	return true
 }
 
@@ -81,6 +91,10 @@ func (u *User) GetIP() int {
 
 func (u *User) setIPLimit(n int) {
 	u.MaxIPNum = n
+}
+
+func (u *User) setPassword(pwd string) {
+	u.password = pwd
 }
 
 func (u *User) GetIPLimit() int {
@@ -213,15 +227,35 @@ func (a *Authenticator) AuthUser(hash string) (bool, statistic.User) {
 	return false, nil
 }
 
+func (a *Authenticator) SetKeyShare(hash string, pwd string) error {
+	u, exist := a.users.Load(hash)
+	if !exist {
+		return common.NewErrorf("user %v not found", hash)
+	}
+	user := u.(*User)
+	user.setPassword(pwd)
+	if a.pst != nil {
+		err := a.pst.SaveUser(user)
+		if err != nil {
+			log.Errorf("Save user %s failed: %s", hash, err)
+		}
+	}
+	return nil
+}
+
+func (u *User) GetKeyShare() string {
+	return u.password
+}
+
 func (a *Authenticator) AddUser(hash string) error {
 	if _, found := a.users.Load(hash); found {
 		return common.NewError("hash " + hash + " is already exist")
 	}
 	ctx, cancel := context.WithCancel(a.ctx)
 	meter := &User{
-		Hash:     hash,
-		ctx:      ctx,
-		cancel:   cancel,
+		Hash:   hash,
+		ctx:    ctx,
+		cancel: cancel,
 	}
 	go meter.speedUpdater()
 	a.users.Store(hash, meter)
@@ -348,6 +382,7 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 	for _, password := range cfg.Passwords {
 		hash := common.SHA224String(password)
 		a.AddUser(hash)
+		a.SetKeyShare(hash, password)
 		a.SetUserIPLimit(hash, cfg.MaxIPPerUser)
 	}
 	log.Debug("memory authenticator created")
