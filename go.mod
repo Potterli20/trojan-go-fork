@@ -3,15 +3,15 @@ module github.com/Potterli20/trojan-go-fork
 go 1.20
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20230207010757-e47362f5bc66
-	github.com/Potterli20/socks5-fork v0.0.0-20221007143709-0e59b039561a
-	github.com/Potterli20/sqlite v0.0.0-20230207004347-ee4191c837f9
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20230207164638-7d77b3c2b8f8
+	github.com/Potterli20/socks5-fork v0.0.0-20230207160751-96bd9b9845c1
+	github.com/Potterli20/sqlite v0.0.0-20230207163150-f675521c527a
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.2.1
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.8.1
-	github.com/xtaci/smux v1.5.17
+	github.com/xtaci/smux v1.5.19
 	github.com/xtls/xray-core v1.7.3
 	golang.org/x/net v0.5.0
 	golang.org/x/term v0.4.0
