@@ -8,11 +8,11 @@ require (
 	github.com/Potterli20/sqlite v0.0.0-20230207163150-f675521c527a
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
-	github.com/refraction-networking/utls v1.2.1
+	github.com/refraction-networking/utls v1.2.2-0.20230207151345-a75a4b484849
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.8.1
 	github.com/xtaci/smux v1.5.19
-	github.com/xtls/xray-core v1.7.3
+	github.com/xtls/xray-core v1.7.5
 	golang.org/x/net v0.5.0
 	golang.org/x/term v0.5.0
 	golang.org/x/time v0.3.0
@@ -48,7 +48,7 @@ require (
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go.starlark.net v0.0.0-20230128213706-3f75dec8e403 // indirect
 	golang.org/x/crypto v0.5.0 // indirect
-	golang.org/x/mod v0.7.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.6.0 // indirect
 	golang.org/x/tools v0.5.0 // indirect
