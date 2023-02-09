@@ -23,8 +23,8 @@ docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
  </details>
  
 <details>
-<summary><code><strong>本fork项目作者只会更新go.mod和git fetch 其他都不会<br/></strong></code></summary>
-真的，我现在的项目只能当server服务器端了，不能做client客户端。抱歉了
+<summary><code><strong>本fork项目作者只会更新go.mod和git fetch 其他都不会,抱歉了<br/></strong></code></summary>
+
 ### 基于原版已修改内容
 - [x] 修复多处data race风险
 - [x] 修复服务端增加用户后使用websocket访问无效问题
