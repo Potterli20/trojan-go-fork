@@ -1,4 +1,4 @@
-# 项目只能当server服务器端了，不能做client客户端。抱歉了
+# trojan-go-fork项目只能当server服务器端了，不能做client客户端。抱歉了
 <details>
 <summary><code><strong>docker镜像<br/></strong></code></summary>
 docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
