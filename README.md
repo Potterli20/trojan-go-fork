@@ -1,3 +1,4 @@
+# 项目只能当server服务器端了，不能做client客户端。抱歉了
 <details>
 <summary><code><strong>docker镜像<br/></strong></code></summary>
 docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
@@ -23,7 +24,7 @@ docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
  
 <details>
 <summary><code><strong>本fork项目作者只会更新go.mod和git fetch 其他都不会<br/></strong></code></summary>
-
+真的，我现在的项目只能当server服务器端了，不能做client客户端。抱歉了
 ### 基于原版已修改内容
 - [x] 修复多处data race风险
 - [x] 修复服务端增加用户后使用websocket访问无效问题
@@ -31,7 +32,7 @@ docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
 - [x] 支持指定转发buffer大小及数量限制，可以更好的控制内存占用
 - [x] 服务端修复上行限速无效的问题
 - [ ] 修复连接转发时阻塞可能导致goroutin泄露的问题
-- [ ] 修复tcp无法连接的问题
+- [ ] 修复client tcp and ws无法连接的问题
 
 fork[@p4gefau1t](https://github.com/p4gefau1t/trojan-go) and [@fregie](https://github.com/fregie/trojan-go)、[@lakwsh](https://github.com/lakwsh/trojan-go)
 ### 由于原项目作者已经不再维护，也不能再合入PR，同时原项目存在诸多的问题与bug。Fork了一个分支到个人项目进行维护,还存在其他bug或者需求可以提Issue
