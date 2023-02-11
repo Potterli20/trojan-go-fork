@@ -5,10 +5,10 @@ go 1.20
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20230209031317-499ba5b764d2
 	github.com/Potterli20/socks5-fork v0.0.0-20230207160751-96bd9b9845c1
-	github.com/Potterli20/sqlite v0.0.0-20230207163150-f675521c527a
+	github.com/Potterli20/sqlite v0.0.0-20230211001755-1dd61bc71873
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
-	github.com/refraction-networking/utls v1.2.2-0.20230207151345-a75a4b484849
+	github.com/refraction-networking/utls v1.2.2
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.8.1
 	github.com/xtaci/smux v1.5.19

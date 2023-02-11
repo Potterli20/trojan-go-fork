@@ -54,6 +54,8 @@ github.com/Potterli20/sqlite v0.0.0-20230207004347-ee4191c837f9 h1:E1z5uApEVyvFM
 github.com/Potterli20/sqlite v0.0.0-20230207004347-ee4191c837f9/go.mod h1:hg0SkHgmvu3FMza9wnAARF6+MlPpvaM7TmfsWL46wYw=
 github.com/Potterli20/sqlite v0.0.0-20230207163150-f675521c527a h1:hbsfQSds8p1iy2CyRckBAQW8rlcFdkeX1uprM9pt3AI=
 github.com/Potterli20/sqlite v0.0.0-20230207163150-f675521c527a/go.mod h1:TuE5PQ0zn1MRB3STvHzKxzAPkbLOkjuTWlo8lAtMj1s=
+github.com/Potterli20/sqlite v0.0.0-20230211001755-1dd61bc71873 h1:MAh23y+rm5Q1Fa1FKUZSXrLT0uirNKhyOuAyDSyr7wM=
+github.com/Potterli20/sqlite v0.0.0-20230211001755-1dd61bc71873/go.mod h1:TiRFKaIB4riIbQdQiakKIUkhmG4GyHklJlMeUscJXQY=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
 github.com/andybalholm/brotli v1.0.4/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
@@ -147,6 +149,8 @@ github.com/refraction-networking/utls v1.2.1 h1:BvjkQ5ar/45MuDZzqJlOU4a6JuwVH3AX
 github.com/refraction-networking/utls v1.2.1/go.mod h1:L1goe44KvhnTfctUffM2isnJpSjPlYShrhXDeZaoYKw=
 github.com/refraction-networking/utls v1.2.2-0.20230207151345-a75a4b484849 h1:vNEcNapWFwnYJTBcVkHJa8VrdL40PNDLDbSGVY+ZV7I=
 github.com/refraction-networking/utls v1.2.2-0.20230207151345-a75a4b484849/go.mod h1:L1goe44KvhnTfctUffM2isnJpSjPlYShrhXDeZaoYKw=
+github.com/refraction-networking/utls v1.2.2 h1:uBE6V173CwG8MQrSBpNZHAix1fxOvuLKYyjFAu3uqo0=
+github.com/refraction-networking/utls v1.2.2/go.mod h1:L1goe44KvhnTfctUffM2isnJpSjPlYShrhXDeZaoYKw=
 github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/remyoudompheng/bigfft v0.0.0-20220927061507-ef77025ab5aa h1:tEkEyxYeZ43TR55QU/hsIt9aRGBxbgGuz9CGykjvogY=
 github.com/remyoudompheng/bigfft v0.0.0-20220927061507-ef77025ab5aa/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
