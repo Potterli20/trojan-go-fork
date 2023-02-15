@@ -2,7 +2,7 @@ name: make-release
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 * * *  */3"
+    - cron: "0 0 * *  */3"
 
 jobs:
   make-release:
@@ -23,17 +23,8 @@ jobs:
   
       - name: Get project dependencies & run
         run: |
-          make release -j$(nproc)
+          make release -j2
           
-      - name: Remove old Releases
-        uses: dev-drprasad/delete-older-releases@master
-        if: env.UPLOAD_RELEASE == 'true' && !cancelled()
-        with:
-         keep_latest: 3
-         delete_tags: true
-        env:
-         GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
-
       - name: Release
         uses: svenstaro/upload-release-action@master
         with:
