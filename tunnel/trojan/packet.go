@@ -58,7 +58,9 @@ func (c *PacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadata, er
 	addr := &tunnel.Address{
 		NetworkType: "udp",
 	}
+
 	if err := addr.ReadFrom(c.Conn); err != nil {
+		c.Conn.Close()
 		return 0, nil, common.NewError("failed to parse udp packet addr").Base(err)
 	}
 	lengthBuf := [2]byte{}

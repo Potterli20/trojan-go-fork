@@ -31,7 +31,7 @@ type User struct {
 	recvSpeed   uint64
 	Hash        string
 	password    string
-	ipTable     sync.Map
+	ipTable     map[string]bool
 	ipNum       int32
 	MaxIPNum    int
 	limiterLock sync.RWMutex
@@ -47,41 +47,40 @@ func (u *User) Close() error {
 	return nil
 }
 
+
 func (u *User) AddIP(ip string) bool {
-	u.limiterLock.RLock()
 	if u.MaxIPNum <= 0 {
 		return true
 	}
-	_, found := u.ipTable.Load(ip)
-	if found {
+
+	if _, found := u.ipTable[ip]; found {
 		return true
 	}
-	if int(u.ipNum)+1 > u.MaxIPNum {
-		return false
-	}
-	u.ipTable.Store(ip, true)
+
+        if int(u.ipNum) >= u.MaxIPNum {
+                return false
+        }
+
+	u.ipTable[ip] = true
 	atomic.AddInt32(&u.ipNum, 1)
-	u.limiterLock.RUnlock()
 	go u.DelIP(ip)
-	return true
+      	return true
 }
 
 func (u *User) DelIP(ip string) bool {
-	time.Sleep(30 * time.Second)
-	u.limiterLock.RLock()
 	if u.MaxIPNum <= 0 {
 		return true
 	}
-	if u.ipNum <= 0 {
-		return true
-	}
-	_, found := u.ipTable.Load(ip)
-	if !found {
+
+	if _, found := u.ipTable[ip]; !found {
 		return false
 	}
-	u.ipTable.Delete(ip)
+	
+	time.Sleep(10 * time.Second);
+	
+	delete(u.ipTable, ip)
 	atomic.AddInt32(&u.ipNum, -1)
-	u.limiterLock.RUnlock()
+	
 	return true
 }
 
@@ -254,6 +253,7 @@ func (a *Authenticator) AddUser(hash string) error {
 	ctx, cancel := context.WithCancel(a.ctx)
 	meter := &User{
 		Hash:   hash,
+		ipTable:   make(map[string]bool),
 		ctx:    ctx,
 		cancel: cancel,
 	}
