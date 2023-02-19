@@ -68,12 +68,27 @@ func (c *InboundConn) Close() error {
 }
 
 func GetRealIP(c *InboundConn) (string, error) {
-	for name, value := range c.Conn.(*common.RewindConn).Conn.(*websocket.InboundConn).OutboundConn.Request().Header {
+	WSInboundConn, err := func(c *InboundConn) (*websocket.InboundConn, error) {
+		rewindConn, ok := c.Conn.(*common.RewindConn)
+		if !ok {
+			return nil, common.NewError("Failed to convert to RewindConn")
+		}
+		InboundConnRew, ok := rewindConn.Conn.(*websocket.InboundConn)
+		if !ok {
+			return nil, common.NewError("Failed to convert to InboundConn")
+		}
+		return InboundConnRew, nil
+	}(c)
+	if err != nil {
+		return "", common.NewError("Failed to convert to WebSocket")
+	}
+	
+	for name, value := range WSInboundConn.OutboundConn.Request().Header {
 		if name == "X-Forwarded-For" || name == "X-Real-Ip" {
 			return strings.Join(value, ", "), nil
 		}
 	}
-	return "", common.NewError("Does not use CDN!")
+	return "", common.NewError("Does not use CDN")
 }
 
 func (c *InboundConn) Auth() error {
