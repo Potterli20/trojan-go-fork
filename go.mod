@@ -16,7 +16,7 @@ require (
 	golang.org/x/net v0.7.0
 	golang.org/x/term v0.5.0
 	golang.org/x/time v0.3.0
-	google.golang.org/genproto v0.0.0-20230222225845-10f96fb3dbec
+	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923
 	google.golang.org/grpc v1.53.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v3 v3.0.1
