@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/Potterli20/trojan-go-fork/common"
+	"github.com/Potterli20/trojan-go-fork/log"
 )
 
 type Command byte
@@ -28,7 +29,7 @@ func (r *Metadata) ReadFrom(rr io.Reader) error {
 	r.Address = new(Address)
 	err = r.Address.ReadFrom(rr)
 	if err != nil {
-		return common.NewError("failed to marshal address").Base(err)
+		return common.NewError("failed to unmarshal address: ").Base(err)
 	}
 	return nil
 }
@@ -41,15 +42,23 @@ func (r *Metadata) WriteTo(w io.Writer) error {
 	}
 	// use tcp by default
 	r.Address.NetworkType = "tcp"
-	_, err := w.Write(buf.Bytes())
-	return err
+	if _, err := buf.WriteTo(w); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *Metadata) Network() string {
+	if r.Address == nil {
+		return ""
+	}
 	return r.Address.Network()
 }
 
 func (r *Metadata) String() string {
+	if r.Address == nil {
+		return ""
+	}
 	return r.Address.String()
 }
 
@@ -87,31 +96,47 @@ func (a *Address) Network() string {
 }
 
 func (a *Address) ResolveIP() (net.IP, error) {
+	//LOG
+	log.Debug("ResolveIP: network type :" + a.NetworkType + " Domain: " + a.DomainName)
 	if a.AddressType == IPv4 || a.AddressType == IPv6 {
 		return a.IP, nil
 	}
-	if a.IP != nil {
-		return a.IP, nil
+
+	if a.NetworkType != "udp4" && a.NetworkType != "udp6" && a.NetworkType != "udp" {
+		return nil, fmt.Errorf("unsupported network type: %s", a.NetworkType)
 	}
-	addr, err := net.ResolveIPAddr("ip", a.DomainName)
+	log.Debug("ResolveIP Start! domain: ", a.DomainName, " PORT: ", a.Port)
+	address := fmt.Sprintf("%s:%d", a.DomainName, a.Port)
+	udpAddr, err := net.ResolveUDPAddr(a.NetworkType, address)
 	if err != nil {
 		return nil, err
 	}
-	a.IP = addr.IP
-	return addr.IP, nil
+	log.Debug("ResolveIP Done! IP: ", udpAddr.IP, " PORT: ", udpAddr.Port)
+	a.IP = udpAddr.IP
+	a.Port = udpAddr.Port
+	return udpAddr.IP, nil
 }
 
-func NewAddressFromAddr(network string, addr string) (*Address, error) {
+func NewAddressFromAddr(network, addr string) (*Address, error) {
 	host, portStr, err := net.SplitHostPort(addr)
 	if err != nil {
-		return nil, err
+		return nil, common.NewError("failed to split host port")
 	}
 	port, err := strconv.ParseInt(portStr, 10, 32)
-	common.Must(err)
+	if err != nil {
+		return nil, common.NewError("failed to parse port number")
+	}
 	return NewAddressFromHostPort(network, host, int(port)), nil
 }
 
 func NewAddressFromHostPort(network string, host string, port int) *Address {
+	if network != "tcp" && network != "udp" {
+		log.Error("failed to network type : " + network + " HOST: " + host)
+		return nil
+	}
+
+	log.Debug("network type : " + network + " HOST: " + host)
+
 	if ip := net.ParseIP(host); ip != nil {
 		if ip.To4() != nil {
 			return &Address{
@@ -171,9 +196,8 @@ func (a *Address) ReadFrom(r io.Reader) error {
 		if err != nil {
 			return common.NewError("failed to read domain name")
 		}
-		// the fucking browser uses IP as a domain name sometimes
-		host := buf[0:length]
-		if ip := net.ParseIP(string(host)); ip != nil {
+		// check if the domain name is actually an IP address
+		if ip := net.ParseIP(string(buf[:length])); ip != nil {
 			a.IP = ip
 			if ip.To4() != nil {
 				a.AddressType = IPv4
@@ -181,11 +205,11 @@ func (a *Address) ReadFrom(r io.Reader) error {
 				a.AddressType = IPv6
 			}
 		} else {
-			a.DomainName = string(host)
+			a.DomainName = string(buf[:length])
 		}
 		a.Port = int(binary.BigEndian.Uint16(buf[length : length+2]))
 	default:
-		return common.NewError("invalid ATYP " + strconv.FormatInt(int64(a.AddressType), 10))
+		return common.NewError("invalid address type " + strconv.FormatInt(int64(a.AddressType), 10))
 	}
 	return nil
 }

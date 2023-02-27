@@ -73,11 +73,28 @@ func (c *PacketConn) Close() error {
 }
 
 func (c *PacketConn) ReadFrom(p []byte) (n int, addr net.Addr, err error) {
-	panic("implement me")
+	select {
+	case info := <-c.packetChan:
+		n := copy(p, info.payload)
+		return n, info.src.Address, nil
+	case <-c.ctx.Done():
+		return 0, nil, io.EOF
+	}
 }
 
 func (c *PacketConn) WriteTo(p []byte, addr net.Addr) (n int, err error) {
-	panic("implement me")
+	udpAddr, ok := addr.(*net.UDPAddr)
+	if !ok {
+		return 0, common.NewError("invalid UDP address")
+	}
+	address, err := tunnel.NewAddressFromAddr("udp", udpAddr.String())
+	if err != nil {
+		return 0, common.NewError("failed to create tunnel address").Base(err)
+	}
+	metadata := &tunnel.Metadata{
+		Address: address,
+	}
+	return c.WriteWithMetadata(p, metadata)
 }
 
 func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error) {
