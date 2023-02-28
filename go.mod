@@ -44,7 +44,7 @@ require (
 	github.com/txthinking/runnergroup v0.0.0-20230211072751-d11f16258c86 // indirect
 	github.com/txthinking/x v0.0.0-20220929041811-1b4d914e9133 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
-	go.starlark.net v0.0.0-20230227231452-50efbbf37d38 // indirect
+	go.starlark.net v0.0.0-20230228032650-dded03209ead // indirect
 	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
