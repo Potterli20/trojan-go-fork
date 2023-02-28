@@ -16,7 +16,7 @@ require (
 	golang.org/x/net v0.7.0
 	golang.org/x/term v0.5.0
 	golang.org/x/time v0.3.0
-	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923
+	google.golang.org/genproto v0.0.0-20230227214838-9b19f0bdc514
 	google.golang.org/grpc v1.53.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -24,7 +24,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/oslogin v1.7.0 // indirect
+	cloud.google.com/go/oslogin v1.9.0 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -44,7 +44,7 @@ require (
 	github.com/txthinking/runnergroup v0.0.0-20230211072751-d11f16258c86 // indirect
 	github.com/txthinking/x v0.0.0-20220929041811-1b4d914e9133 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
-	go.starlark.net v0.0.0-20230224151120-c52844e64a10 // indirect
+	go.starlark.net v0.0.0-20230227231452-50efbbf37d38 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
