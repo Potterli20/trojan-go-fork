@@ -8,11 +8,11 @@ require (
 	github.com/Potterli20/sqlite v0.0.0-20230308121610-1772111985ef
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
-	github.com/refraction-networking/utls v1.2.2
+	github.com/refraction-networking/utls v1.2.3-0.20230308205431-4f1df6c200db
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.8.2
 	github.com/xtaci/smux v1.5.24
-	github.com/xtls/xray-core v1.7.5
+	github.com/xtls/xray-core v1.8.0
 	golang.org/x/net v0.8.0
 	golang.org/x/term v0.6.0
 	golang.org/x/time v0.3.0
