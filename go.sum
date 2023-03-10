@@ -115,6 +115,8 @@ github.com/refraction-networking/utls v1.2.2 h1:uBE6V173CwG8MQrSBpNZHAix1fxOvuLK
 github.com/refraction-networking/utls v1.2.2/go.mod h1:L1goe44KvhnTfctUffM2isnJpSjPlYShrhXDeZaoYKw=
 github.com/refraction-networking/utls v1.2.3-0.20230308205431-4f1df6c200db h1:ULRv/GPW5KYDafE0FACN2no+HTCyQLUtfyOIeyp3GNc=
 github.com/refraction-networking/utls v1.2.3-0.20230308205431-4f1df6c200db/go.mod h1:kHXvVB66a4BzVRYC4Em7e1HAfp7uwOCCw0+2CZ3sMY8=
+github.com/refraction-networking/utls v1.3.0 h1:ce8s01ETzaohxYIrij8//hlYxuFK9gb9teeC/iOQaT0=
+github.com/refraction-networking/utls v1.3.0/go.mod h1:kHXvVB66a4BzVRYC4Em7e1HAfp7uwOCCw0+2CZ3sMY8=
 github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
