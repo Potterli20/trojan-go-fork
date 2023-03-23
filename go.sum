@@ -10,6 +10,8 @@ github.com/Potterli20/sqlite v0.0.0-20230314122005-e8d9f0e3289a h1:76XuICZjB5JLQ
 github.com/Potterli20/sqlite v0.0.0-20230314122005-e8d9f0e3289a/go.mod h1:96D09E/n53R2f7sLxNIU4uIIV869DRyibJDKabOgJ8Y=
 github.com/Potterli20/sqlite v0.0.0-20230323004105-79f106b46cb1 h1:63yRVvHya1+xSRpXNmnXOEa7pnBl98iIGpr4K+OeZa8=
 github.com/Potterli20/sqlite v0.0.0-20230323004105-79f106b46cb1/go.mod h1:jaz9slQNapZDqt5lA7zqvFWCNBFmGIEgKaJmi6Xp9IQ=
+github.com/Potterli20/sqlite v0.0.0-20230323121539-b12448e070df h1:Xd4tca6hsprSG6lO9zb9IUHDTNMva5grb+CBabHHM7M=
+github.com/Potterli20/sqlite v0.0.0-20230323121539-b12448e070df/go.mod h1:jaz9slQNapZDqt5lA7zqvFWCNBFmGIEgKaJmi6Xp9IQ=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
@@ -177,6 +179,8 @@ google.golang.org/genproto v0.0.0-20230320184635-7606e756e683 h1:khxVcsk/FhnzxMK
 google.golang.org/genproto v0.0.0-20230320184635-7606e756e683/go.mod h1:NWraEVixdDnqcqQ30jipen1STv2r/n24Wb7twVTGR4s=
 google.golang.org/genproto v0.0.0-20230322174352-cde4c949918d h1:OE8TncEeAei3Tehf/P/Jdt/K+8GnTUrRY6wzYpbCes4=
 google.golang.org/genproto v0.0.0-20230322174352-cde4c949918d/go.mod h1:NWraEVixdDnqcqQ30jipen1STv2r/n24Wb7twVTGR4s=
+google.golang.org/genproto v0.0.0-20230323172734-21a4fbf068fa h1:XVBYwREW1uCFErFiWeyqyz+K0bDTAPWj/gvTC4zsml0=
+google.golang.org/genproto v0.0.0-20230323172734-21a4fbf068fa/go.mod h1:L5DnnYzuVmyfoIL2tjtKQVgql48U0/Q4aiAMWkXKqMc=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
 google.golang.org/grpc v1.23.0/go.mod h1:Y5yQAOtifL1yxbo5wqy6BxZv8vAUGQwXBOALyacEbxg=
 google.golang.org/grpc v1.27.0/go.mod h1:qbnxyOmOxrQa7FizSgH+ReBfzJrCY1pSN7KXBS8abTk=

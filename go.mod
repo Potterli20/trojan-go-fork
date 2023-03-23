@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20230305090850-f3b9895b045c
 	github.com/Potterli20/socks5-fork v0.0.0-20230211120933-13a9608e9c7d
-	github.com/Potterli20/sqlite v0.0.0-20230323004105-79f106b46cb1
+	github.com/Potterli20/sqlite v0.0.0-20230323121539-b12448e070df
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.3.1
@@ -16,7 +16,7 @@ require (
 	golang.org/x/net v0.8.0
 	golang.org/x/term v0.6.0
 	golang.org/x/time v0.3.0
-	google.golang.org/genproto v0.0.0-20230322174352-cde4c949918d
+	google.golang.org/genproto v0.0.0-20230323172734-21a4fbf068fa
 	google.golang.org/grpc v1.54.0
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/yaml.v3 v3.0.1
