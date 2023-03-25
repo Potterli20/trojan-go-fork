@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20230305090850-f3b9895b045c
-	github.com/Potterli20/socks5-fork v0.0.0-20230211120933-13a9608e9c7d
+	github.com/Potterli20/socks5-fork v0.0.0-20230325150251-f1fc5de2de3a
 	github.com/Potterli20/sqlite v0.0.0-20230323121539-b12448e070df
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
@@ -41,7 +41,7 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/smartystreets/assertions v1.2.0 // indirect
-	github.com/txthinking/runnergroup v0.0.0-20230211072751-d11f16258c86 // indirect
+	github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 // indirect
 	github.com/txthinking/x v0.0.0-20220929041811-1b4d914e9133 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go.starlark.net v0.0.0-20230302034142-4b1e35fe2254 // indirect
