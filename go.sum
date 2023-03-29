@@ -18,6 +18,8 @@ github.com/Potterli20/sqlite v0.0.0-20230323121539-b12448e070df h1:Xd4tca6hsprSG
 github.com/Potterli20/sqlite v0.0.0-20230323121539-b12448e070df/go.mod h1:jaz9slQNapZDqt5lA7zqvFWCNBFmGIEgKaJmi6Xp9IQ=
 github.com/Potterli20/sqlite v0.0.0-20230329004531-f13a31d625b4 h1:uvIGcGkqiyiEvtWSEyMM4TYJ2CuRbOts2PbftXwPVGA=
 github.com/Potterli20/sqlite v0.0.0-20230329004531-f13a31d625b4/go.mod h1:s40YBQcHHCCY/VE7yPSA7N88JO5OCfh2sCeWQLC0R8c=
+github.com/Potterli20/sqlite v0.0.0-20230329121614-205e97ef9433 h1:VL2M1Tj9aQz4I9pvVh44q8z6C7tcPoANnbz5H1afyr4=
+github.com/Potterli20/sqlite v0.0.0-20230329121614-205e97ef9433/go.mod h1:s40YBQcHHCCY/VE7yPSA7N88JO5OCfh2sCeWQLC0R8c=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
