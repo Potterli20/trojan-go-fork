@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/sqlite v0.0.0-20230405121722-3b4fec59f18c
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/google/uuid v1.3.0
-	github.com/refraction-networking/utls v1.3.1
+	github.com/refraction-networking/utls v1.3.2
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/stretchr/testify v1.8.2
 	github.com/xtaci/smux v1.5.24
@@ -28,6 +28,7 @@ require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/gaukas/godicttls v0.0.3 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
