@@ -3,10 +3,9 @@
 // It relies on the proto structure of GeoIP, GeoIPList, GeoSite and GeoSiteList in
 // github.com/v2fly/v2ray-core/v4/app/router/config.proto to comply with following rules:
 //
-// 1. GeoIPList and GeoSiteList cannot be changed
-// 2. The country_code in GeoIP and GeoSite must be
-//    a length-delimited `string`(wired type) and has field_number set to 1
-//
+//  1. GeoIPList and GeoSiteList cannot be changed
+//  2. The country_code in GeoIP and GeoSite must be
+//     a length-delimited `string`(wired type) and has field_number set to 1
 package geodata
 
 import (

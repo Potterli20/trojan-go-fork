@@ -25,7 +25,7 @@ type Redirection struct {
 
 type Redirector struct {
 	ctx             context.Context
-	wg      		sync.WaitGroup
+	wg              sync.WaitGroup
 	redirectionChan chan *Redirection
 }
 

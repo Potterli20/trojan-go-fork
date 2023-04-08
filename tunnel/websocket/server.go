@@ -7,8 +7,8 @@ import (
 	"net"
 	"net/http"
 	"strings"
-	"time"
 	"sync"
+	"time"
 
 	"golang.org/x/net/websocket"
 

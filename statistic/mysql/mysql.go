@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
-	"time"
 	"sync"
+	"time"
 
 	// MySQL Driver
 	"github.com/go-sql-driver/mysql"
@@ -30,7 +30,7 @@ type Authenticator struct {
 	db             *sql.DB
 	updateDuration time.Duration
 	ctx            context.Context
-	wg      	   sync.WaitGroup
+	wg             sync.WaitGroup
 }
 
 func (a *Authenticator) updater() {
@@ -75,7 +75,7 @@ func (a *Authenticator) updater() {
 			} else {
 				a.DelUser(hash)
 			}
-		}	
+		}
 		for _, user := range a.ListUsers() {
 			if _, ok := userMap[user.GetHash()]; !ok {
 				a.DelUser(user.GetHash())

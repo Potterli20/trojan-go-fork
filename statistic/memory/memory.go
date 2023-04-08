@@ -48,7 +48,6 @@ func (u *User) Close() error {
 	return nil
 }
 
-
 func (u *User) AddIP(ip string) bool {
 	if u.MaxIPNum <= 0 {
 		return true
@@ -58,14 +57,14 @@ func (u *User) AddIP(ip string) bool {
 		return true
 	}
 
-        if int(u.ipNum) >= u.MaxIPNum {
-                return false
-        }
+	if int(u.ipNum) >= u.MaxIPNum {
+		return false
+	}
 
 	u.ipTable[ip] = true
 	atomic.AddInt32(&u.ipNum, 1)
 	go u.DelIP(ip)
-      	return true
+	return true
 }
 
 func (u *User) DelIP(ip string) bool {
@@ -76,12 +75,12 @@ func (u *User) DelIP(ip string) bool {
 	if _, found := u.ipTable[ip]; !found {
 		return false
 	}
-	
-	time.Sleep(10 * time.Second);
-	
+
+	time.Sleep(10 * time.Second)
+
 	delete(u.ipTable, ip)
 	atomic.AddInt32(&u.ipNum, -1)
-	
+
 	return true
 }
 
@@ -254,10 +253,10 @@ func (a *Authenticator) AddUser(hash string) error {
 	}
 	ctx, cancel := context.WithCancel(a.ctx)
 	meter := &User{
-		Hash:   hash,
-		ipTable:   make(map[string]bool),
-		ctx:    ctx,
-		cancel: cancel,
+		Hash:    hash,
+		ipTable: make(map[string]bool),
+		ctx:     ctx,
+		cancel:  cancel,
 	}
 	go meter.speedUpdater()
 	a.users.Store(hash, meter)

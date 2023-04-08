@@ -2,10 +2,9 @@ package fingerprint
 
 import (
 	"crypto/tls"
-	
+
 	"github.com/Potterli20/trojan-go-fork/log"
 )
-
 
 func ParseCipher(s []string) []uint16 {
 	all := tls.CipherSuites()

@@ -81,10 +81,10 @@ func (c *Client) DialConn(_ *tunnel.Address, overlay tunnel.Tunnel) (tunnel.Conn
 		Conn: tlsConn,
 	}, nil
 }
+
 // NewClient creates a tls client
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
-	
 
 	helloID := tls.ClientHelloID{}
 	// keep the parameter name consistent with upstream
