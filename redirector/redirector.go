@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"reflect"
+	"sync"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -24,13 +25,14 @@ type Redirection struct {
 
 type Redirector struct {
 	ctx             context.Context
+	wg      		sync.WaitGroup
 	redirectionChan chan *Redirection
 }
 
 func (r *Redirector) Redirect(redirection *Redirection) {
 	select {
 	case r.redirectionChan <- redirection:
-		log.Debug("redirect request")
+		log.Debug("redirect request ")
 	case <-r.ctx.Done():
 		log.Debug("exiting")
 	}

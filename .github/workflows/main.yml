@@ -2,7 +2,7 @@ name: make-release
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 * *  */3"
+    - cron: "0 0 * *  */7"
 
 jobs:
   make-release:
@@ -23,7 +23,7 @@ jobs:
   
       - name: Get project dependencies & run
         run: |
-          make release -j2
+          make release -j$(nproc)
           
       - name: Release
         uses: svenstaro/upload-release-action@master

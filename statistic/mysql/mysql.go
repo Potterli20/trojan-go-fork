@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"time"
+	"sync"
 
 	// MySQL Driver
 	"github.com/go-sql-driver/mysql"
@@ -29,6 +30,7 @@ type Authenticator struct {
 	db             *sql.DB
 	updateDuration time.Duration
 	ctx            context.Context
+	wg      	   sync.WaitGroup
 }
 
 func (a *Authenticator) updater() {

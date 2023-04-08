@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"sync"
 
 	"golang.org/x/net/websocket"
 
@@ -41,6 +42,7 @@ type Server struct {
 	redir     *redirector.Redirector
 	ctx       context.Context
 	cancel    context.CancelFunc
+	wg        sync.WaitGroup
 	timeout   time.Duration
 }
 

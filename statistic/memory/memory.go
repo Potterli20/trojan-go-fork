@@ -38,6 +38,7 @@ type User struct {
 	SendLimiter *rate.Limiter
 	RecvLimiter *rate.Limiter
 	ctx         context.Context
+	wg          sync.WaitGroup
 	cancel      context.CancelFunc
 }
 
@@ -217,6 +218,7 @@ type Authenticator struct {
 	users sync.Map
 	pst   statistic.Persistencer
 	ctx   context.Context
+	wg    sync.WaitGroup
 }
 
 func (a *Authenticator) AuthUser(hash string) (bool, statistic.User) {
