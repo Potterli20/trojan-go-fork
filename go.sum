@@ -6,8 +6,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20230407150810-ffc09cdcc989 h1:+Qgi
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20230407150810-ffc09cdcc989/go.mod h1:JhuLxQx2txFM5BHUTt+onq65wPp+9D2xR84oTOdQkH4=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe h1:5QQvE3JBuxOICYt8Jb2ZfiyAPEEs6PAzzjv9JAIk6n4=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe/go.mod h1:wrO+5rUF6rUc7zLh8tIGBKeplybgWdU/bY4NS+2EDZU=
-github.com/Potterli20/sqlite v0.0.0-20230423004404-cedbc61f59da h1:y7hL+6N5Z89umoJOGA0wdJpnzt3wDehHq6Y66XJR2GY=
-github.com/Potterli20/sqlite v0.0.0-20230423004404-cedbc61f59da/go.mod h1:Mt4p46RyXKidSEGzCmy1bAGQl7a0Dj1O5XCbnMA20SU=
 github.com/Potterli20/sqlite v0.0.0-20230425004104-37de72b7b3d8 h1:6Q39QkQDIcvgTCCV/LfoN//fcb6xxM1QTXdTazYFzdM=
 github.com/Potterli20/sqlite v0.0.0-20230425004104-37de72b7b3d8/go.mod h1:thZqTBY9tP/zsH2bkDJq1eow4ZmcOLZZ4mMhqB6Ig3c=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
@@ -31,6 +29,8 @@ github.com/gaukas/godicttls v0.0.3/go.mod h1:l6EenT4TLWgTdwslVb4sEMOCf7Bv0JAK67d
 github.com/ghodss/yaml v1.0.1-0.20220118164431-d8423dcdf344 h1:Arcl6UOIS/kgO2nW3A65HN+7CMjSDP/gofXL4CZt1V4=
 github.com/go-sql-driver/mysql v1.7.0 h1:ueSltNNllEqE3qcWBTD0iQd3IpL/6U+mJxLkazJ7YPc=
 github.com/go-sql-driver/mysql v1.7.0/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=
+github.com/go-sql-driver/mysql v1.7.1 h1:lUIinVbN1DY0xBg0eMOzmmtGoHwWBbvnWubQUrtU8EI=
+github.com/go-sql-driver/mysql v1.7.1/go.mod h1:OXbVy3sEdcQ2Doequ6Z5BW6fXNQTmx+9S1MCJN5yJMI=
 github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 h1:tfuBGBXKqDEevZMzYi5KSi8KkcZtzBcTgAUUtapy0OI=
 github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b/go.mod h1:SBH7ygxi8pfUlaOkMMuAQtPIUF8ecWP5IEl/CR7VP2Q=
 github.com/golang/mock v1.1.1/go.mod h1:oTYuIxOrZwtPieC+H1uAHpcLFnEyAGVDL/k47Jfbm0A=
