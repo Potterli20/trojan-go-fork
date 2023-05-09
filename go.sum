@@ -2,14 +2,16 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 cloud.google.com/go/oslogin v1.9.0 h1:whP7vhpmc+ufZa90eVpkfbgzJRK/Xomjz+XCD4aGwWw=
 cloud.google.com/go/oslogin v1.9.0/go.mod h1:HNavntnH8nzrn8JCTT5fj18FuJLFJc4NaZJtBnQtKFs=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20230504181014-36ec105b6133 h1:KNcuFLmVrw1caquLA/w8cR1u5D1JIw56SC8XxG4ehdc=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20230504181014-36ec105b6133/go.mod h1:11upuMcNtxJ7SCw+e31ODbxZG2G73TyEjQ/EP7xaBO8=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20230509090830-6283a46d45c1 h1:VuiaAPADbyrK0XsWsa/3Duv1Sgl6A2dPv4aEsMD0/vs=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20230509090830-6283a46d45c1/go.mod h1:acSkBER79cyUdyQy+igpSposOVMOVDiKyELjfneLEC0=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20230509125350-565127aa1197 h1:HUsfumP7HMQAGVEhuayS9kIol0WaliuAAqnbwn9jW8M=
+github.com/Potterli20/go-shadowsocks2 v0.0.0-20230509125350-565127aa1197/go.mod h1:acSkBER79cyUdyQy+igpSposOVMOVDiKyELjfneLEC0=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe h1:5QQvE3JBuxOICYt8Jb2ZfiyAPEEs6PAzzjv9JAIk6n4=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe/go.mod h1:wrO+5rUF6rUc7zLh8tIGBKeplybgWdU/bY4NS+2EDZU=
 github.com/Potterli20/sqlite v0.0.0-20230509004026-ff7314011fad h1:byK59cqi5B4nVecP1eXG4VtTIGCDrETqFRq1wk2MF3c=
 github.com/Potterli20/sqlite v0.0.0-20230509004026-ff7314011fad/go.mod h1:L75SNQ6f88WnoKPkIGdD0VE0sLyJiVlJTvigDSBjhIs=
+github.com/Potterli20/sqlite v0.0.0-20230509125302-3a3b08151ed8 h1:1QSWYwGJ0cFm0fS+21oH8QOZINbVq+u/Nfil98QsaNQ=
+github.com/Potterli20/sqlite v0.0.0-20230509125302-3a3b08151ed8/go.mod h1:LVo8lgYfvXvjVUEXDhocSa5YAeDIo1aUt+CWBdFg89w=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
@@ -124,8 +126,6 @@ go.starlark.net v0.0.0-20230302034142-4b1e35fe2254 h1:Ss6D3hLXTM0KobyBYEAygXzFfG
 go.starlark.net v0.0.0-20230302034142-4b1e35fe2254/go.mod h1:jxU+3+j+71eXOW14274+SmmuW82qJzl6iZSeqEtTGds=
 go.uber.org/atomic v1.10.0 h1:9qC72Qh0+3MqyJbAn8YU5xVq1frD8bn3JtD2oXtafVQ=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
-golang.org/x/crypto v0.8.0 h1:pd9TJtTueMTVQXzk8E2XESSMQDj/U7OUu0PqJqPXQjQ=
-golang.org/x/crypto v0.8.0/go.mod h1:mRqEX+O9/h5TFCrQhkgjo2yKi0yYA+9ecGkdQoHrywE=
 golang.org/x/crypto v0.9.0 h1:LF6fAI+IutBocDJ2OT0Q1g8plpYljMZ4+lty+dsqw3g=
 golang.org/x/crypto v0.9.0/go.mod h1:yrmDGqONDYtNj3tH8X9dzUun2m2lzPa9ngI6/RUPGR0=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
@@ -167,6 +167,8 @@ golang.org/x/tools v0.0.0-20190311212946-11955173bddd/go.mod h1:LCzVGOaR6xXOjkQ3
 golang.org/x/tools v0.0.0-20190524140312-2c0ae7006135/go.mod h1:RgjU9mgBXZiqYHBnxXauZ1Gv1EHHAz9KjViQ78xBX0Q=
 golang.org/x/tools v0.9.0 h1:CtBMYmb33qYal6XpayZzNXlyK/3FpZV8bDq4CZo57b8=
 golang.org/x/tools v0.9.0/go.mod h1:owI94Op576fPu3cIGQeHs3joujW/2Oc6MtlxbF5dfNc=
+golang.org/x/tools v0.9.1 h1:8WMNJAz3zrtPmnYC7ISf5dEn3MT0gY7jBJfw27yrrLo=
+golang.org/x/tools v0.9.1/go.mod h1:owI94Op576fPu3cIGQeHs3joujW/2Oc6MtlxbF5dfNc=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 google.golang.org/appengine v1.1.0/go.mod h1:EbEs0AVv82hx2wNQdGPgUI5lhzA/G0D9YwlJXL52JkM=
