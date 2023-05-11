@@ -6,10 +6,10 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20230509125350-565127aa1197 h1:HUsf
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20230509125350-565127aa1197/go.mod h1:acSkBER79cyUdyQy+igpSposOVMOVDiKyELjfneLEC0=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe h1:5QQvE3JBuxOICYt8Jb2ZfiyAPEEs6PAzzjv9JAIk6n4=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe/go.mod h1:wrO+5rUF6rUc7zLh8tIGBKeplybgWdU/bY4NS+2EDZU=
-github.com/Potterli20/sqlite v0.0.0-20230510004003-dfba62cf63b8 h1:JjsAUk0feB5d30OPzKXqJVeVDGuXPvnEoExOiwkkiTs=
-github.com/Potterli20/sqlite v0.0.0-20230510004003-dfba62cf63b8/go.mod h1:FGUBdebAMLvi0AMHmCLH2stzVyJoV3ON9A5xbtCXlFo=
 github.com/Potterli20/sqlite v0.0.0-20230510121432-cfd23ddf403b h1:MfJnkKlUv9y0YYxULM6HjULV7H3OPHB1IezMhcHeMBk=
 github.com/Potterli20/sqlite v0.0.0-20230510121432-cfd23ddf403b/go.mod h1:vqbsgkFxuSVQYqcbplSZIQ+cFMxXZBV9V60em+VyJoE=
+github.com/Potterli20/sqlite v0.0.0-20230511003921-8601c34d33ae h1:Yo2X52WQw/CMUWefwxhlO4ywyBhmwzL0Ujz33Q4oTTg=
+github.com/Potterli20/sqlite v0.0.0-20230511003921-8601c34d33ae/go.mod h1:vqbsgkFxuSVQYqcbplSZIQ+cFMxXZBV9V60em+VyJoE=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
