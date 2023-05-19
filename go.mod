@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/refraction-networking/utls v1.3.2
 	github.com/smartystreets/goconvey v1.8.0
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.3
 	github.com/xtaci/smux v1.5.24
 	github.com/xtls/xray-core v1.8.1
 	golang.org/x/net v0.10.0
