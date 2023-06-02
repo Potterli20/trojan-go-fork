@@ -6,8 +6,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20230509125350-565127aa1197 h1:HUsf
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20230509125350-565127aa1197/go.mod h1:acSkBER79cyUdyQy+igpSposOVMOVDiKyELjfneLEC0=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe h1:5QQvE3JBuxOICYt8Jb2ZfiyAPEEs6PAzzjv9JAIk6n4=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe/go.mod h1:wrO+5rUF6rUc7zLh8tIGBKeplybgWdU/bY4NS+2EDZU=
-github.com/Potterli20/sqlite v0.0.0-20230601005603-6c9cfafb1dac h1:RnnFyO+AO3W6yWumQfy7mv9QCxjhlI4RgvVrPDtoReo=
-github.com/Potterli20/sqlite v0.0.0-20230601005603-6c9cfafb1dac/go.mod h1:iqq+vF2LWPxzlaQ06rIFbtR/IvL3jeMupcXiqh1lpe4=
 github.com/Potterli20/sqlite v0.0.0-20230601121451-3ede662428d9 h1:MBPvIcJW/MKPBKULt2WF1IAfD+ogdw3U9KTCErj1+DA=
 github.com/Potterli20/sqlite v0.0.0-20230601121451-3ede662428d9/go.mod h1:iqq+vF2LWPxzlaQ06rIFbtR/IvL3jeMupcXiqh1lpe4=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
@@ -159,6 +157,8 @@ golang.org/x/tools v0.0.0-20190311212946-11955173bddd/go.mod h1:LCzVGOaR6xXOjkQ3
 golang.org/x/tools v0.0.0-20190524140312-2c0ae7006135/go.mod h1:RgjU9mgBXZiqYHBnxXauZ1Gv1EHHAz9KjViQ78xBX0Q=
 golang.org/x/tools v0.9.2 h1:UXbndbirwCAx6TULftIfie/ygDNCwxEie+IiNP1IcNc=
 golang.org/x/tools v0.9.2/go.mod h1:owI94Op576fPu3cIGQeHs3joujW/2Oc6MtlxbF5dfNc=
+golang.org/x/tools v0.9.3 h1:Gn1I8+64MsuTb/HpH+LmQtNas23LhUVr3rYZ0eKuaMM=
+golang.org/x/tools v0.9.3/go.mod h1:owI94Op576fPu3cIGQeHs3joujW/2Oc6MtlxbF5dfNc=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 google.golang.org/appengine v1.1.0/go.mod h1:EbEs0AVv82hx2wNQdGPgUI5lhzA/G0D9YwlJXL52JkM=
