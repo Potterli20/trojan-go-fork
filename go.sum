@@ -8,6 +8,8 @@ github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe h1:5QQvE3JB
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe/go.mod h1:wrO+5rUF6rUc7zLh8tIGBKeplybgWdU/bY4NS+2EDZU=
 github.com/Potterli20/sqlite v0.0.0-20230601121451-3ede662428d9 h1:MBPvIcJW/MKPBKULt2WF1IAfD+ogdw3U9KTCErj1+DA=
 github.com/Potterli20/sqlite v0.0.0-20230601121451-3ede662428d9/go.mod h1:iqq+vF2LWPxzlaQ06rIFbtR/IvL3jeMupcXiqh1lpe4=
+github.com/Potterli20/sqlite v0.0.0-20230602004737-64ab7e996ac3 h1:ibdOfFX9oEfunLqL/wVNn3Z7kGlEy+EOs+gZXDcUVn4=
+github.com/Potterli20/sqlite v0.0.0-20230602004737-64ab7e996ac3/go.mod h1:uAyQHL4IgNWqDxbY7Wg7ol2k5xTYJM04J4gw1dl0K3k=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
@@ -155,8 +157,6 @@ golang.org/x/tools v0.0.0-20190114222345-bf090417da8b/go.mod h1:n7NCudcB/nEzxVGm
 golang.org/x/tools v0.0.0-20190226205152-f727befe758c/go.mod h1:9Yl7xja0Znq3iFh3HoIrodX9oNMXvdceNzlUR8zjMvY=
 golang.org/x/tools v0.0.0-20190311212946-11955173bddd/go.mod h1:LCzVGOaR6xXOjkQ3onu1FJEFr0SW1gC7cKk1uF8kGRs=
 golang.org/x/tools v0.0.0-20190524140312-2c0ae7006135/go.mod h1:RgjU9mgBXZiqYHBnxXauZ1Gv1EHHAz9KjViQ78xBX0Q=
-golang.org/x/tools v0.9.2 h1:UXbndbirwCAx6TULftIfie/ygDNCwxEie+IiNP1IcNc=
-golang.org/x/tools v0.9.2/go.mod h1:owI94Op576fPu3cIGQeHs3joujW/2Oc6MtlxbF5dfNc=
 golang.org/x/tools v0.9.3 h1:Gn1I8+64MsuTb/HpH+LmQtNas23LhUVr3rYZ0eKuaMM=
 golang.org/x/tools v0.9.3/go.mod h1:owI94Op576fPu3cIGQeHs3joujW/2Oc6MtlxbF5dfNc=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
