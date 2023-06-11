@@ -8,6 +8,8 @@ github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe h1:5QQvE3JB
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe/go.mod h1:wrO+5rUF6rUc7zLh8tIGBKeplybgWdU/bY4NS+2EDZU=
 github.com/Potterli20/sqlite v0.0.0-20230610121236-06f9e2041e67 h1:mweo+E9crjYa18IbK93xDd5KIiTDLC0HpxWq10jNQKI=
 github.com/Potterli20/sqlite v0.0.0-20230610121236-06f9e2041e67/go.mod h1:E7g9hQ/qyU1xfcnc0QPqp25ux3vTYqdKPyxPa/J2T4g=
+github.com/Potterli20/sqlite v0.0.0-20230611005105-45facfca560e h1:qFHKV8685kLN4gC64WKN6J6J9PB7rQ2EFNrN2mYMf5M=
+github.com/Potterli20/sqlite v0.0.0-20230611005105-45facfca560e/go.mod h1:nk+jU+3cL0q/wOfqehKEzFWivGp6Re059pEe58tHKK4=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
@@ -214,8 +216,6 @@ modernc.org/memory v1.6.0 h1:i6mzavxrE9a30whzMfwf7XWVODx2r5OYXvU46cirX7o=
 modernc.org/memory v1.6.0/go.mod h1:PkUhL0Mugw21sHPeskwZW4D6VscE/GQJOnIpCnW6pSU=
 modernc.org/opt v0.1.3 h1:3XOZf2yznlhC+ibLltsDGzABUGVx8J6pnFMS3E4dcq4=
 modernc.org/opt v0.1.3/go.mod h1:WdSiB5evDcignE70guQKxYUl14mgWtbClRi5wmkkTX0=
-modernc.org/sqlite v1.23.0 h1:MWTFBI5H1WLnXpNBh/BTruBVqzzoh28DA0iOnlkkRaM=
-modernc.org/sqlite v1.23.0/go.mod h1:OrDj17Mggn6MhE+iPbBNf7RGKODDE9NFT0f3EwDzJqk=
 modernc.org/sqlite v1.23.1 h1:nrSBg4aRQQwq59JpvGEQ15tNxoO5pX/kUjcRNwSAGQM=
 modernc.org/sqlite v1.23.1/go.mod h1:OrDj17Mggn6MhE+iPbBNf7RGKODDE9NFT0f3EwDzJqk=
 modernc.org/strutil v1.1.3 h1:fNMm+oJklMGYfU9Ylcywl0CO5O6nTfaowNsh2wpPjzY=
