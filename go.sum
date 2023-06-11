@@ -6,8 +6,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20230509125350-565127aa1197 h1:HUsf
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20230509125350-565127aa1197/go.mod h1:acSkBER79cyUdyQy+igpSposOVMOVDiKyELjfneLEC0=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe h1:5QQvE3JBuxOICYt8Jb2ZfiyAPEEs6PAzzjv9JAIk6n4=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe/go.mod h1:wrO+5rUF6rUc7zLh8tIGBKeplybgWdU/bY4NS+2EDZU=
-github.com/Potterli20/sqlite v0.0.0-20230610121236-06f9e2041e67 h1:mweo+E9crjYa18IbK93xDd5KIiTDLC0HpxWq10jNQKI=
-github.com/Potterli20/sqlite v0.0.0-20230610121236-06f9e2041e67/go.mod h1:E7g9hQ/qyU1xfcnc0QPqp25ux3vTYqdKPyxPa/J2T4g=
 github.com/Potterli20/sqlite v0.0.0-20230611005105-45facfca560e h1:qFHKV8685kLN4gC64WKN6J6J9PB7rQ2EFNrN2mYMf5M=
 github.com/Potterli20/sqlite v0.0.0-20230611005105-45facfca560e/go.mod h1:nk+jU+3cL0q/wOfqehKEzFWivGp6Re059pEe58tHKK4=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
