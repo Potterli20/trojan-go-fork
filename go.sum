@@ -6,8 +6,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20230613150822-69ad7f1ebcb8 h1:zlLo
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20230613150822-69ad7f1ebcb8/go.mod h1:fz/I4S0v8TJ4IotnVBhZe1cZYQGBTxj1qLdTglXNLxM=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe h1:5QQvE3JBuxOICYt8Jb2ZfiyAPEEs6PAzzjv9JAIk6n4=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe/go.mod h1:wrO+5rUF6rUc7zLh8tIGBKeplybgWdU/bY4NS+2EDZU=
-github.com/Potterli20/sqlite v0.0.0-20230613121440-b93b3549028f h1:K0vetP9LbQdN82yAaFYUZKDv6ex0WvazMmAKQFsCXy4=
-github.com/Potterli20/sqlite v0.0.0-20230613121440-b93b3549028f/go.mod h1:2ZjuQFUFVhNYTu30vL3o97jLMOQ3gZwYx37J3e5BNr8=
 github.com/Potterli20/sqlite v0.0.0-20230615004440-16c09ff87627 h1:azLl2ZroQc/QS/9wRj0ljVzqylIr9uKwYyySn1i37V4=
 github.com/Potterli20/sqlite v0.0.0-20230615004440-16c09ff87627/go.mod h1:HUZBN6W7ac9al8SBG84nGnDQ9I5A73YlLTDSPSy5G0k=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
@@ -100,6 +98,7 @@ github.com/smartystreets/assertions v1.13.1 h1:Ef7KhSmjZcK6AVf9YbJdvPYG9avaF0Zxu
 github.com/smartystreets/assertions v1.13.1/go.mod h1:cXr/IwVfSo/RbCSPhoAPv73p3hlSdrBH/b3SdnW/LMY=
 github.com/smartystreets/goconvey v1.8.0 h1:Oi49ha/2MURE0WexF052Z0m+BNSGirfjg5RL+JXWq3w=
 github.com/smartystreets/goconvey v1.8.0/go.mod h1:EdX8jtrTIj26jmjCOVNMVSIYAtgexqXKHOXW2Dx9JLg=
+github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 h1:EX/lPhI7pMS0AOXCkKgdo/CCHOtTtTBvdjk7uUWeSYc=
