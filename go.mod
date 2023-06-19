@@ -12,7 +12,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.0
 	github.com/stretchr/testify v1.8.4
 	github.com/xtaci/smux v1.5.24
-	github.com/xtls/xray-core v1.8.1
+	github.com/xtls/xray-core v1.8.2
 	golang.org/x/net v0.11.0
 	golang.org/x/term v0.9.0
 	golang.org/x/time v0.3.0
@@ -41,6 +41,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
+	github.com/sagernet/sing v0.2.5 // indirect
 	github.com/smartystreets/assertions v1.13.1 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 // indirect
 	github.com/txthinking/x v0.0.0-20220929041811-1b4d914e9133 // indirect
