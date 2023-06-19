@@ -65,6 +65,8 @@ github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstvQsPGkxUsCd2KWxErBblirPizecHcpD3ffK+s=
 github.com/sagernet/sing v0.2.5 h1:N8sUluR8GZvR9DqUiH3FA3vBb4m/EDdOVTYUrDzJvmY=
 github.com/sagernet/sing v0.2.5/go.mod h1:Ta8nHnDLAwqySzKhGoKk4ZIB+vJ3GTKj7UPrWYvM+4w=
+github.com/sagernet/sing v0.2.6 h1:Fvqv7/Bwc72ERT6dE8yQLLY6SMc/syO3VMCtxVO4DNw=
+github.com/sagernet/sing v0.2.6/go.mod h1:Ta8nHnDLAwqySzKhGoKk4ZIB+vJ3GTKj7UPrWYvM+4w=
 github.com/sagernet/sing-shadowsocks v0.2.2 h1:ezSdVhrmIcwDXmCZF3bOJVMuVtTQWpda+1Op+Ie2TA4=
 github.com/sagernet/wireguard-go v0.0.0-20221116151939-c99467f53f2c h1:vK2wyt9aWYHHvNLWniwijBu/n4pySypiKRhN32u/JGo=
 github.com/seiflotfy/cuckoofilter v0.0.0-20220411075957-e3b120b3f5fb h1:XfLJSPIOUX+osiMraVgIrMR27uMXnRJWGm1+GL8/63U=
@@ -107,6 +109,7 @@ golang.org/x/time v0.3.0/go.mod h1:tRJNPiyCQ0inRvYxbN9jk5I+vvW/OXSQhTDSoE431IQ=
 golang.org/x/tools v0.10.0 h1:tvDr/iQoUqNdohiYm0LmmKcBk+q86lb9EprIUFhHHGg=
 golang.org/x/tools v0.10.0/go.mod h1:UJwyiVBsOA2uwvK/e5OY3GTpDUJriEd+/YlqAwLPmyM=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
+golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 google.golang.org/genproto v0.0.0-20230525234025-438c736192d0 h1:x1vNwUhVOcsYoKyEGCZBH694SBmmBjA2EfauFVEI2+M=
 google.golang.org/genproto v0.0.0-20230525234025-438c736192d0/go.mod h1:9ExIQyXL5hZrHzQceCwuSYwZZ5QZBazOcprJ5rgs3lY=
 google.golang.org/genproto/googleapis/api v0.0.0-20230525234020-1aefcd67740a h1:HiYVD+FGJkTo+9zj1gqz0anapsa1JxjiSrN+BJKyUmE=
