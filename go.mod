@@ -12,7 +12,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.0
 	github.com/stretchr/testify v1.8.4
 	github.com/xtaci/smux v1.5.24
-	github.com/xtls/xray-core v1.8.2
+	github.com/xtls/xray-core v1.8.3
 	golang.org/x/net v0.11.0
 	golang.org/x/term v0.9.0
 	golang.org/x/time v0.3.0
@@ -46,7 +46,6 @@ require (
 	github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 // indirect
 	github.com/txthinking/x v0.0.0-20220929041811-1b4d914e9133 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
-	go.starlark.net v0.0.0-20230612165344-9532f5667272 // indirect
 	golang.org/x/crypto v0.10.0 // indirect
 	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
