@@ -28,7 +28,7 @@ require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/gaukas/godicttls v0.0.3 // indirect
+	github.com/gaukas/godicttls v0.0.4 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
