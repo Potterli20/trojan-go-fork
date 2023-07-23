@@ -41,7 +41,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
-	github.com/sagernet/sing v0.2.7 // indirect
+	github.com/sagernet/sing v0.2.9 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 // indirect
 	github.com/txthinking/x v0.0.0-20220929041811-1b4d914e9133 // indirect
