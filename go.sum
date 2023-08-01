@@ -6,6 +6,8 @@ github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe h1:5QQvE3JB
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe/go.mod h1:wrO+5rUF6rUc7zLh8tIGBKeplybgWdU/bY4NS+2EDZU=
 github.com/Potterli20/sqlite v0.0.0-20230801004727-148dbba7af4e h1:5mwodhkTnUIylmyFypCEBo0O6Vf+AL77hwalP6tIRRQ=
 github.com/Potterli20/sqlite v0.0.0-20230801004727-148dbba7af4e/go.mod h1:QPFVSWMBffxgMmdfRiCcoUPmI2tA5ZmNV/s4u311UTU=
+github.com/Potterli20/sqlite v0.0.0-20230801121420-d7cb1aea7097 h1:1I7k41XlGrtHYj7REvqGRYlQ5GeLoTRZq3XJn3XWLGg=
+github.com/Potterli20/sqlite v0.0.0-20230801121420-d7cb1aea7097/go.mod h1:QPFVSWMBffxgMmdfRiCcoUPmI2tA5ZmNV/s4u311UTU=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
