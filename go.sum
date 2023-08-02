@@ -4,8 +4,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20230705181202-ca9b950025ac h1:OuBz
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20230705181202-ca9b950025ac/go.mod h1:0hfJroxo24qiSpx2OGPbOttHpNZkf4b0FGn9S1R+s0A=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe h1:5QQvE3JBuxOICYt8Jb2ZfiyAPEEs6PAzzjv9JAIk6n4=
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe/go.mod h1:wrO+5rUF6rUc7zLh8tIGBKeplybgWdU/bY4NS+2EDZU=
-github.com/Potterli20/sqlite v0.0.0-20230801004727-148dbba7af4e h1:5mwodhkTnUIylmyFypCEBo0O6Vf+AL77hwalP6tIRRQ=
-github.com/Potterli20/sqlite v0.0.0-20230801004727-148dbba7af4e/go.mod h1:QPFVSWMBffxgMmdfRiCcoUPmI2tA5ZmNV/s4u311UTU=
 github.com/Potterli20/sqlite v0.0.0-20230801121420-d7cb1aea7097 h1:1I7k41XlGrtHYj7REvqGRYlQ5GeLoTRZq3XJn3XWLGg=
 github.com/Potterli20/sqlite v0.0.0-20230801121420-d7cb1aea7097/go.mod h1:QPFVSWMBffxgMmdfRiCcoUPmI2tA5ZmNV/s4u311UTU=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
@@ -95,6 +93,8 @@ golang.org/x/mod v0.12.0 h1:rmsUpXtvNzj340zd98LZ4KntptpfRHwpFOHG188oHXc=
 golang.org/x/mod v0.12.0/go.mod h1:iBbtSCu2XBx23ZKBPSOrRkjjQPZFPuis4dIYUhu/chs=
 golang.org/x/net v0.12.0 h1:cfawfvKITfUsFCeJIHJrbSxpeu/E81khclypR0GVT50=
 golang.org/x/net v0.12.0/go.mod h1:zEVYFnQC7m/vmpQFELhcD1EWkZlX69l4oqgmer6hfKA=
+golang.org/x/net v0.13.0 h1:Nvo8UFsZ8X3BhAC9699Z1j7XQ3rsZnUUm7jfBEk1ueY=
+golang.org/x/net v0.13.0/go.mod h1:zEVYFnQC7m/vmpQFELhcD1EWkZlX69l4oqgmer6hfKA=
 golang.org/x/sync v0.3.0 h1:ftCYgMx6zT/asHUrPw8BLLscYtGznsLAnjq5RH9P66E=
 golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.10.0 h1:SqMFp9UcQJZa+pmYuAKjd9xq1f0j5rLcDIk0mj4qAsA=

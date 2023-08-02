@@ -13,7 +13,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/xtaci/smux v1.5.24
 	github.com/xtls/xray-core v1.8.3
-	golang.org/x/net v0.12.0
+	golang.org/x/net v0.13.0
 	golang.org/x/term v0.10.0
 	golang.org/x/time v0.3.0
 	google.golang.org/genproto v0.0.0-20230726155614-23370e0ffb3e
