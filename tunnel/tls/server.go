@@ -16,9 +16,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-	"crypto"
-
-	"golang.org/x/crypto"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"

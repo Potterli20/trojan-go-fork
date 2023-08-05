@@ -6,6 +6,7 @@ package tproxy
 import (
 	"fmt"
 	"net"
+	"os"
 	"syscall"
 )
 
