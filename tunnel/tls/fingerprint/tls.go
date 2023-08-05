@@ -2,9 +2,6 @@ package fingerprint
 
 import (
 	"crypto/tls"
-	"crypto"
-
-	"golang.org/x/crypto"
 
 	"github.com/Potterli20/trojan-go-fork/log"
 )
