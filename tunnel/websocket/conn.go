@@ -3,12 +3,8 @@ package websocket
 import (
 	"context"
 	"net"
-	"net/http"
 
-	"github.com/quic-go/quic-go/http3"
-	"golang.org/x/net/http2"
 	"golang.org/x/net/websocket"
-
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
