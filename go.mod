@@ -8,7 +8,6 @@ require (
 	github.com/Potterli20/sqlite v0.0.0-20230805004047-dc9b4acd10a0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.3.0
-	github.com/quic-go/quic-go v0.37.2
 	github.com/refraction-networking/utls v1.4.0
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.8.4
@@ -30,8 +29,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gaukas/godicttls v0.0.4 // indirect
-	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
-	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/pprof v0.0.0-20230728192033-2ba5b33183c6 // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
@@ -42,11 +39,11 @@ require (
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
-	github.com/onsi/ginkgo/v2 v2.11.0 // indirect
+	github.com/onsi/gomega v1.27.8 // indirect
 	github.com/pires/go-proxyproto v0.7.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/quic-go/qpack v0.4.0 // indirect
 	github.com/quic-go/qtls-go1-20 v0.3.2 // indirect
+	github.com/quic-go/quic-go v0.37.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/sagernet/sing v0.2.9 // indirect

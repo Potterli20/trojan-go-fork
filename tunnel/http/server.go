@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"strings"
 
-
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"

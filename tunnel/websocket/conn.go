@@ -4,8 +4,8 @@ import (
 	"context"
 	"net"
 
-	"golang.org/x/net/websocket"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
+	"golang.org/x/net/websocket"
 )
 
 type OutboundConn struct {
