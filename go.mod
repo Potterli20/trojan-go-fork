@@ -3,7 +3,7 @@ module github.com/Potterli20/trojan-go-fork
 go 1.20
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20230804150807-c380190a7b39
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20230804210646-d88a38d491cf
 	github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe
 	github.com/Potterli20/sqlite v0.0.0-20230804004238-7c19f040848a
 	github.com/go-sql-driver/mysql v1.7.1
@@ -13,7 +13,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/xtaci/smux v1.5.24
 	github.com/xtls/xray-core v1.8.3
-	golang.org/x/net v0.13.0
+	golang.org/x/net v0.14.0
 	golang.org/x/term v0.11.0
 	golang.org/x/time v0.3.0
 	google.golang.org/genproto v0.0.0-20230726155614-23370e0ffb3e
@@ -48,7 +48,7 @@ require (
 	github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 // indirect
 	github.com/txthinking/x v0.0.0-20220929041811-1b4d914e9133 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
-	golang.org/x/crypto v0.11.0 // indirect
+	golang.org/x/crypto v0.12.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
