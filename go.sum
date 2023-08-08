@@ -6,6 +6,8 @@ github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe h1:5QQvE3JB
 github.com/Potterli20/socks5-fork v0.0.0-20230325180549-a6952ded92fe/go.mod h1:wrO+5rUF6rUc7zLh8tIGBKeplybgWdU/bY4NS+2EDZU=
 github.com/Potterli20/sqlite v0.0.0-20230808004138-085164151812 h1:vTDwZmKTwcE3Q3rfXndK4HaHPpgX/kXXIbgTURWqm7w=
 github.com/Potterli20/sqlite v0.0.0-20230808004138-085164151812/go.mod h1:2ltE/YAFa7I8kXFyi15d32B5gmBaFpW7GEeOyXDGYJo=
+github.com/Potterli20/sqlite v0.0.0-20230808121427-628cd76eb842 h1:KDWd5hmmm2SamXyOdUPmxRH4Mx9g7GpC3xWFMgBOAD0=
+github.com/Potterli20/sqlite v0.0.0-20230808121427-628cd76eb842/go.mod h1:2ltE/YAFa7I8kXFyi15d32B5gmBaFpW7GEeOyXDGYJo=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
