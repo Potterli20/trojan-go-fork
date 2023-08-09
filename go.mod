@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/sqlite v0.0.0-20230808121427-628cd76eb842
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.3.0
-	github.com/refraction-networking/utls v1.4.0
+	github.com/refraction-networking/utls v1.4.1
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.8.4
 	github.com/xtaci/smux v1.5.24
