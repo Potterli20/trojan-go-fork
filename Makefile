@@ -227,6 +227,6 @@ windows-arm64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=arm64 GOOS=windows $(GOBUILD)/$@
 
-windows-wasm:
+wasmv1:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=wasm GOOS=wasip1 $(GOBUILD)/$@
