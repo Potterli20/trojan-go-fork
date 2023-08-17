@@ -80,6 +80,8 @@ github.com/quic-go/qtls-go1-20 v0.3.2 h1:rRgN3WfnKbyik4dBV8A6girlJVxGand/d+jVKbQ
 github.com/quic-go/qtls-go1-20 v0.3.2/go.mod h1:X9Nh97ZL80Z+bX/gUXMbipO6OxdiDi58b/fMC9mAL+k=
 github.com/quic-go/quic-go v0.37.4 h1:ke8B73yMCWGq9MfrCCAw0Uzdm7GaViC3i39dsIdDlH4=
 github.com/quic-go/quic-go v0.37.4/go.mod h1:YsbH1r4mSHPJcLF4k4zruUkLBqctEMBDR6VPvcYjIsU=
+github.com/quic-go/quic-go v0.37.5 h1:pzkYe8AgaxHi+7KJrYBMF+u2rLO5a9kwyCp2dAsljzk=
+github.com/quic-go/quic-go v0.37.5/go.mod h1:YsbH1r4mSHPJcLF4k4zruUkLBqctEMBDR6VPvcYjIsU=
 github.com/refraction-networking/utls v1.4.3 h1:BdWS3BSzCwWCFfMIXP3mjLAyQkdmog7diaD/OqFbAzM=
 github.com/refraction-networking/utls v1.4.3/go.mod h1:4u9V/awOSBrRw6+federGmVJQfPtemEqLBXkML1b0bo=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
