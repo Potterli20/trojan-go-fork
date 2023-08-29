@@ -31,7 +31,6 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gaukas/godicttls v0.0.4 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/google/pprof v0.0.0-20230821062121-407c9e7a662f // indirect
 	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
