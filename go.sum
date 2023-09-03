@@ -1,13 +1,13 @@
 cloud.google.com/go/oslogin v1.10.1 h1:LdSuG3xBYu2Sgr3jTUULL1XCl5QBx6xwzGqzoDUw1j0=
 cloud.google.com/go/oslogin v1.10.1/go.mod h1:x692z7yAue5nE7CsSnoG0aaMbNoRJRXO4sn73R+ZqAs=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20230902150718-3b3032ab13e6 h1:jhk4H6lvtFZzEAw9wPMjyPDWl2ulSdfavuEQuGBcOgA=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20230902150718-3b3032ab13e6/go.mod h1:zC7PZI8eU3uh8Rkcmnz+rh2/8hNCcE42sFJi7ZWasY4=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20230902180909-0991a5ecd13d h1:3WsGJaEfYFGcMjhue8tXw3c6wZk5nP/ZFVy6cmHc/wg=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20230902180909-0991a5ecd13d/go.mod h1:zC7PZI8eU3uh8Rkcmnz+rh2/8hNCcE42sFJi7ZWasY4=
 github.com/Potterli20/socks5-fork v0.0.0-20230811033902-120c5738edef h1:15Vxkr3UPgBnfXg8LMmhCrpcGIIa2lLPh1W1E0G7SI0=
 github.com/Potterli20/socks5-fork v0.0.0-20230811033902-120c5738edef/go.mod h1:V/iG7M/t+eYZN+NHWl3uquOpZbANYV8UWqNP7aThFtE=
 github.com/Potterli20/sqlite v0.0.0-20230826003307-90af8edb25cd h1:MDlQZYtUT1+H9uNYcAnlvaEW0ck7SNzHxD3KhX6V89U=
 github.com/Potterli20/sqlite v0.0.0-20230826003307-90af8edb25cd/go.mod h1:He5CNqLBMefZjqXcgaUHIUrldfG89OOuWxXOIZ6t5Iw=
+github.com/Potterli20/sqlite v0.0.0-20230903003647-aae40693aaf5 h1:LnkVklwZrKWMyTXodRMhi6wZk0wakMEQ01GOYpoOU7Q=
+github.com/Potterli20/sqlite v0.0.0-20230903003647-aae40693aaf5/go.mod h1:XYtdkZvXrEt51b90tRFhI8nNXZzVjqCQQaW9J01VFFs=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/cloudflare/circl v1.3.3 h1:fE/Qz0QdIGqeWfnwq0RE0R7MI51s0M2E4Ga9kq5AEMs=
