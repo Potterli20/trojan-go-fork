@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20230902180909-0991a5ecd13d
 	github.com/Potterli20/socks5-fork v0.0.0-20230811033902-120c5738edef
-	github.com/Potterli20/sqlite v0.0.0-20230903003647-aae40693aaf5
+	github.com/Potterli20/sqlite v0.0.0-20230903121212-c9f454ba5c12
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.3.1
 	github.com/refraction-networking/utls v1.5.2
@@ -14,7 +14,7 @@ require (
 	github.com/xtaci/smux v1.5.24
 	github.com/xtls/xray-core v1.8.4
 	golang.org/x/net v0.14.0
-	golang.org/x/term v0.11.0
+	golang.org/x/term v0.12.0
 	golang.org/x/time v0.3.0
 	google.golang.org/genproto v0.0.0-20230803162519-f966b187b2e5
 	google.golang.org/grpc v1.57.0
