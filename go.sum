@@ -4,8 +4,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20230905181019-8ef1a28f37c2 h1:B/Qq
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20230905181019-8ef1a28f37c2/go.mod h1:jGNpNixQSgKAyLRSj4RuRTi2aFY+7YiTq/hXkGVLOPU=
 github.com/Potterli20/socks5-fork v0.0.0-20230811033902-120c5738edef h1:15Vxkr3UPgBnfXg8LMmhCrpcGIIa2lLPh1W1E0G7SI0=
 github.com/Potterli20/socks5-fork v0.0.0-20230811033902-120c5738edef/go.mod h1:V/iG7M/t+eYZN+NHWl3uquOpZbANYV8UWqNP7aThFtE=
-github.com/Potterli20/sqlite v0.0.0-20230906003521-7d3289909e0d h1:X008mMkGNXql2NALUeDFA7STPLFhIjQTitzYRNEQyno=
-github.com/Potterli20/sqlite v0.0.0-20230906003521-7d3289909e0d/go.mod h1:FD+zQsgSuwk1tMs3+YPfxDiQjyEv1CZCRIO8yK0kxmk=
 github.com/Potterli20/sqlite v0.0.0-20230906121414-ce269b3162c8 h1:nWXGBFNhSact2BqLvmfDDvu8k4Q05mHW0G3TA9I/ERs=
 github.com/Potterli20/sqlite v0.0.0-20230906121414-ce269b3162c8/go.mod h1:FD+zQsgSuwk1tMs3+YPfxDiQjyEv1CZCRIO8yK0kxmk=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
@@ -154,6 +152,8 @@ google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d h1:
 google.golang.org/genproto/googleapis/rpc v0.0.0-20230822172742-b8732ec3820d/go.mod h1:+Bk1OCOj40wS2hwAMA+aCW9ypzm63QTBBHp6lQ3p+9M=
 google.golang.org/grpc v1.57.0 h1:kfzNeI/klCGD2YPMUlaGNT3pxvYfga7smW3Vth8Zsiw=
 google.golang.org/grpc v1.57.0/go.mod h1:Sd+9RMTACXwmub0zcNY2c4arhtrbBYD1AUHI/dt16Mo=
+google.golang.org/grpc v1.58.0 h1:32JY8YpPMSR45K+c3o6b8VL73V+rR8k+DeMIr4vRH8o=
+google.golang.org/grpc v1.58.0/go.mod h1:tgX3ZQDlNJGU96V6yHh1T/JeoBQ2TXdr43YbYSsCJk0=
 google.golang.org/protobuf v1.26.0-rc.1/go.mod h1:jlhhOSvTdKEhbULTjvd4ARK9grFBp09yW+WbY/TyQbw=
 google.golang.org/protobuf v1.26.0/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQnmE0givc=
 google.golang.org/protobuf v1.31.0 h1:g0LDEJHgrBl9N9r17Ru3sqWhkIx2NB67okBHPwC7hs8=
