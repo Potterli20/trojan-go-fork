@@ -65,15 +65,145 @@ uninstall:
 	@-zip -du $(NAME)-$@ *.dat
 	@echo "<<< ---- $(NAME)-$@"
 
-release: geosite.dat geoip.dat geoip-only-cn-private.dat darwin-amd64.zip darwin-arm64.zip linux-386.zip linux-amd64.zip \
+release: geosite.dat geoip.dat geoip-only-cn-private.dat \
+  darwin-amd64.zip darwin-arm64.zip  linux-amd64.zip \
 	linux-arm.zip linux-armv5.zip linux-armv6.zip linux-armv7.zip linux-armv8.zip  \
 	linux-ppc64le.zip linux-s390x.zip linux-ppc64.zip linux-riscv64.zip linux-mips64.zip linux-mips64le.zip  \
 	linux-mips-softfloat.zip linux-mips-hardfloat.zip linux-mipsle-softfloat.zip linux-mipsle-hardfloat.zip \
-	freebsd-386.zip freebsd-amd64.zip freebsd-arm.zip freebsd-arm64.zip \
-	netbsd-386.zip netbsd-amd64.zip netbsd-arm.zip netbsd-arm64.zip \
-	openbsd-386.zip openbsd-amd64.zip openbsd-arm.zip openbsd-arm64.zip \
-	windows-386.zip windows-amd64.zip windows-arm.zip windows-armv6.zip windows-armv7.zip windows-arm64.zip
+	freebsd-amd64.zip freebsd-arm.zip freebsd-arm64.zip \
+	netbsd-amd64.zip netbsd-arm.zip netbsd-arm64.zip \
+	openbsd-amd64.zip openbsd-arm.zip openbsd-arm64.zip \
+	windows-amd64.zip windows-arm.zip windows-armv6.zip windows-armv7.zip windows-arm64.zip \
+  wasmv1-wasip1.zip \
+  darwin-amd64-v2.zip linux-amd64-v2.zip freebsd-amd64-v2.zip netbsd-amd64-v2.zip openbsd-amd64-v2.zip windows-amd64-v2.zip \
+  darwin-amd64-v3.zip linux-amd64-v3.zip freebsd-amd64-v3.zip netbsd-amd64-v3.zip openbsd-amd64-v3.zip windows-amd64-v3.zip \
+  darwin-amd64-v4.zip linux-amd64-v4.zip freebsd-amd64-v4.zip netbsd-amd64-v4.zip openbsd-amd64-v4.zip windows-amd64-v4.zip \
+  linux-386-sse2.zip freebsd-386-sse2.zip darwin-386-sse2.zip windows-386-sse2.zip netbsd-386-sse2.zip openbsd-386-sse2.zip \
+  linux-386-softfloat.zip freebsd-386-softfloat.zip darwin-386-softfloat.zip windows-386-softfloat.zip netbsd-386-softfloat.zip openbsd-386-softfloat.zip
 
+#amd64(v2、v3、v4)
+darwin-amd64-v2:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v2 GOOS=darwin $(GOBUILD)/$@
+
+linux-amd64-v2:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v2 GOOS=linux $(GOBUILD)/$@
+
+freebsd-amd64-v2:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v2 GOOS=freebsd $(GOBUILD)/$@
+
+netbsd-amd64-v2:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v2 GOOS=netbsd $(GOBUILD)/$@
+
+openbsd-amd64-v2:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v2 GOOS=openbsd $(GOBUILD)/$@
+
+windows-amd64-v2:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v2 GOOS=windows $(GOBUILD)/$@
+
+darwin-amd64-v3:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v3 GOOS=darwin $(GOBUILD)/$@
+
+linux-amd64-v3:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v3 GOOS=linux $(GOBUILD)/$@
+
+freebsd-amd64-v3:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v3 GOOS=freebsd $(GOBUILD)/$@
+
+netbsd-amd64-v3:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v3 GOOS=netbsd $(GOBUILD)/$@
+
+openbsd-amd64-v3:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v3 GOOS=openbsd $(GOBUILD)/$@
+
+windows-amd64-v3:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v3 GOOS=windows $(GOBUILD)/$@
+
+darwin-amd64-v4:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v4 GOOS=darwin $(GOBUILD)/$@
+
+linux-amd64-v4:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v4 GOOS=linux $(GOBUILD)/$@
+
+freebsd-amd64-v4:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v4 GOOS=freebsd $(GOBUILD)/$@
+
+netbsd-amd64-v4:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v4 GOOS=netbsd $(GOBUILD)/$@
+
+openbsd-amd64-v4:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v4 GOOS=openbsd $(GOBUILD)/$@
+
+windows-amd64-v4:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOAMD64=v4 GOOS=windows $(GOBUILD)/$@
+
+#386(sse2、softfloat)
+darwin-386-sse2:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOOS=darwin GO386=sse2 $(GOBUILD)/$@
+
+linux-386-sse2:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=386 GOOS=linux GO386=sse2 $(GOBUILD)/$@
+
+freebsd-386-sse2:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=386 GOOS=freebsd GO386=sse2 $(GOBUILD)/$@
+
+netbsd-386-sse2:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=386 GOOS=netbsd GO386=sse2 $(GOBUILD)/$@
+
+openbsd-386-sse2:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=386 GOOS=openbsd GO386=sse2 $(GOBUILD)/$@
+
+windows-386-sse2:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=386 GOOS=windows GO386=sse2 $(GOBUILD)/$@
+
+darwin-386-softfloat:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=amd64 GOOS=darwin GO386=softfloat $(GOBUILD)/$@
+
+linux-386-softfloat:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=386 GOOS=linux GO386=softfloat $(GOBUILD)/$@
+
+freebsd-386-softfloat:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=386 GOOS=freebsd GO386=softfloat $(GOBUILD)/$@
+
+netbsd-386-softfloat:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=386 GOOS=netbsd GO386=softfloat $(GOBUILD)/$@
+
+openbsd-386-softfloat:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=386 GOOS=openbsd GO386=softfloat $(GOBUILD)/$@
+
+windows-386-softfloat:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=386 GOOS=windows GO386=softfloat $(GOBUILD)/$@
+
+#other
 
 darwin-amd64:
 	mkdir -p $(BUILD_DIR)/$@
@@ -90,10 +220,6 @@ linux-ppc64:
 linux-riscv64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=riscv64 GOOS=linux $(GOBUILD)/$@
-
-linux-386:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=linux $(GOBUILD)/$@
 
 linux-amd64:
 	mkdir -p $(BUILD_DIR)/$@
@@ -151,10 +277,6 @@ linux-s390x:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=s390x GOOS=linux $(GOBUILD)/$@
 
-freebsd-386:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=freebsd $(GOBUILD)/$@
-
 freebsd-amd64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=amd64 GOOS=freebsd $(GOBUILD)/$@
@@ -171,10 +293,6 @@ freebsd-riscv64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=riscv64 GOOS=freebsd $(GOBUILD)/$@
 
-netbsd-386:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=netbsd $(GOBUILD)/$@
-
 netbsd-amd64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=amd64 GOOS=netbsd $(GOBUILD)/$@
@@ -187,10 +305,6 @@ netbsd-arm64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=arm64 GOOS=netbsd $(GOBUILD)/$@
 
-openbsd-386:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=openbsd $(GOBUILD)/$@
-
 openbsd-amd64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=amd64 GOOS=openbsd $(GOBUILD)/$@
@@ -202,10 +316,6 @@ openbsd-arm:
 openbsd-arm64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=arm64 GOOS=openbsd $(GOBUILD)/$@
-
-windows-386:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=windows $(GOBUILD)/$@
 
 windows-amd64:
 	mkdir -p $(BUILD_DIR)/$@
@@ -227,6 +337,6 @@ windows-arm64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=arm64 GOOS=windows $(GOBUILD)/$@
 
-wasmv1:
+wasmv1-wasip1:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=wasm GOOS=wasip1 $(GOBUILD)/$@
