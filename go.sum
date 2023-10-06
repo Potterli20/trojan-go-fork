@@ -1,13 +1,13 @@
 cloud.google.com/go/oslogin v1.10.1 h1:LdSuG3xBYu2Sgr3jTUULL1XCl5QBx6xwzGqzoDUw1j0=
 cloud.google.com/go/oslogin v1.10.1/go.mod h1:x692z7yAue5nE7CsSnoG0aaMbNoRJRXO4sn73R+ZqAs=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20231005150917-cb876c83a59d h1:Nn2pIH3YPUiqV0/2LHB/jbtmoCacmp/2NQ30seg3ZvU=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20231005150917-cb876c83a59d/go.mod h1:xtP+ZuS/P4cQqice5K/APApLBL7m1s0m4mrT0GT9w20=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20231005210742-f8f8d6df057c h1:z+T3tqvYafA86itj9/cSfXaH34vuzRee8Ng7C15neb0=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20231005210742-f8f8d6df057c/go.mod h1:J2Mp3HlO1GmST8RUgt0cWjhwG/xxKrplcVqlRsQRY2A=
 github.com/Potterli20/socks5-fork v0.0.0-20230811033902-120c5738edef h1:15Vxkr3UPgBnfXg8LMmhCrpcGIIa2lLPh1W1E0G7SI0=
 github.com/Potterli20/socks5-fork v0.0.0-20230811033902-120c5738edef/go.mod h1:V/iG7M/t+eYZN+NHWl3uquOpZbANYV8UWqNP7aThFtE=
 github.com/Potterli20/sqlite v0.0.0-20231005121516-558d9b12a812 h1:LimJZ0FrsKp3mZ87KYenc6wUvVW3VMxChNEOjtD9Ido=
 github.com/Potterli20/sqlite v0.0.0-20231005121516-558d9b12a812/go.mod h1:skTfTtMzprKrCrWzsxdIB6H2RSkfLL95SBLRmN0y8tQ=
+github.com/Potterli20/sqlite v0.0.0-20231006003542-ea83809e8674 h1:9/dG8iYD+LP13MjP+s5rTFsPqzT/QdyNi3A+XVMfQZs=
+github.com/Potterli20/sqlite v0.0.0-20231006003542-ea83809e8674/go.mod h1:SzDGnYN4/LMhC03zezix6EdgSegnt2g9xenA8W6hN/k=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/cloudflare/circl v1.3.3 h1:fE/Qz0QdIGqeWfnwq0RE0R7MI51s0M2E4Ga9kq5AEMs=
@@ -132,8 +132,6 @@ golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b h1:r+vk0EmXNmekl0S0BascoeeoH
 golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b/go.mod h1:FXUEEKJgO7OQYeo8N01OfiKP8RXMtf6e8aTskBGqWdc=
 golang.org/x/mod v0.13.0 h1:I/DsJXRlw/8l/0c24sM9yb0T4z9liZTduXvdAWYiysY=
 golang.org/x/mod v0.13.0/go.mod h1:hTbmBsO62+eylJbnUtE2MGJUyE7QWk4xUqPFrRgJ+7c=
-golang.org/x/net v0.15.0 h1:ugBLEUaxABaB5AJqW9enI0ACdci2RUd4eP51NTBvuJ8=
-golang.org/x/net v0.15.0/go.mod h1:idbUs1IY1+zTqbi8yxTbhexhEEk5ur9LInksu6HrEpk=
 golang.org/x/net v0.16.0 h1:7eBu7KsSvFDtSXUIDbh3aqlK4DPsZ1rByC8PFfBThos=
 golang.org/x/net v0.16.0/go.mod h1:NxSsAGuq816PNPmqtQdLE42eU2Fs7NoRIZrHJAlaCOE=
 golang.org/x/sync v0.3.0 h1:ftCYgMx6zT/asHUrPw8BLLscYtGznsLAnjq5RH9P66E=
