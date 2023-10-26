@@ -90,8 +90,6 @@ github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstvQsPGkxUsCd2KWxErBblirPizecHcpD3ffK+s=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
-github.com/sagernet/sing v0.2.14 h1:L3AXDh22nsOOYz2nTRU1JvpRsmzViWKI1B8TsQYG1eY=
-github.com/sagernet/sing v0.2.14/go.mod h1:AhNEHu0GXrpqkuzvTwvC8+j2cQUU/dh+zLEmq4C99pg=
 github.com/sagernet/sing v0.2.15 h1:PFwyiMzkyJkq+YGOVznJUsRVOT6EoVxRGIsllLuvHXA=
 github.com/sagernet/sing v0.2.15/go.mod h1:AhNEHu0GXrpqkuzvTwvC8+j2cQUU/dh+zLEmq4C99pg=
 github.com/sagernet/sing-shadowsocks v0.2.4 h1:s/CqXlvFAZhlIoHWUwPw5CoNnQ9Ibki9pckjuugtVfY=
