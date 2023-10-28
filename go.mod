@@ -26,7 +26,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.11.0 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
-	github.com/cloudflare/circl v1.3.5 // indirect
+	github.com/cloudflare/circl v1.3.6 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gaukas/godicttls v0.0.4 // indirect
