@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20231104180941-e3115ec18d82
 	github.com/Potterli20/socks5-fork v0.0.0-20230811033902-120c5738edef
-	github.com/Potterli20/sqlite v0.0.0-20231105003930-77cc12724fd2
+	github.com/Potterli20/sqlite v0.0.0-20231105121319-a46350e8268c
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.4.0
 	github.com/refraction-networking/utls v1.5.4
