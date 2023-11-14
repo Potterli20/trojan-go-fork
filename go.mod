@@ -1,7 +1,6 @@
 module github.com/Potterli20/trojan-go-fork
 
 go 1.21
-
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20231109003910-1c8e3ba6a7b6
 	github.com/Potterli20/socks5-fork v0.0.0-20230811033902-120c5738edef
@@ -12,7 +11,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.8.4
 	github.com/xtaci/smux v1.5.24
-	github.com/xtls/xray-core v1.8.4
+	github.com/xtls/xray-core v1.8.5
 	golang.org/x/net v0.18.0
 	golang.org/x/term v0.14.0
 	golang.org/x/time v0.4.0
@@ -52,7 +51,6 @@ require (
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go4.org/netipx v0.0.0-20230824141953-6213f710f925 // indirect
 	golang.org/x/crypto v0.15.0 // indirect
-	golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
