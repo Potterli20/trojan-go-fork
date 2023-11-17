@@ -3,6 +3,7 @@ package websocket
 import (
 	"net"
 	"context"
+	"io"
 
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"golang.org/x/net/websocket"
@@ -19,23 +20,28 @@ func (oc *OutboundConn) LocalAddr() net.Addr {
 }
 
 // Metadata returns metadata associated with the connection.
-func (oc *OutboundConn) Metadata() *tunnel.Metadata { // Change the return type to *tunnel.Metadata
+func (oc *OutboundConn) Metadata() *tunnel.Metadata {
 	// Implement Metadata method if needed.
+	return nil
+}
+
+// Read implements the io.Reader interface.
+func (oc *OutboundConn) Read(b []byte) (int, error) {
+	// Implement the Read method using the underlying websocket.Conn or tcpConn.
+	// Example:
+	// return oc.tcpConn.Read(b)
+	return 0, nil
+}
+
+// Close implements the io.Closer interface.
+func (oc *OutboundConn) Close() error {
+	// Implement the Close method using the underlying websocket.Conn or tcpConn.
+	// Example:
+	// return oc.tcpConn.Close()
 	return nil
 }
 
 func (c *OutboundConn) RemoteAddr() net.Addr {
 	// override RemoteAddr of websocket.Conn, or it will return some URL from "Origin"
 	return c.tcpConn.RemoteAddr()
-}
-
-type InboundConn struct {
-	OutboundConn
-	ctx    context.Context
-	cancel context.CancelFunc
-}
-
-func (c *InboundConn) Close() error {
-	c.cancel()
-	return c.Conn.Close()
 }
