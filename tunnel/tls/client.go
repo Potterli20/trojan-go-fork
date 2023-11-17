@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"strings"
+	"net"
 
 	tls "github.com/refraction-networking/utls"
 
