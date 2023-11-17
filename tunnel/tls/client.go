@@ -49,19 +49,24 @@ func (c *Client) DialConn(_ *tunnel.Address, overlay tunnel.Tunnel) (tunnel.Conn
 		return nil, common.NewError("tls failed to dial conn").Base(err)
 	}
 
-	// utls fingerprint
-	tlsConn := tls.UClient(conn, &tls.Config{
-		RootCAs:            c.ca,
-		ServerName:         c.sni,
-		InsecureSkipVerify: !c.verify,
-		KeyLogWriter:       c.keyLogger,
-	}, c.helloID)
-	if err := tlsConn.Handshake(); err != nil {
-		return nil, common.NewError("tls failed to handshake with remote server").Base(err)
+
+	if c.fingerprint != "" {
+		// utls fingerprint
+		tlsConn := utls.UClient(conn, &utls.Config{
+			RootCAs:            c.ca,
+			ServerName:         c.sni,
+			InsecureSkipVerify: !c.verify,
+			KeyLogWriter:       c.keyLogger,
+		}, c.helloID)
+		if err := tlsConn.Handshake(); err != nil {
+			if err := tlsConn.Handshake(); err != nil {
+				return nil, common.NewError("tls failed to handshake with remote server").Base(err)
+			}
+			return &transport.Conn{
+				Conn: tlsConn,
+			}, nil
+		}
 	}
-	return &transport.Conn{
-		Conn: tlsConn,
-	}, nil
 }
 
 // NewClient creates a tls client
