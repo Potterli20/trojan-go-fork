@@ -6,8 +6,8 @@ import (
 	"encoding/pem"
 	"io"
 	"io/ioutil"
-	"strings"
 	"net"
+	"strings"
 
 	tls "github.com/refraction-networking/utls"
 
