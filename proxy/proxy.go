@@ -75,6 +75,9 @@ func (p *Proxy) relayConnLoop() {
 						return
 					}
 
+					// Debug: Print the address before dialing
+					log.Debug("Dialing connection to address:", inbound.Metadata().Address)
+
 					outbound, err := p.sink.DialConn(inbound.Metadata().Address, nil)
 					if err != nil {
 						log.Error(common.NewError("proxy failed to dial connection").Base(err))
