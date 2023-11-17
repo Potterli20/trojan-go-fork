@@ -63,23 +63,34 @@ func (p *Proxy) relayConnLoop() {
 					log.Error(common.NewError("failed to accept connection").Base(err))
 					continue
 				}
+
 				p.wg.Add(1)
 				go func(inbound tunnel.Conn) {
 					defer p.wg.Done()
 					defer inbound.Close()
+
+					// Check if the address is not nil before using it
+					if inbound.Metadata().Address == nil {
+						log.Error("Address is nil")
+						return
+					}
+
 					outbound, err := p.sink.DialConn(inbound.Metadata().Address, nil)
 					if err != nil {
 						log.Error(common.NewError("proxy failed to dial connection").Base(err))
 						return
 					}
 					defer outbound.Close()
+
 					errChan := make(chan error, 2)
 					copyConn := func(a, b net.Conn) {
 						_, err := io.Copy(a, b)
 						errChan <- err
 					}
+
 					go copyConn(inbound, outbound)
 					go copyConn(outbound, inbound)
+
 					select {
 					case err = <-errChan:
 						if err != nil {
@@ -95,6 +106,7 @@ func (p *Proxy) relayConnLoop() {
 		}(source)
 	}
 }
+
 func isUPnPPacket(packet tunnel.PacketConn) bool {
 	buf := make([]byte, MaxPacketSize)
 	n, _, err := packet.ReadFrom(buf)
@@ -112,12 +124,14 @@ func isUPnPPacket(packet tunnel.PacketConn) bool {
 }
 
 func (p *Proxy) relayPacketLoop() {
-	defer p.cancel()      // ensure that the context is canceled when the function returns
-	var wg sync.WaitGroup // create a WaitGroup to keep track of active goroutines
+	defer p.cancel()
+	var wg sync.WaitGroup
+
 	for _, source := range p.sources {
-		wg.Add(1) // increment the WaitGroup counter for each source
+		wg.Add(1)
 		go func(source tunnel.Server) {
-			defer wg.Done() // decrement the WaitGroup counter when the goroutine completes
+			defer wg.Done()
+
 			for {
 				inbound, err := source.AcceptPacket(nil)
 				if err != nil {
@@ -138,11 +152,13 @@ func (p *Proxy) relayPacketLoop() {
 					inbound.Close()
 					return
 				}
-				wg.Add(2) // increment the WaitGroup counter for the two copyPacket goroutines
+
+				wg.Add(2)
 				copyPacket := func(a, b tunnel.PacketConn) {
-					defer wg.Done() // decrement the WaitGroup counter when the goroutine completes
-					defer a.Close() // close the inbound connection when the goroutine completes
-					defer b.Close() // close the outbound connection when the goroutine completes
+					defer wg.Done()
+					defer a.Close()
+					defer b.Close()
+
 					for {
 						buf := make([]byte, MaxPacketSize)
 						n, metadata, err := a.ReadWithMetadata(buf)
@@ -153,9 +169,11 @@ func (p *Proxy) relayPacketLoop() {
 							}
 							return
 						}
+
 						if n == 0 {
 							return
 						}
+
 						_, err = b.WriteWithMetadata(buf[:n], metadata)
 						if err != nil {
 							if !strings.Contains(err.Error(), "use of closed network connection") {
@@ -166,13 +184,16 @@ func (p *Proxy) relayPacketLoop() {
 						}
 					}
 				}
-				go copyPacket(inbound, outbound) // copy packets from the inbound connection to the outbound connection
-				go copyPacket(outbound, inbound) // copy packets from the outbound connection to the inbound connection
+
+				go copyPacket(inbound, outbound)
+				go copyPacket(outbound, inbound)
 			}
 		}(source)
 	}
-	wg.Wait() // wait for all active goroutines to complete before returning
+
+	wg.Wait()
 }
+
 
 func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.Server, sink tunnel.Client) *Proxy {
 	return &Proxy{
