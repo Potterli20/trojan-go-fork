@@ -30,21 +30,21 @@ func (dwc *DefaultWebSocketClientCreator) CreateWebSocketClient(address string) 
 
 // Proxy 是一个代理类型，负责中继连接和数据包
 type Proxy struct {
-	sources []tunnel.Server
-	sink    tunnel.Client
-	ctx     context.Context
-	cancel  context.CancelFunc
-	wg      sync.WaitGroup
+	sources   []tunnel.Server
+	sink      tunnel.Client
+	ctx       context.Context
+	cancel    context.CancelFunc
+	wg        sync.WaitGroup
 	wsCreator WebSocketClientCreator
 }
 
 // NewProxy 创建一个新的 Proxy 实例
 func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.Server, sink tunnel.Client, wsCreator WebSocketClientCreator) *Proxy {
 	return &Proxy{
-		sources:  sources,
-		sink:     sink,
-		ctx:      ctx,
-		cancel:   cancel,
+		sources:   sources,
+		sink:      sink,
+		ctx:       ctx,
+		cancel:    cancel,
 		wsCreator: wsCreator,
 	}
 }
