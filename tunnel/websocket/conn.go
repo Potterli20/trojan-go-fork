@@ -13,8 +13,13 @@ type OutboundConn struct {
 	tcpConn net.Conn
 }
 
-func (c *OutboundConn) Metadata() *tunnel.Metadata {
-	return nil
+type OutboundConn struct {
+	Conn    *websocket.Conn
+	tcpConn tunnel.Conn
+}
+
+func (oc *OutboundConn) LocalAddr() net.Addr {
+	return oc.tcpConn.LocalAddr()
 }
 
 func (c *OutboundConn) RemoteAddr() net.Addr {
