@@ -37,11 +37,6 @@ func (c *OutboundConn) Close() error {
 	return c.websocket.Close()
 }
 
-// Tunnel is a placeholder type. You should replace it with your actual implementation.
-type Tunnel struct {
-	// Your implementation details...
-}
-
 // Client is a WebSocket client.
 type Client struct {
 	underlay tunnel.Client
@@ -63,7 +58,7 @@ func (c *Client) DialConn(addr *tunnel.Address, t tunnel.Tunnel) (tunnel.Conn, e
 	}
 	wsConn, err := websocket.NewClient(wsConfig, conn)
 	if err != nil {
-		return nil, common.NewError("WebSocket failed to handshake with server").Base(err)
+		return nil, common.NewError("WebSocket failed to handshake with the server").Base(err)
 	}
 	return &OutboundConn{
 		websocket: wsConn,
