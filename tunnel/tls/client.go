@@ -6,8 +6,8 @@ import (
 	"encoding/pem"
 	"io"
 	"io/ioutil"
-	"strings"
 	"net"
+	"strings"
 
 	tls "github.com/refraction-networking/utls"
 
@@ -45,32 +45,32 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel.Conn, error) {
-    // 检查 address 是否为 nil
-    if address == nil {
-        return nil, common.NewError("Address is nil")
-    }
+	// 检查 address 是否为 nil
+	if address == nil {
+		return nil, common.NewError("Address is nil")
+	}
 
-    conn, err := net.Dial("tcp", address.String())
-    if err != nil {
-        return nil, err
-    }
-    if c.fingerprint != "" {
-        // tls fingerprint
-        tlsConn := tls.UClient(conn, &tls.Config{
-            RootCAs:            c.ca,
-            ServerName:         c.sni,
-            InsecureSkipVerify: !c.verify,
-            KeyLogWriter:       c.keyLogger,
-        }, c.helloID)
-        if err := tlsConn.Handshake(); err != nil {
-            return nil, common.NewError("tls failed to handshake with remote server").Base(err)
-        }
-        return &transport.Conn{
-            Conn: tlsConn,
-        }, nil
-    } else {
-        return nil, common.NewError("fingerprint is empty")
-    }
+	conn, err := net.Dial("tcp", address.String())
+	if err != nil {
+		return nil, err
+	}
+	if c.fingerprint != "" {
+		// tls fingerprint
+		tlsConn := tls.UClient(conn, &tls.Config{
+			RootCAs:            c.ca,
+			ServerName:         c.sni,
+			InsecureSkipVerify: !c.verify,
+			KeyLogWriter:       c.keyLogger,
+		}, c.helloID)
+		if err := tlsConn.Handshake(); err != nil {
+			return nil, common.NewError("tls failed to handshake with remote server").Base(err)
+		}
+		return &transport.Conn{
+			Conn: tlsConn,
+		}, nil
+	} else {
+		return nil, common.NewError("fingerprint is empty")
+	}
 }
 
 // NewClient creates a tls client
@@ -115,7 +115,6 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	log.Debug("tls client created")
 	return client, nil
 }
-
 
 func getHelloID(fingerprint string) (tls.ClientHelloID, error) {
 	fingerprints := map[string]tls.ClientHelloID{
