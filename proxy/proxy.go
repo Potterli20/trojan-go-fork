@@ -3,53 +3,33 @@ package proxy
 import (
 	"context"
 	"io"
+	"math/rand"
 	"net"
+	"os"
+	"strings"
 	"sync"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
-	"github.com/gorilla/websocket"
 )
 
-// WebSocketClientCreator 是 WebSocket 客户端创建函数的接口
-type WebSocketClientCreator interface {
-	CreateWebSocketClient(address string) (*websocket.Conn, error)
-}
+const Name = "PROXY"
 
-// DefaultWebSocketClientCreator 是默认的 WebSocket 客户端创建函数
-type DefaultWebSocketClientCreator struct{}
+const (
+	MaxPacketSize = 1024 * 8
+)
 
-// CreateWebSocketClient 实现 WebSocketClientCreator 接口
-func (dwc *DefaultWebSocketClientCreator) CreateWebSocketClient(address string) (*websocket.Conn, error) {
-	dialer := websocket.Dialer{}
-	conn, _, err := dialer.Dial(address, nil)
-	return conn, err
-}
-
-// Proxy 是一个代理类型，负责中继连接和数据包
+// Proxy relay connections and packets
 type Proxy struct {
-	sources   []tunnel.Server
-	sink      tunnel.Client
-	ctx       context.Context
-	cancel    context.CancelFunc
-	wg        sync.WaitGroup
-	wsCreator WebSocketClientCreator
+	sources []tunnel.Server
+	sink    tunnel.Client
+	ctx     context.Context
+	cancel  context.CancelFunc
+	wg      sync.WaitGroup
 }
 
-// NewProxy 创建一个新的 Proxy 实例
-func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.Server, sink tunnel.Client, wsCreator WebSocketClientCreator) *Proxy {
-	return &Proxy{
-		sources:   sources,
-		sink:      sink,
-		ctx:       ctx,
-		cancel:    cancel,
-		wsCreator: wsCreator,
-	}
-}
-
-// Run 启动 Proxy，开始中继连接和数据包
 func (p *Proxy) Run() error {
 	p.relayConnLoop()
 	p.relayPacketLoop()
@@ -57,7 +37,6 @@ func (p *Proxy) Run() error {
 	return nil
 }
 
-// Close 关闭 Proxy，释放资源
 func (p *Proxy) Close() error {
 	p.cancel()
 	p.sink.Close()
@@ -84,35 +63,23 @@ func (p *Proxy) relayConnLoop() {
 					log.Error(common.NewError("failed to accept connection").Base(err))
 					continue
 				}
-
 				p.wg.Add(1)
 				go func(inbound tunnel.Conn) {
 					defer p.wg.Done()
 					defer inbound.Close()
-
-					if inbound.Metadata().Address == nil {
-						log.Error("Address is nil")
-						return
-					}
-
-					log.Debug("Dialing connection to address:", inbound.Metadata().Address)
-
-					wsClient, err := p.wsCreator.CreateWebSocketClient(inbound.Metadata().Address.String())
+					outbound, err := p.sink.DialConn(inbound.Metadata().Address, nil)
 					if err != nil {
-						log.Error(common.NewError("failed to create WebSocket client").Base(err))
+						log.Error(common.NewError("proxy failed to dial connection").Base(err))
 						return
 					}
-					defer wsClient.Close()
-
+					defer outbound.Close()
 					errChan := make(chan error, 2)
 					copyConn := func(a, b net.Conn) {
 						_, err := io.Copy(a, b)
 						errChan <- err
 					}
-
-					go copyConn(inbound, wsClient)
-					go copyConn(wsClient, inbound)
-
+					go copyConn(inbound, outbound)
+					go copyConn(outbound, inbound)
 					select {
 					case err = <-errChan:
 						if err != nil {
@@ -127,6 +94,84 @@ func (p *Proxy) relayConnLoop() {
 			}
 		}(source)
 	}
+}
+func isUPnPPacket(packet tunnel.PacketConn) bool {
+	buf := make([]byte, MaxPacketSize)
+	n, _, err := packet.ReadFrom(buf)
+	if err != nil {
+		log.Error(common.NewError("error reading from packet connection").Base(err))
+		return false
+	}
+	if n < 4 {
+		return false
+	}
+	if string(buf[:4]) == "M-SEARCH * HTTP/" {
+		return true
+	}
+	return false
+}
+
+func (p *Proxy) relayPacketLoop() {
+	defer p.cancel()      // ensure that the context is canceled when the function returns
+	var wg sync.WaitGroup // create a WaitGroup to keep track of active goroutines
+	for _, source := range p.sources {
+		wg.Add(1) // increment the WaitGroup counter for each source
+		go func(source tunnel.Server) {
+			defer wg.Done() // decrement the WaitGroup counter when the goroutine completes
+			for {
+				inbound, err := source.AcceptPacket(nil)
+				if err != nil {
+					log.Error(common.NewError("failed to accept packet").Base(err))
+					return
+				}
+
+				// Check if incoming packet is a UPnP packet
+				if isUPnPPacket(inbound) {
+					inbound.Close()
+					log.Error("UPnPPacket Detected!")
+					continue
+				}
+
+				outbound, err := p.sink.DialPacket(nil)
+				if err != nil {
+					log.Error(common.NewError("proxy failed to dial packet").Base(err))
+					inbound.Close()
+					return
+				}
+				wg.Add(2) // increment the WaitGroup counter for the two copyPacket goroutines
+				copyPacket := func(a, b tunnel.PacketConn) {
+					defer wg.Done() // decrement the WaitGroup counter when the goroutine completes
+					defer a.Close() // close the inbound connection when the goroutine completes
+					defer b.Close() // close the outbound connection when the goroutine completes
+					for {
+						buf := make([]byte, MaxPacketSize)
+						n, metadata, err := a.ReadWithMetadata(buf)
+						if err != nil {
+							if !strings.Contains(err.Error(), "use of closed network connection") {
+								inbound.Close()
+								log.Error(err)
+							}
+							return
+						}
+						if n == 0 {
+							return
+						}
+						_, err = b.WriteWithMetadata(buf[:n], metadata)
+						if err != nil {
+							if !strings.Contains(err.Error(), "use of closed network connection") {
+								inbound.Close()
+								log.Error(err)
+							}
+							return
+						}
+					}
+				}
+				go copyPacket(inbound, outbound) // copy packets from the inbound connection to the outbound connection
+				go copyPacket(outbound, inbound) // copy packets from the outbound connection to the inbound connection
+			}
+		}(source)
+	}
+	wg.Wait() // wait for all active goroutines to complete before returning
 }
 
 func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.Server, sink tunnel.Client) *Proxy {
