@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"context"
 	"net"
 
 	"github.com/Potterli20/trojan-go-fork/tunnel"
@@ -19,13 +18,13 @@ func (oc *OutboundConn) LocalAddr() net.Addr {
 }
 
 // Metadata returns metadata associated with the connection.
-func (oc *OutboundConn) Metadata() tunnel.Metadata {
+func (oc *OutboundConn) Metadata() *tunnel.Metadata { // Change the return type to *tunnel.Metadata
 	// Implement Metadata method if needed.
 	return nil
 }
 
 func (c *OutboundConn) RemoteAddr() net.Addr {
-	// override RemoteAddr of websocket.Conn, or it will return some url from "Origin"
+	// override RemoteAddr of websocket.Conn, or it will return some URL from "Origin"
 	return c.tcpConn.RemoteAddr()
 }
 
