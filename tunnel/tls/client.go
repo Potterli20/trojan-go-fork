@@ -32,7 +32,39 @@ type Client struct {
 	underlay      tunnel.Client
 }
 
-// NewClient creates a new TLS client.
+func (c *Client) Close() error {
+	if c.keyLogger != nil {
+		c.keyLogger.Close()
+	}
+	return c.underlay.Close()
+}
+
+func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
+	panic("not supported")
+}
+
+func (c *Client) DialConn(_ *tunnel.Address, overlay tunnel.Tunnel) (tunnel.Conn, error) {
+	conn, err := c.underlay.DialConn(nil, &Tunnel{})
+	if err != nil {
+		return nil, common.NewError("tls failed to dial conn").Base(err)
+	}
+
+	// utls fingerprint
+	tlsConn := tls.UClient(conn, &tls.Config{
+		RootCAs:            c.ca,
+		ServerName:         c.sni,
+		InsecureSkipVerify: !c.verify,
+		KeyLogWriter:       c.keyLogger,
+	}, c.helloID)
+	if err := tlsConn.Handshake(); err != nil {
+		return nil, common.NewError("tls failed to handshake with remote server").Base(err)
+	}
+	return &transport.Conn{
+		Conn: tlsConn,
+	}, nil
+}
+
+// NewClient creates a tls client
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
 
@@ -69,7 +101,6 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	return client, nil
 }
 
-// getHelloID returns the TLS client hello ID based on the given fingerprint.
 func getHelloID(fingerprint string) (tls.ClientHelloID, error) {
 	fingerprints := map[string]tls.ClientHelloID{
 		"chrome":     tls.HelloChrome_Auto,
@@ -95,7 +126,6 @@ func getHelloID(fingerprint string) (tls.ClientHelloID, error) {
 	return helloID, nil
 }
 
-// loadCert loads the TLS CA certificate from the given certificate path.
 func loadCert(client *Client, certPath string) error {
 	caCertByte, err := ioutil.ReadFile(certPath)
 	if err != nil {
