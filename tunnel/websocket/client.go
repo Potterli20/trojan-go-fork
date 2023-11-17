@@ -3,7 +3,6 @@ package websocket
 import (
 	"context"
 	"strings"
-	"net"
 	"golang.org/x/net/websocket"
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -11,12 +10,14 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
+// Client is a WebSocket client.
 type Client struct {
 	underlay tunnel.Client
 	hostname string
 	path     string
 }
 
+// DialConn dials a connection.
 func (c *Client) DialConn(addr *tunnel.Address, t tunnel.Tunnel) (tunnel.Conn, error) {
 	conn, err := c.underlay.DialConn(nil, &Tunnel{})
 	if err != nil {
@@ -38,14 +39,17 @@ func (c *Client) DialConn(addr *tunnel.Address, t tunnel.Tunnel) (tunnel.Conn, e
 	}, nil
 }
 
+// DialPacket dials a packet connection.
 func (c *Client) DialPacket(t tunnel.Tunnel) (tunnel.PacketConn, error) {
 	return nil, common.NewError("Not supported by WebSocket")
 }
 
+// Close closes the WebSocket client.
 func (c *Client) Close() error {
 	return c.underlay.Close()
 }
 
+// NewClient creates a new WebSocket client.
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	cfg := config.FromContext(ctx, "websocket").(*Config)
 	if !strings.HasPrefix(cfg.Websocket.Path, "/") {
