@@ -12,26 +12,42 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
+// Config represents the configuration for the WebSocket client.
+type Config struct {
+	Websocket struct {
+		Host string
+		Path string
+	}
+	RemoteHost string
+}
+
+// Tunnel represents a tunnel.
+type Tunnel struct {
+	// Add relevant fields for your implementation.
+}
+
+// Client is a WebSocket client.
 type Client struct {
 	underlay tunnel.Client
 	hostname string
 	path     string
 }
 
-func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
+// DialConn dials a connection.
+func (c *Client) DialConn(addr *tunnel.Address, t tunnel.Tunnel) (tunnel.Conn, error) {
 	conn, err := c.underlay.DialConn(nil, &Tunnel{})
 	if err != nil {
-		return nil, common.NewError("websocket cannot dial with underlying client").Base(err)
+		return nil, common.NewError("WebSocket cannot dial with underlying client").Base(err)
 	}
 	url := "wss://" + c.hostname + c.path
 	origin := "https://" + c.hostname
 	wsConfig, err := websocket.NewConfig(url, origin)
 	if err != nil {
-		return nil, common.NewError("invalid websocket config").Base(err)
+		return nil, common.NewError("Invalid WebSocket config").Base(err)
 	}
 	wsConn, err := websocket.NewClient(wsConfig, conn)
 	if err != nil {
-		return nil, common.NewError("websocket failed to handshake with server").Base(err)
+		return nil, common.NewError("WebSocket failed to handshake with server").Base(err)
 	}
 	return &OutboundConn{
 		Conn:    wsConn,
@@ -39,24 +55,39 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 	}, nil
 }
 
-func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
-	return nil, common.NewError("not supported by websocket")
+// DialPacket dials a packet connection.
+func (c *Client) DialPacket(t tunnel.Tunnel) (tunnel.PacketConn, error) {
+	return nil, common.NewError("Not supported by WebSocket")
 }
 
+// Close closes the WebSocket client.
 func (c *Client) Close() error {
 	return c.underlay.Close()
 }
 
+// OutboundConn represents an outbound connection.
+type OutboundConn struct {
+	Conn    *websocket.Conn
+	tcpConn tunnel.Conn
+}
+
+// Close closes the outbound connection.
+func (oc *OutboundConn) Close() error {
+	// Implement close logic if needed.
+	return nil
+}
+
+// NewClient creates a new WebSocket client.
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
-	cfg := config.FromContext(ctx, Name).(*Config)
+	cfg := config.FromContext(ctx, "websocket").(*Config)
 	if !strings.HasPrefix(cfg.Websocket.Path, "/") {
-		return nil, common.NewError("websocket path must start with \"/\"")
+		return nil, common.NewError("WebSocket path must start with \"/\"")
 	}
 	if cfg.Websocket.Host == "" {
 		cfg.Websocket.Host = cfg.RemoteHost
-		log.Warn("empty websocket hostname")
+		log.Warn("Empty WebSocket hostname")
 	}
-	log.Debug("websocket client created")
+	log.Debug("WebSocket client created")
 	return &Client{
 		hostname: cfg.Websocket.Host,
 		path:     cfg.Websocket.Path,
