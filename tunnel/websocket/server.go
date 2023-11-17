@@ -33,68 +33,6 @@ func (w *fakeHTTPResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	return w.Conn, w.ReadWriter, nil
 }
 
-// InboundConn represents an inbound WebSocket connection.
-type InboundConn struct {
-	OutboundConn
-	ctx    context.Context
-	cancel context.CancelFunc
-	// Add additional fields as needed
-}
-
-// NewInboundConn creates a new InboundConn.
-func NewInboundConn(tcpConn tunnel.Conn, wsConn *websocket.Conn, ctx context.Context, cancel context.CancelFunc) *InboundConn {
-	return &InboundConn{
-		OutboundConn: OutboundConn{
-			tcpConn: tcpConn,
-			Conn:    wsConn,
-		},
-		ctx:    ctx,
-		cancel: cancel,
-		// Initialize additional fields here
-	}
-}
-
-// SetReadDeadline sets the read deadline for the connection.
-func (ic *InboundConn) SetReadDeadline(t time.Time) error {
-	// Implement the SetReadDeadline method using the underlying websocket.Conn or tcpConn.
-	// Example:
-	// return ic.tcpConn.SetReadDeadline(t)
-	return nil
-}
-
-// Read implements the io.Reader interface.
-func (ic *InboundConn) Read(b []byte) (int, error) {
-	// Implement the Read method using the underlying websocket.Conn or tcpConn.
-	// Example:
-	// return ic.tcpConn.Read(b)
-	return 0, nil
-}
-
-// SetWriteDeadline sets the write deadline for the connection.
-func (ic *InboundConn) SetWriteDeadline(t time.Time) error {
-	// Implement the SetWriteDeadline method using the underlying websocket.Conn or tcpConn.
-	// Example:
-	// return ic.tcpConn.SetWriteDeadline(t)
-	return nil
-}
-
-// Write implements the io.Writer interface.
-func (ic *InboundConn) Write(b []byte) (int, error) {
-	// Implement the Write method using the underlying websocket.Conn or tcpConn.
-	// Example:
-	// return ic.tcpConn.Write(b)
-	return 0, nil
-}
-
-// Close implements the io.Closer interface.
-func (ic *InboundConn) Close() error {
-	// Implement the Close method using the underlying websocket.Conn or tcpConn.
-	// Example:
-	// return ic.tcpConn.Close()
-	return nil
-}
-
-// Server is your WebSocket server implementation.
 type Server struct {
 	underlay  tunnel.Server
 	hostname  string
@@ -118,7 +56,6 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	if err != nil {
 		return nil, common.NewError("websocket failed to accept connection from underlying server")
 	}
-
 	if !s.enabled {
 		s.redir.Redirect(&redirector.Redirection{
 			InboundConn: conn,
@@ -126,7 +63,6 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		})
 		return nil, common.NewError("websocket is disabled. redirecting http request from " + conn.RemoteAddr().String())
 	}
-
 	rewindConn := common.NewRewindConn(conn)
 	rewindConn.SetBufferSize(512)
 	defer rewindConn.StopBuffering()
@@ -167,11 +103,13 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	wsServer := websocket.Server{
 		Config: *wsConfig,
 		Handler: func(conn *websocket.Conn) {
-			wsConn = conn
-			wsConn.PayloadType = websocket.BinaryFrame
+			wsConn = conn                              // store the websocket after handshaking
+			wsConn.PayloadType = websocket.BinaryFrame // treat it as a binary websocket
 
 			log.Debug("websocket obtained")
 			handshake <- struct{}{}
+			// this function SHOULD NOT return unless the connection is ended
+			// or the websocket will be closed by ServeHTTP method
 			<-ctx.Done()
 			log.Debug("websocket closed")
 		},
@@ -197,7 +135,14 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		return nil, common.NewError("websocket failed to handshake")
 	}
 
-	return NewInboundConn(conn, wsConn, ctx, cancel), nil
+	return &InboundConn{
+		OutboundConn: OutboundConn{
+			tcpConn: conn,
+			Conn:    wsConn,
+		},
+		ctx:    ctx,
+		cancel: cancel,
+	}, nil
 }
 
 func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
@@ -228,7 +173,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		ctx:       ctx,
 		cancel:    cancel,
 		underlay:  underlay,
-		timeout:   time.Second * time.Duration(rand.Intn(10) + 5),
+		timeout:   time.Second * time.Duration(rand.Intn(10)+5),
 		redir:     redirector.NewRedirector(ctx),
 		redirAddr: tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort),
 	}, nil
