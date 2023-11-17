@@ -9,7 +9,7 @@ import (
 	"strings"
 	"net"
 
-	tls "github.com/Potterli20/utls-go"
+	tls "github.com/refraction-networking/utls"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
