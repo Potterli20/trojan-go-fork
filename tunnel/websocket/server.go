@@ -70,6 +70,22 @@ func (ic *InboundConn) Read(b []byte) (int, error) {
 	return 0, nil
 }
 
+// SetWriteDeadline sets the write deadline for the connection.
+func (ic *InboundConn) SetWriteDeadline(t time.Time) error {
+	// Implement the SetWriteDeadline method using the underlying websocket.Conn or tcpConn.
+	// Example:
+	// return ic.tcpConn.SetWriteDeadline(t)
+	return nil
+}
+
+// Write implements the io.Writer interface.
+func (ic *InboundConn) Write(b []byte) (int, error) {
+	// Implement the Write method using the underlying websocket.Conn or tcpConn.
+	// Example:
+	// return ic.tcpConn.Write(b)
+	return 0, nil
+}
+
 // Close implements the io.Closer interface.
 func (ic *InboundConn) Close() error {
 	// Implement the Close method using the underlying websocket.Conn or tcpConn.
