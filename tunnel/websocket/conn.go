@@ -8,47 +8,28 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+
+// OutboundConn represents a WebSocket connection.
 type OutboundConn struct {
-	Conn    *websocket.Conn
-	tcpConn tunnel.Conn
+	websocket *websocket.Conn
 }
 
-// LocalAddr returns the local network address.
-func (oc *OutboundConn) LocalAddr() net.Addr {
-	return oc.tcpConn.LocalAddr()
+// SetReadDeadline sets the read deadline on the connection.
+func (c *OutboundConn) SetReadDeadline(t time.Time) error {
+	return c.websocket.SetReadDeadline(t)
 }
 
-// Metadata returns metadata associated with the connection.
-func (oc *OutboundConn) Metadata() *tunnel.Metadata {
-	// Implement Metadata method if needed.
-	return nil
+// Read implements the Read method of the tunnel.Conn interface.
+func (c *OutboundConn) Read(b []byte) (n int, err error) {
+	return c.websocket.Read(b)
 }
 
-// Read implements the io.Reader interface.
-func (oc *OutboundConn) Read(b []byte) (int, error) {
-	// Implement the Read method using the underlying websocket.Conn or tcpConn.
-	// Example:
-	// return oc.tcpConn.Read(b)
-	return 0, nil
+// Write implements the Write method of the tunnel.Conn interface.
+func (c *OutboundConn) Write(b []byte) (n int, err error) {
+	return c.websocket.Write(b)
 }
 
-// Close implements the io.Closer interface.
-func (oc *OutboundConn) Close() error {
-	// Implement the Close method using the underlying websocket.Conn or tcpConn.
-	// Example:
-	// return oc.tcpConn.Close()
-	return nil
-}
-
-// SetDeadline sets the read and write deadlines for the connection.
-func (oc *OutboundConn) SetDeadline(t time.Time) error {
-	// Implement the SetDeadline method using the underlying websocket.Conn or tcpConn.
-	// Example:
-	// return oc.tcpConn.SetDeadline(t)
-	return nil
-}
-
-func (c *OutboundConn) RemoteAddr() net.Addr {
-	// override RemoteAddr of websocket.Conn, or it will return some URL from "Origin"
-	return c.tcpConn.RemoteAddr()
+// Close implements the Close method of the tunnel.Conn interface.
+func (c *OutboundConn) Close() error {
+	return c.websocket.Close()
 }
