@@ -44,7 +44,11 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	panic("not supported")
 }
 
-func (c *Client) DialConn(conn net.Conn) (tunnel.Conn, error) {
+func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel.Conn, error) {
+	conn, err := net.Dial("tcp", address.String())
+	if err != nil {
+		return nil, err
+	}
 	if c.fingerprint != "" {
 		// tls fingerprint
 		tlsConn := tls.UClient(conn, &tls.Config{
@@ -63,6 +67,7 @@ func (c *Client) DialConn(conn net.Conn) (tunnel.Conn, error) {
 		return nil, common.NewError("fingerprint is empty")
 	}
 }
+
 
 
 // NewClient creates a tls client
