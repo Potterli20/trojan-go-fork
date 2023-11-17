@@ -52,7 +52,7 @@ func (c *Client) DialConn(_ *tunnel.Address, overlay tunnel.Tunnel) (tunnel.Conn
 
 	if c.fingerprint != "" {
 		// utls fingerprint
-		tlsConn := utls.UClient(conn, &utls.Config{
+		tlsConn := tls.UClient(conn, &tls.Config{
 			RootCAs:            c.ca,
 			ServerName:         c.sni,
 			InsecureSkipVerify: !c.verify,
