@@ -58,12 +58,13 @@ func (c *Client) DialConn(_ *tunnel.Address, overlay tunnel.Tunnel) (tunnel.Conn
 			InsecureSkipVerify: !c.verify,
 			KeyLogWriter:       c.keyLogger,
 		}, c.helloID)
-	if err := tlsConn.Handshake(); err != nil {
-		return nil, common.NewError("tls failed to handshake with remote server").Base(err)
+		if err := tlsConn.Handshake(); err != nil {
+			return nil, common.NewError("tls failed to handshake with remote server").Base(err)
+		}
+		return &transport.Conn{
+			Conn: tlsConn,
+		}, nil
 	}
-	return &transport.Conn{
-		Conn: tlsConn,
-	}, nil
 }
 // NewClient creates a tls client
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
