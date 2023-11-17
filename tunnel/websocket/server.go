@@ -54,6 +54,30 @@ func NewInboundConn(tcpConn tunnel.Conn, wsConn *websocket.Conn, ctx context.Con
 	}
 }
 
+// SetReadDeadline sets the read deadline for the connection.
+func (ic *InboundConn) SetReadDeadline(t time.Time) error {
+	// Implement the SetReadDeadline method using the underlying websocket.Conn or tcpConn.
+	// Example:
+	// return ic.tcpConn.SetReadDeadline(t)
+	return nil
+}
+
+// Read implements the io.Reader interface.
+func (ic *InboundConn) Read(b []byte) (int, error) {
+	// Implement the Read method using the underlying websocket.Conn or tcpConn.
+	// Example:
+	// return ic.tcpConn.Read(b)
+	return 0, nil
+}
+
+// Close implements the io.Closer interface.
+func (ic *InboundConn) Close() error {
+	// Implement the Close method using the underlying websocket.Conn or tcpConn.
+	// Example:
+	// return ic.tcpConn.Close()
+	return nil
+}
+
 // Server is your WebSocket server implementation.
 type Server struct {
 	underlay  tunnel.Server
