@@ -43,23 +43,26 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	panic("not supported")
 }
 
-if c.fingerprint != "" {
-	// tls fingerprint
-	tlsConn := tls.UClient(conn, &tls.Config{
-		RootCAs:            c.ca,
-		ServerName:         c.sni,
-		InsecureSkipVerify: !c.verify,
-		KeyLogWriter:       c.keyLogger,
-	}, c.helloID)
-	if err := tlsConn.Handshake(); err != nil {
-		return nil, common.NewError("tls failed to handshake with remote server").Base(err)
+func (c *Client) DialConn(conn net.Conn) (tunnel.Conn, error) {
+	if c.fingerprint != "" {
+		// tls fingerprint
+		tlsConn := tls.UClient(conn, &tls.Config{
+			RootCAs:            c.ca,
+			ServerName:         c.sni,
+			InsecureSkipVerify: !c.verify,
+			KeyLogWriter:       c.keyLogger,
+		}, c.helloID)
+		if err := tlsConn.Handshake(); err != nil {
+			return nil, common.NewError("tls failed to handshake with remote server").Base(err)
+		}
+		return &transport.Conn{
+			Conn: tlsConn,
+		}, nil
+	} else {
+		return nil, common.NewError("fingerprint is empty")
 	}
-	return &transport.Conn{
-		Conn: tlsConn,
-	}, nil
-} else {
-	return nil, common.NewError("fingerprint is empty")
 }
+
 
 // NewClient creates a tls client
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
