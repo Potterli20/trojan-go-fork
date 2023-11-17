@@ -84,6 +84,12 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		log.Warn("tls sni is unspecified, it's recommended to specify it for better security")
 	}
 
+	// Check if fingerprint is empty, set default to "chrome"
+	if cfg.TLS.Fingerprint == "" {
+		cfg.TLS.Fingerprint = "chrome"
+		log.Info("No 'fingerprint' value specified in your configuration. Your trojan's TLS fingerprint will look like Chrome by default.")
+	}
+
 	client := &Client{
 		underlay:      underlay,
 		verify:        cfg.TLS.Verify,
@@ -106,6 +112,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	log.Debug("tls client created")
 	return client, nil
 }
+
 
 func getHelloID(fingerprint string) (tls.ClientHelloID, error) {
 	fingerprints := map[string]tls.ClientHelloID{
