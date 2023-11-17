@@ -9,17 +9,19 @@ import (
 )
 
 type OutboundConn struct {
-	*websocket.Conn
-	tcpConn net.Conn
-}
-
-type OutboundConn struct {
 	Conn    *websocket.Conn
 	tcpConn tunnel.Conn
 }
 
+// LocalAddr returns the local network address.
 func (oc *OutboundConn) LocalAddr() net.Addr {
 	return oc.tcpConn.LocalAddr()
+}
+
+// Metadata returns metadata associated with the connection.
+func (oc *OutboundConn) Metadata() tunnel.Metadata {
+	// Implement Metadata method if needed.
+	return nil
 }
 
 func (c *OutboundConn) RemoteAddr() net.Addr {
