@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"net"
+	"time"
 
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"golang.org/x/net/websocket"
@@ -36,6 +37,14 @@ func (oc *OutboundConn) Close() error {
 	// Implement the Close method using the underlying websocket.Conn or tcpConn.
 	// Example:
 	// return oc.tcpConn.Close()
+	return nil
+}
+
+// SetDeadline sets the read and write deadlines for the connection.
+func (oc *OutboundConn) SetDeadline(t time.Time) error {
+	// Implement the SetDeadline method using the underlying websocket.Conn or tcpConn.
+	// Example:
+	// return oc.tcpConn.SetDeadline(t)
 	return nil
 }
 
