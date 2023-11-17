@@ -79,7 +79,78 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		return nil, common.NewError("websocket failed to accept connection from underlying server")
 	}
 
-	// ... (existing code)
+	if !s.enabled {
+		s.redir.Redirect(&redirector.Redirection{
+			InboundConn: conn,
+			RedirectTo:  s.redirAddr,
+		})
+		return nil, common.NewError("websocket is disabled. redirecting http request from " + conn.RemoteAddr().String())
+	}
+
+	rewindConn := common.NewRewindConn(conn)
+	rewindConn.SetBufferSize(512)
+	defer rewindConn.StopBuffering()
+	rw := bufio.NewReadWriter(bufio.NewReader(rewindConn), bufio.NewWriter(rewindConn))
+	req, err := http.ReadRequest(rw.Reader)
+	if err != nil {
+		log.Debug("invalid http request")
+		rewindConn.Rewind()
+		rewindConn.StopBuffering()
+		s.redir.Redirect(&redirector.Redirection{
+			InboundConn: rewindConn,
+			RedirectTo:  s.redirAddr,
+		})
+		return nil, common.NewError("not a valid http request: " + conn.RemoteAddr().String()).Base(err)
+	}
+	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" || req.URL.Path != s.path {
+		log.Debug("invalid http websocket handshake request")
+		rewindConn.Rewind()
+		rewindConn.StopBuffering()
+		s.redir.Redirect(&redirector.Redirection{
+			InboundConn: rewindConn,
+			RedirectTo:  s.redirAddr,
+		})
+		return nil, common.NewError("not a valid websocket handshake request: " + conn.RemoteAddr().String()).Base(err)
+	}
+
+	handshake := make(chan struct{})
+
+	url := "wss://" + s.hostname + s.path
+	origin := "https://" + s.hostname
+	wsConfig, err := websocket.NewConfig(url, origin)
+	if err != nil {
+		return nil, common.NewError("failed to create websocket config").Base(err)
+	}
+	var wsConn *websocket.Conn
+	ctx, cancel := context.WithCancel(s.ctx)
+
+	wsServer := websocket.Server{
+		Config: *wsConfig,
+		Handler: func(conn *websocket.Conn) {
+			wsConn = conn
+			wsConn.PayloadType = websocket.BinaryFrame
+
+			log.Debug("websocket obtained")
+			handshake <- struct{}{}
+			<-ctx.Done()
+			log.Debug("websocket closed")
+		},
+		Handshake: func(wsConfig *websocket.Config, httpRequest *http.Request) error {
+			log.Debug("websocket url", httpRequest.URL, "origin", httpRequest.Header.Get("Origin"))
+			return nil
+		},
+	}
+
+	respWriter := &fakeHTTPResponseWriter{
+		Conn:       conn,
+		ReadWriter: rw,
+	}
+	go wsServer.ServeHTTP(respWriter, req)
+
+	select {
+	case <-handshake:
+	case <-time.After(s.timeout):
+	}
 
 	if wsConn == nil {
 		cancel()
