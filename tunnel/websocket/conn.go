@@ -2,8 +2,6 @@ package websocket
 
 import (
 	"net"
-	"context"
-	"io"
 
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"golang.org/x/net/websocket"
