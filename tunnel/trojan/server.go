@@ -150,19 +150,21 @@ func (c *InboundConn) Hash() string {
 	return c.hash
 }
 
-// Server is a trojan tunnel server
-type Server struct {
-	auth       statistic.Authenticator
-	redir      *redirector.Redirector
-	redirAddr  *tunnel.Address
-	underlay   tunnel.Server
-	connChan   chan tunnel.Conn
-	muxChan    chan tunnel.Conn
-	packetChan chan tunnel.PacketConn
-	ctx        context.Context
-	cancel     context.CancelFunc
-}
+// Placeholder for the s variable
+var s *Server
 
+// Placeholder for the Server type
+type Server struct {
+    auth       statistic.Authenticator
+    redir      *redirector.Redirector
+    redirAddr  *tunnel.Address
+    underlay   tunnel.Server
+    connChan   chan tunnel.Conn
+    muxChan    chan tunnel.Conn
+    packetChan chan tunnel.PacketConn
+    ctx        context.Context
+    cancel     context.CancelFunc
+}
 func (s *Server) Close() error {
 	s.cancel()
 	return s.underlay.Close()
@@ -257,46 +259,56 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
-	cfg := config.FromContext(ctx, Name).(*Config)
-	ctx, cancel := context.WithCancel(ctx)
+    cfg := config.FromContext(ctx, Name).(*Config)
+    ctx, cancel := context.WithCancel(ctx)
 
-	if Auth == nil {
-		var err error
-		if cfg.MySQL.Enabled {
-			log.Debug("mysql enabled")
-			Auth, err = statistic.NewAuthenticator(ctx, mysql.Name)
-		} else {
-			log.Debug("auth by config file")
-			Auth, err = statistic.NewAuthenticator(ctx, memory.Name)
-		}
-		if err != nil {
-			cancel()
-			return nil, common.NewError("trojan failed to create authenticator")
-		}
-	}
+    // Create a new Server instance
+    s = &Server{
+        auth:     Auth,       // Assuming Auth is already defined globally
+        underlay: underlay,
+        // ... (initialize other Server fields)
+        ctx:      ctx,
+        cancel:   cancel,
+    }
 
-	if cfg.API.Enabled {
-		go api.RunService(ctx, Name+"_SERVER", Auth)
-	}
+    if Auth == nil {
+        var err error
+        if cfg.MySQL.Enabled {
+            log.Debug("mysql enabled")
+            Auth, err = statistic.NewAuthenticator(ctx, mysql.Name)
+        } else {
+            log.Debug("auth by config file")
+            Auth, err = statistic.NewAuthenticator(ctx, memory.Name)
+        }
+        if err != nil {
+            cancel()
+            return nil, common.NewError("trojan failed to create authenticator")
+        }
+        s.auth = Auth
+    }
 
-	recorder.Capacity = cfg.RecordCapacity
-	
-	redirAddr := tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort)
-	if redirAddr == nil {
-    		log.Error("Error: redirAddr is nil")
-    		// Handle the error appropriately
-    	return nil, common.NewError("redirAddr is nil")
-	}
+    if cfg.API.Enabled {
+        go api.RunService(ctx, Name+"_SERVER", Auth)
+    }
 
-	redirConn, err := net.Dial("tcp", redirAddr.String())
-	if err != nil {
-    		log.Error("Error while dialing: ", err)
-    	// Handle the error appropriately
-    	return nil, common.NewError("failed to dial connection").Base(err)
-	}
-	defer redirConn.Close()
+    recorder.Capacity = cfg.RecordCapacity
 
-	go s.acceptLoop()
-	log.Debug("trojan server created")
-	return s, nil
+    redirAddr := tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort)
+    if redirAddr == nil {
+        log.Error("Error: redirAddr is nil")
+        // Handle the error appropriately
+        return nil, common.NewError("redirAddr is nil")
+    }
+
+    redirConn, err := net.Dial("tcp", redirAddr.String())
+    if err != nil {
+        log.Error("Error while dialing: ", err)
+        // Handle the error appropriately
+        return nil, common.NewError("failed to dial connection").Base(err)
+    }
+    defer redirConn.Close()
+
+    go s.acceptLoop()
+    log.Debug("trojan server created")
+    return s, nil
 }
