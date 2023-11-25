@@ -55,22 +55,6 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 	if err != nil {
 		return nil, err
 	}
-
-	return &transport.Conn{
-		Conn: tlsConn,
-	}, nil
-}
-
-func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel.Conn, error) {
-	// 检查 address 是否为 nil
-	if address == nil {
-		return nil, common.NewError("Address is nil")
-	}
-
-	conn, err := net.Dial("tcp", address.String())
-	if err != nil {
-		return nil, err
-	}
 	
 	if c.fingerprint != "" {
 		// tls fingerprint
@@ -106,7 +90,6 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		Conn: tlsConn,
 	}, nil
 }
-
 
 // NewClient creates a tls client
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
