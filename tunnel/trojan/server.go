@@ -91,7 +91,6 @@ func GetRealIP(c *InboundConn) (string, error) {
 	return "", common.NewError("Does not use CDN！")
 }
 
-
 func (c *InboundConn) Auth() error {
 	userHash := [56]byte{}
 	n, err := c.Conn.Read(userHash[:])
