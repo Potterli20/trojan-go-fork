@@ -55,7 +55,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if c.fingerprint != "" {
 		// tls fingerprint
 		tlsConn := utls.UClient(conn, &utls.Config{
