@@ -57,14 +57,14 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 	}
 	if c.fingerprint != "" {
 		// tls fingerprint
-		tlsConn := utls.UClient(conn, &tls.Config{
+		tlsConn := utls.UClient(conn, &utls.Config{
 			RootCAs:            c.ca,
 			ServerName:         c.sni,
 			InsecureSkipVerify: !c.verify,
 			KeyLogWriter:       c.keyLogger,
 		}, c.helloID)
 		if err := tlsConn.Handshake(); err != nil {
-			return nil, common.NewError("tls failed to handshake with remote server").Base(err)
+			return nil, common.NewError("tls failed to handshake with the remote server").Base(err)
 		}
 		return &transport.Conn{
 			Conn: tlsConn,
