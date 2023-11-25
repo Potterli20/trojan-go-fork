@@ -71,6 +71,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 	if err != nil {
 		return nil, err
 	}
+	
 	if c.fingerprint != "" {
 		// tls fingerprint
 		tlsConn := utls.UClient(conn, &utls.Config{
@@ -105,6 +106,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		Conn: tlsConn,
 	}, nil
 }
+
 
 // NewClient creates a tls client
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
