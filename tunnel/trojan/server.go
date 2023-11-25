@@ -68,20 +68,20 @@ func (c *InboundConn) Close() error {
 }
 
 func GetRealIP(c *InboundConn) (string, error) {
-    WSInboundConn, err := func(c *InboundConn) (*websocket.InboundConn, error) {
-        rewindConn, ok := c.Conn.(*common.RewindConn)
-        if !ok {
-            return nil, common.NewError("Failed to convert to RewindConn")
-        }
-        InboundConnRew, ok := rewindConn.Conn.(*websocket.InboundConn)
-        if !ok {
-            return nil, common.NewError("Failed to convert to InboundConn")
-        }
-        return InboundConnRew, nil
-    }(c)
-    if err != nil {
-        return "", common.NewError("Failed to convert to WebSocket").Base(err)
-    }
+	WSInboundConn, err := func(c *InboundConn) (*websocket.InboundConn, error) {
+		rewindConn, ok := c.Conn.(*common.RewindConn)
+		if !ok {
+			return nil, common.NewError("Failed to convert to RewindConn")
+		}
+		InboundConnRew, ok := rewindConn.Conn.(*websocket.InboundConn)
+		if !ok {
+			return nil, common.NewError("Failed to convert to InboundConn")
+		}
+		return InboundConnRew, nil
+	}(c)
+	if err != nil {
+		return "", common.NewError("Failed to convert to WebSocket").Base(err)
+	}
 
 	for name, value := range WSInboundConn.OutboundConn.Request().Header {
 		if name == "X-Forwarded-For" || name == "X-Real-Ip" {
@@ -90,6 +90,7 @@ func GetRealIP(c *InboundConn) (string, error) {
 	}
 	return "", common.NewError("Does not use CDN！")
 }
+
 
 func (c *InboundConn) Auth() error {
 	userHash := [56]byte{}
@@ -150,21 +151,19 @@ func (c *InboundConn) Hash() string {
 	return c.hash
 }
 
-// Placeholder for the s variable
-var s *Server
-
-// Placeholder for the Server type
+// Server is a trojan tunnel server
 type Server struct {
-    auth       statistic.Authenticator
-    redir      *redirector.Redirector
-    redirAddr  *tunnel.Address
-    underlay   tunnel.Server
-    connChan   chan tunnel.Conn
-    muxChan    chan tunnel.Conn
-    packetChan chan tunnel.PacketConn
-    ctx        context.Context
-    cancel     context.CancelFunc
+	auth       statistic.Authenticator
+	redir      *redirector.Redirector
+	redirAddr  *tunnel.Address
+	underlay   tunnel.Server
+	connChan   chan tunnel.Conn
+	muxChan    chan tunnel.Conn
+	packetChan chan tunnel.PacketConn
+	ctx        context.Context
+	cancel     context.CancelFunc
 }
+
 func (s *Server) Close() error {
 	s.cancel()
 	return s.underlay.Close()
@@ -259,56 +258,53 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
-    cfg := config.FromContext(ctx, Name).(*Config)
-    ctx, cancel := context.WithCancel(ctx)
+	cfg := config.FromContext(ctx, Name).(*Config)
+	ctx, cancel := context.WithCancel(ctx)
 
-    // Create a new Server instance
-    s = &Server{
-        auth:     Auth,       // Assuming Auth is already defined globally
-        underlay: underlay,
-        // ... (initialize other Server fields)
-        ctx:      ctx,
-        cancel:   cancel,
-    }
+	if Auth == nil {
+		var err error
+		if cfg.MySQL.Enabled {
+			log.Debug("mysql enabled")
+			Auth, err = statistic.NewAuthenticator(ctx, mysql.Name)
+		} else {
+			log.Debug("auth by config file")
+			Auth, err = statistic.NewAuthenticator(ctx, memory.Name)
+		}
+		if err != nil {
+			cancel()
+			return nil, common.NewError("trojan failed to create authenticator")
+		}
+	}
 
-    if Auth == nil {
-        var err error
-        if cfg.MySQL.Enabled {
-            log.Debug("mysql enabled")
-            Auth, err = statistic.NewAuthenticator(ctx, mysql.Name)
-        } else {
-            log.Debug("auth by config file")
-            Auth, err = statistic.NewAuthenticator(ctx, memory.Name)
-        }
-        if err != nil {
-            cancel()
-            return nil, common.NewError("trojan failed to create authenticator")
-        }
-        s.auth = Auth
-    }
+	if cfg.API.Enabled {
+		go api.RunService(ctx, Name+"_SERVER", Auth)
+	}
 
-    if cfg.API.Enabled {
-        go api.RunService(ctx, Name+"_SERVER", Auth)
-    }
+	recorder.Capacity = cfg.RecordCapacity
 
-    recorder.Capacity = cfg.RecordCapacity
+	redirAddr := tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort)
+	s := &Server{
+		underlay:   underlay,
+		auth:       Auth,
+		redirAddr:  redirAddr,
+		connChan:   make(chan tunnel.Conn, 32),
+		muxChan:    make(chan tunnel.Conn, 32),
+		packetChan: make(chan tunnel.PacketConn, 32),
+		ctx:        ctx,
+		cancel:     cancel,
+		redir:      redirector.NewRedirector(ctx),
+	}
 
-    redirAddr := tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort)
-    if redirAddr == nil {
-        log.Error("Error: redirAddr is nil")
-        // Handle the error appropriately
-        return nil, common.NewError("redirAddr is nil")
-    }
+	if !cfg.DisableHTTPCheck {
+		redirConn, err := net.Dial("tcp", redirAddr.String())
+		if err != nil {
+			cancel()
+			return nil, common.NewError("invalid redirect address. check your http server: " + redirAddr.String()).Base(err)
+		}
+		redirConn.Close()
+	}
 
-    redirConn, err := net.Dial("tcp", redirAddr.String())
-    if err != nil {
-        log.Error("Error while dialing: ", err)
-        // Handle the error appropriately
-        return nil, common.NewError("failed to dial connection").Base(err)
-    }
-    defer redirConn.Close()
-
-    go s.acceptLoop()
-    log.Debug("trojan server created")
-    return s, nil
+	go s.acceptLoop()
+	log.Debug("trojan server created")
+	return s, nil
 }
