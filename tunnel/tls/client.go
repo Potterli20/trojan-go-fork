@@ -53,8 +53,12 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 
 	conn, err := net.Dial("tcp", address.String())
 	if err != nil {
-		return nil, err
+    	return nil, err
 	}
+	
+	return &transport.Conn{
+    	Conn: tlsConn,
+	}, nil
 }
 
 func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel.Conn, error) {
