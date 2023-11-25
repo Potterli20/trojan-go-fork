@@ -55,6 +55,8 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 	if err != nil {
 		return nil, err
 	}
+}
+
 func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel.Conn, error) {
 	// 检查 address 是否为 nil
 	if address == nil {
