@@ -2,6 +2,7 @@ package tls
 
 import (
 	"context"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
 	"io"
@@ -9,7 +10,7 @@ import (
 	"net"
 	"strings"
 
-	tls "github.com/refraction-networking/utls"
+	utls "github.com/refraction-networking/utls"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -28,7 +29,7 @@ type Client struct {
 	sessionTicket bool
 	reuseSession  bool
 	fingerprint   string
-	helloID       tls.ClientHelloID
+	helloID       utls.ClientHelloID
 	keyLogger     io.WriteCloser
 	underlay      tunnel.Client
 }
@@ -56,7 +57,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 	}
 	if c.fingerprint != "" {
 		// tls fingerprint
-		tlsConn := tls.UClient(conn, &tls.Config{
+		tlsConn := utls.UClient(conn, &tls.Config{
 			RootCAs:            c.ca,
 			ServerName:         c.sni,
 			InsecureSkipVerify: !c.verify,
@@ -110,25 +111,25 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	return client, nil
 }
 
-func getHelloID(fingerprint string) (tls.ClientHelloID, error) {
-	fingerprints := map[string]tls.ClientHelloID{
-		"chrome":     tls.HelloChrome_Auto,
-		"ios":        tls.HelloIOS_Auto,
-		"firefox":    tls.HelloFirefox_Auto,
-		"edge":       tls.HelloEdge_Auto,
-		"safari":     tls.HelloSafari_Auto,
-		"360browser": tls.Hello360_Auto,
-		"qqbrowser":  tls.HelloQQ_Auto,
+func getHelloID(fingerprint string) (utls.ClientHelloID, error) {
+	fingerprints := map[string]utls.ClientHelloID{
+		"chrome":     utls.HelloChrome_Auto,
+		"ios":        utls.HelloIOS_Auto,
+		"firefox":    utls.HelloFirefox_Auto,
+		"edge":       utls.HelloEdge_Auto,
+		"safari":     utls.HelloSafari_Auto,
+		"360browser": utls.Hello360_Auto,
+		"qqbrowser":  utls.HelloQQ_Auto,
 	}
 
 	if fingerprint == "" {
 		log.Info("No 'fingerprint' value specified in your configuration. Your trojan's TLS fingerprint will look like Chrome by default.")
-		return tls.HelloChrome_Auto, nil
+		return utls.HelloChrome_Auto, nil
 	}
 
 	helloID, ok := fingerprints[strings.ToLower(fingerprint)]
 	if !ok {
-		return tls.ClientHelloID{}, common.NewError("Invalid 'fingerprint' value in configuration: '" + fingerprint + "'. Possible values are 'chrome' (default), 'ios', 'firefox', 'edge', 'safari', '360browser', or 'qqbrowser'.")
+		return utls.ClientHelloID{}, common.NewError("Invalid 'fingerprint' value in configuration: '" + fingerprint + "'. Possible values are 'chrome' (default), 'ios', 'firefox', 'edge', 'safari', '360browser', or 'qqbrowser'.")
 	}
 
 	log.Info("Your trojan's TLS fingerprint will look like", fingerprint)
