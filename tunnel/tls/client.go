@@ -69,7 +69,18 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		return &transport.Conn{
 			Conn: tlsConn,
 		}, nil
-	} else {
+	} 
+// golang default tls library
+	tlsConn := tls.Client(conn, &tls.Config{
+		InsecureSkipVerify:     !c.verify,
+		ServerName:             c.sni,
+		RootCAs:                c.ca,
+		KeyLogWriter:           c.keyLogger,
+		CipherSuites:           c.cipher,
+		SessionTicketsDisabled: !c.sessionTicket,
+	})
+	err = tlsConn.Handshake()
+	if err != nil {
 		return nil, common.NewError("fingerprint is empty")
 	}
 }
