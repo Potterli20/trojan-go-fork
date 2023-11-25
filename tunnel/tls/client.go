@@ -41,7 +41,7 @@ func (c *Client) Close() error {
 	return c.underlay.Close()
 }
 
-func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
+func (c *Client) DialPacket(tunnel tunnel.Tunnel) (tunnel.PacketConn, error) {
 	panic("not supported")
 }
 
