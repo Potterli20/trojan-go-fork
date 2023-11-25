@@ -80,7 +80,7 @@ func GetRealIP(c *InboundConn) (string, error) {
 		return InboundConnRew, nil
 	}(c)
 	if err != nil {
-		return "", common.NewError("Failed to convert to WebSocket")
+		return "", common.NewError("Failed to convert to WebSocket").Base(err)
 	}
 
 	for name, value := range WSInboundConn.OutboundConn.Request().Header {
@@ -90,6 +90,7 @@ func GetRealIP(c *InboundConn) (string, error) {
 	}
 	return "", common.NewError("Does not use CDN！")
 }
+
 
 func (c *InboundConn) Auth() error {
 	userHash := [56]byte{}
