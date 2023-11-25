@@ -1,3 +1,8 @@
+已经放弃修复了
+服务器端正常
+但客户端不正常
+如果有能力去修复，麻烦pr叭
+我的go.mod都会自动更新
 <details>
 <summary><code><strong>docker镜像<br/></strong></code></summary>
 docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
