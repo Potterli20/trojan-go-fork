@@ -280,28 +280,21 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	}
 
 	recorder.Capacity = cfg.RecordCapacity
-
+	
 	redirAddr := tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort)
-	s := &Server{
-		underlay:   underlay,
-		auth:       Auth,
-		redirAddr:  redirAddr,
-		connChan:   make(chan tunnel.Conn, 32),
-		muxChan:    make(chan tunnel.Conn, 32),
-		packetChan: make(chan tunnel.PacketConn, 32),
-		ctx:        ctx,
-		cancel:     cancel,
-		redir:      redirector.NewRedirector(ctx),
+	if redirAddr == nil {
+    		log.Error("Error: redirAddr is nil")
+    		// Handle the error appropriately
+    	return nil, common.NewError("redirAddr is nil")
 	}
 
-	if !cfg.DisableHTTPCheck {
-		redirConn, err := net.Dial("tcp", redirAddr.String())
-		if err != nil {
-			cancel()
-			return nil, common.NewError("invalid redirect address. check your http server: " + redirAddr.String()).Base(err)
-		}
-		redirConn.Close()
+	redirConn, err := net.Dial("tcp", redirAddr.String())
+	if err != nil {
+    		log.Error("Error while dialing: ", err)
+    	// Handle the error appropriately
+    	return nil, common.NewError("failed to dial connection").Base(err)
 	}
+	defer redirConn.Close()
 
 	go s.acceptLoop()
 	log.Debug("trojan server created")
