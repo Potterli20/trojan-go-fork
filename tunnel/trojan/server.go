@@ -68,7 +68,7 @@ func (c *InboundConn) Close() error {
 }
 
 func GetRealIP(c *InboundConn) (string, error) {
-for name, value := range c.Conn.(*common.RewindConn).Conn.(*websocket.InboundConn).OutboundConn.Request().Header {
+	for name, value := range c.Conn.(*common.RewindConn).Conn.(*websocket.InboundConn).OutboundConn.Request().Header {
 		if name == "X-Forwarded-For" || name == "X-Real-Ip" {
 			return strings.Join(value, ", "), nil
 		}
