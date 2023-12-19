@@ -67,14 +67,32 @@ func (c *InboundConn) Close() error {
 	return c.Conn.Close()
 }
 
-func GetRealIP(c *InboundConn) (string, error) {
-	for name, value := range c.Conn.(*common.RewindConn).Conn.(*websocket.InboundConn).OutboundConn.Request().Header {
-		if name == "X-Forwarded-For" || name == "X-Real-Ip" {
-			return strings.Join(value, ", "), nil
+func GetRealIP(c *InboundConn) (string) {
+	WSInboundConn, err := func(c *InboundConn) (*websocket.InboundConn, error) {
+		rewindConn, ok := c.Conn.(*common.RewindConn)
+		if !ok {
+			return nil, common.NewError("Failed to convert to RewindConn")
+		}
+		InboundConnRew, ok := rewindConn.Conn.(*websocket.InboundConn)
+		if !ok {
+			return nil, common.NewError("Failed to convert to InboundConn")
+		}
+		return InboundConnRew, nil
+	}(c)
+	if err != nil {
+		log.Debug("Failed to convert to WebSocket")
+		return c.ip
+	}
+
+	for name, value := range WSInboundConn.OutboundConn.Request().Header {
+		if name == "X-Forwarded-For" {
+			ips := strings.Split(value[0], ",")
+			return ips[0]
 		}
 	}
-	return "", common.NewError("Does not use CDN！")
+	return c.ip
 }
+
 
 func (c *InboundConn) Auth() error {
 	userHash := [56]byte{}
@@ -94,15 +112,9 @@ func (c *InboundConn) Auth() error {
 	if err != nil {
 		return common.NewError("failed to parse host:" + c.Conn.RemoteAddr().String()).Base(err)
 	}
-
 	c.ip = ip
-	RealIP, error := GetRealIP(c)
-	if error != nil {
-		c.ipX = ip
-	} else {
-		c.ipX = RealIP
-	}
-
+	RealIP := GetRealIP(c)
+	c.ipX = RealIP
 	ok := user.AddIP(RealIP)
 	if !ok {
 		return common.NewError("ip limit reached, UserPassword: " + user.GetKeyShare() + " UserHash: " + c.hash + " RealIP: " + RealIP)
