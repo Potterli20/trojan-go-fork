@@ -67,7 +67,7 @@ func (c *InboundConn) Close() error {
 	return c.Conn.Close()
 }
 
-func GetRealIP(c *InboundConn) (string) {
+func GetRealIP(c *InboundConn) string {
 	WSInboundConn, err := func(c *InboundConn) (*websocket.InboundConn, error) {
 		rewindConn, ok := c.Conn.(*common.RewindConn)
 		if !ok {
@@ -92,7 +92,6 @@ func GetRealIP(c *InboundConn) (string) {
 	}
 	return c.ip
 }
-
 
 func (c *InboundConn) Auth() error {
 	userHash := [56]byte{}

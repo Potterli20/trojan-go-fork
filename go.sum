@@ -1,7 +1,5 @@
 cloud.google.com/go/oslogin v1.12.2 h1:NP/KgsD9+0r9hmHC5wKye0vJXVwdciv219DtYKYjgqE=
 cloud.google.com/go/oslogin v1.12.2/go.mod h1:CQ3V8Jvw4Qo4WRhNPF0o+HAM4DiLuE27Ul9CX9g2QdY=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20231127210749-a61c64507573 h1:buuw5MbpzJ4/kxLpG3CYHxbmxX21TVug3hk0/ckBRus=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20231127210749-a61c64507573/go.mod h1:nkET6/V9mO9PptPp6bOkoUPhBQSUxfyl5+XG8xtPucQ=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20231218210754-f91cedb1791c h1:JfKMS5MU+H8mEeqJIVvcBul1FYoYPWnqd7eGuB8a174=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20231218210754-f91cedb1791c/go.mod h1:Dd+9Oab2idVGbhSILiDAzefyj6IajZlKXcdnjQOx808=
 github.com/Potterli20/socks5-fork v0.0.0-20231125024344-765cafd1ae93 h1:WJ2Q5aj1UAcAlpJUenIxUNBdUVRCEGeNV+jhVwkeL7I=
@@ -156,8 +154,6 @@ google.golang.org/genproto/googleapis/api v0.0.0-20231120223509-83a465c0220f h1:
 google.golang.org/genproto/googleapis/api v0.0.0-20231120223509-83a465c0220f/go.mod h1:Uy9bTZJqmfrw2rIBxgGLnamc78euZULUBrLZ9XTITKI=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20231212172506-995d672761c0 h1:/jFB8jK5R3Sq3i/lmeZO0cATSzFfZaJq1J2Euan3XKU=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20231212172506-995d672761c0/go.mod h1:FUoWkonphQm3RhTS+kOEhF8h0iDpm4tdXolVCeZ9KKA=
-google.golang.org/grpc v1.60.0 h1:6FQAR0kM31P6MRdeluor2w2gPaS4SVNrD/DNTxrQ15k=
-google.golang.org/grpc v1.60.0/go.mod h1:OlCHIeLYqSSsLi6i49B5QGdzaMZK9+M7LXN2FKz4eGM=
 google.golang.org/grpc v1.60.1 h1:26+wFr+cNqSGFcOXcabYC0lUVJVRa2Sb2ortSK7VrEU=
 google.golang.org/grpc v1.60.1/go.mod h1:OlCHIeLYqSSsLi6i49B5QGdzaMZK9+M7LXN2FKz4eGM=
 google.golang.org/protobuf v1.26.0-rc.1/go.mod h1:jlhhOSvTdKEhbULTjvd4ARK9grFBp09yW+WbY/TyQbw=
