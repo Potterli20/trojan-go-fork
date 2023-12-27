@@ -8,11 +8,11 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/config"
-	"github.com/Potterli20/trojan-go-fork/log"
-	"github.com/Potterli20/trojan-go-fork/statistic"
-	"github.com/Potterli20/trojan-go-fork/statistic/sqlite"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/config"
+	"github.com/Potterli20/trojan-go/log"
+	"github.com/Potterli20/trojan-go/statistic"
+	"github.com/Potterli20/trojan-go/statistic/sqlite"
 )
 
 const Name = "MEMORY"

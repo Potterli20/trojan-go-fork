@@ -3,7 +3,7 @@ package http
 import (
 	"context"
 
-	"github.com/Potterli20/trojan-go-fork/tunnel"
+	"github.com/Potterli20/trojan-go/tunnel"
 )
 
 const Name = "HTTP"

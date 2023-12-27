@@ -5,7 +5,7 @@ import (
 	golog "log"
 	"os"
 
-	"github.com/Potterli20/trojan-go-fork/log"
+	"github.com/Potterli20/trojan-go/log"
 )
 
 func init() {

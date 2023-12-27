@@ -7,7 +7,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/Potterli20/trojan-go-fork/common"
+	"github.com/Potterli20/trojan-go/common"
 )
 
 // CheckConn checks if two netConn were connected and work properly

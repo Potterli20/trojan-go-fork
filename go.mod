@@ -1,4 +1,4 @@
-module github.com/Potterli20/trojan-go-fork
+module github.com/Potterli20/trojan-go
 
 go 1.21.4
 

@@ -16,11 +16,11 @@ import (
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/config"
-	"github.com/Potterli20/trojan-go-fork/log"
-	"github.com/Potterli20/trojan-go-fork/statistic"
-	"github.com/Potterli20/trojan-go-fork/statistic/memory"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/config"
+	"github.com/Potterli20/trojan-go/log"
+	"github.com/Potterli20/trojan-go/statistic"
+	"github.com/Potterli20/trojan-go/statistic/memory"
 )
 
 const Name = "MYSQL"

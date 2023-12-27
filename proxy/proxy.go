@@ -9,10 +9,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/config"
-	"github.com/Potterli20/trojan-go-fork/log"
-	"github.com/Potterli20/trojan-go-fork/tunnel"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/config"
+	"github.com/Potterli20/trojan-go/log"
+	"github.com/Potterli20/trojan-go/tunnel"
 )
 
 const Name = "PROXY"

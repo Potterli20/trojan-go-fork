@@ -9,11 +9,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/config"
-	"github.com/Potterli20/trojan-go-fork/test/util"
-	"github.com/Potterli20/trojan-go-fork/tunnel/freedom"
-	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/config"
+	"github.com/Potterli20/trojan-go/test/util"
+	"github.com/Potterli20/trojan-go/tunnel/freedom"
+	"github.com/Potterli20/trojan-go/tunnel/transport"
 )
 
 func TestShadowsocks(t *testing.T) {

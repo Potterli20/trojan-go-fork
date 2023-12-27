@@ -1,6 +1,6 @@
 package option
 
-import "github.com/Potterli20/trojan-go-fork/common"
+import "github.com/Potterli20/trojan-go/common"
 
 type Handler interface {
 	Name() string

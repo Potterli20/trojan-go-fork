@@ -10,13 +10,13 @@ import (
 
 	v2router "github.com/xtls/xray-core/app/router"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/common/geodata"
-	"github.com/Potterli20/trojan-go-fork/config"
-	"github.com/Potterli20/trojan-go-fork/log"
-	"github.com/Potterli20/trojan-go-fork/tunnel"
-	"github.com/Potterli20/trojan-go-fork/tunnel/freedom"
-	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/common/geodata"
+	"github.com/Potterli20/trojan-go/config"
+	"github.com/Potterli20/trojan-go/log"
+	"github.com/Potterli20/trojan-go/tunnel"
+	"github.com/Potterli20/trojan-go/tunnel/freedom"
+	"github.com/Potterli20/trojan-go/tunnel/transport"
 )
 
 const (

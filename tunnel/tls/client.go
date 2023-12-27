@@ -12,12 +12,12 @@ import (
 
 	utls "github.com/refraction-networking/utls"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/config"
-	"github.com/Potterli20/trojan-go-fork/log"
-	"github.com/Potterli20/trojan-go-fork/tunnel"
-	"github.com/Potterli20/trojan-go-fork/tunnel/tls/fingerprint"
-	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/config"
+	"github.com/Potterli20/trojan-go/log"
+	"github.com/Potterli20/trojan-go/tunnel"
+	"github.com/Potterli20/trojan-go/tunnel/tls/fingerprint"
+	"github.com/Potterli20/trojan-go/tunnel/transport"
 )
 
 // Client is a tls client

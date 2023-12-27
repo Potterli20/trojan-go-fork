@@ -9,10 +9,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/constant"
-	"github.com/Potterli20/trojan-go-fork/log"
-	"github.com/Potterli20/trojan-go-fork/option"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/constant"
+	"github.com/Potterli20/trojan-go/log"
+	"github.com/Potterli20/trojan-go/option"
 )
 
 type Option struct {

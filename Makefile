@@ -1,5 +1,5 @@
-NAME := trojan-go-fork
-PACKAGE_NAME := github.com/Potterli20/trojan-go-fork
+NAME := trojan-go
+PACKAGE_NAME := github.com/Potterli20/trojan-go
 VERSION := `git describe --tags`
 COMMIT := `git rev-parse HEAD`
 
@@ -8,8 +8,8 @@ BUILD_DIR := build
 VAR_SETTING := -X $(PACKAGE_NAME)/constant.Version=$(VERSION) -X $(PACKAGE_NAME)/constant.Commit=$(COMMIT)
 GOBUILD = env CGO_ENABLED=0 $(GO_DIR)go build -tags "full" -trimpath -ldflags="-s -w -buildid= $(VAR_SETTING)" -o $(BUILD_DIR)
 
-.PHONY: trojan-go-fork release test
-normal: clean trojan-go-fork
+.PHONY: trojan-go release test
+normal: clean trojan-go
 
 clean:
 	rm -rf $(BUILD_DIR)
@@ -29,7 +29,7 @@ test:
 	# Disable Bloomfilter when testing
 	SHADOWSOCKS_SF_CAPACITY="-1" $(GO_DIR)go test -v ./...
 
-trojan-go-fork:
+trojan-go:
 	mkdir -p $(BUILD_DIR)
 	$(GOBUILD)
 

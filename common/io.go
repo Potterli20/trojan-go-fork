@@ -5,7 +5,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/Potterli20/trojan-go-fork/log"
+	"github.com/Potterli20/trojan-go/log"
 )
 
 type RewindReader struct {

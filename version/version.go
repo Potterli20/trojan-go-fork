@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/constant"
-	"github.com/Potterli20/trojan-go-fork/option"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/constant"
+	"github.com/Potterli20/trojan-go/option"
 )
 
 type versionOption struct {
@@ -31,7 +31,7 @@ func (c *versionOption) Handle() error {
 		fmt.Println("")
 		fmt.Println("Developed by trli (p4gefau1t and fregie)")
 		fmt.Println("Licensed under GNU General Public License version 3")
-		fmt.Println("GitHub Repository:\thttps://github.com/Potterli20/trojan-go-fork")
+		fmt.Println("GitHub Repository:\thttps://github.com/Potterli20/trojan-go")
 		fmt.Println("Trojan-Go Documents:\thttps://p4gefau1t.github.io/trojan-go/")
 		return nil
 	}

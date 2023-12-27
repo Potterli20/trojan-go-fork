@@ -3,9 +3,9 @@ package simplesocks
 import (
 	"bytes"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/tunnel"
-	"github.com/Potterli20/trojan-go-fork/tunnel/trojan"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/tunnel"
+	"github.com/Potterli20/trojan-go/tunnel/trojan"
 )
 
 // Conn is a simplesocks connection

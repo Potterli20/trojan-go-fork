@@ -8,9 +8,9 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/config"
-	"github.com/Potterli20/trojan-go-fork/statistic/memory"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/config"
+	"github.com/Potterli20/trojan-go/statistic/memory"
 )
 
 func TestClientAPI(t *testing.T) {

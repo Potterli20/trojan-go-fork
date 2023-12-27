@@ -1,6 +1,6 @@
 package dokodemo
 
-import "github.com/Potterli20/trojan-go-fork/config"
+import "github.com/Potterli20/trojan-go/config"
 
 type Config struct {
 	LocalHost  string `json:"local_addr" yaml:"local-addr"`

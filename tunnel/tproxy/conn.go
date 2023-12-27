@@ -7,8 +7,8 @@ import (
 	"context"
 	"net"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/tunnel"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/tunnel"
 )
 
 type Conn struct {

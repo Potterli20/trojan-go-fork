@@ -1,8 +1,8 @@
 package server
 
 import (
-	"github.com/Potterli20/trojan-go-fork/config"
-	"github.com/Potterli20/trojan-go-fork/proxy/client"
+	"github.com/Potterli20/trojan-go/config"
+	"github.com/Potterli20/trojan-go/proxy/client"
 )
 
 func init() {

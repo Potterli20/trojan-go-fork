@@ -7,11 +7,11 @@ import (
 	"io/ioutil"
 	"net"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/log"
-	"github.com/Potterli20/trojan-go-fork/recorder"
-	"github.com/Potterli20/trojan-go-fork/tunnel"
-	"github.com/Potterli20/trojan-go-fork/tunnel/mux"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/log"
+	"github.com/Potterli20/trojan-go/recorder"
+	"github.com/Potterli20/trojan-go/tunnel"
+	"github.com/Potterli20/trojan-go/tunnel/mux"
 )
 
 type PacketConn struct {

@@ -28,7 +28,7 @@
             "geosite:geolocation-!cn"
         ],
         "default_policy": "proxy",
-        "geoip": "/usr/share/trojan-go-fork/geoip.dat",
-        "geosite": "/usr/share/trojan-go-fork/geosite.dat"
+        "geoip": "/usr/share/trojan-go/geoip.dat",
+        "geosite": "/usr/share/trojan-go/geosite.dat"
     }
 }

@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/config"
-	"github.com/Potterli20/trojan-go-fork/test/util"
-	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/config"
+	"github.com/Potterli20/trojan-go/test/util"
+	"github.com/Potterli20/trojan-go/tunnel/transport"
 )
 
 func TestHTTP(t *testing.T) {

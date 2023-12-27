@@ -4,12 +4,12 @@ import (
 	"context"
 	"net"
 
-	"github.com/Potterli20/trojan-go-fork/api"
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/config"
-	"github.com/Potterli20/trojan-go-fork/log"
-	"github.com/Potterli20/trojan-go-fork/statistic"
-	"github.com/Potterli20/trojan-go-fork/tunnel/trojan"
+	"github.com/Potterli20/trojan-go/api"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/config"
+	"github.com/Potterli20/trojan-go/log"
+	"github.com/Potterli20/trojan-go/statistic"
+	"github.com/Potterli20/trojan-go/tunnel/trojan"
 )
 
 type ClientAPI struct {

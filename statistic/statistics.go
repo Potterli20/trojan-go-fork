@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/log"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/log"
 )
 
 const Name = "STATISTICS"

@@ -6,10 +6,10 @@ import (
 	"net"
 	"strconv"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/log"
-	"github.com/Potterli20/trojan-go-fork/option"
-	"github.com/Potterli20/trojan-go-fork/proxy"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/log"
+	"github.com/Potterli20/trojan-go/option"
+	"github.com/Potterli20/trojan-go/proxy"
 )
 
 type easy struct {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Potterli20/trojan-go-fork/common"
+	"github.com/Potterli20/trojan-go/common"
 )
 
 type Foo struct {

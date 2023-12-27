@@ -6,7 +6,7 @@ package colorful
 import (
 	"runtime"
 
-	"github.com/Potterli20/trojan-go-fork/log/golog/buffer"
+	"github.com/Potterli20/trojan-go/log/golog/buffer"
 )
 
 // ColorBuffer add color option to buffer append

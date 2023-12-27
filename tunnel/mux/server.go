@@ -5,9 +5,9 @@ import (
 
 	"github.com/xtaci/smux"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/log"
-	"github.com/Potterli20/trojan-go-fork/tunnel"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/log"
+	"github.com/Potterli20/trojan-go/tunnel"
 )
 
 // Server is a smux server

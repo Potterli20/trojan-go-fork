@@ -1,6 +1,6 @@
 package mux
 
-import "github.com/Potterli20/trojan-go-fork/config"
+import "github.com/Potterli20/trojan-go/config"
 
 type MuxConfig struct {
 	Enabled     bool `json:"enabled" yaml:"enabled"`

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	_ "github.com/Potterli20/trojan-go-fork/proxy/custom"
-	"github.com/Potterli20/trojan-go-fork/test/util"
+	"github.com/Potterli20/trojan-go/common"
+	_ "github.com/Potterli20/trojan-go/proxy/custom"
+	"github.com/Potterli20/trojan-go/test/util"
 )
 
 func TestCustom1(t *testing.T) {

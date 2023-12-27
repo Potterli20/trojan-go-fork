@@ -7,9 +7,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/config"
-	"github.com/Potterli20/trojan-go-fork/test/util"
+	"github.com/Potterli20/trojan-go/common"
+	"github.com/Potterli20/trojan-go/config"
+	"github.com/Potterli20/trojan-go/test/util"
 )
 
 func TestDokodemo(t *testing.T) {
