@@ -39,6 +39,7 @@ COPY --from=builder /app/build /usr/local/bin/
 COPY --from=builder /app/example/server.json /etc/trojan-go/config.json
 
 EXPOSE 443
+EXPOSE 1234
 EXPOSE 80
 
 ENTRYPOINT ["trojan-go", "-config"]
