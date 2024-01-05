@@ -6,6 +6,8 @@ github.com/Potterli20/socks5-fork v0.0.0-20231125024344-765cafd1ae93 h1:WJ2Q5aj1
 github.com/Potterli20/socks5-fork v0.0.0-20231125024344-765cafd1ae93/go.mod h1:fOfSchp0jwMAdK6Gw54Vqd1aDqxPTie7gNcmaCdSLPU=
 github.com/Potterli20/sqlite v0.0.0-20240105003810-281c28a66797 h1:d//PhuPYD9RC79/GrG5eYexrSWHRQ5nYa80pLReaUAU=
 github.com/Potterli20/sqlite v0.0.0-20240105003810-281c28a66797/go.mod h1:UdxrsdrQBbkUzIcCN8cbdFCTKG4H0LSPjUsRscxLVpk=
+github.com/Potterli20/sqlite v0.0.0-20240105121425-c847d1a04642 h1:ylDNlZ7+DfbMchvYNiSg/QXklQCA7f4jXtXoCc75ufI=
+github.com/Potterli20/sqlite v0.0.0-20240105121425-c847d1a04642/go.mod h1:UdxrsdrQBbkUzIcCN8cbdFCTKG4H0LSPjUsRscxLVpk=
 github.com/andybalholm/brotli v1.0.6 h1:Yf9fFpf49Zrxb9NlQaluyE92/+X7UVHlhMNJN2sxfOI=
 github.com/andybalholm/brotli v1.0.6/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/cloudflare/circl v1.3.7 h1:qlCDlTPz2n9fu58M0Nh1J/JzcFpfgkFHHX3O35r5vcU=
@@ -90,8 +92,6 @@ github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstvQsPGkxUsCd2KWxErBblirPizecHcpD3ffK+s=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
-github.com/sagernet/sing v0.2.20 h1:ckcCB/5xu8G8wElNeH74IF6Soac5xWN+eQUXRuonjPQ=
-github.com/sagernet/sing v0.2.20/go.mod h1:Ce5LNojQOgOiWhiD8pPD6E9H7e2KgtOe3Zxx4Ou5u80=
 github.com/sagernet/sing v0.2.21 h1:SMHJOAvGX+9HqgOeKUNVj1vesVm6Kw7VuUZSDk3Oyfo=
 github.com/sagernet/sing v0.2.21/go.mod h1:Ce5LNojQOgOiWhiD8pPD6E9H7e2KgtOe3Zxx4Ou5u80=
 github.com/sagernet/sing-shadowsocks v0.2.5 h1:qxIttos4xu6ii7MTVJYA8EFQR7Q3KG6xMqmLJIFtBaY=
