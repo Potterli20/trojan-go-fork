@@ -4,8 +4,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20240104181051-b464a4cb7c5e h1:+BBi
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20240104181051-b464a4cb7c5e/go.mod h1:bDqwWJSJ2XhLw9+WnHt93UF/J3NseoSqVQI+IL06k6Y=
 github.com/Potterli20/socks5-fork v0.0.0-20231125024344-765cafd1ae93 h1:WJ2Q5aj1UAcAlpJUenIxUNBdUVRCEGeNV+jhVwkeL7I=
 github.com/Potterli20/socks5-fork v0.0.0-20231125024344-765cafd1ae93/go.mod h1:fOfSchp0jwMAdK6Gw54Vqd1aDqxPTie7gNcmaCdSLPU=
-github.com/Potterli20/sqlite v0.0.0-20240105121425-c847d1a04642 h1:ylDNlZ7+DfbMchvYNiSg/QXklQCA7f4jXtXoCc75ufI=
-github.com/Potterli20/sqlite v0.0.0-20240105121425-c847d1a04642/go.mod h1:UdxrsdrQBbkUzIcCN8cbdFCTKG4H0LSPjUsRscxLVpk=
 github.com/Potterli20/sqlite v0.0.0-20240107004203-ffa5fa77bf75 h1:tQP145gxG2S8aS3X4D7PSjaKm5r+eP1alUmSfMfJZ7o=
 github.com/Potterli20/sqlite v0.0.0-20240107004203-ffa5fa77bf75/go.mod h1:6zzJ3JkF89ZjTpujCofr74QU5Ypr2/Afmr7WbH4RAp0=
 github.com/andybalholm/brotli v1.0.6 h1:Yf9fFpf49Zrxb9NlQaluyE92/+X7UVHlhMNJN2sxfOI=
@@ -94,6 +92,8 @@ github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZV
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
 github.com/sagernet/sing v0.2.21 h1:SMHJOAvGX+9HqgOeKUNVj1vesVm6Kw7VuUZSDk3Oyfo=
 github.com/sagernet/sing v0.2.21/go.mod h1:Ce5LNojQOgOiWhiD8pPD6E9H7e2KgtOe3Zxx4Ou5u80=
+github.com/sagernet/sing v0.3.0 h1:PIDVFZHnQAAYRL1UYqNM+0k5s8f/tb1lUW6UDcQiOc8=
+github.com/sagernet/sing v0.3.0/go.mod h1:9pfuAH6mZfgnz/YjP6xu5sxx882rfyjpcrTdUpd6w3g=
 github.com/sagernet/sing-shadowsocks v0.2.5 h1:qxIttos4xu6ii7MTVJYA8EFQR7Q3KG6xMqmLJIFtBaY=
 github.com/sagernet/sing-shadowsocks v0.2.5/go.mod h1:MGWGkcU2xW2G2mfArT9/QqpVLOGU+dBaahZCtPHdt7A=
 github.com/seiflotfy/cuckoofilter v0.0.0-20220411075957-e3b120b3f5fb h1:XfLJSPIOUX+osiMraVgIrMR27uMXnRJWGm1+GL8/63U=
