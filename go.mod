@@ -5,10 +5,10 @@ go 1.21.4
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240104181051-b464a4cb7c5e
 	github.com/Potterli20/socks5-fork v0.0.0-20231125024344-765cafd1ae93
-	github.com/Potterli20/sqlite v0.0.0-20240108003916-984958b88db4
+	github.com/Potterli20/sqlite v0.0.0-20240108121440-4e8d89b745db
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.5.0
-	github.com/refraction-networking/utls v1.6.0
+	github.com/refraction-networking/utls v1.6.1
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.8.4
 	github.com/xtaci/smux v1.5.24
@@ -49,7 +49,7 @@ require (
 	github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
