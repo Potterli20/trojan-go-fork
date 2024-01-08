@@ -12,7 +12,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.8.4
 	github.com/xtaci/smux v1.5.24
-	github.com/xtls/xray-core v1.8.6
+	github.com/xtls/xray-core v1.8.7
 	golang.org/x/net v0.19.0
 	golang.org/x/term v0.16.0
 	golang.org/x/time v0.5.0
@@ -59,7 +59,7 @@ require (
 	lukechampine.com/uint128 v1.3.0 // indirect
 	modernc.org/cc/v3 v3.41.0 // indirect
 	modernc.org/ccgo/v3 v3.16.15 // indirect
-	modernc.org/libc v1.38.1 // indirect
+	modernc.org/libc v1.39.0 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.7.2 // indirect
 	modernc.org/opt v0.1.3 // indirect
