@@ -5,7 +5,7 @@ go 1.21.4
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240108210708-08cd4a2d9fe9
 	github.com/Potterli20/socks5-fork v0.0.0-20240119040303-7143ca7e76fd
-	github.com/Potterli20/sqlite v0.0.0-20240124121537-c8bfc15325df
+	github.com/Potterli20/sqlite v0.0.0-20240126121328-38d1164ea0e0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.6.0
 	github.com/refraction-networking/utls v1.6.1
@@ -35,7 +35,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/klauspost/compress v1.17.4 // indirect
+	github.com/klauspost/compress v1.17.5 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/onsi/gomega v1.27.8 // indirect
