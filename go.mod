@@ -5,7 +5,7 @@ go 1.21.4
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240108210708-08cd4a2d9fe9
 	github.com/Potterli20/socks5-fork v0.0.0-20240119040303-7143ca7e76fd
-	github.com/Potterli20/sqlite v0.0.0-20240205003724-1ffffc0e6c6e
+	github.com/Potterli20/sqlite v0.0.0-20240205121401-bda61a579ca6
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.6.0
 	github.com/refraction-networking/utls v1.6.2
@@ -16,7 +16,7 @@ require (
 	golang.org/x/net v0.20.0
 	golang.org/x/term v0.16.0
 	golang.org/x/time v0.5.0
-	google.golang.org/genproto v0.0.0-20240116215550-a9fa1716bcac
+	google.golang.org/genproto v0.0.0-20240125205218-1f4bbc51befe
 	google.golang.org/grpc v1.61.0
 	google.golang.org/protobuf v1.32.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -24,7 +24,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/oslogin v1.12.2 // indirect
+	cloud.google.com/go/oslogin v1.13.0 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -35,7 +35,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
-	github.com/klauspost/compress v1.17.5 // indirect
+	github.com/klauspost/compress v1.17.6 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
@@ -55,8 +55,8 @@ require (
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/tools v0.17.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240102182953-50ed04b92917 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240125205218-1f4bbc51befe // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240116215550-a9fa1716bcac // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240205150955-31a09d347014 // indirect
 	lukechampine.com/uint128 v1.3.0 // indirect
 	modernc.org/cc/v3 v3.41.0 // indirect
 	modernc.org/ccgo/v3 v3.16.15 // indirect
