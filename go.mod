@@ -4,8 +4,8 @@ go 1.22
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240108210708-08cd4a2d9fe9
-	github.com/Potterli20/socks5-fork v0.0.0-20240119040303-7143ca7e76fd
-	github.com/Potterli20/sqlite v0.0.0-20240207003439-517d88f28ae2
+	github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e
+	github.com/Potterli20/sqlite v0.0.0-20240207121329-729c363ad184
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.6.0
 	github.com/refraction-networking/utls v1.6.2
