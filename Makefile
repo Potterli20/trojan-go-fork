@@ -66,13 +66,12 @@ uninstall:
 	@echo "<<< ---- $(NAME)-$@"
 
 release: geosite.dat geoip.dat geoip-only-cn-private.dat \
-  darwin-amd64.zip darwin-arm64.zip  linux-amd64.zip \
- linux-armv5.zip linux-armv6.zip linux-armv7.zip linux-armv8.zip  \
+  darwin-amd64.zip darwin-arm64.zip  linux-amd64.zip linux-loong64.zip \
 	linux-ppc64le.zip linux-s390x.zip linux-ppc64.zip linux-riscv64.zip linux-mips64.zip linux-mips64le.zip  \
 	linux-mips-softfloat.zip linux-mips-hardfloat.zip linux-mipsle-softfloat.zip linux-mipsle-hardfloat.zip \
 	freebsd-amd64.zip freebsd-arm.zip freebsd-arm64.zip \
 	netbsd-amd64.zip netbsd-arm.zip netbsd-arm64.zip \
-	openbsd-amd64.zip openbsd-arm.zip openbsd-arm64.zip \
+	openbsd-amd64.zip openbsd-arm.zip openbsd-arm64.zip openbsd-ppc64.zip \
 	windows-amd64.zip windows-arm.zip windows-armv6.zip windows-armv7.zip windows-arm64.zip \
   darwin-amd64-v2.zip linux-amd64-v2.zip freebsd-amd64-v2.zip netbsd-amd64-v2.zip openbsd-amd64-v2.zip windows-amd64-v2.zip \
   darwin-amd64-v3.zip linux-amd64-v3.zip freebsd-amd64-v3.zip netbsd-amd64-v3.zip openbsd-amd64-v3.zip windows-amd64-v3.zip \
@@ -224,22 +223,6 @@ linux-amd64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=amd64 GOOS=linux $(GOBUILD)/$@
 
-linux-armv5:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm GOOS=linux GOARM=5 $(GOBUILD)/$@
-
-linux-armv6:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm GOOS=linux GOARM=6 $(GOBUILD)/$@
-
-linux-armv7:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm GOOS=linux GOARM=7 $(GOBUILD)/$@
-
-linux-armv8:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm64 GOOS=linux $(GOBUILD)/$@
-
 linux-mips-softfloat:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=mips GOMIPS=softfloat GOOS=linux $(GOBUILD)/$@
@@ -272,9 +255,13 @@ linux-s390x:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=s390x GOOS=linux $(GOBUILD)/$@
 
+linux-loong64:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=s390x GOOS=linux $(GOBUILD)/$@
+
 freebsd-amd64:
 	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOOS=freebsd $(GOBUILD)/$@
+	GOARCH=loong64 GOOS=freebsd $(GOBUILD)/$@
 
 freebsd-arm:
 	mkdir -p $(BUILD_DIR)/$@
@@ -311,6 +298,10 @@ openbsd-arm:
 openbsd-arm64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=arm64 GOOS=openbsd $(GOBUILD)/$@
+
+openbsd-ppc64:
+	mkdir -p $(BUILD_DIR)/$@
+	GOARCH=ppc64 GOOS=openbsd $(GOBUILD)/$@
 
 windows-amd64:
 	mkdir -p $(BUILD_DIR)/$@
