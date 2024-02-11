@@ -76,7 +76,7 @@ release: geosite.dat geoip.dat geoip-only-cn-private.dat \
   darwin-amd64-v2.zip linux-amd64-v2.zip freebsd-amd64-v2.zip netbsd-amd64-v2.zip openbsd-amd64-v2.zip windows-amd64-v2.zip \
   darwin-amd64-v3.zip linux-amd64-v3.zip freebsd-amd64-v3.zip netbsd-amd64-v3.zip openbsd-amd64-v3.zip windows-amd64-v3.zip \
   darwin-amd64-v4.zip linux-amd64-v4.zip freebsd-amd64-v4.zip netbsd-amd64-v4.zip openbsd-amd64-v4.zip windows-amd64-v4.zip \
-  linux-386-sse2.zip freebsd-386-sse2.zip darwin-386-sse2.zip windows-386-sse2.zip netbsd-386-sse2.zip openbsd-386-sse2.zip \
+  linux-386-sse2.zip freebsd-386-sse2.zip windows-386-sse2.zip netbsd-386-sse2.zip openbsd-386-sse2.zip \
   linux-386-softfloat.zip freebsd-386-softfloat.zip darwin-386-softfloat.zip windows-386-softfloat.zip netbsd-386-softfloat.zip openbsd-386-softfloat.zip
 
 #amd64(v2、v3、v4)
@@ -153,9 +153,6 @@ windows-amd64-v4:
 	GOARCH=amd64 GOAMD64=v4 GOOS=windows $(GOBUILD)/$@
 
 #386(sse2、softfloat)
-darwin-386-sse2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=darwin GO386=sse2 $(GOBUILD)/$@
 
 linux-386-sse2:
 	mkdir -p $(BUILD_DIR)/$@
