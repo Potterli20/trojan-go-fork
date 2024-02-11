@@ -80,9 +80,9 @@ release: geosite.dat geoip.dat geoip-only-cn-private.dat \
   linux-386-softfloat.zip freebsd-386-softfloat.zip darwin-386-softfloat.zip windows-386-softfloat.zip netbsd-386-softfloat.zip openbsd-386-softfloat.zip
 
 #amd64(v2、v3、v4)
-darwin-amd64-v2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v2 GOOS=darwin $(GOBUILD)/$@
+#darwin-amd64-v2:
+#	mkdir -p $(BUILD_DIR)/$@
+#	GOARCH=amd64 GOAMD64=v2 GOOS=darwin $(GOBUILD)/$@
 
 linux-amd64-v2:
 	mkdir -p $(BUILD_DIR)/$@
@@ -155,7 +155,7 @@ windows-amd64-v4:
 #386(sse2、softfloat)
 darwin-386-sse2:
 	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOOS=darwin GO386=sse2 $(GOBUILD)/$@
+	GOARCH=386 GOOS=darwin GO386=sse2 $(GOBUILD)/$@
 
 linux-386-sse2:
 	mkdir -p $(BUILD_DIR)/$@
