@@ -257,11 +257,11 @@ linux-s390x:
 
 linux-loong64:
 	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=s390x GOOS=linux $(GOBUILD)/$@
+	GOARCH=loong64 GOOS=linux $(GOBUILD)/$@
 
 freebsd-amd64:
 	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=loong64 GOOS=freebsd $(GOBUILD)/$@
+	GOARCH=amd64 GOOS=freebsd $(GOBUILD)/$@
 
 freebsd-arm:
 	mkdir -p $(BUILD_DIR)/$@
