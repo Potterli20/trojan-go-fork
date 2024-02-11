@@ -67,7 +67,7 @@ uninstall:
 
 release: geosite.dat geoip.dat geoip-only-cn-private.dat \
   darwin-amd64.zip darwin-arm64.zip  linux-amd64.zip \
-	linux-arm.zip linux-armv5.zip linux-armv6.zip linux-armv7.zip linux-armv8.zip  \
+ linux-armv5.zip linux-armv6.zip linux-armv7.zip linux-armv8.zip  \
 	linux-ppc64le.zip linux-s390x.zip linux-ppc64.zip linux-riscv64.zip linux-mips64.zip linux-mips64le.zip  \
 	linux-mips-softfloat.zip linux-mips-hardfloat.zip linux-mipsle-softfloat.zip linux-mipsle-hardfloat.zip \
 	freebsd-amd64.zip freebsd-arm.zip freebsd-arm64.zip \
@@ -223,10 +223,6 @@ linux-riscv64:
 linux-amd64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=amd64 GOOS=linux $(GOBUILD)/$@
-
-linux-arm:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm GOOS=linux $(GOBUILD)/$@
 
 linux-armv5:
 	mkdir -p $(BUILD_DIR)/$@
