@@ -3,16 +3,16 @@ module gitlab.atcatw.org/atca/community-edition/trojan-go.git
 go 1.22
 
 require (
-	gitlab.atcatw.org/atca/community-edition/go-shadowsocks2 v0.1.5
-	gitlab.atcatw.org/atca/community-edition/socks5 v0.0.0
-	github.com/go-gorm/sqlite v0.0.0-20240225003918-d4b74a664240
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240208003849-29c0b26dbddb
+	github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e
+	github.com/Potterli20/sqlite v0.0.0-20240225121254-aacc768d00fc
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.6.0
 	github.com/refraction-networking/utls v1.6.3
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.8.4
 	github.com/xtaci/smux v1.5.24
-	github.com/xtls/xray-core v1.8.7
+	github.com/xtls/xray-core v1.8.8
 	golang.org/x/net v0.21.0
 	golang.org/x/term v0.17.0
 	golang.org/x/time v0.5.0
