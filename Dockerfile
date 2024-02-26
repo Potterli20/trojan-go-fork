@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM docker.io/golang:latest
 
 WORKDIR /trojan-go
 COPY . /trojan-go
@@ -39,5 +39,4 @@ RUN mv /trojan-go/example/server.json /etc/trojan-go/config.json
 EXPOSE 443
 EXPOSE 80
 
-ENTRYPOINT ["trojan-go", "-config"]
-CMD ["/etc/trojan-go/config.json"]
+CMD ["trojan-go", "-config", "/etc/trojan-go/config.json"]
