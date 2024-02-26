@@ -7,6 +7,7 @@
 docker： https://hub.docker.com/r/trliwork/trojan-go/tags
 
 国际网络
+
 ```shell
 docker pull trliwork/trojan-go:latest
 ```
@@ -16,6 +17,7 @@ podman pull trliwork/trojan-go:latest
 ```
 
 国内网络
+
 ```shell
 docker pull dockerproxy.com/trliwork/trojan-go:latest
 ```
@@ -44,7 +46,7 @@ fork[@p4gefau1t](https://github.com/p4gefau1t/trojan-go) and [@fregie](https://g
 
 Trojan-Go 支持[多路复用](#多路复用)提升并发性能；使用[路由模块](#路由模块)实现国内外分流；支持 [CDN 流量中转](#websocket)(基于 WebSocket over TLS)；支持使用 AEAD 对 Trojan 流量进行[二次加密](#aead-加密)(基于 Shadowsocks AEAD)；支持可插拔的[传输层插件](#传输层插件)，允许替换 TLS，使用其他加密隧道传输 Trojan 协议流量。
 
-预编译二进制可执行文件可在 [Release 页面](https://gitlab.atcatw.org/atca/community-edition/trojan-go/-/releases)下载。解压后即可直接运行，无其他组件依赖。
+预编译二进制可执行文件可在 [Release 页面](https://gitlab.atcatw.org/atca/community-edition/trojan-go.git/-/releases)下载。解压后即可直接运行，无其他组件依赖。
 
 如遇到配置和使用问题、发现 bug，或是有更好的想法，欢迎加入 [Telegram 交流反馈群](https://t.me/trojan_go_chat)。
 
@@ -317,7 +319,7 @@ Trojan-Go 支持可插拔的传输层插件，并支持 Shadowsocks [SIP003](htt
 使用 `make` 进行编译：
 
 ```shell
-git clone https://gitlab.atcatw.org/atca/community-edition/trojan-go.git
+git clone https://gitlab.atcatw.org/atca/community-edition/trojan-go.git.git
 cd trojan-go
 make
 make install #安装systemd服务等，可选
