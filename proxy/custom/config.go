@@ -1,6 +1,6 @@
 package custom
 
-import "gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
+import "gitlab.atcatw.org/atca/community-edition/trojan-go/config"
 
 const Name = "CUSTOM"
 

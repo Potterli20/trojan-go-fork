@@ -12,12 +12,12 @@ import (
 
 	utls "github.com/refraction-networking/utls"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel/tls/fingerprint"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel/transport"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/tls/fingerprint"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/transport"
 )
 
 // Client is a tls client

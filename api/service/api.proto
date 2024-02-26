@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package trojan.api;
-option go_package = "gitlab.atcatw.org/atca/community-edition/trojan-go.git/api/service";
+option go_package = "gitlab.atcatw.org/atca/community-edition/trojan-go/api/service";
 
 message Traffic {
     uint64 upload_traffic = 1;

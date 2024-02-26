@@ -7,7 +7,7 @@ import (
 	"net"
 	"sync"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
 )
 
 // CheckConn checks if two netConn were connected and work properly

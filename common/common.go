@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
 )
 
 type Runnable interface {

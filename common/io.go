@@ -5,7 +5,7 @@ import (
 	"net"
 	"sync"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
 )
 
 type RewindReader struct {

@@ -1,6 +1,6 @@
 package websocket
 
-import "gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
+import "gitlab.atcatw.org/atca/community-edition/trojan-go/config"
 
 type WebsocketConfig struct {
 	Enabled bool   `json:"enabled" yaml:"enabled"`

@@ -4,5 +4,5 @@
 package build
 
 import (
-	_ "gitlab.atcatw.org/atca/community-edition/trojan-go.git/proxy/nat"
+	_ "gitlab.atcatw.org/atca/community-edition/trojan-go/proxy/nat"
 )

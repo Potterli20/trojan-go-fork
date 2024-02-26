@@ -5,7 +5,7 @@ import (
 	golog "log"
 	"os"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
 )
 
 func init() {

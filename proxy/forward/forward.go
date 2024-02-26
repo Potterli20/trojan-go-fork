@@ -3,11 +3,11 @@ package forward
 import (
 	"context"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/proxy"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/proxy/client"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel/dokodemo"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/proxy"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/proxy/client"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/dokodemo"
 )
 
 const Name = "FORWARD"

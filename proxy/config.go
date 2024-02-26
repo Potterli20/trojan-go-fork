@@ -1,6 +1,6 @@
 package proxy
 
-import "gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
+import "gitlab.atcatw.org/atca/community-edition/trojan-go/config"
 
 type Config struct {
 	RunType         string `json:"run_type" yaml:"run-type"`

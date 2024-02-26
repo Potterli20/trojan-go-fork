@@ -3,7 +3,7 @@
 
 package tproxy
 
-import "gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
+import "gitlab.atcatw.org/atca/community-edition/trojan-go/config"
 
 type Config struct {
 	LocalHost  string `json:"local_addr" yaml:"local-addr"`

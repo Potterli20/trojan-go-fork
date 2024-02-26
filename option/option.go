@@ -1,6 +1,6 @@
 package option
 
-import "gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+import "gitlab.atcatw.org/atca/community-edition/trojan-go/common"
 
 type Handler interface {
 	Name() string

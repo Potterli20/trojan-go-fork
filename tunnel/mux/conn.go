@@ -4,8 +4,8 @@ import (
 	"io"
 	"math/rand"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
 )
 
 type stickyConn struct {

@@ -7,11 +7,11 @@ import (
 	"io/ioutil"
 	"net"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/recorder"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel/mux"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/recorder"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/mux"
 )
 
 type PacketConn struct {

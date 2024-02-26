@@ -1,4 +1,4 @@
-module gitlab.atcatw.org/atca/community-edition/trojan-go.git
+module gitlab.atcatw.org/atca/community-edition/trojan-go
 
 go 1.22
 
