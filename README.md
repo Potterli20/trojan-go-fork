@@ -16,6 +16,12 @@ docker pull trliwork/trojan-go:latest
 podman pull trliwork/trojan-go:latest
 ```
 
+如果網路可能無法連線或者 DNS 無法有效在佈署過程中設定到，可以使用以下方式佈署：
+
+```bash
+docker build . -t trojan-go --network=host
+```
+
 国内网络
 
 ```shell
