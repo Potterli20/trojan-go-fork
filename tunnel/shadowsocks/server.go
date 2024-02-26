@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 
-	"https://gitlab.atcatw.org/atca/community-edition/go-shadowsocks2/core"
+	"github.com/Potterli20/go-shadowsocks2/core"
 
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"

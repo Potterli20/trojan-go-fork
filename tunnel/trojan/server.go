@@ -11,7 +11,7 @@ import (
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/redirector"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic/memory"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic/mysql"
+	"github.com/go-sql-driver/mysql"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/mux"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/websocket"

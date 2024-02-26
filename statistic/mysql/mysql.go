@@ -14,7 +14,7 @@ import (
 
 	// MySQL Driver
 	"github.com/go-sql-driver/mysql"
-	"github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql"
 
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"

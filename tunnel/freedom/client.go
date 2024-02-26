@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 
-	"gitlab.atcatw.org/atca/community-edition/socks5"
+	"github.com/Potterli20/socks5-fork"
 	"golang.org/x/net/proxy"
 
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"

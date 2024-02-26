@@ -4,5 +4,5 @@
 package build
 
 import (
-	_ "gitlab.atcatw.org/atca/community-edition/trojan-go/statistic/mysql"
+	_ "github.com/go-sql-driver/mysql"
 )
