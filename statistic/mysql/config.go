@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
 )
 
 type MySQLConfig struct {

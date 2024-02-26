@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"strings"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/option"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/proxy"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/option"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/proxy"
 )
 
 const Name = "URL"

@@ -6,7 +6,7 @@ package colorful
 import (
 	"runtime"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/log/golog/buffer"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log/golog/buffer"
 )
 
 // ColorBuffer add color option to buffer append

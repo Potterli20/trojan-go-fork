@@ -3,9 +3,9 @@ package simplesocks
 import (
 	"bytes"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/trojan"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel/trojan"
 )
 
 // Conn is a simplesocks connection

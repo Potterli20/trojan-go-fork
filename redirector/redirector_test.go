@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/test/util"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/test/util"
 )
 
 func TestRedirector(t *testing.T) {

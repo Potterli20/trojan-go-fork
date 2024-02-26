@@ -5,9 +5,9 @@ import (
 	"io"
 	"net"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
 )
 
 type packetInfo struct {

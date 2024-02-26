@@ -12,16 +12,16 @@ ARG REF
 
 ENV GOOS=$TARGETOS \
     GOARCH=$TARGETARCH
-
+RUN ping gitlab.atcatw.org -c 3
 RUN apk update &&\
     apk add --no-cache git make wget build-base &&\
     git clone https://gitlab.atcatw.org/atca/community-edition/trojan-go.git
 RUN if [[ -z "${REF}" ]]; then \
-    echo "No specific commit provided, use the latest one." \
+        echo "No specific commit provided, use the latest one." \
     ;else \
-    echo "Use commit ${REF}" &&\
-    cd trojan-go &&\
-    git checkout ${REF} \
+        echo "Use commit ${REF}" &&\
+        cd trojan-go &&\
+        git checkout ${REF} \
     ;fi
 RUN cd trojan-go &&\
     make &&\

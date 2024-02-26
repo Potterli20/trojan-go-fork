@@ -1,10 +1,10 @@
-module gitlab.atcatw.org/atca/community-edition/trojan-go
+module gitlab.atcatw.org/atca/community-edition/trojan-go.git
 
 go 1.22
 
 require (
-	https://github.com/shadowsocks/go-shadowsocks2 v0.1.5
-	gitlab.atcatw.org/atca/community-edition/socks5 v0.0.0-20240207131132-b3efd05aa09e
+	gitlab.atcatw.org/atca/community-edition/go-shadowsocks2 v0.1.5
+	gitlab.atcatw.org/atca/community-edition/socks5 v0.0.0
 	github.com/go-gorm/sqlite v0.0.0-20240225003918-d4b74a664240
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.6.0

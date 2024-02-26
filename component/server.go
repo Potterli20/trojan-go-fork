@@ -4,5 +4,5 @@
 package build
 
 import (
-	_ "gitlab.atcatw.org/atca/community-edition/trojan-go/proxy/server"
+	_ "gitlab.atcatw.org/atca/community-edition/trojan-go.git/proxy/server"
 )

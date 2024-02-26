@@ -4,12 +4,12 @@ import (
 	"context"
 	"net"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/api"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/trojan"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/api"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/statistic"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel/trojan"
 )
 
 type ClientAPI struct {

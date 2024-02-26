@@ -6,10 +6,10 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/proxy"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/proxy"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
 )
 
 func convert(i any) any {

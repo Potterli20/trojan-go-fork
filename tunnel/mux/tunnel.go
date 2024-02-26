@@ -3,7 +3,7 @@ package mux
 import (
 	"context"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
 )
 
 const Name = "MUX"

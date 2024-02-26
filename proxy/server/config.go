@@ -1,8 +1,8 @@
 package server
 
 import (
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/proxy/client"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/proxy/client"
 )
 
 func init() {

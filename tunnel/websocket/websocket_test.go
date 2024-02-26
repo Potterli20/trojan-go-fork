@@ -11,12 +11,12 @@ import (
 
 	"golang.org/x/net/websocket"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/test/util"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/freedom"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/transport"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/test/util"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel/freedom"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel/transport"
 )
 
 func TestWebsocket(t *testing.T) {

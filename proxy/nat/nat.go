@@ -6,12 +6,12 @@ package nat
 import (
 	"context"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/proxy"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/proxy/client"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/tproxy"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/proxy"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/proxy/client"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel/tproxy"
 )
 
 const Name = "NAT"

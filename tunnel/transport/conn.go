@@ -3,7 +3,7 @@ package transport
 import (
 	"net"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
 )
 
 type Conn struct {

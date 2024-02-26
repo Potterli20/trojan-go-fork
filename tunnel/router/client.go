@@ -10,13 +10,13 @@ import (
 
 	v2router "github.com/xtls/xray-core/app/router"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common/geodata"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/freedom"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/transport"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common/geodata"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel/freedom"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel/transport"
 )
 
 const (

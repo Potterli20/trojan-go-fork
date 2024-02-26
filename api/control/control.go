@@ -9,10 +9,10 @@ import (
 
 	"google.golang.org/grpc"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/api/service"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/option"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/api/service"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/option"
 )
 
 type apiController struct {

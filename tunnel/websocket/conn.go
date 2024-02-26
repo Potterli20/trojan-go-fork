@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
 	"golang.org/x/net/websocket"
 )
 

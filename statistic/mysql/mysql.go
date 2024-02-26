@@ -16,11 +16,11 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/go-sql-driver/mysql"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic/memory"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/statistic"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/statistic/memory"
 )
 
 const Name = "MYSQL"

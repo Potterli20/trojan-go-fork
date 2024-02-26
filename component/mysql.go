@@ -4,5 +4,5 @@
 package build
 
 import (
-	_ "gitlab.atcatw.org/atca/community-edition/trojan-go/statistic/mysql"
+	_ "gitlab.atcatw.org/atca/community-edition/trojan-go.git/statistic/mysql"
 )

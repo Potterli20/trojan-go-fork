@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"runtime"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/constant"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/option"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/constant"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/option"
 )
 
 type versionOption struct {
@@ -31,7 +31,7 @@ func (c *versionOption) Handle() error {
 		fmt.Println("")
 		fmt.Println("Developed by trli (p4gefau1t and fregie)")
 		fmt.Println("Licensed under GNU General Public License version 3")
-		fmt.Println("GitHub Repository:\thttps://gitlab.atcatw.org/atca/community-edition/trojan-go")
+		fmt.Println("GitHub Repository:\thttps://gitlab.atcatw.org/atca/community-edition/trojan-go.git")
 		fmt.Println("Trojan-Go Documents:\thttps://p4gefau1t.github.io/trojan-go/")
 		return nil
 	}

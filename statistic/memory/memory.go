@@ -8,11 +8,11 @@ import (
 
 	"golang.org/x/time/rate"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic/sqlite"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/statistic"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/statistic/sqlite"
 )
 
 const Name = "MEMORY"

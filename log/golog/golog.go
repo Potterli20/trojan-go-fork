@@ -15,8 +15,8 @@ import (
 
 	terminal "golang.org/x/term"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/log/golog/colorful"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/log/golog/colorful"
 )
 
 func init() {

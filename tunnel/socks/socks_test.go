@@ -13,12 +13,12 @@ import (
 	"gitlab.atcatw.org/atca/community-edition/socks5"
 	"golang.org/x/net/proxy"
 
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/test/util"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/adapter"
-	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/socks"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/test/util"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel/adapter"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go.git/tunnel/socks"
 )
 
 func TestSocks(t *testing.T) {
