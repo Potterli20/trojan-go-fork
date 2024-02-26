@@ -319,7 +319,7 @@ Trojan-Go 支持可插拔的传输层插件，并支持 Shadowsocks [SIP003](htt
 使用 `make` 进行编译：
 
 ```shell
-git clone https://gitlab.atcatw.org/atca/community-edition/trojan-go.git.git
+git clone https://gitlab.atcatw.org/atca/community-edition/trojan-go.git
 cd trojan-go
 make
 make install #安装systemd服务等，可选

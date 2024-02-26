@@ -31,7 +31,7 @@ func (c *versionOption) Handle() error {
 		fmt.Println("")
 		fmt.Println("Developed by trli (p4gefau1t and fregie)")
 		fmt.Println("Licensed under GNU General Public License version 3")
-		fmt.Println("GitHub Repository:\thttps://gitlab.atcatw.org/atca/community-edition/trojan-go.git")
+		fmt.Println("GitHub Repository:\thttps://gitlab.atcatw.org/atca/community-edition/trojan-go")
 		fmt.Println("Trojan-Go Documents:\thttps://p4gefau1t.github.io/trojan-go/")
 		return nil
 	}
