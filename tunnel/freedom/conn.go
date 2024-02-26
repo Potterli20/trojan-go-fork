@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"net"
 
-	"github.com/Potterli20/socks5-fork"
+	"gitlab.atcatw.org/atca/community-edition/socks5"
 
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
