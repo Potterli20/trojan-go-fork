@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Potterli20/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
 )
 
 type Foo struct {

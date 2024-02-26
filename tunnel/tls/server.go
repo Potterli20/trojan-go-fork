@@ -17,14 +17,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/config"
-	"github.com/Potterli20/trojan-go/log"
-	"github.com/Potterli20/trojan-go/redirector"
-	"github.com/Potterli20/trojan-go/tunnel"
-	"github.com/Potterli20/trojan-go/tunnel/tls/fingerprint"
-	"github.com/Potterli20/trojan-go/tunnel/transport"
-	"github.com/Potterli20/trojan-go/tunnel/websocket"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/redirector"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/tls/fingerprint"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/transport"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/websocket"
 )
 
 // Server is a tls server

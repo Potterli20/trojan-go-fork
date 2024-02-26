@@ -3,8 +3,8 @@ package dokodemo
 import (
 	"context"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
 )
 
 const Name = "DOKODEMO"

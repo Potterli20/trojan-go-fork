@@ -1,5 +1,5 @@
 NAME := trojan-go
-PACKAGE_NAME := github.com/Potterli20/trojan-go
+PACKAGE_NAME := gitlab.atcatw.org/atca/community-edition/trojan-go
 VERSION := `git describe --tags`
 COMMIT := `git rev-parse HEAD`
 

@@ -5,8 +5,8 @@ package sqlite
 import (
 	"errors"
 
-	"github.com/Potterli20/sqlite"
-	"github.com/Potterli20/trojan-go/statistic"
+	"github.com/go-gorm/sqlite"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

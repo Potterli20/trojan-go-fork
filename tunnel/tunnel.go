@@ -5,7 +5,7 @@ import (
 	"io"
 	"net"
 
-	"github.com/Potterli20/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
 )
 
 // Conn is the TCP connection in the tunnel

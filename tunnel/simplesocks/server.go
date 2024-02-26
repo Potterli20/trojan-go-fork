@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/log"
-	"github.com/Potterli20/trojan-go/recorder"
-	"github.com/Potterli20/trojan-go/tunnel"
-	"github.com/Potterli20/trojan-go/tunnel/mux"
-	"github.com/Potterli20/trojan-go/tunnel/trojan"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/recorder"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/mux"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/trojan"
 )
 
 // Server is a simplesocks server

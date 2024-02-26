@@ -12,9 +12,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/config"
-	"github.com/Potterli20/trojan-go/statistic/memory"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic/memory"
 )
 
 func TestServerAPI(t *testing.T) {

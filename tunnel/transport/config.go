@@ -1,7 +1,7 @@
 package transport
 
 import (
-	"github.com/Potterli20/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
 )
 
 type Config struct {

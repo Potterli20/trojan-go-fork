@@ -10,9 +10,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/log"
-	"github.com/Potterli20/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
 )
 
 type ConnectConn struct {

@@ -1,8 +1,8 @@
 package server
 
 import (
-	"github.com/Potterli20/trojan-go/config"
-	"github.com/Potterli20/trojan-go/proxy/client"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/proxy/client"
 )
 
 func init() {

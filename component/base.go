@@ -1,7 +1,7 @@
 package build
 
 import (
-	_ "github.com/Potterli20/trojan-go/log/golog"
-	_ "github.com/Potterli20/trojan-go/statistic/memory"
-	_ "github.com/Potterli20/trojan-go/version"
+	_ "gitlab.atcatw.org/atca/community-edition/trojan-go/log/golog"
+	_ "gitlab.atcatw.org/atca/community-edition/trojan-go/statistic/memory"
+	_ "gitlab.atcatw.org/atca/community-edition/trojan-go/version"
 )

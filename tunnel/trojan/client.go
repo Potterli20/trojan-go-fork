@@ -8,14 +8,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Potterli20/trojan-go/api"
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/config"
-	"github.com/Potterli20/trojan-go/log"
-	"github.com/Potterli20/trojan-go/statistic"
-	"github.com/Potterli20/trojan-go/statistic/memory"
-	"github.com/Potterli20/trojan-go/tunnel"
-	"github.com/Potterli20/trojan-go/tunnel/mux"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/api"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic/memory"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/mux"
 )
 
 const (

@@ -7,9 +7,9 @@ import (
 	"github.com/Potterli20/socks5-fork"
 	"golang.org/x/net/proxy"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/config"
-	"github.com/Potterli20/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
 )
 
 type Client struct {

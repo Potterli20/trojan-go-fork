@@ -7,8 +7,8 @@ import (
 	v2router "github.com/xtls/xray-core/app/router"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
 )
 
 type geoipCache map[string]*v2router.GeoIP

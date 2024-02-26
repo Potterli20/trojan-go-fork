@@ -9,9 +9,9 @@ import (
 
 	"github.com/Potterli20/socks5-fork"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/test/util"
-	"github.com/Potterli20/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/test/util"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
 )
 
 func TestConn(t *testing.T) {

@@ -4,6 +4,6 @@
 package build
 
 import (
-	_ "github.com/Potterli20/trojan-go/api/control"
-	_ "github.com/Potterli20/trojan-go/api/service"
+	_ "gitlab.atcatw.org/atca/community-edition/trojan-go/api/control"
+	_ "gitlab.atcatw.org/atca/community-edition/trojan-go/api/service"
 )

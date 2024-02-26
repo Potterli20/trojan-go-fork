@@ -9,10 +9,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/constant"
-	"github.com/Potterli20/trojan-go/log"
-	"github.com/Potterli20/trojan-go/option"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/constant"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/option"
 )
 
 type Option struct {

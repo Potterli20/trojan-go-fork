@@ -2,7 +2,7 @@
 
 package sqlite
 
-import "github.com/Potterli20/trojan-go/statistic"
+import "gitlab.atcatw.org/atca/community-edition/trojan-go/statistic"
 
 const Name = "sqlite"
 

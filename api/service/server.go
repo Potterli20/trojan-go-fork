@@ -11,13 +11,13 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/Potterli20/trojan-go/api"
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/config"
-	"github.com/Potterli20/trojan-go/log"
-	"github.com/Potterli20/trojan-go/recorder"
-	"github.com/Potterli20/trojan-go/statistic"
-	"github.com/Potterli20/trojan-go/tunnel/trojan"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/api"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/recorder"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/trojan"
 	"github.com/google/uuid"
 )
 

@@ -3,12 +3,12 @@ package shadowsocks
 import (
 	"context"
 
-	"github.com/Potterli20/go-shadowsocks2/core"
+	"https://github.com/shadowsocks/go-shadowsocks2/core"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/config"
-	"github.com/Potterli20/trojan-go/log"
-	"github.com/Potterli20/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
 )
 
 type Client struct {

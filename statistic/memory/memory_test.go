@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
 )
 
 func TestMemoryAuth(t *testing.T) {

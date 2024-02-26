@@ -3,7 +3,7 @@ package shadowsocks
 import (
 	"net"
 
-	"github.com/Potterli20/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
 )
 
 type Conn struct {

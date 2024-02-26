@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/config"
-	"github.com/Potterli20/trojan-go/test/util"
-	"github.com/Potterli20/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/test/util"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
 )
 
 type MockClient struct{}

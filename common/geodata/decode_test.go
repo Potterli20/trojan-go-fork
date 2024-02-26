@@ -9,8 +9,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/common/geodata"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common/geodata"
 )
 
 func init() {

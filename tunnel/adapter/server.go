@@ -5,13 +5,13 @@ import (
 	"net"
 	"sync"
 
-	"github.com/Potterli20/trojan-go/common"
-	"github.com/Potterli20/trojan-go/config"
-	"github.com/Potterli20/trojan-go/log"
-	"github.com/Potterli20/trojan-go/tunnel"
-	"github.com/Potterli20/trojan-go/tunnel/freedom"
-	"github.com/Potterli20/trojan-go/tunnel/http"
-	"github.com/Potterli20/trojan-go/tunnel/socks"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/log"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/freedom"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/http"
+	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/socks"
 )
 
 type Server struct {

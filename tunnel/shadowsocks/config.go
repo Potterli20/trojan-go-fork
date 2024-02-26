@@ -1,6 +1,6 @@
 package shadowsocks
 
-import "github.com/Potterli20/trojan-go/config"
+import "gitlab.atcatw.org/atca/community-edition/trojan-go/config"
 
 type ShadowsocksConfig struct {
 	Enabled  bool   `json:"enabled" yaml:"enabled"`
