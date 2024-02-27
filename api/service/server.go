@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
+	"github.com/google/uuid"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/api"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/common"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/config"
@@ -18,7 +19,6 @@ import (
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/recorder"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/tunnel/trojan"
-	"github.com/google/uuid"
 )
 
 type ServerAPI struct {
