@@ -3,12 +3,13 @@ module gitlab.atcatw.org/atca/community-edition/trojan-go
 go 1.22
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240208003849-29c0b26dbddb
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240227003841-52652e98e95b
 	github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e
 	github.com/Potterli20/sqlite v0.0.0-20240225121254-aacc768d00fc
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.6.0
 	github.com/refraction-networking/utls v1.6.3
+	github.com/shadowsocks/go-shadowsocks2 v0.1.5
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.8.4
 	github.com/xtaci/smux v1.5.24
@@ -50,7 +51,7 @@ require (
 	github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.19.0 // indirect
+	golang.org/x/crypto v0.20.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240205150955-31a09d347014 // indirect
