@@ -5,8 +5,8 @@ package sqlite
 import (
 	"errors"
 
-	"gorm.io/driver/sqlite"
 	"gitlab.atcatw.org/atca/community-edition/trojan-go/statistic"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
