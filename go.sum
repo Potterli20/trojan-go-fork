@@ -1,7 +1,5 @@
 cloud.google.com/go/oslogin v1.13.1 h1:1K4nOT5VEZNt7XkhaTXupBYos5HjzvJMfhvyD2wWdFs=
 cloud.google.com/go/oslogin v1.13.1/go.mod h1:vS8Sr/jR7QvPWpCjNqy6LYZr5Zs1e8ZGW/KPn9gmhws=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20240226210909-980e6769d876 h1:8PDJxRs1U4evV6+PO4b2CTQvGVt7AcU0lO3Ma6XrwCQ=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20240226210909-980e6769d876/go.mod h1:kqESqfBs5HY1I7rtZEyv2gsR+ca7A0YQMWioIpGsFp4=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20240227003841-52652e98e95b h1:sCqYgNpajMUpDo3XJoLOJg1ySubLWaa6YsGzYNuyKaE=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20240227003841-52652e98e95b/go.mod h1:kqESqfBs5HY1I7rtZEyv2gsR+ca7A0YQMWioIpGsFp4=
 github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e h1:HMHXQHBXyOxCAzT/9dhCRf7Fgdg+5VSB+TyF8A8LIus=
