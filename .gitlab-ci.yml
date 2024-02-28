@@ -22,6 +22,10 @@ before_script:
   # 安裝虛擬環境
   - apt install git make wget build-essential -y -f
   - apt install tzdata ca-certificates -y -f
+  
+  # 環境佈署
+  - go get -u .
+  - go get .
 
 format:
   stage: test
