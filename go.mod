@@ -3,7 +3,7 @@ module github.com/Potterli20/trojan-go-fork
 go 1.22
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240304151009-723e1e9257c6
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240304210816-c2cd8f8ff4ef
 	github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e
 	github.com/Potterli20/sqlite v0.0.0-20240304121952-087470e355bc
 	github.com/go-sql-driver/mysql v1.7.1
@@ -13,7 +13,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/xtaci/smux v1.5.24
 	github.com/xtls/xray-core v1.8.8
-	golang.org/x/net v0.21.0
+	golang.org/x/net v0.22.0
 	golang.org/x/term v0.18.0
 	golang.org/x/time v0.5.0
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9
@@ -50,11 +50,11 @@ require (
 	github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.20.0 // indirect
+	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240205150955-31a09d347014 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240304161311-37d4d3c04a78 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240304212257-790db918fca8 // indirect
 	modernc.org/gc/v3 v3.0.0-20240304020402-f0dba7c97c2b // indirect
 	modernc.org/libc v1.41.0 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
