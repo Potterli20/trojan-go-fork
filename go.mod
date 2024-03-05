@@ -3,9 +3,9 @@ module github.com/Potterli20/trojan-go-fork
 go 1.22
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240304210816-c2cd8f8ff4ef
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240305003851-ea4711c86213
 	github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e
-	github.com/Potterli20/sqlite v0.0.0-20240304121952-087470e355bc
+	github.com/Potterli20/sqlite v0.0.0-20240305003558-5b12445c96f9
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.6.0
 	github.com/refraction-networking/utls v1.6.3
@@ -45,7 +45,7 @@ require (
 	github.com/quic-go/quic-go v0.41.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
-	github.com/sagernet/sing v0.3.4 // indirect
+	github.com/sagernet/sing v0.3.5 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
