@@ -1,13 +1,9 @@
 cloud.google.com/go/oslogin v1.13.1 h1:1K4nOT5VEZNt7XkhaTXupBYos5HjzvJMfhvyD2wWdFs=
 cloud.google.com/go/oslogin v1.13.1/go.mod h1:vS8Sr/jR7QvPWpCjNqy6LYZr5Zs1e8ZGW/KPn9gmhws=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20240304210816-c2cd8f8ff4ef h1:5GapAh5sbP3HEhlBn6qE/Km5fVTwr6wg7IxAp3+viWc=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20240304210816-c2cd8f8ff4ef/go.mod h1:RCOqSrT+tDLAHUzlmkJ+/13xJkEtycMeqkv+nobGjnM=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20240305003851-ea4711c86213 h1:LMr8aGIFc1IToxE8QnRjKNPsrI4c9FiVFUA78NBKENM=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20240305003851-ea4711c86213/go.mod h1:RCOqSrT+tDLAHUzlmkJ+/13xJkEtycMeqkv+nobGjnM=
 github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e h1:HMHXQHBXyOxCAzT/9dhCRf7Fgdg+5VSB+TyF8A8LIus=
 github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e/go.mod h1:Nc8vlnyFPfEWOOu1hIYZQl6NjeSwIAfakeCs8R5ZvR4=
-github.com/Potterli20/sqlite v0.0.0-20240304121952-087470e355bc h1:dJeXKxvPbrKbcgjnYM2aABCc53e0RsPxXLPBYk3AZgg=
-github.com/Potterli20/sqlite v0.0.0-20240304121952-087470e355bc/go.mod h1:16MtSthodEYPQdjBxrNUsrYVHCMH7PQUX6TKRCz4r8Q=
 github.com/Potterli20/sqlite v0.0.0-20240305003558-5b12445c96f9 h1:c6Z94ItnOXfYUaby+xJ37fW2BiIfN/9YFXHTS3BrsRc=
 github.com/Potterli20/sqlite v0.0.0-20240305003558-5b12445c96f9/go.mod h1:H7IP+2pXvo4Nlt/UljXrwnz0VGu0l6DYNNWSWW6amLQ=
 github.com/andybalholm/brotli v1.1.0 h1:eLKJA0d02Lf0mVpIDgYnqXcUn0GqVmEFny3VuID1U3M=
@@ -94,8 +90,6 @@ github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstvQsPGkxUsCd2KWxErBblirPizecHcpD3ffK+s=
 github.com/rogpeppe/go-internal v1.9.0 h1:73kH8U+JUqXU8lRuOHeVHaa/SZPifC7BkcraZVejAe8=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=
-github.com/sagernet/sing v0.3.4 h1:mFGTVGFz/RxIDT9BMyJ67PanLxVh6fagB27eaUlO0aw=
-github.com/sagernet/sing v0.3.4/go.mod h1:qHySJ7u8po9DABtMYEkNBcOumx7ZZJf/fbv2sfTkNHE=
 github.com/sagernet/sing v0.3.5 h1:f87Y5tU8RiWhA/zzZy7rht3SbWU8t15YZEuj/UNi/gY=
 github.com/sagernet/sing v0.3.5/go.mod h1:+60H3Cm91RnL9dpVGWDPHt0zTQImO9Vfqt9a4rSambI=
 github.com/sagernet/sing-shadowsocks v0.2.6 h1:xr7ylAS/q1cQYS8oxKKajhuQcchd5VJJ4K4UZrrpp0s=
