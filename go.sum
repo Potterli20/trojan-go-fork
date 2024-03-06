@@ -4,8 +4,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20240305003851-ea4711c86213 h1:LMr8
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20240305003851-ea4711c86213/go.mod h1:RCOqSrT+tDLAHUzlmkJ+/13xJkEtycMeqkv+nobGjnM=
 github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e h1:HMHXQHBXyOxCAzT/9dhCRf7Fgdg+5VSB+TyF8A8LIus=
 github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e/go.mod h1:Nc8vlnyFPfEWOOu1hIYZQl6NjeSwIAfakeCs8R5ZvR4=
-github.com/Potterli20/sqlite v0.0.0-20240305003558-5b12445c96f9 h1:c6Z94ItnOXfYUaby+xJ37fW2BiIfN/9YFXHTS3BrsRc=
-github.com/Potterli20/sqlite v0.0.0-20240305003558-5b12445c96f9/go.mod h1:H7IP+2pXvo4Nlt/UljXrwnz0VGu0l6DYNNWSWW6amLQ=
 github.com/Potterli20/sqlite v0.0.0-20240305121354-d466d8427455 h1:N3HD4sqb+6H1C82vCOAojqShV4VSzOrdTZlndoGX3cI=
 github.com/Potterli20/sqlite v0.0.0-20240305121354-d466d8427455/go.mod h1:H7IP+2pXvo4Nlt/UljXrwnz0VGu0l6DYNNWSWW6amLQ=
 github.com/andybalholm/brotli v1.1.0 h1:eLKJA0d02Lf0mVpIDgYnqXcUn0GqVmEFny3VuID1U3M=
@@ -158,10 +156,14 @@ google.golang.org/genproto/googleapis/rpc v0.0.0-20240304212257-790db918fca8 h1:
 google.golang.org/genproto/googleapis/rpc v0.0.0-20240304212257-790db918fca8/go.mod h1:UCOku4NytXMJuLQE5VuqA5lX3PcHCBo8pxNyvkf4xBs=
 google.golang.org/grpc v1.62.0 h1:HQKZ/fa1bXkX1oFOvSjmZEUL8wLSaZTjCcLAlmZRtdk=
 google.golang.org/grpc v1.62.0/go.mod h1:IWTG0VlJLCh1SkC58F7np9ka9mx/WNkjl4PGJaiq+QE=
+google.golang.org/grpc v1.62.1 h1:B4n+nfKzOICUXMgyrNd19h/I9oH0L1pizfk1d4zSgTk=
+google.golang.org/grpc v1.62.1/go.mod h1:IWTG0VlJLCh1SkC58F7np9ka9mx/WNkjl4PGJaiq+QE=
 google.golang.org/protobuf v1.26.0-rc.1/go.mod h1:jlhhOSvTdKEhbULTjvd4ARK9grFBp09yW+WbY/TyQbw=
 google.golang.org/protobuf v1.26.0/go.mod h1:9q0QmTI4eRPtz6boOQmLYwt+qCgq0jsYwAQnmE0givc=
 google.golang.org/protobuf v1.32.0 h1:pPC6BG5ex8PDFnkbrGU3EixyhKcQ2aDuBS36lqK/C7I=
 google.golang.org/protobuf v1.32.0/go.mod h1:c6P6GXX6sHbq/GpV6MGZEdwhWPcYBgnhAHhKbcUYpos=
+google.golang.org/protobuf v1.33.0 h1:uNO2rsAINq/JlFpSdYEKIZ0uKD/R9cpdv0T+yoGwGmI=
+google.golang.org/protobuf v1.33.0/go.mod h1:c6P6GXX6sHbq/GpV6MGZEdwhWPcYBgnhAHhKbcUYpos=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 h1:qIbj1fsPNlZgppZ+VLlY7N33q108Sa+fhmuc+sWQYwY=
 gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
