@@ -77,7 +77,7 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 			return nil, common.NewError("freedom failed to dial udp to socks").Base(err)
 		}
 		// TODO fix hardcoded localhost
-		packetConn, err := net.ListenPacket("udp", "127.0.0.1:0")
+		packetConn, err := net.ListenPacket("udp", "0.0.0.0:0")
 		if err != nil {
 			return nil, common.NewError("freedom failed to listen udp").Base(err)
 		}
@@ -85,6 +85,14 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 		if err != nil {
 			return nil, common.NewError("freedom recv invalid socks bind addr").Base(err)
 		}
+		if socksAddr.IP.Equal(net.IPv4zero) {
+			ip, err := c.proxyAddr.ResolveIP()
+			if err != nil {
+				return nil, common.NewError("freedom failed to resolve ip").Base(err)
+			}
+			socksAddr.IP = ip
+		}
+		// fmt.Printf("socksAddr: %v\n", socksAddr)
 		return &SocksPacketConn{
 			PacketConn:  packetConn,
 			socksAddr:   socksAddr,
