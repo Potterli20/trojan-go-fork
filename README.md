@@ -37,6 +37,7 @@ docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
 - [x] 服务端修复上行限速无效的问题
 - [ ] 修复连接转发时阻塞可能导致goroutin泄露的问题
 - [ ] 修复client tcp and ws无法连接的问题
+- [x] add TCP FAST OPEN
 
 fork[@p4gefau1t](https://github.com/p4gefau1t/trojan-go) and [@fregie](https://github.com/fregie/trojan-go)、[@rezaf28](https://github.com/rezaf28)、[@lakwsh](https://github.com/lakwsh/trojan-go)
 ### 由于原项目作者已经不再维护，也不能再合入PR，同时原项目存在诸多的问题与bug。Fork了一个分支到个人项目进行维护,还存在其他bug或者需求可以提Issue
@@ -44,7 +45,6 @@ fork[@p4gefau1t](https://github.com/p4gefau1t/trojan-go) and [@fregie](https://g
  
 <details>
 <summary><code><strong>Trojan-Go <br/></strong></code></summary>
-
 使用 Go 实现的完整 Trojan 代理，兼容原版 Trojan 协议及配置文件格式。安全、高效、轻巧、易用。
 
 Trojan-Go 支持[多路复用](#多路复用)提升并发性能；使用[路由模块](#路由模块)实现国内外分流；支持 [CDN 流量中转](#Websocket)(基于 WebSocket over TLS)；支持使用 AEAD 对 Trojan 流量进行[二次加密](#aead-加密)(基于 Shadowsocks AEAD)；支持可插拔的[传输层插件](#传输层插件)，允许替换 TLS，使用其他加密隧道传输 Trojan 协议流量。

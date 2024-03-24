@@ -2,7 +2,10 @@ module github.com/Potterli20/trojan-go-fork
 
 go 1.22
 
+toolchain go1.22.1
+
 require (
+	github.com/database64128/tfo-go/v2 v2.2.0
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240305003851-ea4711c86213
 	github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e
 	github.com/Potterli20/sqlite v0.0.0-20240322121415-a039b40abe69
@@ -46,6 +49,7 @@ require (
 	github.com/quic-go/quic-go v0.42.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
+<<<<<<< HEAD
 	github.com/sagernet/sing v0.3.7 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 // indirect
@@ -65,4 +69,14 @@ require (
 	modernc.org/strutil v1.2.0 // indirect
 	modernc.org/token v1.1.0 // indirect
 	zgo.at/zcache v1.2.0 // indirect
+=======
+	github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d // indirect
+	github.com/txthinking/runnergroup v0.0.0-20210608031112-152c7c4432bf // indirect
+	github.com/txthinking/x v0.0.0-20210326105829-476fab902fbe // indirect
+	go.starlark.net v0.0.0-20210602144842-1cdb82c9e17a // indirect
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
+	golang.org/x/sys v0.18.0 // indirect
+	golang.org/x/text v0.3.6 // indirect
+	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
+>>>>>>> 14acb6a0fccd84eedb9141c3799e8c19c162d980
 )

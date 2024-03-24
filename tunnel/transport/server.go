@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/database64128/tfo-go/v2"
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -155,7 +156,7 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 			return nil, common.NewError("invalid plugin type: " + cfg.TransportPlugin.Type)
 		}
 	}
-	tcpListener, err := net.Listen("tcp", listenAddress.String())
+	tcpListener, err := tfo.Listen("tcp", listenAddress.String())
 	if err != nil {
 		return nil, err
 	}
