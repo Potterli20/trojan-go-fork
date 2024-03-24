@@ -5,10 +5,10 @@ go 1.22
 toolchain go1.22.1
 
 require (
-	github.com/database64128/tfo-go/v2 v2.2.0
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240305003851-ea4711c86213
 	github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e
 	github.com/Potterli20/sqlite v0.0.0-20240322121415-a039b40abe69
+	github.com/database64128/tfo-go/v2 v2.2.0
 	github.com/go-sql-driver/mysql v1.8.0
 	github.com/google/uuid v1.6.0
 	github.com/refraction-networking/utls v1.6.3

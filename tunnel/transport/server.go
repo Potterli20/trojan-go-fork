@@ -11,11 +11,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/database64128/tfo-go/v2"
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
+	"github.com/database64128/tfo-go/v2"
 )
 
 // Server is a server of transport layer

@@ -5,8 +5,8 @@ import (
 	"net"
 
 	"github.com/Potterli20/socks5-fork"
-	"golang.org/x/net/proxy"
 	"github.com/database64128/tfo-go/v2"
+	"golang.org/x/net/proxy"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
