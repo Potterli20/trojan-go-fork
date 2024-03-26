@@ -11,6 +11,9 @@ import (
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
+	dialer_sing_box "github.com/sagernet/sing-box/common/dialer"
+	"github.com/sagernet/sing/common/metadata"
+	"github.com/database64128/tfo-go/v2"
 )
 
 type Client struct {
@@ -25,27 +28,9 @@ type Client struct {
 	password     string
 }
 
-func (c *Client) DialTFOConn(addr *tunnel.Address, _ tunnel.Tunnel, b []byte) (tunnel.Conn, error) {
-	//TFO Only for tcp
-	network := "tcp"
-	if c.preferIPv4 {
-		network = "tcp4"
-	}
-	dialer := new(tfo.Dialer)
-	tcpConn, err := dialer.DialContext(c.ctx, network, addr.String(), b)
-	if err != nil {
-		return nil, common.NewError("freedom failed to dial " + addr.String()).Base(err)
-	}
-
-	tcpConn.(*net.TCPConn).SetKeepAlive(c.keepAlive)
-	tcpConn.(*net.TCPConn).SetNoDelay(c.noDelay)
-	return &Conn{
-		Conn: tcpConn,
-	}, nil
-}
-
 func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, error) {
 	// forward proxy
+
 	if c.forwardProxy {
 		var auth *proxy.Auth
 		if c.username != "" {
@@ -62,6 +47,12 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 		if err != nil {
 			return nil, common.NewError("freedom failed to dial target address via socks proxy " + addr.String()).Base(err)
 		}
+		// conn, err := dialer_sing_box.DialSlowContext(&tfo.Dialer{
+		// 	Dialer: net.Dialer{},
+		// }, context.Background(), "tcp", metadata.ParseSocksaddr(addr.String()))
+		// if err != nil {
+		// 	return nil, common.NewError("freedom failed to dial target address via socks proxy " + addr.String()).Base(err)
+		// }
 		return &Conn{
 			Conn: conn,
 		}, nil
@@ -70,14 +61,23 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 	if c.preferIPv4 {
 		network = "tcp4"
 	}
-	dialer := new(net.Dialer)
-	tcpConn, err := dialer.DialContext(c.ctx, network, addr.String())
+	// dialer := new(net.Dialer)
+	// tcpConn, err := dialer.DialContext(c.ctx, network, addr.String())
+	// if err != nil {
+	// 	return nil, common.NewError("freedom failed to dial " + addr.String()).Base(err)
+	// }
+	tcpConn, err := dialer_sing_box.DialSlowContext(&tfo.Dialer{
+		Dialer: net.Dialer{
+			DualStack: true,
+		},
+		DisableTFO: false,
+	}, context.Background(), network, metadata.ParseSocksaddr(addr.String()))
 	if err != nil {
 		return nil, common.NewError("freedom failed to dial " + addr.String()).Base(err)
 	}
 
-	tcpConn.(*net.TCPConn).SetKeepAlive(c.keepAlive)
-	tcpConn.(*net.TCPConn).SetNoDelay(c.noDelay)
+	// tcpConn.(*net.TCPConn).SetKeepAlive(c.keepAlive)
+	// tcpConn.(*net.TCPConn).SetNoDelay(c.noDelay)
 	return &Conn{
 		Conn: tcpConn,
 	}, nil
