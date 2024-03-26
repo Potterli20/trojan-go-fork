@@ -11,7 +11,7 @@ import (
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
-	"github.com/SagerNet/tfo-go"
+	"github.com/sagernet/tfo-go"
 	dialer_sing_box "github.com/sagernet/sing-box/common/dialer"
 	"github.com/sagernet/sing/common/metadata"
 )
