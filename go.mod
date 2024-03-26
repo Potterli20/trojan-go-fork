@@ -9,7 +9,7 @@ require (
 	github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e
 	github.com/Potterli20/sqlite v0.0.0-20240322121415-a039b40abe69
 	github.com/database64128/tfo-go/v2 v2.2.0
-	github.com/go-sql-driver/mysql v1.8.0
+	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/refraction-networking/utls v1.6.3
 	github.com/sagernet/sing v0.3.8
@@ -77,7 +77,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240325203815-454cdb8f5daa // indirect
 	modernc.org/gc/v3 v3.0.0-20240304020402-f0dba7c97c2b // indirect
-	modernc.org/libc v1.47.0 // indirect
+	modernc.org/libc v1.48.0 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.7.2 // indirect
 	modernc.org/sqlite v1.29.5 // indirect
