@@ -14,6 +14,7 @@ require (
 	github.com/refraction-networking/utls v1.6.3
 	github.com/sagernet/sing v0.3.8
 	github.com/sagernet/sing-box v1.8.10
+	github.com/sagernet/tfo-go v0.0.0-20231209031829-7b5343ac1dc6
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.9.0
 	github.com/xtaci/smux v1.5.24
@@ -60,7 +61,6 @@ require (
 	github.com/sagernet/netlink v0.0.0-20220905062125-8043b4a9aa97 // indirect
 	github.com/sagernet/sing-dns v0.1.14 // indirect
 	github.com/sagernet/sing-tun v0.2.5 // indirect
-	github.com/sagernet/tfo-go v0.0.0-20231209031829-7b5343ac1dc6 // indirect
 	github.com/sagernet/wireguard-go v0.0.0-20231215174105-89dec3b2f3e8 // indirect
 	github.com/scjalliance/comshim v0.0.0-20231116235529-bbacf79a4691 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect

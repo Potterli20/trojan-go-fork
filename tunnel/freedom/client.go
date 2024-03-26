@@ -11,9 +11,9 @@ import (
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
-	"github.com/sagernet/tfo-go"
 	dialer_sing_box "github.com/sagernet/sing-box/common/dialer"
 	"github.com/sagernet/sing/common/metadata"
+	"github.com/sagernet/tfo-go"
 )
 
 type Client struct {
