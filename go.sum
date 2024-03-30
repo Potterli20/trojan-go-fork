@@ -139,6 +139,8 @@ github.com/xtls/reality v0.0.0-20231112171332-de1173cf2b19 h1:capMfFYRgH9BCLd6A3
 github.com/xtls/reality v0.0.0-20231112171332-de1173cf2b19/go.mod h1:dm4y/1QwzjGaK17ofi0Vs6NpKAHegZky8qk6J2JJZAE=
 github.com/xtls/xray-core v1.8.9 h1:wefcON0behu4DoQvCKJYZKsJlSvNhyq2I7vC2fxLFcY=
 github.com/xtls/xray-core v1.8.9/go.mod h1:XDE4f422qJKAU3hNDSNZyWrOHvn9kF8UHVdyOzU38rc=
+github.com/xtls/xray-core v1.8.10 h1:qxae6gSteonpPI7EZyOyqw5HmRVRzmU07qs0l1GNqz4=
+github.com/xtls/xray-core v1.8.10/go.mod h1:Mc1t+kLBPE5a1EpsUNKjMLviGz3Y0XywxeEraJZAMlI=
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 h1:SpG238mmCez9TdHDu0Qba+ol57R+/pUxvJsDXT22Fug=
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055/go.mod h1:CiDImH0b0JKWrAXdXqw9cBrz31oDVUBWdthDYs7dpkI=
 go.uber.org/mock v0.4.0 h1:VcM4ZOtdbR4f6VXfiOpwpVJDL6lCReaZ6mw31wqh7KU=
