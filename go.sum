@@ -109,6 +109,8 @@ github.com/sagernet/sing-shadowsocks v0.2.6 h1:xr7ylAS/q1cQYS8oxKKajhuQcchd5VJJ4
 github.com/sagernet/sing-shadowsocks v0.2.6/go.mod h1:j2YZBIpWIuElPFL/5sJAj470bcn/3QQ5lxZUNKLDNAM=
 github.com/sagernet/sing-tun v0.2.5 h1:DtXyS2weCc87bXe4GQkLkW7OyhXvKpBi2ppPpH7aHJM=
 github.com/sagernet/sing-tun v0.2.5/go.mod h1:GtKY1Sr2CCWLHPjVj9GZpBFZ/KoXOzVBSxXvmCCPxT4=
+github.com/sagernet/sing-tun v0.2.6 h1:FKXzh34uuO5RStBgf3Zi+Txan5eS9YTVOQrJRAbJBHk=
+github.com/sagernet/sing-tun v0.2.6/go.mod h1:MKAAHUzVfj7d9zos4lsz6wjXu86/mJyd/gejiAnWj/w=
 github.com/sagernet/tfo-go v0.0.0-20231209031829-7b5343ac1dc6 h1:z3SJQhVyU63FT26Wn/UByW6b7q8QKB0ZkPqsyqcz2PI=
 github.com/sagernet/tfo-go v0.0.0-20231209031829-7b5343ac1dc6/go.mod h1:73xRZuxwkFk4aiLw28hG8W6o9cr2UPrGL9pdY2UTbvY=
 github.com/sagernet/wireguard-go v0.0.0-20231215174105-89dec3b2f3e8 h1:R0OMYAScomNAVpTfbHFpxqJpvwuhxSRi+g6z7gZhABs=

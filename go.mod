@@ -59,7 +59,7 @@ require (
 	github.com/sagernet/gvisor v0.0.0-20240315080113-799fb6b6d311 // indirect
 	github.com/sagernet/netlink v0.0.0-20220905062125-8043b4a9aa97 // indirect
 	github.com/sagernet/sing-dns v0.1.14 // indirect
-	github.com/sagernet/sing-tun v0.2.5 // indirect
+	github.com/sagernet/sing-tun v0.2.6 // indirect
 	github.com/sagernet/wireguard-go v0.0.0-20231215174105-89dec3b2f3e8 // indirect
 	github.com/scjalliance/comshim v0.0.0-20231116235529-bbacf79a4691 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
