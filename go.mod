@@ -61,7 +61,6 @@ require (
 	github.com/sagernet/sing-dns v0.1.14 // indirect
 	github.com/sagernet/sing-tun v0.2.6 // indirect
 	github.com/sagernet/wireguard-go v0.0.0-20231215174105-89dec3b2f3e8 // indirect
-	github.com/scjalliance/comshim v0.0.0-20231116235529-bbacf79a4691 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 // indirect
 	github.com/vishvananda/netns v0.0.4 // indirect
