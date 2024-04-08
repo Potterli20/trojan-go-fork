@@ -103,6 +103,8 @@ github.com/sagernet/sing v0.3.8 h1:gm4JKalPhydMYX2zFOTnnd4TXtM/16WFRqSjMepYQQk=
 github.com/sagernet/sing v0.3.8/go.mod h1:+60H3Cm91RnL9dpVGWDPHt0zTQImO9Vfqt9a4rSambI=
 github.com/sagernet/sing-box v1.8.10 h1:TQ6IywEyM+zVeQAQ+DNU/ckIPMOA3S5t2YNfN3v+KAE=
 github.com/sagernet/sing-box v1.8.10/go.mod h1:/GeALLiu6ulARtnYpBynNQ3DrurEJrzBRoLpdRk5RVM=
+github.com/sagernet/sing-box v1.8.11 h1:oqHj8sIuzN9GOF+9t+1vJ/FSzv54sXJUt26oS4VO5ck=
+github.com/sagernet/sing-box v1.8.11/go.mod h1:cB8xHY208gVw3n4umnAfIMUOJ2Kzt0Uz+gUIcjczsb0=
 github.com/sagernet/sing-dns v0.1.14 h1:kxE/Ik3jMXmD3sXsdt9MgrNzLFWt64mghV+MQqzyf40=
 github.com/sagernet/sing-dns v0.1.14/go.mod h1:AA+vZMNovuPN5i/sPnfF6756Nq94nzb5nXodMWbta5w=
 github.com/sagernet/sing-shadowsocks v0.2.6 h1:xr7ylAS/q1cQYS8oxKKajhuQcchd5VJJ4K4UZrrpp0s=
@@ -202,6 +204,8 @@ modernc.org/gc/v3 v3.0.0-20240304020402-f0dba7c97c2b h1:BnN1t+pb1cy61zbvSUV7SeI0
 modernc.org/gc/v3 v3.0.0-20240304020402-f0dba7c97c2b/go.mod h1:Qz0X07sNOR1jWYCrJMEnbW/X55x206Q7Vt4mz6/wHp4=
 modernc.org/libc v1.49.2 h1:Orwx0/7S7n5GCug2ANrqW0e7ZBu1mteep7xFkZCNydk=
 modernc.org/libc v1.49.2/go.mod h1:yMZuGkn7pXbKfoT/M35gFJOAEdSKdxL0q64sF7KqCDo=
+modernc.org/libc v1.49.3 h1:j2MRCRdwJI2ls/sGbeSk0t2bypOG/uvPZUsGQFDulqg=
+modernc.org/libc v1.49.3/go.mod h1:yMZuGkn7pXbKfoT/M35gFJOAEdSKdxL0q64sF7KqCDo=
 modernc.org/mathutil v1.6.0 h1:fRe9+AmYlaej+64JsEEhoWuAYBkOtQiMEU7n/XgfYi4=
 modernc.org/mathutil v1.6.0/go.mod h1:Ui5Q9q1TR2gFm0AQRqQUaBWFLAhQpCwNcuhBOSedWPo=
 modernc.org/memory v1.8.0 h1:IqGTL6eFMaDZZhEWwcREgeMXYwmW83LYW8cROZYkg+E=
