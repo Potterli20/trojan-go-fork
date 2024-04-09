@@ -7,7 +7,7 @@ toolchain go1.22.2
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240404210746-c1c43ac9639a
 	github.com/Potterli20/socks5-fork v0.0.0-20240207131132-b3efd05aa09e
-	github.com/Potterli20/sqlite v0.0.0-20240406003603-d69908ebac10
+	github.com/Potterli20/sqlite v0.0.0-20240408225727-13626dd48872
 	github.com/database64128/tfo-go/v2 v2.2.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
@@ -23,7 +23,7 @@ require (
 	golang.org/x/term v0.19.0
 	golang.org/x/time v0.5.0
 	google.golang.org/genproto v0.0.0-20240325203815-454cdb8f5daa
-	google.golang.org/grpc v1.63.0
+	google.golang.org/grpc v1.63.2
 	google.golang.org/protobuf v1.33.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.25.9
@@ -79,7 +79,7 @@ require (
 	modernc.org/libc v1.49.3 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.8.0 // indirect
-	modernc.org/sqlite v1.29.5 // indirect
+	modernc.org/sqlite v1.29.6 // indirect
 	modernc.org/strutil v1.2.0 // indirect
 	modernc.org/token v1.1.0 // indirect
 	zgo.at/zcache v1.2.0 // indirect
