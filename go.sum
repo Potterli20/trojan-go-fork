@@ -97,8 +97,6 @@ github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr8meMVVGxhp+QBTqY91tM8HjEuMjGg=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstvQsPGkxUsCd2KWxErBblirPizecHcpD3ffK+s=
-github.com/sagernet/gvisor v0.0.0-20240315080113-799fb6b6d311 h1:eUQ6kJZXK77xYZeeNrBb/7JMv0S0Wkk7EpmKUb3fsfc=
-github.com/sagernet/gvisor v0.0.0-20240315080113-799fb6b6d311/go.mod h1:mDrXZSv401qiaFiiIUC59Zp4VG5f4nqXFqDmp5o3hYI=
 github.com/sagernet/gvisor v0.0.0-20240428053021-e691de28565f h1:NkhuupzH5ch7b/Y/6ZHJWrnNLoiNnSJaow6DPb8VW2I=
 github.com/sagernet/gvisor v0.0.0-20240428053021-e691de28565f/go.mod h1:KXmw+ouSJNOsuRpg4wgwwCQuunrGz4yoAqQjsLjc6N0=
 github.com/sagernet/netlink v0.0.0-20220905062125-8043b4a9aa97 h1:iL5gZI3uFp0X6EslacyapiRz7LLSJyr4RajF/BhMVyE=
@@ -113,8 +111,6 @@ github.com/sagernet/sing-dns v0.2.0-beta.16 h1:bzd4B8eHD7/WO3HrYknvgE8A56/R3n5oX
 github.com/sagernet/sing-dns v0.2.0-beta.16/go.mod h1:XU6Vqr6aHcMz/34Fcv8jmXpRCEuShzW+B7Qg1Xe1nxY=
 github.com/sagernet/sing-shadowsocks v0.2.6 h1:xr7ylAS/q1cQYS8oxKKajhuQcchd5VJJ4K4UZrrpp0s=
 github.com/sagernet/sing-shadowsocks v0.2.6/go.mod h1:j2YZBIpWIuElPFL/5sJAj470bcn/3QQ5lxZUNKLDNAM=
-github.com/sagernet/sing-tun v0.2.7-beta.1 h1:rudjVa4Gjg9f3uYaUwH8qK5uMxl7MOIiYlmGhTqWgXI=
-github.com/sagernet/sing-tun v0.2.7-beta.1/go.mod h1:9pauo20NImopbZ3ixnJs6m5CbzhJitfvii6w4Rk3QMg=
 github.com/sagernet/sing-tun v0.2.7-beta.2 h1:UO/Ketf15I+xDSi9XnrS65dxm2AmCZ+dgA6dt/jt7ko=
 github.com/sagernet/sing-tun v0.2.7-beta.2/go.mod h1:xPaOkQhngPMILx+/9DMLCFl4vSxUU2tMnCPSlf05HLo=
 github.com/sagernet/tfo-go v0.0.0-20231209031829-7b5343ac1dc6 h1:z3SJQhVyU63FT26Wn/UByW6b7q8QKB0ZkPqsyqcz2PI=
