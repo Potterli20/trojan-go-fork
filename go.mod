@@ -11,7 +11,7 @@ require (
 	github.com/database64128/tfo-go/v2 v2.2.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
-	github.com/refraction-networking/utls v1.6.4
+	github.com/refraction-networking/utls v1.6.5
 	github.com/sagernet/sing v0.4.0-beta.18
 	github.com/sagernet/sing-box v1.8.12
 	github.com/sagernet/tfo-go v0.0.0-20231209031829-7b5343ac1dc6
