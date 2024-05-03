@@ -7,11 +7,11 @@ toolchain go1.22.2
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240404210746-c1c43ac9639a
 	github.com/Potterli20/socks5-fork v0.0.0-20240419135439-d311534fa771
-	github.com/Potterli20/sqlite v0.0.0-20240427121257-773179ddb1fb
+	github.com/Potterli20/sqlite v0.0.0-20240503121418-229e1b79fcad
 	github.com/database64128/tfo-go/v2 v2.2.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
-	github.com/refraction-networking/utls v1.6.5
+	github.com/refraction-networking/utls v1.6.6
 	github.com/sagernet/sing v0.4.0-beta.18
 	github.com/sagernet/sing-box v1.8.13
 	github.com/sagernet/tfo-go v0.0.0-20231209031829-7b5343ac1dc6
