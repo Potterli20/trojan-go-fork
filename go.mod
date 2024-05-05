@@ -5,7 +5,7 @@ go 1.22
 toolchain go1.22.2
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240504150856-5e1080cb93ed
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240504181028-02e7d6d38891
 	github.com/Potterli20/socks5-fork v0.0.0-20240419135439-d311534fa771
 	github.com/Potterli20/sqlite v0.0.0-20240504003719-a65a426bb9e2
 	github.com/database64128/tfo-go/v2 v2.2.0
