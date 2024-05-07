@@ -4,8 +4,6 @@ filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
 github.com/OmarTariq612/goech v0.0.0-20240405204721-8e2e1dafd3a0 h1:Wo41lDOevRJSGpevP+8Pk5bANX7fJacO2w04aqLiC5I=
 github.com/OmarTariq612/goech v0.0.0-20240405204721-8e2e1dafd3a0/go.mod h1:FVGavL/QEBQDcBpr3fAojoK17xX5k9bicBphrOpP7uM=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20240506150928-9fc671ebe823 h1:wBpLwjczG/NTLuDpXmw70C25cZXLR1zKLgXw/NCGspM=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20240506150928-9fc671ebe823/go.mod h1:aZiqdnv79cCSCrW/p6BMyJpz4XPedgao2Kok1ZES6vA=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20240506181347-1ba8a3686a70 h1:2J8I1kg+wGFr+l2RpiQ2ETf/QeYBu7eeSe03DIbFUfM=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20240506181347-1ba8a3686a70/go.mod h1:aZiqdnv79cCSCrW/p6BMyJpz4XPedgao2Kok1ZES6vA=
 github.com/Potterli20/socks5-fork v0.0.0-20240419135439-d311534fa771 h1:MgYbL1J2e8/NrFYLo9u/xDjJyCmPvcDb5UWMf/R4/0Q=
@@ -175,8 +173,6 @@ google.golang.org/genproto v0.0.0-20240325203815-454cdb8f5daa h1:ePqxpG3LVx+feAU
 google.golang.org/genproto v0.0.0-20240325203815-454cdb8f5daa/go.mod h1:CnZenrTdRJb7jc+jOm0Rkywq+9wh0QC4U8tyiRbEPPM=
 google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237 h1:RFiFrvy37/mpSpdySBDrUdipW/dHwsRwh3J3+A9VgT4=
 google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237/go.mod h1:Z5Iiy3jtmioajWHDGFk7CeugTyHtPvMHA4UTmUkyalE=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20240429193739-8cf5692501f6 h1:DujSIu+2tC9Ht0aPNA7jgj23Iq8Ewi5sgkQ++wdvonE=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20240429193739-8cf5692501f6/go.mod h1:WtryC6hu0hhx87FDGxWCDptyssuo68sk10vYjF+T9fY=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20240506185236-b8a5c65736ae h1:c55+MER4zkBS14uJhSZMGGmya0yJx5iHV4x/fpOSNRk=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20240506185236-b8a5c65736ae/go.mod h1:I7Y+G38R2bu5j1aLzfFmQfTcU/WnFuqDwLZAbvKTKpM=
 google.golang.org/grpc v1.63.2 h1:MUeiw1B2maTVZthpU5xvASfTh3LDbxHd6IJ6QQVU+xM=
