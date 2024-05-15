@@ -57,7 +57,7 @@ require (
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/sagernet/gvisor v0.0.0-20240428053021-e691de28565f // indirect
 	github.com/sagernet/netlink v0.0.0-20220905062125-8043b4a9aa97 // indirect
-	github.com/sagernet/sing-dns v0.2.0-beta.17 // indirect
+	github.com/sagernet/sing-dns v0.2.0-beta.18 // indirect
 	github.com/sagernet/sing-tun v0.2.7 // indirect
 	github.com/sagernet/wireguard-go v0.0.0-20231215174105-89dec3b2f3e8 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect

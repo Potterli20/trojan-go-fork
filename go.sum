@@ -107,6 +107,8 @@ github.com/sagernet/sing-box v1.8.13 h1:M8mLo7AWDKV9d+Bq41fOz7B5CvS4+xhBR1tmwzrr
 github.com/sagernet/sing-box v1.8.13/go.mod h1:Cb0FBO7r5UnQJQ7Ql0jgdJ8SmzCyFvCQ7eeXq2clTOI=
 github.com/sagernet/sing-dns v0.2.0-beta.17 h1:LYDdj+UzYAKF5AIjBe/8STU6Uq3cfbRQgNkgh2AxYOU=
 github.com/sagernet/sing-dns v0.2.0-beta.17/go.mod h1:k/dmFcQpg6+m08gC1yQBy+13+QkuLqpKr4bIreq4U24=
+github.com/sagernet/sing-dns v0.2.0-beta.18 h1:6vzXZThRdA7YUzBOpSbUT48XRumtl/KIpIHFSOP0za8=
+github.com/sagernet/sing-dns v0.2.0-beta.18/go.mod h1:k/dmFcQpg6+m08gC1yQBy+13+QkuLqpKr4bIreq4U24=
 github.com/sagernet/sing-shadowsocks v0.2.6 h1:xr7ylAS/q1cQYS8oxKKajhuQcchd5VJJ4K4UZrrpp0s=
 github.com/sagernet/sing-shadowsocks v0.2.6/go.mod h1:j2YZBIpWIuElPFL/5sJAj470bcn/3QQ5lxZUNKLDNAM=
 github.com/sagernet/sing-tun v0.2.7 h1:6QtJkeSj6BTTQPGxbbiuV8eh7GdV46w2G0N8CmISwdc=
