@@ -103,6 +103,8 @@ github.com/sagernet/quic-go v0.43.0-beta.3 h1:qclJbbpgZe76EH62Bdu3LfDSC2zmuxj7zX
 github.com/sagernet/quic-go v0.43.0-beta.3/go.mod h1:3EtxR1Yaa1FZu6jFPiBHpOAdhOxL4A3EPxmiVgjJvVM=
 github.com/sagernet/sing v0.4.0-beta.18 h1:oK+pvyXnFwxwvQkeUqgxIeATiMHcrH5doLKKDGNmQkU=
 github.com/sagernet/sing v0.4.0-beta.18/go.mod h1:PFQKbElc2Pke7faBLv8oEba5ehtKO21Ho+TkYemTI3Y=
+github.com/sagernet/sing v0.4.0-beta.19 h1:Kzh2f6eaxt09S+bEL8F4Bgy03qkNf+4Tt8g7/5lxp/o=
+github.com/sagernet/sing v0.4.0-beta.19/go.mod h1:PFQKbElc2Pke7faBLv8oEba5ehtKO21Ho+TkYemTI3Y=
 github.com/sagernet/sing-box v1.8.13 h1:M8mLo7AWDKV9d+Bq41fOz7B5CvS4+xhBR1tmwzrr7PY=
 github.com/sagernet/sing-box v1.8.13/go.mod h1:Cb0FBO7r5UnQJQ7Ql0jgdJ8SmzCyFvCQ7eeXq2clTOI=
 github.com/sagernet/sing-dns v0.2.0-beta.18 h1:6vzXZThRdA7YUzBOpSbUT48XRumtl/KIpIHFSOP0za8=
@@ -204,6 +206,8 @@ modernc.org/gc/v3 v3.0.0-20240304020402-f0dba7c97c2b h1:BnN1t+pb1cy61zbvSUV7SeI0
 modernc.org/gc/v3 v3.0.0-20240304020402-f0dba7c97c2b/go.mod h1:Qz0X07sNOR1jWYCrJMEnbW/X55x206Q7Vt4mz6/wHp4=
 modernc.org/libc v1.50.6 h1:72NPEFMyKP01RJrKXS2eLXv35UklKqlJZ1b9P7gSo6I=
 modernc.org/libc v1.50.6/go.mod h1:8lr2m1THY5Z3ikGyUc3JhLEQg1oaIBz/AQixw8/eksQ=
+modernc.org/libc v1.50.7 h1:25+61e/ZI1e53ynk8dvS/BvWie3lIJPR1KVlTdGkkCg=
+modernc.org/libc v1.50.7/go.mod h1:8lr2m1THY5Z3ikGyUc3JhLEQg1oaIBz/AQixw8/eksQ=
 modernc.org/mathutil v1.6.0 h1:fRe9+AmYlaej+64JsEEhoWuAYBkOtQiMEU7n/XgfYi4=
 modernc.org/mathutil v1.6.0/go.mod h1:Ui5Q9q1TR2gFm0AQRqQUaBWFLAhQpCwNcuhBOSedWPo=
 modernc.org/memory v1.8.0 h1:IqGTL6eFMaDZZhEWwcREgeMXYwmW83LYW8cROZYkg+E=
@@ -214,6 +218,8 @@ modernc.org/sortutil v1.2.0 h1:jQiD3PfS2REGJNzNCMMaLSp/wdMNieTbKX920Cqdgqc=
 modernc.org/sortutil v1.2.0/go.mod h1:TKU2s7kJMf1AE84OoiGppNHJwvB753OYfNl2WRb++Ss=
 modernc.org/sqlite v1.29.9 h1:9RhNMklxJs+1596GNuAX+O/6040bvOwacTxuFcRuQow=
 modernc.org/sqlite v1.29.9/go.mod h1:ItX2a1OVGgNsFh6Dv60JQvGfJfTPHPVpV6DF59akYOA=
+modernc.org/sqlite v1.29.10 h1:3u93dz83myFnMilBGCOLbr+HjklS6+5rJLx4q86RDAg=
+modernc.org/sqlite v1.29.10/go.mod h1:ItX2a1OVGgNsFh6Dv60JQvGfJfTPHPVpV6DF59akYOA=
 modernc.org/strutil v1.2.0 h1:agBi9dp1I+eOnxXeiZawM8F4LawKv4NzGWSaLfyeNZA=
 modernc.org/strutil v1.2.0/go.mod h1:/mdcBmfOibveCTBxUl5B5l6W+TTH1FXPLHZE6bTosX0=
 modernc.org/token v1.1.0 h1:Xl7Ap9dKaEs5kLoOQeQmPWevfnk/DM5qcLcYlA8ys6Y=
