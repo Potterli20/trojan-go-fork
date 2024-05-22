@@ -7,7 +7,7 @@ toolchain go1.22.3
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240506181347-1ba8a3686a70
 	github.com/Potterli20/socks5-fork v0.0.0-20240507071102-588de4dd3f86
-	github.com/Potterli20/sqlite v0.0.0-20240521182539-1466bd7ea1a3
+	github.com/Potterli20/sqlite v0.0.0-20240522012341-4d91f73436ed
 	github.com/database64128/tfo-go/v2 v2.2.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
@@ -18,7 +18,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.9.0
 	github.com/xtaci/smux v1.5.24
-	github.com/xtls/xray-core v1.8.11
+	github.com/xtls/xray-core v1.8.12
 	golang.org/x/net v0.25.0
 	golang.org/x/term v0.20.0
 	golang.org/x/time v0.5.0
