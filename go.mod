@@ -12,7 +12,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/refraction-networking/utls v1.6.6
-	github.com/sagernet/sing v0.4.0-beta.20
+	github.com/sagernet/sing v0.4.0
 	github.com/sagernet/sing-box v1.9.0
 	github.com/sagernet/tfo-go v0.0.0-20231209031829-7b5343ac1dc6
 	github.com/smartystreets/goconvey v1.8.1
