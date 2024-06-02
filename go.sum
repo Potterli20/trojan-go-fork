@@ -8,8 +8,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20240506181347-1ba8a3686a70 h1:2J8I
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20240506181347-1ba8a3686a70/go.mod h1:aZiqdnv79cCSCrW/p6BMyJpz4XPedgao2Kok1ZES6vA=
 github.com/Potterli20/socks5-fork v0.0.0-20240507071102-588de4dd3f86 h1:v+64iilLN5SvHZjEdZqykbP31psLwep3Qcoesqk2pWw=
 github.com/Potterli20/socks5-fork v0.0.0-20240507071102-588de4dd3f86/go.mod h1:EuG7x8j8lHCbOdYgNnTtQJW69NYSZ3sxF5gS/eXannI=
-github.com/Potterli20/sqlite v0.0.0-20240602013532-70dd238d9afc h1:zozUGc6cqe9NrGTlyRtznoAbgFR2U7vyrkFb7co/eN4=
-github.com/Potterli20/sqlite v0.0.0-20240602013532-70dd238d9afc/go.mod h1:BiWr7KRlAQXCMkp9hakPGpu1wZFI8zVc+emCFJLDEp4=
 github.com/Potterli20/sqlite v0.0.0-20240602062648-a12e397e0869 h1:dyLemAFbtE0mcRJPNivOQfOBO8+W/GAMK9UHloHBNj8=
 github.com/Potterli20/sqlite v0.0.0-20240602062648-a12e397e0869/go.mod h1:BiWr7KRlAQXCMkp9hakPGpu1wZFI8zVc+emCFJLDEp4=
 github.com/andybalholm/brotli v1.1.0 h1:eLKJA0d02Lf0mVpIDgYnqXcUn0GqVmEFny3VuID1U3M=
@@ -109,6 +107,8 @@ github.com/sagernet/sing-box v1.9.0 h1:USComw89XxfJwYTQIZn0k51DZLwytB/2o+qtmYqfe
 github.com/sagernet/sing-box v1.9.0/go.mod h1:7OFR+knnBYl9AeUpGT+EGFkhzM8KPXSZbbMi/vFoCDY=
 github.com/sagernet/sing-dns v0.2.0-beta.18 h1:6vzXZThRdA7YUzBOpSbUT48XRumtl/KIpIHFSOP0za8=
 github.com/sagernet/sing-dns v0.2.0-beta.18/go.mod h1:k/dmFcQpg6+m08gC1yQBy+13+QkuLqpKr4bIreq4U24=
+github.com/sagernet/sing-dns v0.3.0-beta.1 h1:ZARhK79eWYckWcGtYBLIT68LnwfbdE2EojkpIpoPGlc=
+github.com/sagernet/sing-dns v0.3.0-beta.1/go.mod h1:k/dmFcQpg6+m08gC1yQBy+13+QkuLqpKr4bIreq4U24=
 github.com/sagernet/sing-shadowsocks v0.2.6 h1:xr7ylAS/q1cQYS8oxKKajhuQcchd5VJJ4K4UZrrpp0s=
 github.com/sagernet/sing-shadowsocks v0.2.6/go.mod h1:j2YZBIpWIuElPFL/5sJAj470bcn/3QQ5lxZUNKLDNAM=
 github.com/sagernet/sing-tun v0.3.0 h1:XakQE8Z1+epoFD59/HzqeIut2WhI86Ms8anQWL7g4JA=
@@ -216,6 +216,8 @@ modernc.org/sortutil v1.2.0 h1:jQiD3PfS2REGJNzNCMMaLSp/wdMNieTbKX920Cqdgqc=
 modernc.org/sortutil v1.2.0/go.mod h1:TKU2s7kJMf1AE84OoiGppNHJwvB753OYfNl2WRb++Ss=
 modernc.org/sqlite v1.29.10 h1:3u93dz83myFnMilBGCOLbr+HjklS6+5rJLx4q86RDAg=
 modernc.org/sqlite v1.29.10/go.mod h1:ItX2a1OVGgNsFh6Dv60JQvGfJfTPHPVpV6DF59akYOA=
+modernc.org/sqlite v1.30.0 h1:8YhPUs/HTnlEgErn/jSYQTwHN/ex8CjHHjg+K9iG7LM=
+modernc.org/sqlite v1.30.0/go.mod h1:cgkTARJ9ugeXSNaLBPK3CqbOe7Ec7ZhWPoMFGldEYEw=
 modernc.org/strutil v1.2.0 h1:agBi9dp1I+eOnxXeiZawM8F4LawKv4NzGWSaLfyeNZA=
 modernc.org/strutil v1.2.0/go.mod h1:/mdcBmfOibveCTBxUl5B5l6W+TTH1FXPLHZE6bTosX0=
 modernc.org/token v1.1.0 h1:Xl7Ap9dKaEs5kLoOQeQmPWevfnk/DM5qcLcYlA8ys6Y=
