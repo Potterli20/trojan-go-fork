@@ -5,7 +5,7 @@ go 1.22
 toolchain go1.22.3
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240506181347-1ba8a3686a70
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240604151004-55ad1f67e231
 	github.com/Potterli20/socks5-fork v0.0.0-20240507071102-588de4dd3f86
 	github.com/Potterli20/sqlite v0.0.0-20240603012617-158621595a54
 	github.com/database64128/tfo-go/v2 v2.2.0
@@ -19,8 +19,8 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/xtaci/smux v1.5.24
 	github.com/xtls/xray-core v1.8.13
-	golang.org/x/net v0.25.0
-	golang.org/x/term v0.20.0
+	golang.org/x/net v0.26.0
+	golang.org/x/term v0.21.0
 	golang.org/x/time v0.5.0
 	google.golang.org/genproto v0.0.0-20240325203815-454cdb8f5daa
 	google.golang.org/grpc v1.64.0
@@ -65,12 +65,12 @@ require (
 	github.com/vishvananda/netns v0.0.4 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.23.0 // indirect
-	golang.org/x/mod v0.17.0 // indirect
+	golang.org/x/crypto v0.24.0 // indirect
+	golang.org/x/mod v0.18.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
-	golang.org/x/tools v0.21.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
 	modernc.org/gc/v3 v3.0.0-20240304020402-f0dba7c97c2b // indirect
