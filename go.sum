@@ -15,8 +15,6 @@ github.com/andybalholm/brotli v1.1.0/go.mod h1:sms7XGricyQI9K10gOSf56VKKWS4oLer5
 github.com/cloudflare/circl v1.3.9 h1:QFrlgFYf2Qpi8bSpVPK1HBvWpx16v/1TZivyo7pGuBE=
 github.com/cloudflare/circl v1.3.9/go.mod h1:PDRU+oXvdD7KCtgKxW95M5Z8BpSCJXQORiZFnBQS5QU=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
-github.com/database64128/tfo-go/v2 v2.2.0 h1:jad4q4hKPYvcEDtm4BX/OiTU0Bf+xFh45kUbruOuCso=
-github.com/database64128/tfo-go/v2 v2.2.0/go.mod h1:jhd7Xyn+9uHIpxVsSgistCgAYUlLGZNnWyHZHyz3p3o=
 github.com/database64128/tfo-go/v2 v2.2.1 h1:IFctPnetEQtGo7gI84QfR1pAbi6TRPkxCFyhWQ/qUXY=
 github.com/database64128/tfo-go/v2 v2.2.1/go.mod h1:SI59G6MmmzSm9/fSRTiyYyyInHp4WEF9lTldnm3mxmA=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
@@ -71,6 +69,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/miekg/dns v1.1.59 h1:C9EXc/UToRwKLhK5wKU/I4QVsBUc8kE6MkHBkeypWZs=
 github.com/miekg/dns v1.1.59/go.mod h1:nZpewl5p6IvctfgrckopVx2OlSEHPRO/U4SYkRklrEk=
+github.com/miekg/dns v1.1.61 h1:nLxbwF3XxhwVSm8g9Dghm9MHPaUZuqhPiGL+675ZmEs=
+github.com/miekg/dns v1.1.61/go.mod h1:mnAarhS3nWaW+NVP2wTkYVIZyHNJ098SJZUki3eykwQ=
 github.com/ncruces/go-strftime v0.1.9 h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=
 github.com/ncruces/go-strftime v0.1.9/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
@@ -198,6 +198,7 @@ modernc.org/cc/v4 v4.21.3 h1:2mhBdWKtivdFlLR1ecKXTljPG1mfvbByX7QKztAIJl8=
 modernc.org/cc/v4 v4.21.3/go.mod h1:HM7VJTZbUCR3rV8EYBi9wxnJ0ZBRiGE5OeGXNA0IsLQ=
 modernc.org/ccgo/v4 v4.17.12 h1:0AyNqiL5gJdZr80RN6kQkiuH1jBdq0XMNt+HUXp7NPs=
 modernc.org/ccgo/v4 v4.17.12/go.mod h1:eOo7PuWQu3OfkBH/kYP1/+owPVO+uQAA/XxE3vtKYus=
+modernc.org/ccgo/v4 v4.18.0 h1:BBw4q5LEv5hVbtUDPWUg/3Ybz0PzKni67NEmXJpS6fk=
 modernc.org/fileutil v1.3.0 h1:gQ5SIzK3H9kdfai/5x41oQiKValumqNTDXMvKo62HvE=
 modernc.org/fileutil v1.3.0/go.mod h1:XatxS8fZi3pS8/hKG2GH/ArUogfxjpEKs3Ku3aK4JyQ=
 modernc.org/gc/v2 v2.4.1 h1:9cNzOqPyMJBvrUipmynX0ZohMhcxPtMccYgGOJdOiBw=
@@ -206,6 +207,8 @@ modernc.org/gc/v3 v3.0.0-20240304020402-f0dba7c97c2b h1:BnN1t+pb1cy61zbvSUV7SeI0
 modernc.org/gc/v3 v3.0.0-20240304020402-f0dba7c97c2b/go.mod h1:Qz0X07sNOR1jWYCrJMEnbW/X55x206Q7Vt4mz6/wHp4=
 modernc.org/libc v1.53.1 h1:QuMfWQrOWcgaIaHDCZgUDDECJu5D7wsjLnLDzS7sBAg=
 modernc.org/libc v1.53.1/go.mod h1:RLSlYYmAlXxFAIx9E2UEYh1zJVbocA3oNkq+a1s4jms=
+modernc.org/libc v1.53.2 h1:s/EzD+mZWtZ9+7b6dmqNmt+dQdgdMgmmT4wQooQJ2j0=
+modernc.org/libc v1.53.2/go.mod h1:WTMgD8qXTXPsh0KD3TMtn/Q5KhrYxwPVV18uXHRlddk=
 modernc.org/mathutil v1.6.0 h1:fRe9+AmYlaej+64JsEEhoWuAYBkOtQiMEU7n/XgfYi4=
 modernc.org/mathutil v1.6.0/go.mod h1:Ui5Q9q1TR2gFm0AQRqQUaBWFLAhQpCwNcuhBOSedWPo=
 modernc.org/memory v1.8.0 h1:IqGTL6eFMaDZZhEWwcREgeMXYwmW83LYW8cROZYkg+E=
