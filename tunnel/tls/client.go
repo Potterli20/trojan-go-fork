@@ -47,9 +47,9 @@ func (c *Client) DialPacket(tunnel tunnel.Tunnel) (tunnel.PacketConn, error) {
 
 func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel.Conn, error) {
 	// 检查 address 是否为 nil
-	if address == nil {
-		return nil, common.NewError("Address is nil")
-	}
+	//if address == nil {
+	//	return nil, common.NewError("Address is nil")
+	//}
 
 	conn, err := net.Dial("tcp", address.String())
 	if err != nil {
