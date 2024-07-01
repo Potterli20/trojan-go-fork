@@ -36,7 +36,7 @@ docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
 - [x] 支持指定转发buffer大小及数量限制，可以更好的控制内存占用
 - [x] 服务端修复上行限速无效的问题
 - [ ] 修复连接转发时阻塞可能导致goroutin泄露的问题
-- [ ] 修复client tcp and ws无法连接的问题
+- [x] 修复client tcp and ws无法连接的问题
 - [x] add TCP FAST OPEN
 
 fork[@p4gefau1t](https://github.com/p4gefau1t/trojan-go) and [@fregie](https://github.com/fregie/trojan-go)、[@rezaf28](https://github.com/rezaf28)、[@lakwsh](https://github.com/lakwsh/trojan-go)、[@lbsystem](https://github.com/lbsystem)
