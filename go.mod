@@ -5,9 +5,9 @@ go 1.22
 toolchain go1.22.4
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240704150937-bd8830c058ef
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240704181245-843f9654fc9c
 	github.com/Potterli20/socks5-fork v0.0.0-20240614034840-153bf7062706
-	github.com/Potterli20/sqlite v0.0.0-20240703182512-dba54bf4ff35
+	github.com/Potterli20/sqlite v0.0.0-20240704182642-90f66238e71d
 	github.com/database64128/tfo-go/v2 v2.2.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
@@ -20,7 +20,7 @@ require (
 	github.com/xtaci/smux v1.5.24
 	github.com/xtls/xray-core v1.8.16
 	golang.org/x/net v0.26.0
-	golang.org/x/term v0.21.0
+	golang.org/x/term v0.22.0
 	golang.org/x/time v0.5.0
 	google.golang.org/genproto v0.0.0-20240325203815-454cdb8f5daa
 	google.golang.org/grpc v1.65.0
