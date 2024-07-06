@@ -4,8 +4,6 @@ filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
 github.com/OmarTariq612/goech v0.0.0-20240405204721-8e2e1dafd3a0 h1:Wo41lDOevRJSGpevP+8Pk5bANX7fJacO2w04aqLiC5I=
 github.com/OmarTariq612/goech v0.0.0-20240405204721-8e2e1dafd3a0/go.mod h1:FVGavL/QEBQDcBpr3fAojoK17xX5k9bicBphrOpP7uM=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20240704181245-843f9654fc9c h1:KOhpO4v7ef+cII/h+90v/2B/9zwtULWzsP2Tc9/H1VQ=
-github.com/Potterli20/go-shadowsocks2 v0.0.0-20240704181245-843f9654fc9c/go.mod h1:JAG2ADcGI+PNxWNdU4N4+q6lb7WUKsvl6SqoWmgL+eM=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20240705150952-6a714f6a9239 h1:AkxjLFo2oqImB+eyt808qrDPKS0eHn4G3cwxObx4YBw=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20240705150952-6a714f6a9239/go.mod h1:KqPXe9G1MlqeyovW1Dzx9MF+mHr09n65wis9CbSBJro=
 github.com/Potterli20/socks5-fork v0.0.0-20240614034840-153bf7062706 h1:/ZTWsmF41Cdp8abRvNryJOB0xsR3GfwRU61TI37ReIs=
@@ -152,8 +150,6 @@ golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 h1:yixxcjnhBmY0nkL253HFVIm0J
 golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8/go.mod h1:jj3sYF3dwk5D+ghuXyeI3r5MFf+NT2An6/9dOA95KSI=
 golang.org/x/mod v0.19.0 h1:fEdghXQSo20giMthA7cd28ZC+jts4amQ3YMXiP5oMQ8=
 golang.org/x/mod v0.19.0/go.mod h1:hTbmBsO62+eylJbnUtE2MGJUyE7QWk4xUqPFrRgJ+7c=
-golang.org/x/net v0.26.0 h1:soB7SVo0PWrY4vPW/+ay0jKDNScG2X9wFeYlXIvJsOQ=
-golang.org/x/net v0.26.0/go.mod h1:5YKkiSynbBIh3p6iOc/vibscux0x38BZDkn8sCUPxHE=
 golang.org/x/net v0.27.0 h1:5K3Njcw06/l2y9vpGCSdcxWOYHOUk3dVNGDXN+FvAys=
 golang.org/x/net v0.27.0/go.mod h1:dDi0PyhWNoiUOrAS8uXv/vnScO4wnHQO4mj9fn/RytE=
 golang.org/x/sync v0.7.0 h1:YsImfSBoP9QPYL0xyKJPq0gcaJdG3rInoqxTWbfQu9M=
