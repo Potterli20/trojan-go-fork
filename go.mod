@@ -7,7 +7,7 @@ toolchain go1.22.4
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240705150952-6a714f6a9239
 	github.com/Potterli20/socks5-fork v0.0.0-20240614034840-153bf7062706
-	github.com/Potterli20/sqlite v0.0.0-20240724182907-8aa1b3ef4afe
+	github.com/Potterli20/sqlite v0.0.0-20240725013601-b04c50553c86
 	github.com/database64128/tfo-go/v2 v2.2.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
@@ -57,7 +57,7 @@ require (
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/sagernet/gvisor v0.0.0-20240428053021-e691de28565f // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
-	github.com/sagernet/sing-dns v0.3.0-beta.10 // indirect
+	github.com/sagernet/sing-dns v0.3.0-beta.12 // indirect
 	github.com/sagernet/sing-tun v0.3.2 // indirect
 	github.com/sagernet/wireguard-go v0.0.0-20231215174105-89dec3b2f3e8 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
