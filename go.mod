@@ -17,7 +17,7 @@ require (
 	github.com/sagernet/tfo-go v0.0.0-20231209031829-7b5343ac1dc6
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.9.0
-	github.com/xtaci/smux v1.5.25
+	github.com/xtaci/smux v1.5.26
 	github.com/xtls/xray-core v1.8.21
 	golang.org/x/net v0.27.0
 	golang.org/x/term v0.22.0
