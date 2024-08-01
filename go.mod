@@ -73,7 +73,7 @@ require (
 	golang.org/x/tools v0.23.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240528184218-531527333157 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240730163845-b1a4ccb954bf // indirect
-	modernc.org/gc/v3 v3.0.0-20240722195230-4a140ff9c08e // indirect
+	modernc.org/gc/v3 v3.0.0-20240801135723-a856999a2e4a // indirect
 	modernc.org/libc v1.55.7 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.8.0 // indirect
