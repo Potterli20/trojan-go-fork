@@ -8,6 +8,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20240809004747-544e9b9fedd1 h1:HLwT
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20240809004747-544e9b9fedd1/go.mod h1:s8byTvqom80jUdfMbylm9zr4NLekGaTEDR4u1qYf0Vw=
 github.com/Potterli20/socks5-fork v0.0.0-20240614034840-153bf7062706 h1:/ZTWsmF41Cdp8abRvNryJOB0xsR3GfwRU61TI37ReIs=
 github.com/Potterli20/socks5-fork v0.0.0-20240614034840-153bf7062706/go.mod h1:meGnoouiZyDeMdWmjALNtpNCuDD5eEsAhvdgnSd+zBA=
+github.com/Potterli20/socks5-fork v0.0.0-20240814042456-3df42faab229 h1:7uaHrFVG+Bfh8+3ICqfYXyclzK7jZZGJpmYssyIfyZQ=
+github.com/Potterli20/socks5-fork v0.0.0-20240814042456-3df42faab229/go.mod h1:GE5HG8HlinG7MDcIjo4plLmY1MWnddIYbfhupq0hlx0=
 github.com/Potterli20/sqlite v0.0.0-20240813063013-eb25ff96890a h1:AJLldxFieu+HpTH4KWdH3Am5ptxyqZEDAJP6GgY57AI=
 github.com/Potterli20/sqlite v0.0.0-20240813063013-eb25ff96890a/go.mod h1:U3IiN11lHapjOubOXVzxRLVk9VIITP6aMPGQL9N/9+s=
 github.com/andybalholm/brotli v1.1.0 h1:eLKJA0d02Lf0mVpIDgYnqXcUn0GqVmEFny3VuID1U3M=
@@ -68,8 +70,6 @@ github.com/logrusorgru/aurora v2.0.3+incompatible h1:tOpm7WcpBTn4fjmVfgpQq0EfczG
 github.com/logrusorgru/aurora v2.0.3+incompatible/go.mod h1:7rIyQOR62GCctdiQpZ/zOJlFyk6y+94wXzv6RNZgaR4=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/miekg/dns v1.1.61 h1:nLxbwF3XxhwVSm8g9Dghm9MHPaUZuqhPiGL+675ZmEs=
-github.com/miekg/dns v1.1.61/go.mod h1:mnAarhS3nWaW+NVP2wTkYVIZyHNJ098SJZUki3eykwQ=
 github.com/miekg/dns v1.1.62 h1:cN8OuEF1/x5Rq6Np+h1epln8OiyPWV+lROx9LxcGgIQ=
 github.com/miekg/dns v1.1.62/go.mod h1:mvDlcItzm+br7MToIKqkglaGhlFMHJ9DTNNWONWXbNQ=
 github.com/ncruces/go-strftime v0.1.9 h1:bY0MQC28UADQmHmaF5dgpLmImcShSi2kHU9XLdhx/f4=
