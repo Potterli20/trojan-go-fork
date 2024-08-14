@@ -48,7 +48,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/miekg/dns v1.1.61 // indirect
+	github.com/miekg/dns v1.1.62 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/oschwald/maxminddb-golang v1.13.1 // indirect
 	github.com/pires/go-proxyproto v0.7.0 // indirect
