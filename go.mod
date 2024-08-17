@@ -7,7 +7,7 @@ toolchain go1.23.0
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240816150654-a81ad4114763
 	github.com/Potterli20/socks5-fork v0.0.0-20240816150806-74eb47240ddc
-	github.com/Potterli20/sqlite v0.0.0-20240816181022-cd6a7cd3e647
+	github.com/Potterli20/sqlite v0.0.0-20240817150630-3f41aabc09e2
 	github.com/database64128/tfo-go/v2 v2.2.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
