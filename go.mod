@@ -11,7 +11,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/refraction-networking/utls v1.6.7
 	github.com/sagernet/sing v0.4.2
-	github.com/sagernet/sing-box v1.9.3
+	github.com/sagernet/sing-box v1.9.4
 	github.com/sagernet/tfo-go v0.0.0-20231209031829-7b5343ac1dc6
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.9.0
