@@ -72,11 +72,11 @@ release: geosite.dat geoip.dat geoip-only-cn-private.dat \
 	freebsd-amd64.zip freebsd-arm.zip freebsd-arm64.zip \
 	netbsd-amd64.zip netbsd-arm.zip netbsd-arm64.zip \
 	openbsd-amd64.zip openbsd-arm.zip openbsd-arm64.zip openbsd-ppc64.zip \
-  darwin-amd64-v2.zip linux-amd64-v2.zip freebsd-amd64-v2.zip netbsd-amd64-v2.zip openbsd-amd64-v2.zip windows-amd64-v2.zip \
-  darwin-amd64-v3.zip linux-amd64-v3.zip freebsd-amd64-v3.zip netbsd-amd64-v3.zip openbsd-amd64-v3.zip windows-amd64-v3.zip \
-  darwin-amd64-v4.zip linux-amd64-v4.zip freebsd-amd64-v4.zip netbsd-amd64-v4.zip openbsd-amd64-v4.zip windows-amd64-v4.zip \
-linux-386-sse2.zip freebsd-386-sse2.zip windows-386-sse2.zip netbsd-386-sse2.zip openbsd-386-sse2.zip \
-  linux-386-softfloat.zip freebsd-386-softfloat.zip darwin-386-softfloat.zip windows-386-softfloat.zip netbsd-386-softfloat.zip openbsd-386-softfloat.zip
+  darwin-amd64-v2.zip linux-amd64-v2.zip freebsd-amd64-v2.zip netbsd-amd64-v2.zip openbsd-amd64-v2.zip  \
+  darwin-amd64-v3.zip linux-amd64-v3.zip freebsd-amd64-v3.zip netbsd-amd64-v3.zip openbsd-amd64-v3.zip  \
+  darwin-amd64-v4.zip linux-amd64-v4.zip freebsd-amd64-v4.zip netbsd-amd64-v4.zip openbsd-amd64-v4.zip  \
+linux-386-sse2.zip freebsd-386-sse2.zip netbsd-386-sse2.zip openbsd-386-sse2.zip \
+  linux-386-softfloat.zip freebsd-386-softfloat.zip darwin-386-softfloat.zip netbsd-386-softfloat.zip openbsd-386-softfloat.zip
 
 #amd64(v2、v3、v4)
 darwin-amd64-v2:
@@ -99,10 +99,6 @@ openbsd-amd64-v2:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=amd64 GOAMD64=v2 GOOS=openbsd $(GOBUILD)/$@
 
-windows-amd64-v2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v2 GOOS=windows $(GOBUILD)/$@
-
 darwin-amd64-v3:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=amd64 GOAMD64=v3 GOOS=darwin $(GOBUILD)/$@
@@ -122,10 +118,6 @@ netbsd-amd64-v3:
 openbsd-amd64-v3:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=amd64 GOAMD64=v3 GOOS=openbsd $(GOBUILD)/$@
-
-windows-amd64-v3:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v3 GOOS=windows $(GOBUILD)/$@
 
 darwin-amd64-v4:
 	mkdir -p $(BUILD_DIR)/$@
@@ -147,10 +139,6 @@ openbsd-amd64-v4:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=amd64 GOAMD64=v4 GOOS=openbsd $(GOBUILD)/$@
 
-windows-amd64-v4:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v4 GOOS=windows $(GOBUILD)/$@
-
 #386(sse2、softfloat)
 
 linux-386-sse2:
@@ -168,10 +156,6 @@ netbsd-386-sse2:
 openbsd-386-sse2:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=386 GOOS=openbsd GO386=sse2 $(GOBUILD)/$@
-
-windows-386-sse2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=windows GO386=sse2 $(GOBUILD)/$@
 
 darwin-386-softfloat:
 	mkdir -p $(BUILD_DIR)/$@
@@ -192,11 +176,6 @@ netbsd-386-softfloat:
 openbsd-386-softfloat:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=386 GOOS=openbsd GO386=softfloat $(GOBUILD)/$@
-
-windows-386-softfloat:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=windows GO386=softfloat $(GOBUILD)/$@
-
 
 #other
 
