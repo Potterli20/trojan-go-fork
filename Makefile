@@ -72,7 +72,6 @@ release: geosite.dat geoip.dat geoip-only-cn-private.dat \
 	freebsd-amd64.zip freebsd-arm.zip freebsd-arm64.zip \
 	netbsd-amd64.zip netbsd-arm.zip netbsd-arm64.zip \
 	openbsd-amd64.zip openbsd-arm.zip openbsd-arm64.zip openbsd-ppc64.zip \
-	windows-amd64.zip windows-arm.zip windows-armv6.zip windows-armv7.zip windows-arm64.zip \
   darwin-amd64-v2.zip linux-amd64-v2.zip freebsd-amd64-v2.zip netbsd-amd64-v2.zip openbsd-amd64-v2.zip windows-amd64-v2.zip \
   darwin-amd64-v3.zip linux-amd64-v3.zip freebsd-amd64-v3.zip netbsd-amd64-v3.zip openbsd-amd64-v3.zip windows-amd64-v3.zip \
   darwin-amd64-v4.zip linux-amd64-v4.zip freebsd-amd64-v4.zip netbsd-amd64-v4.zip openbsd-amd64-v4.zip windows-amd64-v4.zip \
@@ -300,23 +299,3 @@ openbsd-arm64:
 openbsd-ppc64:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=ppc64 GOOS=openbsd $(GOBUILD)/$@
-
-windows-amd64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOOS=windows $(GOBUILD)/$@
-
-windows-arm:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm GOOS=windows $(GOBUILD)/$@
-
-windows-armv6:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm GOOS=windows GOARM=6 $(GOBUILD)/$@
-
-windows-armv7:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm GOOS=windows GOARM=7 $(GOBUILD)/$@
-
-windows-arm64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm64 GOOS=windows $(GOBUILD)/$@
