@@ -132,8 +132,6 @@ github.com/vishvananda/netlink v1.3.0 h1:X7l42GfcV4S6E4vHTsw48qbrV+9PVojNfIhZcwQ
 github.com/vishvananda/netlink v1.3.0/go.mod h1:i6NetklAujEcC6fK0JPjT8qSwWyO0HLn4UKG+hGqeJs=
 github.com/vishvananda/netns v0.0.4 h1:Oeaw1EM2JMxD51g9uhtC0D7erkIjgmj8+JZc26m1YX8=
 github.com/vishvananda/netns v0.0.4/go.mod h1:SpkAiCQRtJ6TvvxPnOSyH3BMl6unz3xZlaprSwhNNJM=
-github.com/xtaci/smux v1.5.27 h1:uIU1dpJQQWUCmGxXBgajLfc8cMMb13hCitj+HC5yC/Q=
-github.com/xtaci/smux v1.5.27/go.mod h1:OMlQbT5vcgl2gb49mFkYo6SMf+zP3rcjcwQz7ZU7IGY=
 github.com/xtaci/smux v1.5.28 h1:tmeq/1+gC56Q1NCHscC5Ky2ROmy/GUGoU+3d4wzlgOg=
 github.com/xtaci/smux v1.5.28/go.mod h1:OMlQbT5vcgl2gb49mFkYo6SMf+zP3rcjcwQz7ZU7IGY=
 github.com/xtls/reality v0.0.0-20240712055506-48f0b2d5ed6d h1:+B97uD9uHLgAAulhigmys4BVwZZypzK7gPN3WtpgRJg=
@@ -207,6 +205,8 @@ modernc.org/gc/v3 v3.0.0-20240801135723-a856999a2e4a h1:CfbpOLEo2IwNzJdMvE8aiRbP
 modernc.org/gc/v3 v3.0.0-20240801135723-a856999a2e4a/go.mod h1:Qz0X07sNOR1jWYCrJMEnbW/X55x206Q7Vt4mz6/wHp4=
 modernc.org/libc v1.60.0 h1:XeRF1gXky7JE5E8IErtYAdKj+ykZPdYUsgJNQ8RFWIA=
 modernc.org/libc v1.60.0/go.mod h1:xJuobKuNxKH3RUatS7GjR+suWj+5c2K7bi4m/S5arOY=
+modernc.org/libc v1.60.1 h1:at373l8IFRTkJIkAU85BIuUoBM4T1b51ds0E1ovPG2s=
+modernc.org/libc v1.60.1/go.mod h1:xJuobKuNxKH3RUatS7GjR+suWj+5c2K7bi4m/S5arOY=
 modernc.org/mathutil v1.6.0 h1:fRe9+AmYlaej+64JsEEhoWuAYBkOtQiMEU7n/XgfYi4=
 modernc.org/mathutil v1.6.0/go.mod h1:Ui5Q9q1TR2gFm0AQRqQUaBWFLAhQpCwNcuhBOSedWPo=
 modernc.org/memory v1.8.0 h1:IqGTL6eFMaDZZhEWwcREgeMXYwmW83LYW8cROZYkg+E=
