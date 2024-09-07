@@ -5,7 +5,7 @@ go 1.23
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240905210954-3b516b5ee187
 	github.com/Potterli20/socks5-fork v0.0.0-20240816150806-74eb47240ddc
-	github.com/Potterli20/sqlite v0.0.0-20240904181006-83c65005b4b6
+	github.com/Potterli20/sqlite v0.0.0-20240907150655-11377ae8b8ca
 	github.com/database64128/tfo-go/v2 v2.2.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
@@ -72,7 +72,6 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20240604185151-ef581f913117 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	modernc.org/gc/v3 v3.0.0-20240801135723-a856999a2e4a // indirect
-	modernc.org/libc v1.60.1 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.8.0 // indirect
 	modernc.org/sqlite v1.33.0 // indirect
