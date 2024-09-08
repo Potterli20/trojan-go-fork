@@ -6,7 +6,7 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240905210954-3b516b5ee187
 	github.com/Potterli20/socks5-fork v0.0.0-20240816150806-74eb47240ddc
 	github.com/Potterli20/sqlite v0.0.0-20240907150655-11377ae8b8ca
-	github.com/database64128/tfo-go/v2 v2.2.1
+	github.com/database64128/tfo-go/v2 v2.2.2
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/refraction-networking/utls v1.6.7
@@ -32,6 +32,7 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/cloudflare/circl v1.4.0 // indirect
+	github.com/database64128/netx-go v0.0.0-20240905055117-62795b8b054a // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
