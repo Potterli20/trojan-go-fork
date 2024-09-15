@@ -10,7 +10,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/refraction-networking/utls v1.6.7
-	github.com/sagernet/sing v0.4.2
+	github.com/sagernet/sing v0.4.3
 	github.com/sagernet/sing-box v1.9.4
 	github.com/sagernet/tfo-go v0.0.0-20231209031829-7b5343ac1dc6
 	github.com/smartystreets/goconvey v1.8.1
@@ -57,7 +57,7 @@ require (
 	github.com/sagernet/gvisor v0.0.0-20240428053021-e691de28565f // indirect
 	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
 	github.com/sagernet/sing-dns v0.3.0-beta.14 // indirect
-	github.com/sagernet/sing-tun v0.3.2 // indirect
+	github.com/sagernet/sing-tun v0.3.3 // indirect
 	github.com/sagernet/wireguard-go v0.0.0-20231215174105-89dec3b2f3e8 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 // indirect
