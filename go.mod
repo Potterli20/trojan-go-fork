@@ -55,7 +55,7 @@ require (
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/sagernet/gvisor v0.0.0-20240428053021-e691de28565f // indirect
-	github.com/sagernet/netlink v0.0.0-20240612041022-b9a21c07ac6a // indirect
+	github.com/sagernet/netlink v0.0.0-20240916134442-83396419aa8b // indirect
 	github.com/sagernet/sing-dns v0.3.0-beta.14 // indirect
 	github.com/sagernet/sing-tun v0.3.3 // indirect
 	github.com/sagernet/wireguard-go v0.0.0-20231215174105-89dec3b2f3e8 // indirect
@@ -65,6 +65,7 @@ require (
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/crypto v0.27.0 // indirect
+	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
 	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
@@ -73,7 +74,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20240604185151-ef581f913117 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	modernc.org/gc/v3 v3.0.0-20240801135723-a856999a2e4a // indirect
-	modernc.org/libc v1.60.1 // indirect
+	modernc.org/libc v1.61.0 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.8.0 // indirect
 	modernc.org/sqlite v1.33.1 // indirect
