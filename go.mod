@@ -5,7 +5,7 @@ go 1.23
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20240905210954-3b516b5ee187
 	github.com/Potterli20/socks5-fork v0.0.0-20240816150806-74eb47240ddc
-	github.com/Potterli20/sqlite v0.0.0-20240912181147-1b888273b34f
+	github.com/Potterli20/sqlite v0.0.0-20240916210721-cb4cdefdbb1a
 	github.com/database64128/tfo-go/v2 v2.2.2
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
