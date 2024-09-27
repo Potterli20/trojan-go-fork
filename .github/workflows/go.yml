@@ -16,6 +16,7 @@ jobs:
 
       - name: go
         run: |
+          go clean -modcache
           go mod tidy -compat=1.23
           gofmt -w -r 'interface{} -> any' .
           go get -u
