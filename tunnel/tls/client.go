@@ -10,7 +10,7 @@ import (
 	"net"
 	"strings"
 
-	utls "github.com/refraction-networking/utls"
+	utls "github.com/SagerNet/utls"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
