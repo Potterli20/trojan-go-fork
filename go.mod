@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/sqlite v0.0.0-20241005003904-d07f3abe9e23
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
-	github.com/metacubex/tfo-go v0.0.0-20240830120620-c5e019b67785
+	github.com/metacubex/tfo-go v0.0.0-20241006021335-daedaf0ca7aa
 	github.com/sagernet/sing v0.4.3
 	github.com/sagernet/sing-box v1.9.6
 	github.com/sagernet/utls v1.6.7
