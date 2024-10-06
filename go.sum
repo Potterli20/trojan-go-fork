@@ -66,8 +66,6 @@ github.com/logrusorgru/aurora v2.0.3+incompatible h1:tOpm7WcpBTn4fjmVfgpQq0EfczG
 github.com/logrusorgru/aurora v2.0.3+incompatible/go.mod h1:7rIyQOR62GCctdiQpZ/zOJlFyk6y+94wXzv6RNZgaR4=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/metacubex/tfo-go v0.0.0-20240830120620-c5e019b67785 h1:NNmI+ZV0DzNuqaAInRQuZFLHlWVuyHeow8jYpdKjHjo=
-github.com/metacubex/tfo-go v0.0.0-20240830120620-c5e019b67785/go.mod h1:c7bVFM9f5+VzeZ/6Kg77T/jrg1Xp8QpqlSHvG/aXVts=
 github.com/metacubex/tfo-go v0.0.0-20241006021335-daedaf0ca7aa h1:9mcjV+RGZVC3reJBNDjjNPyS8PmFG97zq56X7WNaFO4=
 github.com/metacubex/tfo-go v0.0.0-20241006021335-daedaf0ca7aa/go.mod h1:4tLB5c8U0CxpkFM+AJJB77jEaVDbLH5XQvy42vAGsWw=
 github.com/miekg/dns v1.1.62 h1:cN8OuEF1/x5Rq6Np+h1epln8OiyPWV+lROx9LxcGgIQ=
