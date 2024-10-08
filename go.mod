@@ -4,7 +4,7 @@ go 1.23
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20241004210959-0abcd969be46
-	github.com/Potterli20/socks5-fork v0.0.0-20240816150806-74eb47240ddc
+	github.com/Potterli20/socks5-fork v0.0.0-20241008151641-e83104243b8f
 	github.com/Potterli20/sqlite v0.0.0-20241005003904-d07f3abe9e23
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
@@ -48,7 +48,7 @@ require (
 	github.com/miekg/dns v1.1.62 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/oschwald/maxminddb-golang v1.13.1 // indirect
-	github.com/pires/go-proxyproto v0.7.0 // indirect
+	github.com/pires/go-proxyproto v0.8.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
@@ -58,7 +58,7 @@ require (
 	github.com/sagernet/sing-tun v0.3.3 // indirect
 	github.com/sagernet/wireguard-go v0.0.0-20231215174105-89dec3b2f3e8 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
-	github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 // indirect
+	github.com/txthinking/runnergroup v0.0.0-20241008125326-dc8c0dd74fb3 // indirect
 	github.com/vishvananda/netns v0.0.4 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
