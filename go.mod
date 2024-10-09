@@ -4,7 +4,7 @@ go 1.23
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20241004210959-0abcd969be46
-	github.com/Potterli20/socks5-fork v0.0.0-20241009091715-ff90c9f7b7ee
+	github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1
 	github.com/Potterli20/sqlite v0.0.0-20241005003904-d07f3abe9e23
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.1 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/andybalholm/brotli v1.1.0 // indirect
+	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/cloudflare/circl v1.4.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
