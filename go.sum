@@ -6,10 +6,10 @@ github.com/OmarTariq612/goech v0.0.0-20240405204721-8e2e1dafd3a0 h1:Wo41lDOevRJS
 github.com/OmarTariq612/goech v0.0.0-20240405204721-8e2e1dafd3a0/go.mod h1:FVGavL/QEBQDcBpr3fAojoK17xX5k9bicBphrOpP7uM=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20241004210959-0abcd969be46 h1:hLu27sZhJs1vDY1LFKWFa0xw9HzFrwhG9ijr+fhi/Ik=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20241004210959-0abcd969be46/go.mod h1:PqjPb8j9de3+zFei/ho65PWDCzEdViWKXtMjrHccWYc=
-github.com/Potterli20/socks5-fork v0.0.0-20240816150806-74eb47240ddc h1:vliQ23m1Kp+Lt4jd3XOyX9EAltVV41vkxJEUN4z9i8Q=
-github.com/Potterli20/socks5-fork v0.0.0-20240816150806-74eb47240ddc/go.mod h1:tu9KAzTswSWwjPn+YF8PYY2XSRJQyJZo8h1E7DInOxg=
 github.com/Potterli20/socks5-fork v0.0.0-20241008151641-e83104243b8f h1:aszKY+w8YcVgwhKc8gL+j/gL/9+8m1cpAxGho2aMItk=
 github.com/Potterli20/socks5-fork v0.0.0-20241008151641-e83104243b8f/go.mod h1:S8A8UGXTYDOJwWv6GPpnk94w8pkpg2Jnisc7SJyDjsQ=
+github.com/Potterli20/socks5-fork v0.0.0-20241008182100-a598425a0949 h1:/UlB6QY1xKsdO0VTYrkHb2jaQrkS6PTWvMQgeOaCgFQ=
+github.com/Potterli20/socks5-fork v0.0.0-20241008182100-a598425a0949/go.mod h1:S8A8UGXTYDOJwWv6GPpnk94w8pkpg2Jnisc7SJyDjsQ=
 github.com/Potterli20/sqlite v0.0.0-20241005003904-d07f3abe9e23 h1:YDnOH3oTkEr2GCIkopMOXJfsgXC/jlKv2hCiO/DM0fM=
 github.com/Potterli20/sqlite v0.0.0-20241005003904-d07f3abe9e23/go.mod h1:OsDd5pomJLND1eczyRSnqg4W+RjDIl2urZGG4RA49Og=
 github.com/andybalholm/brotli v1.1.0 h1:eLKJA0d02Lf0mVpIDgYnqXcUn0GqVmEFny3VuID1U3M=
@@ -82,8 +82,6 @@ github.com/oschwald/maxminddb-golang v1.13.1 h1:G3wwjdN9JmIK2o/ermkHM+98oX5fS+k5
 github.com/oschwald/maxminddb-golang v1.13.1/go.mod h1:K4pgV9N/GcK694KSTmVSDTODk4IsCNThNdTmnaBZ/F8=
 github.com/pelletier/go-toml v1.9.5 h1:4yBQzkHv+7BHq2PQUZF3Mx0IYxG7LsP222s7Agd3ve8=
 github.com/pelletier/go-toml v1.9.5/go.mod h1:u1nR/EPcESfeI/szUZKdtJ0xRNbUoANCkoOuaOx1Y+c=
-github.com/pires/go-proxyproto v0.7.0 h1:IukmRewDQFWC7kfnb66CSomk2q/seBuilHBYFwyq0Hs=
-github.com/pires/go-proxyproto v0.7.0/go.mod h1:Vz/1JPY/OACxWGQNIRY2BeyDmpoaWmEP40O9LbuiFR4=
 github.com/pires/go-proxyproto v0.8.0 h1:5unRmEAPbHXHuLjDg01CxJWf91cw3lKHc/0xzKpXEe0=
 github.com/pires/go-proxyproto v0.8.0/go.mod h1:iknsfgnH8EkjrMeMyvfKByp9TiBZCKZM0jx2xmKqnVY=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
@@ -128,8 +126,6 @@ github.com/smartystreets/goconvey v1.8.1 h1:qGjIddxOk4grTu9JPOU31tVfq3cNdBlNa5sS
 github.com/smartystreets/goconvey v1.8.1/go.mod h1:+/u4qLyY6x1jReYOp7GOM2FSt8aP9CzCZL03bI28W60=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86 h1:EX/lPhI7pMS0AOXCkKgdo/CCHOtTtTBvdjk7uUWeSYc=
-github.com/txthinking/runnergroup v0.0.0-20230325130830-408dc5853f86/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
 github.com/txthinking/runnergroup v0.0.0-20241008125326-dc8c0dd74fb3 h1:ezBKk3I9ERWRj7szt5db8QDP/5U3CUAhsrPFBXaEVSE=
 github.com/txthinking/runnergroup v0.0.0-20241008125326-dc8c0dd74fb3/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
 github.com/v2fly/ss-bloomring v0.0.0-20210312155135-28617310f63e h1:5QefA066A1tF8gHIiADmOVOV5LS43gt3ONnlEl3xkwI=
