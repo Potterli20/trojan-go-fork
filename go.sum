@@ -8,6 +8,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20241004210959-0abcd969be46 h1:hLu2
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20241004210959-0abcd969be46/go.mod h1:PqjPb8j9de3+zFei/ho65PWDCzEdViWKXtMjrHccWYc=
 github.com/Potterli20/socks5-fork v0.0.0-20241008182100-a598425a0949 h1:/UlB6QY1xKsdO0VTYrkHb2jaQrkS6PTWvMQgeOaCgFQ=
 github.com/Potterli20/socks5-fork v0.0.0-20241008182100-a598425a0949/go.mod h1:S8A8UGXTYDOJwWv6GPpnk94w8pkpg2Jnisc7SJyDjsQ=
+github.com/Potterli20/socks5-fork v0.0.0-20241009091715-ff90c9f7b7ee h1:ILn/+DpAg9agZQhppm4JUrLxM5aPtQVHIcw29T0mUEU=
+github.com/Potterli20/socks5-fork v0.0.0-20241009091715-ff90c9f7b7ee/go.mod h1:gFmAL+hBEuU06R4hkEbg+LfLL5mP5Y1tf6ILuZIhhmc=
 github.com/Potterli20/sqlite v0.0.0-20241005003904-d07f3abe9e23 h1:YDnOH3oTkEr2GCIkopMOXJfsgXC/jlKv2hCiO/DM0fM=
 github.com/Potterli20/sqlite v0.0.0-20241005003904-d07f3abe9e23/go.mod h1:OsDd5pomJLND1eczyRSnqg4W+RjDIl2urZGG4RA49Og=
 github.com/andybalholm/brotli v1.1.0 h1:eLKJA0d02Lf0mVpIDgYnqXcUn0GqVmEFny3VuID1U3M=
@@ -124,10 +126,10 @@ github.com/smartystreets/goconvey v1.8.1 h1:qGjIddxOk4grTu9JPOU31tVfq3cNdBlNa5sS
 github.com/smartystreets/goconvey v1.8.1/go.mod h1:+/u4qLyY6x1jReYOp7GOM2FSt8aP9CzCZL03bI28W60=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-github.com/txthinking/runnergroup v0.0.0-20241008125326-dc8c0dd74fb3 h1:ezBKk3I9ERWRj7szt5db8QDP/5U3CUAhsrPFBXaEVSE=
-github.com/txthinking/runnergroup v0.0.0-20241008125326-dc8c0dd74fb3/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
 github.com/txthinking/runnergroup v0.0.0-20241009051949-f7ff7c102744 h1:XN9waxhSikk+1LRU3U6dRoOBn5rkjUgqXH+FvfQhgE0=
 github.com/txthinking/runnergroup v0.0.0-20241009051949-f7ff7c102744/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
+github.com/txthinking/runnergroup v0.0.0-20241009114647-a2ed56ecb960 h1:BCuFrrzO0w1PoYYwtwHOwnvrPPjK/ufBHjrciHCQMAU=
+github.com/txthinking/runnergroup v0.0.0-20241009114647-a2ed56ecb960/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
 github.com/v2fly/ss-bloomring v0.0.0-20210312155135-28617310f63e h1:5QefA066A1tF8gHIiADmOVOV5LS43gt3ONnlEl3xkwI=
 github.com/v2fly/ss-bloomring v0.0.0-20210312155135-28617310f63e/go.mod h1:5t19P9LBIrNamL6AcMQOncg/r10y3Pc01AbHeMhwlpU=
 github.com/vishvananda/netlink v1.3.0 h1:X7l42GfcV4S6E4vHTsw48qbrV+9PVojNfIhZcwQdrZk=
