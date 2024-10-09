@@ -58,7 +58,7 @@ require (
 	github.com/sagernet/sing-tun v0.3.3 // indirect
 	github.com/sagernet/wireguard-go v0.0.0-20231215174105-89dec3b2f3e8 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
-	github.com/txthinking/runnergroup v0.0.0-20241008125326-dc8c0dd74fb3 // indirect
+	github.com/txthinking/runnergroup v0.0.0-20241009051949-f7ff7c102744 // indirect
 	github.com/vishvananda/netns v0.0.4 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect

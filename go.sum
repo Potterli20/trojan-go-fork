@@ -6,8 +6,6 @@ github.com/OmarTariq612/goech v0.0.0-20240405204721-8e2e1dafd3a0 h1:Wo41lDOevRJS
 github.com/OmarTariq612/goech v0.0.0-20240405204721-8e2e1dafd3a0/go.mod h1:FVGavL/QEBQDcBpr3fAojoK17xX5k9bicBphrOpP7uM=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20241004210959-0abcd969be46 h1:hLu27sZhJs1vDY1LFKWFa0xw9HzFrwhG9ijr+fhi/Ik=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20241004210959-0abcd969be46/go.mod h1:PqjPb8j9de3+zFei/ho65PWDCzEdViWKXtMjrHccWYc=
-github.com/Potterli20/socks5-fork v0.0.0-20241008151641-e83104243b8f h1:aszKY+w8YcVgwhKc8gL+j/gL/9+8m1cpAxGho2aMItk=
-github.com/Potterli20/socks5-fork v0.0.0-20241008151641-e83104243b8f/go.mod h1:S8A8UGXTYDOJwWv6GPpnk94w8pkpg2Jnisc7SJyDjsQ=
 github.com/Potterli20/socks5-fork v0.0.0-20241008182100-a598425a0949 h1:/UlB6QY1xKsdO0VTYrkHb2jaQrkS6PTWvMQgeOaCgFQ=
 github.com/Potterli20/socks5-fork v0.0.0-20241008182100-a598425a0949/go.mod h1:S8A8UGXTYDOJwWv6GPpnk94w8pkpg2Jnisc7SJyDjsQ=
 github.com/Potterli20/sqlite v0.0.0-20241005003904-d07f3abe9e23 h1:YDnOH3oTkEr2GCIkopMOXJfsgXC/jlKv2hCiO/DM0fM=
@@ -128,6 +126,8 @@ github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsT
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/txthinking/runnergroup v0.0.0-20241008125326-dc8c0dd74fb3 h1:ezBKk3I9ERWRj7szt5db8QDP/5U3CUAhsrPFBXaEVSE=
 github.com/txthinking/runnergroup v0.0.0-20241008125326-dc8c0dd74fb3/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
+github.com/txthinking/runnergroup v0.0.0-20241009051949-f7ff7c102744 h1:XN9waxhSikk+1LRU3U6dRoOBn5rkjUgqXH+FvfQhgE0=
+github.com/txthinking/runnergroup v0.0.0-20241009051949-f7ff7c102744/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
 github.com/v2fly/ss-bloomring v0.0.0-20210312155135-28617310f63e h1:5QefA066A1tF8gHIiADmOVOV5LS43gt3ONnlEl3xkwI=
 github.com/v2fly/ss-bloomring v0.0.0-20210312155135-28617310f63e/go.mod h1:5t19P9LBIrNamL6AcMQOncg/r10y3Pc01AbHeMhwlpU=
 github.com/vishvananda/netlink v1.3.0 h1:X7l42GfcV4S6E4vHTsw48qbrV+9PVojNfIhZcwQdrZk=
