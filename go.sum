@@ -120,8 +120,6 @@ github.com/sagernet/sing-dns v0.3.0-rc.2 h1:z1yROBxd/6wik5h53Sz5df1DSmbPTaOu/Z0w
 github.com/sagernet/sing-dns v0.3.0-rc.2/go.mod h1:TqLIelI+FAbVEdiTRolhGLOwvhVjY7oT+wezlOJUQ7M=
 github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegEZaKMv9ipx8=
 github.com/sagernet/sing-shadowsocks v0.2.7/go.mod h1:0rIKJZBR65Qi0zwdKezt4s57y/Tl1ofkaq6NlkzVuyE=
-github.com/sagernet/sing-tun v0.4.0-rc.3 h1:W/Odc87dGXkRhwRo2jhsKYHypNbajIcsGlIzDatmMKA=
-github.com/sagernet/sing-tun v0.4.0-rc.3/go.mod h1:+lQdWhqD4atzrCgRhoyrxBCg1OBru/hAv2BT3kdgmGM=
 github.com/sagernet/sing-tun v0.4.0-rc.4 h1:EFz+UjLZTm+YS3ob1vpqjOga67wyvnxWcbQKfe5wE3Y=
 github.com/sagernet/sing-tun v0.4.0-rc.4/go.mod h1:+lQdWhqD4atzrCgRhoyrxBCg1OBru/hAv2BT3kdgmGM=
 github.com/sagernet/utls v1.6.7 h1:Ep3+aJ8FUGGta+II2IEVNUc3EDhaRCZINWkj/LloIA8=
