@@ -104,8 +104,6 @@ github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstvQsPGkxUsCd2KWxErBblirPizecHcpD3ffK+s=
 github.com/sagernet/fswatch v0.1.1 h1:YqID+93B7VRfqIH3PArW/XpJv5H4OLEVWDfProGoRQs=
 github.com/sagernet/fswatch v0.1.1/go.mod h1:nz85laH0mkQqJfaOrqPpkwtU1znMFNVTpT/5oRsVz/o=
-github.com/sagernet/gvisor v0.0.0-20241019021330-bdd7a3b7add7 h1:yG/4G2bogQHMbtnUGwTgLq+fNN7LgvwF+DZWsvt2e/g=
-github.com/sagernet/gvisor v0.0.0-20241019021330-bdd7a3b7add7/go.mod h1:ehZwnT2UpmOWAHFL48XdBhnd4Qu4hN2O3Ji0us3ZHMw=
 github.com/sagernet/gvisor v0.0.0-20241019061641-46bad1ee6ecc h1:IvmeRstYX63O0QpLGJgVOaaM21ZIG0frJi6MT29Irtk=
 github.com/sagernet/gvisor v0.0.0-20241019061641-46bad1ee6ecc/go.mod h1:ehZwnT2UpmOWAHFL48XdBhnd4Qu4hN2O3Ji0us3ZHMw=
 github.com/sagernet/netlink v0.0.0-20240916134442-83396419aa8b h1:ppoda3bl004POPsp3ut7V+4Mn6+DUbTxyxpB0BjpaIk=
