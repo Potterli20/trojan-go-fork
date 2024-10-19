@@ -106,6 +106,8 @@ github.com/sagernet/fswatch v0.1.1 h1:YqID+93B7VRfqIH3PArW/XpJv5H4OLEVWDfProGoRQ
 github.com/sagernet/fswatch v0.1.1/go.mod h1:nz85laH0mkQqJfaOrqPpkwtU1znMFNVTpT/5oRsVz/o=
 github.com/sagernet/gvisor v0.0.0-20240428053021-e691de28565f h1:NkhuupzH5ch7b/Y/6ZHJWrnNLoiNnSJaow6DPb8VW2I=
 github.com/sagernet/gvisor v0.0.0-20240428053021-e691de28565f/go.mod h1:KXmw+ouSJNOsuRpg4wgwwCQuunrGz4yoAqQjsLjc6N0=
+github.com/sagernet/gvisor v0.0.0-20241019021330-bdd7a3b7add7 h1:yG/4G2bogQHMbtnUGwTgLq+fNN7LgvwF+DZWsvt2e/g=
+github.com/sagernet/gvisor v0.0.0-20241019021330-bdd7a3b7add7/go.mod h1:ehZwnT2UpmOWAHFL48XdBhnd4Qu4hN2O3Ji0us3ZHMw=
 github.com/sagernet/netlink v0.0.0-20240916134442-83396419aa8b h1:ppoda3bl004POPsp3ut7V+4Mn6+DUbTxyxpB0BjpaIk=
 github.com/sagernet/netlink v0.0.0-20240916134442-83396419aa8b/go.mod h1:xLnfdiJbSp8rNqYEdIW/6eDO4mVoogml14Bh2hSiFpM=
 github.com/sagernet/nftables v0.3.0-beta.4 h1:kbULlAwAC3jvdGAC1P5Fa3GSxVwQJibNenDW2zaXr8I=
@@ -114,6 +116,8 @@ github.com/sagernet/quic-go v0.47.0-beta.2 h1:1tCGWFOSaXIeuQaHrwOMJIYvlupjTcaVIn
 github.com/sagernet/quic-go v0.47.0-beta.2/go.mod h1:bLVKvElSEMNv7pu7SZHscW02TYigzQ5lQu3Nh4wNh8Q=
 github.com/sagernet/sing v0.5.0-rc.2 h1:tIrs6pRbjJWvI0ITRSg47P1wosY+iSuHpw9t5/hBx+Q=
 github.com/sagernet/sing v0.5.0-rc.2/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
+github.com/sagernet/sing v0.5.0-rc.4 h1:pnZQz9leyY2nckGvOG0AUcBIyHOCrapwBd63qmP1hSk=
+github.com/sagernet/sing v0.5.0-rc.4/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-box v1.10.1 h1:J3H0TzF0LGC4uOR62TpSuAhhHkv3Bx5M5F5kK5JB+WA=
 github.com/sagernet/sing-box v1.10.1/go.mod h1:Nk9Ww0M1ulUsbfd5d4dfMBfJ0Audmm6m5+YYdvdpcZQ=
 github.com/sagernet/sing-dns v0.3.0-rc.2 h1:z1yROBxd/6wik5h53Sz5df1DSmbPTaOu/Z0wAmyXGoQ=
