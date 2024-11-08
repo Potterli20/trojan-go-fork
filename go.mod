@@ -3,13 +3,13 @@ module github.com/Potterli20/trojan-go-fork
 go 1.23
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20241107211010-c540d705e0b4
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20241108031445-421b65e1510a
 	github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1
-	github.com/Potterli20/sqlite v0.0.0-20241107210729-0cf388dc9f77
+	github.com/Potterli20/sqlite v0.0.0-20241108031252-720e35abffc3
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241006021335-daedaf0ca7aa
-	github.com/sagernet/sing v0.5.0
+	github.com/sagernet/sing v0.6.0-alpha.1
 	github.com/sagernet/sing-box v1.10.1
 	github.com/sagernet/utls v1.6.7
 	github.com/smartystreets/goconvey v1.8.1
@@ -61,7 +61,7 @@ require (
 	github.com/sagernet/netlink v0.0.0-20240916134442-83396419aa8b // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/sing-dns v0.3.0 // indirect
-	github.com/sagernet/sing-tun v0.4.0-rc.5 // indirect
+	github.com/sagernet/sing-tun v0.5.0-alpha.1 // indirect
 	github.com/sagernet/wireguard-go v0.0.0-20231215174105-89dec3b2f3e8 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20241009114647-a2ed56ecb960 // indirect
