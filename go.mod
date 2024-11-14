@@ -9,7 +9,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241006021335-daedaf0ca7aa
-	github.com/sagernet/sing v0.6.0-alpha.9
+	github.com/sagernet/sing v0.6.0-alpha.11
 	github.com/sagernet/sing-box v1.10.1
 	github.com/sagernet/utls v1.6.7
 	github.com/smartystreets/goconvey v1.8.1
@@ -21,7 +21,7 @@ require (
 	golang.org/x/time v0.8.0
 	google.golang.org/genproto v0.0.0-20240924160255-9d4c2d233b61
 	google.golang.org/grpc v1.68.0
-	google.golang.org/protobuf v1.35.1
+	google.golang.org/protobuf v1.35.2
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.25.12
 )
