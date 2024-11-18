@@ -114,8 +114,6 @@ github.com/sagernet/nftables v0.3.0-beta.4 h1:kbULlAwAC3jvdGAC1P5Fa3GSxVwQJibNen
 github.com/sagernet/nftables v0.3.0-beta.4/go.mod h1:OQXAjvjNGGFxaTgVCSTRIhYB5/llyVDeapVoENYBDS8=
 github.com/sagernet/quic-go v0.47.0-beta.2 h1:1tCGWFOSaXIeuQaHrwOMJIYvlupjTcaVInGQw5ArULU=
 github.com/sagernet/quic-go v0.47.0-beta.2/go.mod h1:bLVKvElSEMNv7pu7SZHscW02TYigzQ5lQu3Nh4wNh8Q=
-github.com/sagernet/sing v0.6.0-alpha.16 h1:Ml+nJa8J9d+Svqv2pBvJoet+8PF302Snb6wcMUXaoy4=
-github.com/sagernet/sing v0.6.0-alpha.16/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing v0.6.0-alpha.17 h1:y//jVrBjJMW6tRpA/ElT7+Snp3DHEJvO60D+DByg/Es=
 github.com/sagernet/sing v0.6.0-alpha.17/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-box v1.10.1 h1:J3H0TzF0LGC4uOR62TpSuAhhHkv3Bx5M5F5kK5JB+WA=
@@ -124,8 +122,6 @@ github.com/sagernet/sing-dns v0.3.0 h1:uHCIlbCwBxALJwXcEK1d75d7t3vzCSVEQsPfZR1cx
 github.com/sagernet/sing-dns v0.3.0/go.mod h1:TqLIelI+FAbVEdiTRolhGLOwvhVjY7oT+wezlOJUQ7M=
 github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegEZaKMv9ipx8=
 github.com/sagernet/sing-shadowsocks v0.2.7/go.mod h1:0rIKJZBR65Qi0zwdKezt4s57y/Tl1ofkaq6NlkzVuyE=
-github.com/sagernet/sing-tun v0.6.0-alpha.8 h1:HhXyUvXxtaXgT+IILZMq6kbrAyDbUwbN+Df/XxpL7Vo=
-github.com/sagernet/sing-tun v0.6.0-alpha.8/go.mod h1:JkgiLLnQUXln1zLGVoJqUwAulJGT0xoiPU4/pYF1fhU=
 github.com/sagernet/sing-tun v0.6.0-alpha.9 h1:Qf667035KnlydZ+ftj3U4HH+oddi3RdyKzBiCcnSgaI=
 github.com/sagernet/sing-tun v0.6.0-alpha.9/go.mod h1:TgvxE2YD7O9c/unHju0nWAGBGsVppWIuju13vlmdllM=
 github.com/sagernet/utls v1.6.7 h1:Ep3+aJ8FUGGta+II2IEVNUc3EDhaRCZINWkj/LloIA8=
@@ -223,6 +219,8 @@ modernc.org/gc/v3 v3.0.0-20241004144649-1aea3fae8852 h1:IYXPPTTjjoSHvUClZIYexDiO
 modernc.org/gc/v3 v3.0.0-20241004144649-1aea3fae8852/go.mod h1:Qz0X07sNOR1jWYCrJMEnbW/X55x206Q7Vt4mz6/wHp4=
 modernc.org/libc v1.61.1 h1:F8JngdWfVzqfNpff2apn7JpBkjq1ss8Ue4KuUdLDM7Q=
 modernc.org/libc v1.61.1/go.mod h1:4QGjNyX3h+rn7V5oHpJY2yH0QN6frt1X+5BkXzwLPCo=
+modernc.org/libc v1.61.2 h1:dkO4DlowfClcJYsvf/RiK6fUwvzCQTmB34bJLt0CAGQ=
+modernc.org/libc v1.61.2/go.mod h1:4QGjNyX3h+rn7V5oHpJY2yH0QN6frt1X+5BkXzwLPCo=
 modernc.org/mathutil v1.6.0 h1:fRe9+AmYlaej+64JsEEhoWuAYBkOtQiMEU7n/XgfYi4=
 modernc.org/mathutil v1.6.0/go.mod h1:Ui5Q9q1TR2gFm0AQRqQUaBWFLAhQpCwNcuhBOSedWPo=
 modernc.org/memory v1.8.0 h1:IqGTL6eFMaDZZhEWwcREgeMXYwmW83LYW8cROZYkg+E=
