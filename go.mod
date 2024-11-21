@@ -61,8 +61,8 @@ require (
 	github.com/sagernet/netlink v0.0.0-20240916134442-83396419aa8b // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/sing-dns v0.3.0 // indirect
-	github.com/sagernet/sing-tun v0.6.0-alpha.9 // indirect
-	github.com/sagernet/wireguard-go v0.0.0-20231215174105-89dec3b2f3e8 // indirect
+	github.com/sagernet/sing-tun v0.6.0-alpha.10 // indirect
+	github.com/sagernet/wireguard-go v0.0.1-beta.2 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20241009114647-a2ed56ecb960 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
