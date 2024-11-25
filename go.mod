@@ -13,7 +13,7 @@ require (
 	github.com/sagernet/sing-box v1.10.2
 	github.com/sagernet/utls v1.6.7
 	github.com/smartystreets/goconvey v1.8.1
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/xtaci/smux v1.5.32
 	github.com/xtls/xray-core v1.8.24
 	golang.org/x/net v0.31.0
