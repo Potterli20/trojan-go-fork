@@ -5,7 +5,7 @@ go 1.23
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20241108031445-421b65e1510a
 	github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1
-	github.com/Potterli20/sqlite v0.0.0-20241128032543-881593f93d92
+	github.com/Potterli20/sqlite v0.0.0-20241128061320-af913db3195e
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241006021335-daedaf0ca7aa
@@ -61,7 +61,7 @@ require (
 	github.com/sagernet/netlink v0.0.0-20240916134442-83396419aa8b // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
 	github.com/sagernet/sing-dns v0.3.0 // indirect
-	github.com/sagernet/sing-tun v0.6.0-alpha.17 // indirect
+	github.com/sagernet/sing-tun v0.6.0-beta.1 // indirect
 	github.com/sagernet/wireguard-go v0.0.1-beta.4 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20241009114647-a2ed56ecb960 // indirect
