@@ -9,7 +9,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241006021335-daedaf0ca7aa
-	github.com/sagernet/sing v0.6.0-beta.5
+	github.com/sagernet/sing v0.6.0-beta.6
 	github.com/sagernet/sing-box v1.10.3
 	github.com/sagernet/utls v1.6.7
 	github.com/smartystreets/goconvey v1.8.1
@@ -69,7 +69,7 @@ require (
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/crypto v0.30.0 // indirect
-	golang.org/x/exp v0.0.0-20241204233417-43b7b7cde48d // indirect
+	golang.org/x/exp v0.0.0-20241210172134-14434422244c // indirect
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
