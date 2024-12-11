@@ -8,10 +8,10 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20241205005904-32b796da7c7c h1:CGJB
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20241205005904-32b796da7c7c/go.mod h1:Y2glie9o8PVgzDtN/k4syfSkT+ccd4yLBEN0cTYW7GE=
 github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1 h1:z1c9K7bLhMe5RnmsmDcm7uDyd9H3F0ggYhpSyK5w170=
 github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1/go.mod h1:dR4u/3A59bxpPa14vb6sAx1d2etp1Vj1bzE7n+SZX+8=
-github.com/Potterli20/sqlite v0.0.0-20241206032708-f1a62402551b h1:lzxn8xo4CxatXzUk2hWGD8FPmPGg5ObuJQjCeeVIDk0=
-github.com/Potterli20/sqlite v0.0.0-20241206032708-f1a62402551b/go.mod h1:s4jhHUA2rOf/72wPhfCB1uciUmPOKIe5/2DIPdOvFw8=
 github.com/Potterli20/sqlite v0.0.0-20241210210822-380289426643 h1:PkdDgEaJlCo6Evmouw5yi9jI/U5uhYHt1/Ui7k0aQ+g=
 github.com/Potterli20/sqlite v0.0.0-20241210210822-380289426643/go.mod h1:/LqB3VQnwdVQ/V7l6+1TjfxzCQi1ko9MfsBued1JufU=
+github.com/Potterli20/sqlite v0.0.0-20241211004409-ebc8d6b24d1b h1:wtiQAbQcih40h/5EsND1xbR/Xt66/lcBcJxXcPcngrc=
+github.com/Potterli20/sqlite v0.0.0-20241211004409-ebc8d6b24d1b/go.mod h1:/LqB3VQnwdVQ/V7l6+1TjfxzCQi1ko9MfsBued1JufU=
 github.com/andybalholm/brotli v1.1.1 h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
 github.com/andybalholm/brotli v1.1.1/go.mod h1:05ib4cKhjx3OQYUY22hTVd34Bc8upXjOLL2rKwwZBoA=
 github.com/cloudflare/circl v1.5.0 h1:hxIWksrX6XN5a1L2TI/h53AGPhNHoUBo+TD1ms9+pys=
@@ -162,8 +162,6 @@ go4.org/netipx v0.0.0-20231129151722-fdeea329fbba h1:0b9z3AuHCjxk0x/opv64kcgZLBs
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba/go.mod h1:PLyyIXexvUFg3Owu6p/WfdlivPbZJsZdgWZlrGope/Y=
 golang.org/x/crypto v0.30.0 h1:RwoQn3GkWiMkzlX562cLB7OxWvjH1L8xutO2WoJcRoY=
 golang.org/x/crypto v0.30.0/go.mod h1:kDsLvtWBEx7MV9tJOj9bnXsPbxwJQ6csT/x4KIN4Ssk=
-golang.org/x/exp v0.0.0-20241210172134-14434422244c h1:G0f8LmhCW7rzpybldgSjhhKDCwW7mYO0Qr6HZDb0HJA=
-golang.org/x/exp v0.0.0-20241210172134-14434422244c/go.mod h1:qj5a5QZpwLU2NLQudwIN5koi3beDhSAlJwa67PuM98c=
 golang.org/x/exp v0.0.0-20241210194714-1829a127f884 h1:Y/Mj/94zIQQGHVSv1tTtQBDaQaJe62U9bkDZKKyhPCU=
 golang.org/x/exp v0.0.0-20241210194714-1829a127f884/go.mod h1:qj5a5QZpwLU2NLQudwIN5koi3beDhSAlJwa67PuM98c=
 golang.org/x/mod v0.22.0 h1:D4nJWe9zXqHOmWqj4VMOJhvzj7bEZg4wEYa759z1pH4=
