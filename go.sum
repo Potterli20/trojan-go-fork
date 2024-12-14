@@ -10,6 +10,8 @@ github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1 h1:z1c9K7bL
 github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1/go.mod h1:dR4u/3A59bxpPa14vb6sAx1d2etp1Vj1bzE7n+SZX+8=
 github.com/Potterli20/sqlite v0.0.0-20241211004409-ebc8d6b24d1b h1:wtiQAbQcih40h/5EsND1xbR/Xt66/lcBcJxXcPcngrc=
 github.com/Potterli20/sqlite v0.0.0-20241211004409-ebc8d6b24d1b/go.mod h1:/LqB3VQnwdVQ/V7l6+1TjfxzCQi1ko9MfsBued1JufU=
+github.com/Potterli20/sqlite v0.0.0-20241213210807-041b33238b5a h1:xWzRH7CX4ygTFLNQE04ZiTv3DI6aennKSygmRsKBzsw=
+github.com/Potterli20/sqlite v0.0.0-20241213210807-041b33238b5a/go.mod h1:1x/9T3/8lgvgDZ3+xLbX2j6ZkVp/EOH9NB2beP4C9tg=
 github.com/andybalholm/brotli v1.1.1 h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
 github.com/andybalholm/brotli v1.1.1/go.mod h1:05ib4cKhjx3OQYUY22hTVd34Bc8upXjOLL2rKwwZBoA=
 github.com/cloudflare/circl v1.5.0 h1:hxIWksrX6XN5a1L2TI/h53AGPhNHoUBo+TD1ms9+pys=
@@ -229,8 +231,6 @@ modernc.org/fileutil v1.3.0 h1:gQ5SIzK3H9kdfai/5x41oQiKValumqNTDXMvKo62HvE=
 modernc.org/fileutil v1.3.0/go.mod h1:XatxS8fZi3pS8/hKG2GH/ArUogfxjpEKs3Ku3aK4JyQ=
 modernc.org/gc/v2 v2.5.0 h1:bJ9ChznK1L1mUtAQtxi0wi5AtAs5jQuw4PrPHO5pb6M=
 modernc.org/gc/v2 v2.5.0/go.mod h1:wzN5dK1AzVGoH6XOzc3YZ+ey/jPgYHLuVckd62P0GYU=
-modernc.org/gc/v3 v3.0.0-20241004144649-1aea3fae8852 h1:IYXPPTTjjoSHvUClZIYexDiO7g+4x+XveKT4gCIAwiY=
-modernc.org/gc/v3 v3.0.0-20241004144649-1aea3fae8852/go.mod h1:Qz0X07sNOR1jWYCrJMEnbW/X55x206Q7Vt4mz6/wHp4=
 modernc.org/gc/v3 v3.0.0-20241213165251-3bc300f6d0c9 h1:ovz6yUKX71igz2yvk4NpiCL5fvdjZAI+DhuDEGx1xyU=
 modernc.org/gc/v3 v3.0.0-20241213165251-3bc300f6d0c9/go.mod h1:Qz0X07sNOR1jWYCrJMEnbW/X55x206Q7Vt4mz6/wHp4=
 modernc.org/libc v1.61.4 h1:wVyqEx6tlltte9lPTjq0kDAdtdM9c4JH8rU6M1ZVawA=
