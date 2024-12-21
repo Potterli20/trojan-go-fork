@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241006021335-daedaf0ca7aa
 	github.com/sagernet/sing v0.6.0-beta.8
-	github.com/sagernet/sing-box v1.10.4
+	github.com/sagernet/sing-box v1.10.5
 	github.com/sagernet/utls v1.6.7
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.10.0
