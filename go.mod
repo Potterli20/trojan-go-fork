@@ -14,7 +14,7 @@ require (
 	github.com/sagernet/utls v1.6.7
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.10.0
-	github.com/xtaci/smux v1.5.32
+	github.com/xtaci/smux v1.5.33
 	github.com/xtls/xray-core v1.8.24
 	golang.org/x/net v0.33.0
 	golang.org/x/term v0.27.0
@@ -79,7 +79,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241223144023-3abc09e42ca8 // indirect
 	modernc.org/gc/v3 v3.0.0-20241223112719-96e2e1e4408d // indirect
 	modernc.org/libc v1.61.5 // indirect
-	modernc.org/mathutil v1.7.0 // indirect
+	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.8.0 // indirect
 	modernc.org/sqlite v1.34.4 // indirect
 	modernc.org/strutil v1.2.0 // indirect
