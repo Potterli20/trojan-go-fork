@@ -10,6 +10,8 @@ github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1 h1:z1c9K7bL
 github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1/go.mod h1:dR4u/3A59bxpPa14vb6sAx1d2etp1Vj1bzE7n+SZX+8=
 github.com/Potterli20/sqlite v0.0.0-20241227210716-6db3df60199b h1:4I/FhxWF+/IJqWXHxu7tpoUzOK5KLvmEP2FcXrh6bGY=
 github.com/Potterli20/sqlite v0.0.0-20241227210716-6db3df60199b/go.mod h1:6d+Zk65eVnQ1C5p4dK4C8o6R/FBDgDWamKsPWBbgE2s=
+github.com/Potterli20/sqlite v0.0.0-20241229150657-b64d31c242f2 h1:/0aE84vL/6s2BIM8UcrELjuBOCQy+8oumGTxB1kI/ck=
+github.com/Potterli20/sqlite v0.0.0-20241229150657-b64d31c242f2/go.mod h1:8IbimNA3Mhk/gBH0J38IpFBWvNMVjGtybvmX+l6dqZ8=
 github.com/andybalholm/brotli v1.1.1 h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
 github.com/andybalholm/brotli v1.1.1/go.mod h1:05ib4cKhjx3OQYUY22hTVd34Bc8upXjOLL2rKwwZBoA=
 github.com/cloudflare/circl v1.5.0 h1:hxIWksrX6XN5a1L2TI/h53AGPhNHoUBo+TD1ms9+pys=
@@ -142,6 +144,8 @@ github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOf
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/txthinking/runnergroup v0.0.0-20241009114647-a2ed56ecb960 h1:BCuFrrzO0w1PoYYwtwHOwnvrPPjK/ufBHjrciHCQMAU=
 github.com/txthinking/runnergroup v0.0.0-20241009114647-a2ed56ecb960/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
+github.com/txthinking/runnergroup v0.0.0-20241229123329-7b873ad00768 h1:5LCkYJacA/M7KE6ziubXWi/OP6efchScE479kIV7OYU=
+github.com/txthinking/runnergroup v0.0.0-20241229123329-7b873ad00768/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
 github.com/v2fly/ss-bloomring v0.0.0-20210312155135-28617310f63e h1:5QefA066A1tF8gHIiADmOVOV5LS43gt3ONnlEl3xkwI=
 github.com/v2fly/ss-bloomring v0.0.0-20210312155135-28617310f63e/go.mod h1:5t19P9LBIrNamL6AcMQOncg/r10y3Pc01AbHeMhwlpU=
 github.com/vishvananda/netlink v1.3.0 h1:X7l42GfcV4S6E4vHTsw48qbrV+9PVojNfIhZcwQdrZk=
@@ -245,6 +249,8 @@ modernc.org/sqlite v1.34.4 h1:sjdARozcL5KJBvYQvLlZEmctRgW9xqIZc2ncN7PU0P8=
 modernc.org/sqlite v1.34.4/go.mod h1:3QQFCG2SEMtc2nv+Wq4cQCH7Hjcg+p/RMlS1XK+zwbk=
 modernc.org/strutil v1.2.0 h1:agBi9dp1I+eOnxXeiZawM8F4LawKv4NzGWSaLfyeNZA=
 modernc.org/strutil v1.2.0/go.mod h1:/mdcBmfOibveCTBxUl5B5l6W+TTH1FXPLHZE6bTosX0=
+modernc.org/strutil v1.2.1 h1:UneZBkQA+DX2Rp35KcM69cSsNES9ly8mQWD71HKlOA0=
+modernc.org/strutil v1.2.1/go.mod h1:EHkiggD70koQxjVdSBM3JKM7k6L0FbGE5eymy9i3B9A=
 modernc.org/token v1.1.0 h1:Xl7Ap9dKaEs5kLoOQeQmPWevfnk/DM5qcLcYlA8ys6Y=
 modernc.org/token v1.1.0/go.mod h1:UGzOrNV1mAFSEB63lOFHIpNRUVMvYTc6yu1SMY/XTDM=
 zgo.at/zcache v1.2.0 h1:++0dNWOrmUBa10WSja+eHx5bEO2PzZLRY6MJlBD47yk=

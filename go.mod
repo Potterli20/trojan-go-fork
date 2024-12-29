@@ -5,7 +5,7 @@ go 1.23
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20241211211055-0448065aa692
 	github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1
-	github.com/Potterli20/sqlite v0.0.0-20241227210716-6db3df60199b
+	github.com/Potterli20/sqlite v0.0.0-20241229150657-b64d31c242f2
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241006021335-daedaf0ca7aa
@@ -64,7 +64,7 @@ require (
 	github.com/sagernet/sing-tun v0.6.0-beta.7 // indirect
 	github.com/sagernet/wireguard-go v0.0.1-beta.5 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
-	github.com/txthinking/runnergroup v0.0.0-20241009114647-a2ed56ecb960 // indirect
+	github.com/txthinking/runnergroup v0.0.0-20241229123329-7b873ad00768 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
@@ -82,7 +82,7 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.8.0 // indirect
 	modernc.org/sqlite v1.34.4 // indirect
-	modernc.org/strutil v1.2.0 // indirect
+	modernc.org/strutil v1.2.1 // indirect
 	modernc.org/token v1.1.0 // indirect
 	zgo.at/zcache v1.2.0 // indirect
 )
