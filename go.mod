@@ -5,12 +5,12 @@ go 1.23
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20241211211055-0448065aa692
 	github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1
-	github.com/Potterli20/sqlite v0.0.0-20250103210658-3a10a6327533
+	github.com/Potterli20/sqlite v0.0.0-20250104031159-b6a4c66efffd
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241231083714-66613d49c422
 	github.com/sagernet/sing v0.6.0-beta.9
-	github.com/sagernet/sing-box v1.10.5
+	github.com/sagernet/sing-box v1.10.6
 	github.com/sagernet/utls v1.6.7
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.10.0
