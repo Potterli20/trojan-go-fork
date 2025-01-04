@@ -8,8 +8,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20241211211055-0448065aa692 h1:+w1x
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20241211211055-0448065aa692/go.mod h1:WJB5yOt16wOcILkvIMxAjbNRqg/LVNvWqni5Nc1ZoCQ=
 github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1 h1:z1c9K7bLhMe5RnmsmDcm7uDyd9H3F0ggYhpSyK5w170=
 github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1/go.mod h1:dR4u/3A59bxpPa14vb6sAx1d2etp1Vj1bzE7n+SZX+8=
-github.com/Potterli20/sqlite v0.0.0-20250103210658-3a10a6327533 h1:w8vlj38YzqUfseTMbfrIiRK5IMG1pYdVokxAzLVid3A=
-github.com/Potterli20/sqlite v0.0.0-20250103210658-3a10a6327533/go.mod h1:4YK9g3aRj57BQrGp7zdSRyE81KYCTHZWOPFJvORifAg=
 github.com/Potterli20/sqlite v0.0.0-20250104031159-b6a4c66efffd h1:5usZhWDlXFqxVzb3tgxlsp2Jdrpk+lId4Y/JuMHT/5o=
 github.com/Potterli20/sqlite v0.0.0-20250104031159-b6a4c66efffd/go.mod h1:IoOkpxfUAy8KhDDGqkaAmP0A3NU1bfLNrnYmTpND61s=
 github.com/andybalholm/brotli v1.1.1 h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
@@ -122,8 +120,6 @@ github.com/sagernet/quic-go v0.48.2-beta.1 h1:W0plrLWa1XtOWDTdX3CJwxmQuxkya12nN5
 github.com/sagernet/quic-go v0.48.2-beta.1/go.mod h1:1WgdDIVD1Gybp40JTWketeSfKA/+or9YMLaG5VeTk4k=
 github.com/sagernet/sing v0.6.0-beta.9 h1:P8lKa5hN53fRNAVCIKy5cWd6/kLO5c4slhdsfehSmHs=
 github.com/sagernet/sing v0.6.0-beta.9/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/sagernet/sing-box v1.10.5 h1:ajS17vae3Rn3lQM51x5FSStMVZGyDCo8eFZqM4EuZ8g=
-github.com/sagernet/sing-box v1.10.5/go.mod h1:WFsuls8sC+QIfnaXNl6R8iavJOfdB2bZxkrc0aXxsxQ=
 github.com/sagernet/sing-box v1.10.6 h1:dlGnyeS81CJPKOMSD5znz1N8kmXC9SxaFGCKW1BAJcA=
 github.com/sagernet/sing-box v1.10.6/go.mod h1:tYUyXH0acSQLbSExU4d59Wvzj2AwJKLwkk+QkOZWNLU=
 github.com/sagernet/sing-dns v0.3.0 h1:uHCIlbCwBxALJwXcEK1d75d7t3vzCSVEQsPfZR1cxQE=
