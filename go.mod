@@ -3,9 +3,9 @@ module github.com/Potterli20/trojan-go-fork
 go 1.23
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250104181352-5a302d9bcfe4
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250106211026-e8173f7531e0
 	github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1
-	github.com/Potterli20/sqlite v0.0.0-20250105180953-e2120a5fda40
+	github.com/Potterli20/sqlite v0.0.0-20250106210734-5bd1728e2d91
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241231083714-66613d49c422
@@ -69,7 +69,7 @@ require (
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/crypto v0.32.0 // indirect
-	golang.org/x/exp v0.0.0-20250103183323-7d7fa50e5329 // indirect
+	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
