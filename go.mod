@@ -9,7 +9,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241231083714-66613d49c422
-	github.com/sagernet/sing v0.6.0-beta.11
+	github.com/sagernet/sing v0.6.0-beta.12
 	github.com/sagernet/sing-box v1.10.6
 	github.com/sagernet/utls v1.6.7
 	github.com/smartystreets/goconvey v1.8.1
