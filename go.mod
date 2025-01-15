@@ -5,7 +5,7 @@ go 1.23
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250106211026-e8173f7531e0
 	github.com/Potterli20/socks5-fork v0.0.0-20241009151707-ea3cc39622d1
-	github.com/Potterli20/sqlite v0.0.0-20250115090836-c58d2992a257
+	github.com/Potterli20/sqlite v0.0.0-20250115121500-814e7cb7d62c
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241231083714-66613d49c422
@@ -21,7 +21,7 @@ require (
 	golang.org/x/time v0.9.0
 	google.golang.org/genproto v0.0.0-20240924160255-9d4c2d233b61
 	google.golang.org/grpc v1.69.4
-	google.golang.org/protobuf v1.36.2
+	google.golang.org/protobuf v1.36.3
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.25.12
 )
@@ -76,7 +76,7 @@ require (
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/tools v0.29.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20241015192408-796eee8c2d53 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250106144421-5f5ef82da422 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
 	modernc.org/gc/v3 v3.0.0-20250105121824-520be1a3aee6 // indirect
 	modernc.org/libc v1.61.8 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
