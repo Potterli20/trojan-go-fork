@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241231083714-66613d49c422
 	github.com/sagernet/sing v0.6.0-beta.12
-	github.com/sagernet/sing-box v1.10.7
+	github.com/sagernet/sing-box v1.11.0
 	github.com/sagernet/utls v1.6.7
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.10.0
@@ -59,7 +59,7 @@ require (
 	github.com/sagernet/gvisor v0.0.0-20241123041152-536d05261cff // indirect
 	github.com/sagernet/netlink v0.0.0-20240916134442-83396419aa8b // indirect
 	github.com/sagernet/nftables v0.3.0-beta.4 // indirect
-	github.com/sagernet/sing-dns v0.3.0 // indirect
+	github.com/sagernet/sing-dns v0.4.0-beta.2 // indirect
 	github.com/sagernet/sing-tun v0.6.0-beta.8 // indirect
 	github.com/sagernet/wireguard-go v0.0.1-beta.5 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
