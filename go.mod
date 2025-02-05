@@ -3,9 +3,9 @@ module github.com/Potterli20/trojan-go-fork
 go 1.23
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250204151141-08047ae9e659
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250204181507-bf4eedee3e74
 	github.com/Potterli20/socks5-fork v0.0.0-20250129021143-9330adeb75e5
-	github.com/Potterli20/sqlite v0.0.0-20250204150847-1bcea3f9909f
+	github.com/Potterli20/sqlite v0.0.0-20250204210750-22e820c017e4
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241231083714-66613d49c422
@@ -30,7 +30,7 @@ require (
 	cloud.google.com/go/oslogin v1.14.1 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
-	github.com/cloudflare/circl v1.5.0 // indirect
+	github.com/cloudflare/circl v1.6.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
