@@ -21,7 +21,7 @@ require (
 	golang.org/x/time v0.10.0
 	google.golang.org/genproto v0.0.0-20240924160255-9d4c2d233b61
 	google.golang.org/grpc v1.70.0
-	google.golang.org/protobuf v1.36.4
+	google.golang.org/protobuf v1.36.5
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.25.12
 )
