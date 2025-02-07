@@ -8,10 +8,10 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20250204181507-bf4eedee3e74 h1:8zYb
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20250204181507-bf4eedee3e74/go.mod h1:sUL1W/dxfY8U7oiWNjnDv7+iEwZ3XZZvxqH1e4n/WPo=
 github.com/Potterli20/socks5-fork v0.0.0-20250129021143-9330adeb75e5 h1:83lMtMJphSvow2cJY7vsltfC6vjlpCMdb/XLJriiPF0=
 github.com/Potterli20/socks5-fork v0.0.0-20250129021143-9330adeb75e5/go.mod h1:rPrrwy/XGj/RBycrKa83R1+J6jCiyMmcL0hgZrrH5sw=
-github.com/Potterli20/sqlite v0.0.0-20250204210750-22e820c017e4 h1:52cWpLzRytQCCNq8o9CU0wzVjQkjqPgWaI1/Whti4jQ=
-github.com/Potterli20/sqlite v0.0.0-20250204210750-22e820c017e4/go.mod h1:P+NmonOdl3D82bQeKhn6SLFj7/iiSc+2M2+iCqcl9cA=
 github.com/Potterli20/sqlite v0.0.0-20250207031326-9c72ab82ca8b h1:rcZx3MS4OVxsQtZa4cNgV2/SZI7AB1Zd4QU1H0RZ1jU=
 github.com/Potterli20/sqlite v0.0.0-20250207031326-9c72ab82ca8b/go.mod h1:rrQZzJq560SzanpsBtKfLEApFElt/0omt+JMXRZuMGk=
+github.com/Potterli20/sqlite v0.0.0-20250207061233-a590186a884b h1:MnI6Jg/Ove3lG19RB/Vwru/lKXE2qjKiWQFiFcuWT9A=
+github.com/Potterli20/sqlite v0.0.0-20250207061233-a590186a884b/go.mod h1:rrQZzJq560SzanpsBtKfLEApFElt/0omt+JMXRZuMGk=
 github.com/andybalholm/brotli v1.1.1 h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
 github.com/andybalholm/brotli v1.1.1/go.mod h1:05ib4cKhjx3OQYUY22hTVd34Bc8upXjOLL2rKwwZBoA=
 github.com/cloudflare/circl v1.6.0 h1:cr5JKic4HI+LkINy2lg3W2jF8sHCVTBncJr5gIIq7qk=
@@ -172,8 +172,6 @@ go4.org/netipx v0.0.0-20231129151722-fdeea329fbba h1:0b9z3AuHCjxk0x/opv64kcgZLBs
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba/go.mod h1:PLyyIXexvUFg3Owu6p/WfdlivPbZJsZdgWZlrGope/Y=
 golang.org/x/crypto v0.32.0 h1:euUpcYgM8WcP71gNpTqQCn6rC2t6ULUPiOzfWaXVVfc=
 golang.org/x/crypto v0.32.0/go.mod h1:ZnnJkOaASj8g0AjIduWNlq2NRxL0PlBrbKVyZ6V/Ugc=
-golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c h1:KL/ZBHXgKGVmuZBZ01Lt57yE5ws8ZPSkkihmEyq7FXc=
-golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c/go.mod h1:tujkw807nyEEAamNbDrEGzRav+ilXA7PCRAd6xsmwiU=
 golang.org/x/exp v0.0.0-20250207012021-f9890c6ad9f3 h1:qNgPs5exUA+G0C96DrPwNrvLSj7GT/9D+3WMWUcUg34=
 golang.org/x/exp v0.0.0-20250207012021-f9890c6ad9f3/go.mod h1:tujkw807nyEEAamNbDrEGzRav+ilXA7PCRAd6xsmwiU=
 golang.org/x/mod v0.23.0 h1:Zb7khfcRGKk+kqfxFaP5tZqCnDZMjC5VtUBs87Hr6QM=
