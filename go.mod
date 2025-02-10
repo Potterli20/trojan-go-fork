@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/xtaci/smux v1.5.33
 	github.com/xtls/xray-core v1.8.24
-	golang.org/x/net v0.34.0
+	golang.org/x/net v0.35.0
 	golang.org/x/term v0.29.0
 	golang.org/x/time v0.10.0
 	google.golang.org/genproto v0.0.0-20240924160255-9d4c2d233b61
