@@ -2,14 +2,12 @@ module github.com/Potterli20/trojan-go-fork
 
 go 1.24.0
 
-toolchain go1.24.0
-
 tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250208031319-3e80160f1552
 	github.com/Potterli20/socks5-fork v0.0.0-20250129021143-9330adeb75e5
-	github.com/Potterli20/sqlite v0.0.0-20250215210655-f2b38675551c
+	github.com/Potterli20/sqlite v0.0.0-20250216004405-72cd942c78f2
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241231083714-66613d49c422
