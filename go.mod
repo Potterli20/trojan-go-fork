@@ -1,8 +1,8 @@
 module github.com/Potterli20/trojan-go-fork
 
-go 1.23.0
+go 1.24.0
 
-toolchain go1.23.6
+toolchain go1.24.0
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250208031319-3e80160f1552
