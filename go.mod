@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250216015851-2d9b728cd9c4
 	github.com/Potterli20/socks5-fork v0.0.0-20250216031941-0c4b4334707c
 	github.com/Potterli20/sqlite v0.0.0-20250216020056-008ded97bd0e
-	github.com/go-sql-driver/mysql v1.8.1
+	github.com/go-sql-driver/mysql v1.9.0
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241231083714-66613d49c422
 	github.com/sagernet/sing v0.6.1
