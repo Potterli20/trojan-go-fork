@@ -7,7 +7,7 @@ tool golang.org/x/tools/cmd/stringer
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250216015851-2d9b728cd9c4
 	github.com/Potterli20/socks5-fork v0.0.0-20250216031941-0c4b4334707c
-	github.com/Potterli20/sqlite v0.0.0-20250218150924-b54a40ad4f06
+	github.com/Potterli20/sqlite v0.0.0-20250218181212-5704c31f375d
 	github.com/go-sql-driver/mysql v1.9.0
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241231083714-66613d49c422
@@ -76,7 +76,7 @@ require (
 	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20241202173237-19429a94021a // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250212204824-5a70512c5d8b // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 	modernc.org/libc v1.61.13 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.8.2 // indirect
