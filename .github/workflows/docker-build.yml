@@ -48,23 +48,25 @@ jobs:
           echo "docker_platforms=linux/amd64,linux/arm64,linux/ppc64le,linux/s390x,linux/386" >> $GITHUB_ENV
           echo "docker_image=${{ secrets.DOCKERUSERNAME }}/trojan-go-fork" >> $GITHUB_ENV
           echo "github_image=ghcr.io/${{ secrets.GITHUBUSERNAME }}/trojan-go-fork" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
+          echo "docker_image_lower=$(echo ${{ secrets.DOCKERUSERNAME }}/trojan-go-fork | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "github_image_lower=$(echo ghcr.io/${{ secrets.GITHUBUSERNAME }}/trojan-go-fork | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Build and push docker image
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             docker buildx build --platform ${{ env.docker_platforms }} \
             --output "type=image,push=true" \
-            --tag "${{ env.docker_image }}:${GITHUB_REF#refs/tags/}" \
-            --tag "${{ env.docker_image }}:latest" \
-            --tag "${{ env.github_image }}:${GITHUB_REF#refs/tags/}" \
-            --tag "${{ env.github_image }}:latest" \
+            --tag "${{ env.docker_image_lower }}:${GITHUB_REF#refs/tags/}" \
+            --tag "${{ env.docker_image_lower }}:latest" \
+            --tag "${{ env.github_image_lower }}:${GITHUB_REF#refs/tags/}" \
+            --tag "${{ env.github_image_lower }}:latest" \
             --build-arg REF=${{ env.ref }} \
             --file Dockerfile .
           else
             docker buildx build --platform ${{ env.docker_platforms }} \
             --output "type=image,push=true" \
-            --tag "${{ env.docker_image }}:snapshot" \
-            --tag "${{ env.github_image }}:snapshot" \
+            --tag "${{ env.docker_image_lower }}:snapshot" \
+            --tag "${{ env.github_image_lower }}:snapshot" \
             --build-arg REF=${{ env.ref }} \
             --file Dockerfile .
           fi
@@ -75,14 +77,22 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@main
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /path/to/cache
+          key: ${{ runner.os }}-docker-${{ github.sha }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
       
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@master
 
       - name: Test docker image from Docker Hub
         run: |
-          docker run --rm --entrypoint /usr/local/bin/trojan-go-fork ${{ secrets.DOCKERUSERNAME }}/trojan-go-fork -version
+          docker run --rm --entrypoint /usr/local/bin/trojan-go-fork ${{ env.docker_image_lower }} -version
 
       - name: Test docker image from GitHub Packages
         run: |
-          docker run --rm --entrypoint /usr/local/bin/trojan-go-fork ghcr.io/${{ secrets.GITHUBUSERNAME }}/trojan-go-fork -version
+          docker run --rm --entrypoint /usr/local/bin/trojan-go-fork ${{ env.github_image_lower }} -version
