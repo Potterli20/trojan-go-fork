@@ -21,6 +21,7 @@ jobs:
           gofmt -w -r 'interface{} -> any' .
           go get -u
           go mod download
+          go get github.com/xtls/xray-core@be43f66b63d5fdc7322675127672cb5cbe14a125
 
       - name: Git push 
         run: |
