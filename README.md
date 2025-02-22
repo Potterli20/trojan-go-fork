@@ -4,7 +4,6 @@
 如果有能力去修复，麻烦pr叭
 我的go.mod都会自动更新
 
-win程序编译不了，并取消win程序
 <details>
 <summary><code><strong>docker镜像<br/></strong></code></summary>
 docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
@@ -16,6 +15,10 @@ docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
  
  ```shell
  podman pull trliwork/trojan-go-fork:latest
+```
+
+ ```shell
+docker pull ghcr.io/potterli20/trojan-go-fork:latest
 ```
  
  </details>
