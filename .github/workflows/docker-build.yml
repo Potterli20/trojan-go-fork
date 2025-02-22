@@ -48,24 +48,23 @@ jobs:
           echo "docker_platforms=linux/amd64,linux/arm64,linux/ppc64le,linux/s390x,linux/386" >> $GITHUB_ENV
           echo "docker_image=${{ secrets.DOCKERUSERNAME }}/trojan-go-fork" >> $GITHUB_ENV
           echo "github_image=ghcr.io/${{ secrets.GITHUB_USERNAME }}/trojan-go-fork" >> $GITHUB_ENV
-
       - name: Build and push docker image
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
-            docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
+            docker buildx build --platform ${{ env.docker_platforms }} \
             --output "type=image,push=true" \
-            --tag "${{ steps.prepare.outputs.docker_image }}:${GITHUB_REF#refs/tags/}" \
-            --tag "${{ steps.prepare.outputs.docker_image }}:latest" \
-            --tag "${{ steps.prepare.outputs.github_image }}:${GITHUB_REF#refs/tags/}" \
-            --tag "${{ steps.prepare.outputs.github_image }}:latest" \
-            --build-arg REF=${{ steps.prepare.outputs.ref }} \
+            --tag "${{ env.docker_image }}:${GITHUB_REF#refs/tags/}" \
+            --tag "${{ env.docker_image }}:latest" \
+            --tag "${{ env.github_image }}:${GITHUB_REF#refs/tags/}" \
+            --tag "${{ env.github_image }}:latest" \
+            --build-arg REF=${{ env.ref }} \
             --file Dockerfile .
           else
-            docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
+            docker buildx build --platform ${{ env.docker_platforms }} \
             --output "type=image,push=true" \
-            --tag "${{ steps.prepare.outputs.docker_image }}:snapshot" \
-            --tag "${{ steps.prepare.outputs.github_image }}:snapshot" \
-            --build-arg REF=${{ steps.prepare.outputs.ref }} \
+            --tag "${{ env.docker_image }}:snapshot" \
+            --tag "${{ env.github_image }}:snapshot" \
+            --build-arg REF=${{ env.ref }} \
             --file Dockerfile .
           fi
 
