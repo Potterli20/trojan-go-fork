@@ -79,7 +79,7 @@ jobs:
         uses: actions/checkout@main
 
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@main
         with:
           path: /path/to/cache
           key: ${{ runner.os }}-docker-${{ github.sha }}-${{ github.run_id }}
