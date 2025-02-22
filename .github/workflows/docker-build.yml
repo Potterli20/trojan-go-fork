@@ -91,8 +91,8 @@ jobs:
 
       - name: Test docker image from Docker Hub
         run: |
-          docker run --rm --entrypoint /usr/local/bin/trojan-go-fork ${{ env.docker_image_lower }} -version
+          docker run --rm --entrypoint /usr/local/bin/trojan-go-fork ${{ secrets.DOCKERUSERNAME }}/trojan-go-fork -version
 
       - name: Test docker image from GitHub Packages
         run: |
-          docker run --rm --entrypoint /usr/local/bin/trojan-go-fork ${{ env.github_image_lower }} -version
+          docker run --rm --entrypoint /usr/local/bin/trojan-go-fork ghcr.io/${{ secrets.GITHUBUSERNAME }}/trojan-go-fork -version
