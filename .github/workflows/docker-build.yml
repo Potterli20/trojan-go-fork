@@ -34,8 +34,8 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ secrets.GITHUBUSERNAME }}
-          password: ${{ secrets.GITHUBTOKEN }}
+          username: ${{ secrets.GITHUB_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Prepare
         id: prepare
@@ -48,6 +48,7 @@ jobs:
           echo "docker_platforms=linux/amd64,linux/arm64,linux/ppc64le,linux/s390x,linux/386" >> $GITHUB_ENV
           echo "docker_image=${{ secrets.DOCKERUSERNAME }}/trojan-go-fork" >> $GITHUB_ENV
           echo "github_image=ghcr.io/${{ secrets.GITHUB_USERNAME }}/trojan-go-fork" >> $GITHUB_ENV
+
       - name: Build and push docker image
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
