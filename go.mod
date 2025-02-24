@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250222031343-d053dc9ce404
-	github.com/Potterli20/socks5-fork v0.0.0-20250216031941-0c4b4334707c
+	github.com/Potterli20/socks5-fork v0.0.0-20250224032110-be53579395e3
 	github.com/Potterli20/sqlite v0.0.0-20250218181212-5704c31f375d
 	github.com/go-sql-driver/mysql v1.9.0
 	github.com/google/uuid v1.6.0
@@ -64,7 +64,7 @@ require (
 	github.com/sagernet/sing-dns v0.4.0 // indirect
 	github.com/sagernet/sing-tun v0.6.1 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
-	github.com/txthinking/runnergroup v0.0.0-20241229123329-7b873ad00768 // indirect
+	github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
