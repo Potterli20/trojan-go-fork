@@ -6,8 +6,6 @@ github.com/OmarTariq612/goech v0.0.0-20240405204721-8e2e1dafd3a0 h1:Wo41lDOevRJS
 github.com/OmarTariq612/goech v0.0.0-20240405204721-8e2e1dafd3a0/go.mod h1:FVGavL/QEBQDcBpr3fAojoK17xX5k9bicBphrOpP7uM=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20250222031343-d053dc9ce404 h1:8maunvrZLWUipqbzKuDFo9j7QkuyV7cWBUfnTMWbWo4=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20250222031343-d053dc9ce404/go.mod h1:3et2dKJ9n0AN99DdjihdHKHUQfu4LTPpaEL7MAfstP0=
-github.com/Potterli20/socks5-fork v0.0.0-20250224032110-be53579395e3 h1:zP4jh6xGEP1ioTXBWCp9nFT/nTSvGAg0MtSiGt02d+E=
-github.com/Potterli20/socks5-fork v0.0.0-20250224032110-be53579395e3/go.mod h1:kaAGhP4fOflzx/jL2n0tNWBweAILfLmEa8r+tiYkLdI=
 github.com/Potterli20/socks5-fork v0.0.0-20250224061954-6cfb05a2249d h1:f3e8NTGC8LKxpvdsNWkz6frHHLhQdzaQu9b3jAytzTw=
 github.com/Potterli20/socks5-fork v0.0.0-20250224061954-6cfb05a2249d/go.mod h1:kaAGhP4fOflzx/jL2n0tNWBweAILfLmEa8r+tiYkLdI=
 github.com/Potterli20/sqlite v0.0.0-20250218181212-5704c31f375d h1:QUQSI8hp2kUkQP9gd7BCwM9K3QOds60BPQbQZzVYUD0=
@@ -118,8 +116,6 @@ github.com/sagernet/quic-go v0.49.0-beta.1 h1:3LdoCzVVfYRibZns1tYWSIoB65fpTmrwy+
 github.com/sagernet/quic-go v0.49.0-beta.1/go.mod h1:uesWD1Ihrldq1M3XtjuEvIUqi8WHNsRs71b3Lt1+p/U=
 github.com/sagernet/sing v0.6.1 h1:mJ6e7Ir2wtCoGLbdnnXWBsNJu5YHtbXmv66inoE0zFA=
 github.com/sagernet/sing v0.6.1/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
-github.com/sagernet/sing-box v1.11.3 h1:/yJLvru+wYf/XwniSuB1OZAPaaxs1tgXwlToo+0aeFc=
-github.com/sagernet/sing-box v1.11.3/go.mod h1:jFQqIlqNbX0DyqJ/yo+k62niRqcjhwRLJdmH+ozxyMY=
 github.com/sagernet/sing-box v1.11.4 h1:Z3xLwVJlTJfJ1p8R9M05aNJLFKRAwGebA5M/DFmr8p8=
 github.com/sagernet/sing-box v1.11.4/go.mod h1:jFQqIlqNbX0DyqJ/yo+k62niRqcjhwRLJdmH+ozxyMY=
 github.com/sagernet/sing-dns v0.4.0 h1:+mNoOuR3nljjouCH+qMg4zHI1+R9T2ReblGFkZPEndc=
@@ -172,6 +168,8 @@ go4.org/netipx v0.0.0-20231129151722-fdeea329fbba h1:0b9z3AuHCjxk0x/opv64kcgZLBs
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba/go.mod h1:PLyyIXexvUFg3Owu6p/WfdlivPbZJsZdgWZlrGope/Y=
 golang.org/x/crypto v0.34.0 h1:+/C6tk6rf/+t5DhUketUbD1aNGqiSX3j15Z6xuIDlBA=
 golang.org/x/crypto v0.34.0/go.mod h1:dy7dXNW32cAb/6/PRuTNsix8T+vJAqvuIy5Bli/x0YQ=
+golang.org/x/crypto v0.35.0 h1:b15kiHdrGCHrP6LvwaQ3c03kgNhhiMgvlhxHQhmg2Xs=
+golang.org/x/crypto v0.35.0/go.mod h1:dy7dXNW32cAb/6/PRuTNsix8T+vJAqvuIy5Bli/x0YQ=
 golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa h1:t2QcU6V556bFjYgu4L6C+6VrCPyJZ+eyRsABUPs1mz4=
 golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa/go.mod h1:BHOTPb3L19zxehTsLoJXVaTktb06DFgmdW6Wb9s8jqk=
 golang.org/x/mod v0.23.0 h1:Zb7khfcRGKk+kqfxFaP5tZqCnDZMjC5VtUBs87Hr6QM=
@@ -202,6 +200,8 @@ google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b h1:
 google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b/go.mod h1:iYONQfRdizDB8JJBybql13nArx91jcUk7zCXEsOofM4=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250219182151-9fdb1cabc7b2 h1:DMTIbak9GhdaSxEjvVzAeNZvyc03I61duqNbnm3SU0M=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250219182151-9fdb1cabc7b2/go.mod h1:LuRYeWDFV6WOn90g357N17oMCaxpgCnbi/44qJvDn2I=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20250224174004-546df14abb99 h1:ZSlhAUqC4r8TPzqLXQ0m3upBNZeF+Y8jQ3c4CR3Ujms=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20250224174004-546df14abb99/go.mod h1:LuRYeWDFV6WOn90g357N17oMCaxpgCnbi/44qJvDn2I=
 google.golang.org/grpc v1.70.0 h1:pWFv03aZoHzlRKHWicjsZytKAiYCtNS0dHbXnIdq7jQ=
 google.golang.org/grpc v1.70.0/go.mod h1:ofIJqVKDXx/JiXrwr2IG4/zwdH9txy3IlF40RmcJSQw=
 google.golang.org/protobuf v1.36.5 h1:tPhr+woSbjfYvY6/GPufUoYizxw1cF/yFoxJ2fmpwlM=
