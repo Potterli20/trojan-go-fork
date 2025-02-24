@@ -6,13 +6,13 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250222031343-d053dc9ce404
-	github.com/Potterli20/socks5-fork v0.0.0-20250224032110-be53579395e3
+	github.com/Potterli20/socks5-fork v0.0.0-20250224061954-6cfb05a2249d
 	github.com/Potterli20/sqlite v0.0.0-20250218181212-5704c31f375d
 	github.com/go-sql-driver/mysql v1.9.0
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241231083714-66613d49c422
 	github.com/sagernet/sing v0.6.1
-	github.com/sagernet/sing-box v1.11.3
+	github.com/sagernet/sing-box v1.11.4
 	github.com/sagernet/utls v1.6.7
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.10.0
