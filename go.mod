@@ -11,7 +11,7 @@ require (
 	github.com/go-sql-driver/mysql v1.9.0
 	github.com/google/uuid v1.6.0
 	github.com/metacubex/tfo-go v0.0.0-20241231083714-66613d49c422
-	github.com/sagernet/sing v0.6.1
+	github.com/sagernet/sing v0.6.2
 	github.com/sagernet/sing-box v1.11.4
 	github.com/sagernet/utls v1.6.7
 	github.com/smartystreets/goconvey v1.8.1
