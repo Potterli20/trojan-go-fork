@@ -148,6 +148,8 @@ github.com/xtls/reality v0.0.0-20240712055506-48f0b2d5ed6d h1:+B97uD9uHLgAAulhig
 github.com/xtls/reality v0.0.0-20240712055506-48f0b2d5ed6d/go.mod h1:dm4y/1QwzjGaK17ofi0Vs6NpKAHegZky8qk6J2JJZAE=
 github.com/xtls/xray-core v1.8.25-0.20250221075831-be43f66b63d5 h1:x4pNCiwk/x/zS/dpZl8fdNzC0YP8NBIOVZOAA1in/Zo=
 github.com/xtls/xray-core v1.8.25-0.20250221075831-be43f66b63d5/go.mod h1:bPLUPQGZ8ADeL1CANo0nIUNchY+SuhZCT+ItgprlPf4=
+github.com/xtls/xray-core v1.8.25-0.20250306135015-2cba2c4d59e4 h1:oP0Jy1BN+wQSje74HgOdLm9wWihPM+exbCm12M+eTz8=
+github.com/xtls/xray-core v1.8.25-0.20250306135015-2cba2c4d59e4/go.mod h1:clXnUOnX6CKWBGgJY4ePYhb/EtTdSrUC7vPfT6m5p4c=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 h1:SpG238mmCez9TdHDu0Qba+ol57R+/pUxvJsDXT22Fug=
@@ -217,6 +219,7 @@ gvisor.dev/gvisor v0.0.0-20240320123526-dc6abceb7ff0 h1:P+U/06iIKPQ3DLcg+zBfSCia
 gvisor.dev/gvisor v0.0.0-20240320123526-dc6abceb7ff0/go.mod h1:NQHVAzMwvZ+Qe3ElSiHmq9RUm1MdNHpUZ52fiEqvn+0=
 lukechampine.com/blake3 v1.3.0 h1:sJ3XhFINmHSrYCgl958hscfIa3bw8x4DqMP3u1YvoYE=
 lukechampine.com/blake3 v1.3.0/go.mod h1:0OFRp7fBtAylGVCO40o87sbupkyIGgbpv1+M1k1LM6k=
+lukechampine.com/blake3 v1.4.0 h1:xDbKOZCVbnZsfzM6mHSYcGRHZ3YrLDzqz8XnV4uaD5w=
 modernc.org/cc/v4 v4.24.4 h1:TFkx1s6dCkQpd6dKurBNmpo+G8Zl4Sq/ztJ+2+DEsh0=
 modernc.org/cc/v4 v4.24.4/go.mod h1:uVtb5OGqUKpoLWhqwNQo/8LwvoiEBLvZXIQ/SmO6mL0=
 modernc.org/ccgo/v4 v4.23.16 h1:Z2N+kk38b7SfySC1ZkpGLN2vthNJP1+ZzGZIlH7uBxo=
