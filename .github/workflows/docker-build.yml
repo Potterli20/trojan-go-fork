@@ -95,4 +95,4 @@ jobs:
 
       - name: Test docker image from GitHub Packages
         run: |
-          docker run --rm --entrypoint /usr/local/bin/trojan-go-fork ghcr.io/${{ secrets.GITHUBUSERNAME }}/trojan-go-fork -version
+          docker run --rm --entrypoint /usr/local/bin/trojan-go-fork ghcr.io/potterli20/trojan-go-fork -version
