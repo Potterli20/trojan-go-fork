@@ -118,6 +118,8 @@ github.com/sagernet/sing v0.6.3 h1:J1spMc6LMlqUvRjWjvNMAcbvACDneqxB9zxfLuS0UTE=
 github.com/sagernet/sing v0.6.3/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-box v1.11.4 h1:Z3xLwVJlTJfJ1p8R9M05aNJLFKRAwGebA5M/DFmr8p8=
 github.com/sagernet/sing-box v1.11.4/go.mod h1:jFQqIlqNbX0DyqJ/yo+k62niRqcjhwRLJdmH+ozxyMY=
+github.com/sagernet/sing-box v1.11.5 h1:xnwwyiwHj/raktHzdP3SFT0VqqDRKQShY9Rp6NZFpIA=
+github.com/sagernet/sing-box v1.11.5/go.mod h1:9n60qJQH2gmrtjKUbnjdNt+Tvg5bq2ZBYNvNOdUz65w=
 github.com/sagernet/sing-dns v0.4.0 h1:+mNoOuR3nljjouCH+qMg4zHI1+R9T2ReblGFkZPEndc=
 github.com/sagernet/sing-dns v0.4.0/go.mod h1:dweQs54ng2YGzoJfz+F9dGuDNdP5pJ3PLeggnK5VWc8=
 github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegEZaKMv9ipx8=
@@ -200,6 +202,8 @@ google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b h1:
 google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b/go.mod h1:iYONQfRdizDB8JJBybql13nArx91jcUk7zCXEsOofM4=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250303144028-a0af3efb3deb h1:TLPQVbx1GJ8VKZxz52VAxl1EBgKXXbTiU9Fc5fZeLn4=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250303144028-a0af3efb3deb/go.mod h1:LuRYeWDFV6WOn90g357N17oMCaxpgCnbi/44qJvDn2I=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20250311173030-29e43e6258d7 h1:4btoWJ6h0qoL57LAaX0WsNmmsRaNITOlxstNVz60Lvo=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20250311173030-29e43e6258d7/go.mod h1:LuRYeWDFV6WOn90g357N17oMCaxpgCnbi/44qJvDn2I=
 google.golang.org/grpc v1.71.0 h1:kF77BGdPTQ4/JZWMlb9VpJ5pa25aqvVqogsxNHHdeBg=
 google.golang.org/grpc v1.71.0/go.mod h1:H0GRtasmQOh9LkFoCPDu3ZrwUtD1YGE+b2vYBYd/8Ec=
 google.golang.org/protobuf v1.36.5 h1:tPhr+woSbjfYvY6/GPufUoYizxw1cF/yFoxJ2fmpwlM=
