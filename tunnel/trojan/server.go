@@ -74,7 +74,7 @@ func GetRealIP(c *InboundConn) string {
 			if name == "X-Forwarded-For" {
 				ips := strings.Split(value[0], ",")
 				return ips[0]
-				}
+			}
 			if name == "CF-Connecting-IP" {
 				return value[0]
 			}
@@ -85,7 +85,7 @@ func GetRealIP(c *InboundConn) string {
 				if name == "X-Forwarded-For" {
 					ips := strings.Split(value[0], ",")
 					return ips[0]
-					}
+				}
 				if name == "CF-Connecting-IP" {
 					return value[0]
 				}
