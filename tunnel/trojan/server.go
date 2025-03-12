@@ -68,27 +68,31 @@ func (c *InboundConn) Close() error {
 }
 
 func GetRealIP(c *InboundConn) string {
-	WSInboundConn, err := func(c *InboundConn) (*websocket.InboundConn, error) {
-		rewindConn, ok := c.Conn.(*common.RewindConn)
-		if !ok {
-			return nil, common.NewError("Failed to convert to RewindConn")
+	switch conn := c.Conn.(type) {
+	case *websocket.InboundConn:
+		for name, value := range conn.OutboundConn.Request().Header {
+			if name == "X-Forwarded-For" {
+				ips := strings.Split(value[0], ",")
+				return ips[0]
+				}
+			if name == "CF-Connecting-IP" {
+				return value[0]
+			}
 		}
-		InboundConnRew, ok := rewindConn.Conn.(*websocket.InboundConn)
-		if !ok {
-			return nil, common.NewError("Failed to convert to InboundConn")
+	case *common.RewindConn:
+		if wsConn, ok := conn.Conn.(*websocket.InboundConn); ok {
+			for name, value := range wsConn.OutboundConn.Request().Header {
+				if name == "X-Forwarded-For" {
+					ips := strings.Split(value[0], ",")
+					return ips[0]
+					}
+				if name == "CF-Connecting-IP" {
+					return value[0]
+				}
+			}
 		}
-		return InboundConnRew, nil
-	}(c)
-	if err != nil {
-		log.Debug("Failed to convert to WebSocket")
-		return c.ip
-	}
-
-	for name, value := range WSInboundConn.OutboundConn.Request().Header {
-		if name == "X-Forwarded-For" {
-			ips := strings.Split(value[0], ",")
-			return ips[0]
-		}
+	default:
+		log.Debug("Failed to convert to WebSocket or RewindConn")
 	}
 	return c.ip
 }
