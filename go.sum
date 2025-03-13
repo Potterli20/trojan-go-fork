@@ -15,12 +15,12 @@ github.com/andybalholm/brotli v1.1.1/go.mod h1:05ib4cKhjx3OQYUY22hTVd34Bc8upXjOL
 github.com/cloudflare/circl v1.6.0 h1:cr5JKic4HI+LkINy2lg3W2jF8sHCVTBncJr5gIIq7qk=
 github.com/cloudflare/circl v1.6.0/go.mod h1:uddAzsPgqdMAYatqJ0lsjX1oECcQLIlRpzZh3pJrofs=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
-github.com/database64128/netx-go v0.0.0-20240905055117-62795b8b054a h1:t4SDi0pmNkryzKdM4QF3o5vqSP4GRjeZD/6j3nyxNP0=
-github.com/database64128/netx-go v0.0.0-20240905055117-62795b8b054a/go.mod h1:7K2NQKbabB5mBl41vF6YayYl5g7YpDwc4dQ5iMpP3Lg=
 github.com/database64128/netx-go v0.0.0-20250306235753-cadc9cd97ae4 h1:CkuV4WUfq3vdPwmMaMZOM+tyQNuDoQg1N/Q6+OKsGwA=
 github.com/database64128/netx-go v0.0.0-20250306235753-cadc9cd97ae4/go.mod h1:zFH+5cDvDiXmjPsd8QDsAC699LQwgNepfPmxR2729uQ=
 github.com/database64128/tfo-go/v2 v2.2.2 h1:BxynF4qGF5ct3DpPLEG62uyJZ3LQhqaf0Ken+kyy7PM=
 github.com/database64128/tfo-go/v2 v2.2.2/go.mod h1:2IW8jppdBwdVMjA08uEyMNnqiAHKUlqAA+J8NrsfktY=
+github.com/database64128/tfo-go/v2 v2.2.3-0.20250307220641-d29da18f6cdf h1:GLka3siKx3+Ob6vIL2wmLp92BqHx8HB7kXH5DnawgfA=
+github.com/database64128/tfo-go/v2 v2.2.3-0.20250307220641-d29da18f6cdf/go.mod h1:F+mrHH9qYaZmDH19dsJ5ox9jJ4ribdDEFZ2Lx6nPfCk=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgryski/go-metro v0.0.0-20211217172704-adc40b04c140 h1:y7y0Oa6UawqTFPCDw9JG6pdKt4F9pAhHv0B7FMGaGD0=
