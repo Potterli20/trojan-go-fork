@@ -21,18 +21,10 @@ jobs:
           gofmt -w -r 'interface{} -> any' .
           go get -u
           go mod download
-          # 获取最新的 release 信息
-          release_info=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest)
-          # 提取最新的 tag
-          latest_tag=$(echo "$release_info" | grep "tag_name" | cut -d '"' -f 4)
-          # 获取最新 tag 对应的 commit hash
-          commit_hash=$(curl -s https://api.github.com/repos/XTLS/Xray-core/commits/$latest_tag | grep "sha" | head -n 1 | cut -d '"' -f 4)
-          # 使用提取的 commit hash 通过 go get 获取 xray-core
-          go get github.com/xtls/xray-core@$commit_hash
           # 获取 tfo-go 最新的 commits
           tfo_commit_hash=$(curl -s https://api.github.com/repos/database64128/tfo-go/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
           # 使用提取的 commit hash 通过 go get 获取 tfo-go
-          go get github.com/database64128/tfo-go@$tfo_commit_hash
+          go get github.com/database64128/tfo-go/v2@$tfo_commit_hash
 
 
       - name: Git push 
