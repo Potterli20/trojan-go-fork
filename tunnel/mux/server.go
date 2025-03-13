@@ -30,35 +30,39 @@ func (s *Server) acceptConnWorker() {
 			}
 			continue
 		}
-		go func(conn tunnel.Conn) {
-			smuxConfig := smux.DefaultConfig()
-			// smuxConfig.KeepAliveDisabled = true
-			smuxSession, err := smux.Server(conn, smuxConfig)
-			if err != nil {
-				log.Error(err)
-				return
-			}
-			go func(session *smux.Session, conn tunnel.Conn) {
-				defer session.Close()
-				defer conn.Close()
-				for {
-					stream, err := session.AcceptStream()
-					if err != nil {
-						log.Error(err)
-						return
-					}
-					select {
-					case s.connChan <- &Conn{
-						rwc:  stream,
-						Conn: conn,
-					}:
-					case <-s.ctx.Done():
-						log.Debug("exiting")
-						return
-					}
-				}
-			}(smuxSession, conn)
-		}(conn)
+		go s.handleConn(conn)
+	}
+}
+
+func (s *Server) handleConn(conn tunnel.Conn) {
+	smuxConfig := smux.DefaultConfig()
+	// smuxConfig.KeepAliveDisabled = true
+	smuxSession, err := smux.Server(conn, smuxConfig)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	go s.handleSession(smuxSession, conn)
+}
+
+func (s *Server) handleSession(session *smux.Session, conn tunnel.Conn) {
+	defer session.Close()
+	defer conn.Close()
+	for {
+		stream, err := session.AcceptStream()
+		if err != nil {
+			log.Error(err)
+			return
+		}
+		select {
+		case s.connChan <- &Conn{
+			rwc:  stream,
+			Conn: conn,
+		}:
+		case <-s.ctx.Done():
+			log.Debug("exiting")
+			return
+		}
 	}
 }
 

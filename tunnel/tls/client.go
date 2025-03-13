@@ -42,53 +42,45 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) DialPacket(tunnel tunnel.Tunnel) (tunnel.PacketConn, error) {
-	panic("not supported")
+	return nil, common.NewError("DialPacket is not supported")
 }
 
 func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel.Conn, error) {
-	// 检查 address 是否为 nil
-	//if address == nil {
-	//	return nil, common.NewError("Address is nil")
-	//}
+	if address == nil {
+		return nil, common.NewError("Address is nil")
+	}
 
 	conn, err := net.Dial("tcp", address.String())
 	if err != nil {
-		return nil, err
+		return nil, common.NewError("failed to dial TCP connection").Base(err)
 	}
 
+	var tlsConn net.Conn
 	if c.fingerprint != "" {
-		// tls fingerprint
-		tlsConn := utls.UClient(conn, &utls.Config{
+		// Use utls for fingerprinting
+		tlsConn = utls.UClient(conn, &utls.Config{
 			RootCAs:            c.ca,
 			ServerName:         c.sni,
 			InsecureSkipVerify: !c.verify,
 			KeyLogWriter:       c.keyLogger,
 		}, c.helloID)
-		if err := tlsConn.Handshake(); err != nil {
-			return nil, common.NewError("tls failed to handshake with the remote server").Base(err)
-		}
-		return &transport.Conn{
-			Conn: tlsConn,
-		}, nil
-	}
-	// golang default tls library
-	tlsConn := tls.Client(conn, &tls.Config{
-		InsecureSkipVerify:     !c.verify,
-		ServerName:             c.sni,
-		RootCAs:                c.ca,
-		KeyLogWriter:           c.keyLogger,
-		CipherSuites:           c.cipher,
-		SessionTicketsDisabled: !c.sessionTicket,
-	})
-	err = tlsConn.Handshake()
-	if err != nil {
-		return nil, common.NewError("fingerprint is empty")
+	} else {
+		// Use default Go TLS library
+		tlsConn = tls.Client(conn, &tls.Config{
+			InsecureSkipVerify:     !c.verify,
+			ServerName:             c.sni,
+			RootCAs:                c.ca,
+			KeyLogWriter:           c.keyLogger,
+			CipherSuites:           c.cipher,
+			SessionTicketsDisabled: !c.sessionTicket,
+		})
 	}
 
-	// Add a default return statement or adjust it based on your logic
-	return &transport.Conn{
-		Conn: tlsConn,
-	}, nil
+	if err := tlsConn.Handshake(); err != nil {
+		return nil, common.NewError("TLS handshake failed").Base(err)
+	}
+
+	return &transport.Conn{Conn: tlsConn}, nil
 }
 
 // NewClient creates a tls client
@@ -102,7 +94,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 
 	if cfg.TLS.SNI == "" {
 		cfg.TLS.SNI = cfg.RemoteHost
-		log.Warn("tls sni is unspecified, it's recommended to specify it for better security")
+		log.Warn("TLS SNI is unspecified, it's recommended to specify it for better security")
 	}
 
 	client := &Client{
@@ -116,15 +108,14 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	}
 
 	if cfg.TLS.CertPath != "" {
-		err := loadCert(client, cfg.TLS.CertPath)
-		if err != nil {
+		if err := loadCert(client, cfg.TLS.CertPath); err != nil {
 			return nil, err
 		}
 	} else {
-		log.Info("cert is unspecified, using default ca list")
+		log.Info("Cert is unspecified, using default CA list")
 	}
 
-	log.Debug("tls client created")
+	log.Debug("TLS client created")
 	return client, nil
 }
 
@@ -159,13 +150,12 @@ func loadCert(client *Client, certPath string) error {
 		return common.NewError("failed to load cert file at path: " + certPath).Base(err)
 	}
 	client.ca = x509.NewCertPool()
-	ok := client.ca.AppendCertsFromPEM(caCertByte)
-	if !ok {
-		log.Warn("invalid cert list")
+	if ok := client.ca.AppendCertsFromPEM(caCertByte); !ok {
+		log.Warn("Invalid cert list")
 	}
-	log.Info("using custom cert")
+	log.Info("Using custom cert")
 
-	// print cert info
+	// Print cert info
 	pemCerts := caCertByte
 	for len(pemCerts) > 0 {
 		var block *pem.Block
@@ -180,7 +170,7 @@ func loadCert(client *Client, certPath string) error {
 		if err != nil {
 			continue
 		}
-		log.Trace("issuer:", cert.Issuer, "subject:", cert.Subject)
+		log.Trace("Issuer:", cert.Issuer, "Subject:", cert.Subject)
 	}
 
 	return nil

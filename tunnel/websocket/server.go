@@ -3,14 +3,17 @@ package websocket
 import (
 	"bufio"
 	"context"
+	"crypto/tls"
 	"math/rand"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"golang.org/x/net/websocket"
+	"golang.org/x/net/http2"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -166,6 +169,17 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	}
 	ctx, cancel := context.WithCancel(ctx)
 	log.Debug("websocket server created")
+
+	// Enable HTTP/2
+	server := &http.Server{
+		Addr:    ":" + strconv.Itoa(cfg.RemotePort), // 使用配置文件中的 remote_port 字段
+		Handler: nil,
+		TLSConfig: &tls.Config{
+			NextProtos: []string{"h2", "http/1.1"},
+		},
+	}
+	http2.ConfigureServer(server, &http2.Server{})
+
 	return &Server{
 		enabled:   cfg.Websocket.Enabled,
 		hostname:  cfg.Websocket.Host,

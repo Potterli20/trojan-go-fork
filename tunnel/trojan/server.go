@@ -62,7 +62,7 @@ func (c *InboundConn) Read(p []byte) (int, error) {
 }
 
 func (c *InboundConn) Close() error {
-	log.Debug("user", c.hash, "KeyShare ", c.password, " RealIP", c.ipX, "from", c.Conn.RemoteAddr(), "tunneling to", c.metadata.Address, "closed",
+	log.Debug("Closing connection for user", c.hash, "KeyShare", c.password, "RealIP", c.ipX, "from", c.Conn.RemoteAddr(), "tunneling to", c.metadata.Address,
 		"sent:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.sent)), "recv:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.recv)))
 	return c.Conn.Close()
 }
@@ -286,9 +286,9 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		underlay:   underlay,
 		auth:       Auth,
 		redirAddr:  redirAddr,
-		connChan:   make(chan tunnel.Conn, 32),
-		muxChan:    make(chan tunnel.Conn, 32),
-		packetChan: make(chan tunnel.PacketConn, 32),
+		connChan:   make(chan tunnel.Conn, 64), // 增加连接池大小
+		muxChan:    make(chan tunnel.Conn, 64), // 增加连接池大小
+		packetChan: make(chan tunnel.PacketConn, 64), // 增加连接池大小
 		ctx:        ctx,
 		cancel:     cancel,
 		redir:      redirector.NewRedirector(ctx),
