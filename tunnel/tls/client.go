@@ -63,7 +63,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 			ServerName:         c.sni,
 			InsecureSkipVerify: !c.verify,
 			KeyLogWriter:       c.keyLogger,
-		}, c.helloID).(*tls.Conn)
+		}, c.helloID).Conn
 	} else {
 		// Use default Go TLS library
 		tlsConn = tls.Client(conn, &tls.Config{
