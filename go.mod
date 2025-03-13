@@ -8,9 +8,9 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250305211109-43e6fb9fb7a6
 	github.com/Potterli20/socks5-fork v0.0.0-20250313033656-e6df630baf67
 	github.com/Potterli20/sqlite v0.0.0-20250306031921-11c091a2a739
+	github.com/database64128/tfo-go/v2 v2.2.2
 	github.com/go-sql-driver/mysql v1.9.0
 	github.com/google/uuid v1.6.0
-	github.com/metacubex/tfo-go v0.0.0-20241231083714-66613d49c422
 	github.com/sagernet/sing v0.6.3
 	github.com/sagernet/sing-box v1.11.5
 	github.com/sagernet/utls v1.6.7
@@ -33,6 +33,7 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/cloudflare/circl v1.6.0 // indirect
+	github.com/database64128/netx-go v0.0.0-20250306235753-cadc9cd97ae4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
@@ -50,6 +51,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mdlayher/netlink v1.7.2 // indirect
 	github.com/mdlayher/socket v0.5.1 // indirect
+	github.com/metacubex/tfo-go v0.0.0-20241231083714-66613d49c422 // indirect
 	github.com/miekg/dns v1.1.63 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/oschwald/maxminddb-golang v1.13.1 // indirect
