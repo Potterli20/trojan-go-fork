@@ -286,8 +286,8 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		underlay:   underlay,
 		auth:       Auth,
 		redirAddr:  redirAddr,
-		connChan:   make(chan tunnel.Conn, 64), // 增加连接池大小
-		muxChan:    make(chan tunnel.Conn, 64), // 增加连接池大小
+		connChan:   make(chan tunnel.Conn, 64),       // 增加连接池大小
+		muxChan:    make(chan tunnel.Conn, 64),       // 增加连接池大小
 		packetChan: make(chan tunnel.PacketConn, 64), // 增加连接池大小
 		ctx:        ctx,
 		cancel:     cancel,

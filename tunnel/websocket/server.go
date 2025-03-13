@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/net/websocket"
 	"golang.org/x/net/http2"
+	"golang.org/x/net/websocket"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
