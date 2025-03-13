@@ -15,7 +15,7 @@ import (
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
-	"github.com/metacubex/tfo-go"
+	"github.com/database64128/tfo-go/v2"
 )
 
 // Server is a server of transport layer
@@ -42,48 +42,49 @@ func (s *Server) acceptLoop() {
 	for {
 		tcpConn, err := s.tcpListener.Accept()
 		if err != nil {
-			select {
-			case <-s.ctx.Done():
-			default:
-				log.Error(common.NewError("transport accept error").Base(err))
-				time.Sleep(time.Millisecond * 100)
+			if s.ctx.Err() != nil {
+				return
 			}
-			return
+			log.Error(common.NewError("transport accept error").Base(err))
+			time.Sleep(time.Millisecond * 100)
+			continue
 		}
 
-		go func(tcpConn net.Conn) {
-			log.Debug("tcp connection from", tcpConn.RemoteAddr())
-			s.httpLock.RLock()
-			if s.nextHTTP { // plaintext mode enabled
-				s.httpLock.RUnlock()
-				// we use real http header parser to mimic a real http server
-				rewindConn := common.NewRewindConn(tcpConn)
-				rewindConn.SetBufferSize(512)
-				defer rewindConn.StopBuffering()
+		go s.handleConnection(tcpConn)
+	}
+}
 
-				r := bufio.NewReader(rewindConn)
-				httpReq, err := http.ReadRequest(r)
-				rewindConn.Rewind()
-				rewindConn.StopBuffering()
-				if err != nil {
-					// this is not a http request, pass it to trojan protocol layer for further inspection
-					s.connChan <- &Conn{
-						Conn: rewindConn,
-					}
-				} else {
-					// this is a http request, pass it to websocket protocol layer
-					log.Debug("plaintext http request: ", httpReq)
-					s.wsChan <- &Conn{
-						Conn: rewindConn,
-					}
-				}
-			} else {
-				s.httpLock.RUnlock()
-				s.connChan <- &Conn{
-					Conn: tcpConn,
-				}
+func (s *Server) handleConnection(tcpConn net.Conn) {
+	log.Debug("tcp connection from", tcpConn.RemoteAddr())
+	s.httpLock.RLock()
+	defer s.httpLock.RUnlock()
+
+	if s.nextHTTP { // plaintext mode enabled
+		// we use real http header parser to mimic a real http server
+		rewindConn := common.NewRewindConn(tcpConn)
+		rewindConn.SetBufferSize(512)
+		defer rewindConn.StopBuffering()
+
+		r := bufio.NewReader(rewindConn)
+		httpReq, err := http.ReadRequest(r)
+		rewindConn.Rewind()
+		rewindConn.StopBuffering()
+		if err != nil {
+			// this is not a http request, pass it to trojan protocol layer for further inspection
+			s.connChan <- &Conn{
+				Conn: rewindConn,
 			}
-		}(tcpConn)
+		} else {
+			// this is a http request, pass it to websocket protocol layer
+			log.Debug("plaintext http request: ", httpReq)
+			s.wsChan <- &Conn{
+				Conn: rewindConn,
+			}
+		}
+	} else {
+		s.connChan <- &Conn{
+			Conn: tcpConn,
+		}
 	}
 }
 

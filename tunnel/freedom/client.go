@@ -10,7 +10,7 @@ import (
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
-	"github.com/metacubex/tfo-go"
+	tfo "github.com/database64128/tfo-go/v2"
 	dialer_sing_box "github.com/sagernet/sing-box/common/dialer"
 	"github.com/sagernet/sing/common/metadata"
 )
@@ -46,12 +46,6 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 		if err != nil {
 			return nil, common.NewError("freedom failed to dial target address via socks proxy " + addr.String()).Base(err)
 		}
-		// conn, err := dialer_sing_box.DialSlowContext(&tfo.Dialer{
-		// 	Dialer: net.Dialer{},
-		// }, context.Background(), "tcp", metadata.ParseSocksaddr(addr.String()))
-		// if err != nil {
-		// 	return nil, common.NewError("freedom failed to dial target address via socks proxy " + addr.String()).Base(err)
-		// }
 		return &Conn{
 			Conn: conn,
 		}, nil
@@ -60,23 +54,13 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 	if c.preferIPv4 {
 		network = "tcp4"
 	}
-	// dialer := new(net.Dialer)
-	// tcpConn, err := dialer.DialContext(c.ctx, network, addr.String())
-	// if err != nil {
-	// 	return nil, common.NewError("freedom failed to dial " + addr.String()).Base(err)
-	// }
-	tcpConn, err := dialer_sing_box.DialSlowContext(&tfo.Dialer{
-		Dialer: net.Dialer{
-			DualStack: true,
-		},
-		DisableTFO: false,
-	}, context.Background(), network, metadata.ParseSocksaddr(addr.String()))
+	tcpConn, err := tfo.Dial(network, addr.String())
 	if err != nil {
 		return nil, common.NewError("freedom failed to dial " + addr.String()).Base(err)
 	}
 
-	// tcpConn.(*net.TCPConn).SetKeepAlive(c.keepAlive)
-	// tcpConn.(*net.TCPConn).SetNoDelay(c.noDelay)
+	tcpConn.(*net.TCPConn).SetKeepAlive(c.keepAlive)
+	tcpConn.(*net.TCPConn).SetNoDelay(c.noDelay)
 	return &Conn{
 		Conn: tcpConn,
 	}, nil
@@ -111,7 +95,6 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 			}
 			socksAddr.IP = ip
 		}
-		// fmt.Printf("socksAddr: %v\n", socksAddr)
 		return &SocksPacketConn{
 			PacketConn:  packetConn,
 			socksAddr:   socksAddr,
