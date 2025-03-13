@@ -55,7 +55,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		return nil, common.NewError("failed to dial TCP connection").Base(err)
 	}
 
-	var tlsConn net.Conn
+	var tlsConn *tls.Conn
 	if c.fingerprint != "" {
 		// Use utls for fingerprinting
 		tlsConn = utls.UClient(conn, &utls.Config{
@@ -63,7 +63,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 			ServerName:         c.sni,
 			InsecureSkipVerify: !c.verify,
 			KeyLogWriter:       c.keyLogger,
-		}, c.helloID)
+		}, c.helloID).(*tls.Conn)
 	} else {
 		// Use default Go TLS library
 		tlsConn = tls.Client(conn, &tls.Config{
