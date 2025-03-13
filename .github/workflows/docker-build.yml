@@ -7,8 +7,8 @@ on:
     paths-ignore:
       - '**.md'
       - 'docs/**'
-    tags: # let the GitHub CI with new tag release trigger this docker build GitHub CI
-      - '**' # Push events to every tag including hierarchical tags like v1.0/beta
+    tags:
+      - '**'
     
 jobs:
   build:
@@ -53,23 +53,18 @@ jobs:
 
       - name: Build and push docker image
         run: |
+          tags="snapshot"
           if [[ $GITHUB_REF == refs/tags/* ]]; then
-            docker buildx build --platform ${{ env.docker_platforms }} \
-            --output "type=image,push=true" \
-            --tag "${{ env.docker_image_lower }}:${GITHUB_REF#refs/tags/}" \
-            --tag "${{ env.docker_image_lower }}:latest" \
-            --tag "${{ env.github_image_lower }}:${GITHUB_REF#refs/tags/}" \
-            --tag "${{ env.github_image_lower }}:latest" \
-            --build-arg REF=${{ env.ref }} \
-            --file Dockerfile .
-          else
-            docker buildx build --platform ${{ env.docker_platforms }} \
-            --output "type=image,push=true" \
-            --tag "${{ env.docker_image_lower }}:snapshot" \
-            --tag "${{ env.github_image_lower }}:snapshot" \
-            --build-arg REF=${{ env.ref }} \
-            --file Dockerfile .
+            tags="${GITHUB_REF#refs/tags/} latest"
           fi
+          for tag in $tags; do
+            docker buildx build --platform ${{ env.docker_platforms }} \
+            --output "type=image,push=true" \
+            --tag "${{ env.docker_image_lower }}:$tag" \
+            --tag "${{ env.github_image_lower }}:$tag" \
+            --build-arg REF=${{ env.ref }} \
+            --file Dockerfile .
+          done
 
   test:
     needs: build

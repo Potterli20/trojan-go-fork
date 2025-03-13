@@ -79,80 +79,30 @@ release: geosite.dat geoip.dat geoip-only-cn-private.dat \
   linux-386-sse2.zip freebsd-386-sse2.zip windows-386-sse2.zip netbsd-386-sse2.zip openbsd-386-sse2.zip \
   linux-386-softfloat.zip freebsd-386-softfloat.zip darwin-386-softfloat.zip windows-386-softfloat.zip netbsd-386-softfloat.zip openbsd-386-softfloat.zip
 
-#amd64(v2、v3、v4)
-darwin-amd64-v2:
+define BUILD_TARGET
+$(1):
 	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v2 GOOS=darwin $(GOBUILD)/$@
+	GOARCH=$(2) $(if $(3),GOAMD64=$(3) ,)GOOS=$(4) $(GOBUILD)/$@
+endef
 
-linux-amd64-v2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v2 GOOS=linux $(GOBUILD)/$@
-
-freebsd-amd64-v2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v2 GOOS=freebsd $(GOBUILD)/$@
-
-netbsd-amd64-v2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v2 GOOS=netbsd $(GOBUILD)/$@
-
-openbsd-amd64-v2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v2 GOOS=openbsd $(GOBUILD)/$@
-
-windows-amd64-v2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v2 GOOS=windows $(GOBUILD)/$@
-
-darwin-amd64-v3:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v3 GOOS=darwin $(GOBUILD)/$@
-
-linux-amd64-v3:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v3 GOOS=linux $(GOBUILD)/$@
-
-freebsd-amd64-v3:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v3 GOOS=freebsd $(GOBUILD)/$@
-
-netbsd-amd64-v3:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v3 GOOS=netbsd $(GOBUILD)/$@
-
-openbsd-amd64-v3:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v3 GOOS=openbsd $(GOBUILD)/$@
-
-windows-amd64-v3:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v3 GOOS=windows $(GOBUILD)/$@
-
-darwin-amd64-v4:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v4 GOOS=darwin $(GOBUILD)/$@
-
-linux-amd64-v4:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v4 GOOS=linux $(GOBUILD)/$@
-
-freebsd-amd64-v4:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v4 GOOS=freebsd $(GOBUILD)/$@
-
-netbsd-amd64-v4:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v4 GOOS=netbsd $(GOBUILD)/$@
-
-openbsd-amd64-v4:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v4 GOOS=openbsd $(GOBUILD)/$@
-
-windows-amd64-v4:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOAMD64=v4 GOOS=windows $(GOBUILD)/$@
-
-#386(sse2、softfloat)
+$(eval $(call BUILD_TARGET,darwin-amd64-v2,amd64,v2,darwin))
+$(eval $(call BUILD_TARGET,linux-amd64-v2,amd64,v2,linux))
+$(eval $(call BUILD_TARGET,freebsd-amd64-v2,amd64,v2,freebsd))
+$(eval $(call BUILD_TARGET,netbsd-amd64-v2,amd64,v2,netbsd))
+$(eval $(call BUILD_TARGET,openbsd-amd64-v2,amd64,v2,openbsd))
+$(eval $(call BUILD_TARGET,windows-amd64-v2,amd64,v2,windows))
+$(eval $(call BUILD_TARGET,darwin-amd64-v3,amd64,v3,darwin))
+$(eval $(call BUILD_TARGET,linux-amd64-v3,amd64,v3,linux))
+$(eval $(call BUILD_TARGET,freebsd-amd64-v3,amd64,v3,freebsd))
+$(eval $(call BUILD_TARGET,netbsd-amd64-v3,amd64,v3,netbsd))
+$(eval $(call BUILD_TARGET,openbsd-amd64-v3,amd64,v3,openbsd))
+$(eval $(call BUILD_TARGET,windows-amd64-v3,amd64,v3,windows))
+$(eval $(call BUILD_TARGET,darwin-amd64-v4,amd64,v4,darwin))
+$(eval $(call BUILD_TARGET,linux-amd64-v4,amd64,v4,linux))
+$(eval $(call BUILD_TARGET,freebsd-amd64-v4,amd64,v4,freebsd))
+$(eval $(call BUILD_TARGET,netbsd-amd64-v4,amd64,v4,netbsd))
+$(eval $(call BUILD_TARGET,openbsd-amd64-v4,amd64,v4,openbsd))
+$(eval $(call BUILD_TARGET,windows-amd64-v4,amd64,v4,windows))
 
 linux-386-sse2:
 	mkdir -p $(BUILD_DIR)/$@
@@ -197,8 +147,6 @@ openbsd-386-softfloat:
 windows-386-softfloat:
 	mkdir -p $(BUILD_DIR)/$@
 	GOARCH=386 GOOS=windows GO386=softfloat $(GOBUILD)/$@
-
-#other
 
 darwin-amd64:
 	mkdir -p $(BUILD_DIR)/$@

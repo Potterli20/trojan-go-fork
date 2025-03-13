@@ -1,20 +1,18 @@
 FROM golang:alpine AS builder
-WORKDIR /
+WORKDIR /trojan-go-fork
 ARG REF
-RUN apk update &&\
-    apk add --no-cache git make wget build-base &&\
-    git clone https://github.com/Potterli20/trojan-go-fork.git
-RUN if [[ -z "${REF}" ]]; then \
-        echo "No specific commit provided, use the latest one." \
-    ;else \
-        echo "Use commit ${REF}" &&\
-        cd trojan-go-fork &&\
-        git checkout ${REF} \
-    ;fi
-RUN cd trojan-go-fork &&\
-    make &&\
-    wget https://github.com/v2fly/domain-list-community/raw/release/dlc.dat -O build/geosite.dat &&\
-    wget https://github.com/Loyalsoldier/geoip/raw/release/geoip.dat -O build/geoip.dat &&\
+RUN apk update && \
+    apk add --no-cache git make wget build-base && \
+    git clone https://github.com/Potterli20/trojan-go-fork.git . && \
+    if [ -n "${REF}" ]; then \
+        echo "Use commit ${REF}" && \
+        git checkout ${REF}; \
+    else \
+        echo "No specific commit provided, use the latest one."; \
+    fi && \
+    make && \
+    wget https://github.com/v2fly/domain-list-community/raw/release/dlc.dat -O build/geosite.dat && \
+    wget https://github.com/Loyalsoldier/geoip/raw/release/geoip.dat -O build/geoip.dat && \
     wget https://github.com/Loyalsoldier/geoip/raw/release/geoip-only-cn-private.dat -O build/geoip-only-cn-private.dat
 
 FROM alpine
