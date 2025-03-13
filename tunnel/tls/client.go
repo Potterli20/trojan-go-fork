@@ -64,7 +64,10 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 			InsecureSkipVerify: !c.verify,
 			KeyLogWriter:       c.keyLogger,
 		}, c.helloID)
-		tlsConn = uconn
+		if err := uconn.Handshake(); err != nil {
+			return nil, common.NewError("TLS handshake failed").Base(err)
+		}
+		return &transport.Conn{Conn: uconn}, nil
 	} else {
 		// Use default Go TLS library
 		tlsConn = tls.Client(conn, &tls.Config{
