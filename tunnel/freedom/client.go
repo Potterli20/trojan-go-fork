@@ -11,8 +11,6 @@ import (
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	tfo "github.com/database64128/tfo-go/v2"
-	dialer_sing_box "github.com/sagernet/sing-box/common/dialer"
-	"github.com/sagernet/sing/common/metadata"
 )
 
 type Client struct {
@@ -54,7 +52,7 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 	if c.preferIPv4 {
 		network = "tcp4"
 	}
-	tcpConn, err := tfo.Dial(network, addr.String())
+	tcpConn, err := tfo.Dial(network, addr.String(), nil)
 	if err != nil {
 		return nil, common.NewError("freedom failed to dial " + addr.String()).Base(err)
 	}
