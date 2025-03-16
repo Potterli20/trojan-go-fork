@@ -60,7 +60,11 @@ uninstall:
 	rm /usr/bin/geosite.dat
 
 %.zip: % geosite.dat geoip.dat geoip-only-cn-private.dat
-	@zip -du $(NAME)-$@ -j $(BUILD_DIR)/$</*
+	@if [ -d "$(BUILD_DIR)/$<" ] && [ "$(shell ls -A $(BUILD_DIR)/$<)" ]; then \
+		zip -du $(NAME)-$@ -j $(BUILD_DIR)/$</*; \
+	else \
+		echo "Warning: $(BUILD_DIR)/$< is empty or does not exist"; \
+	fi
 	@zip -du $(NAME)-$@ example/*
 	@-zip -du $(NAME)-$@ *.dat
 	@echo "<<< ---- $(NAME)-$@"
