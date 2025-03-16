@@ -23,6 +23,8 @@ jobs:
   
       - name: Get project dependencies & run
         run: |
+          echo "Downloading dependencies..."
+          for i in {1..5}; do go mod download && break || sleep 15; done
           make release -j$(nproc)
           
       - name: Release
