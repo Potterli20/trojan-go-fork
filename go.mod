@@ -20,7 +20,7 @@ require (
 	golang.org/x/term v0.30.0
 	golang.org/x/time v0.11.0
 	google.golang.org/genproto v0.0.0-20250219182151-9fdb1cabc7b2
-	google.golang.org/grpc v1.71.0
+	google.golang.org/grpc v1.71.1
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.25.12
