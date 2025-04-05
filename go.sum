@@ -17,6 +17,8 @@ github.com/cloudflare/circl v1.6.0/go.mod h1:uddAzsPgqdMAYatqJ0lsjX1oECcQLIlRpzZ
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/database64128/netx-go v0.0.0-20250306235753-cadc9cd97ae4 h1:CkuV4WUfq3vdPwmMaMZOM+tyQNuDoQg1N/Q6+OKsGwA=
 github.com/database64128/netx-go v0.0.0-20250306235753-cadc9cd97ae4/go.mod h1:zFH+5cDvDiXmjPsd8QDsAC699LQwgNepfPmxR2729uQ=
+github.com/database64128/netx-go v0.0.0-20250402041831-49f4a487d5cf h1:RI8/wo0Gn6ZlhZXiBd/YNQUcHRdt4vk8w3konx+saQY=
+github.com/database64128/netx-go v0.0.0-20250402041831-49f4a487d5cf/go.mod h1:hX7u05nphBBhV1fcHmxfgcKvMNksNQEbnT6IEi1Bgs0=
 github.com/database64128/tfo-go/v2 v2.2.3-0.20250402100619-97b66ea657ee h1:PqoE08GBAhR8n8Yt+/WVXr0cce+GacHBagNrHzkGkBw=
 github.com/database64128/tfo-go/v2 v2.2.3-0.20250402100619-97b66ea657ee/go.mod h1:WHEBRrsmgim6hrReCYqDnbsgSJUCjoxmCcYsQ19/dMw=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
@@ -168,8 +170,6 @@ google.golang.org/genproto v0.0.0-20250219182151-9fdb1cabc7b2 h1:2v3FMY0zK1tvBif
 google.golang.org/genproto v0.0.0-20250219182151-9fdb1cabc7b2/go.mod h1:8gW3cF0R9yLr/iTl4DCcRcZuuTmm/ohUb1kauVvE354=
 google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b h1:i+d0RZa8Hs2L/MuaOQYI+krthcxdEbEM2N+Tf3kJ4zk=
 google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b/go.mod h1:iYONQfRdizDB8JJBybql13nArx91jcUk7zCXEsOofM4=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 h1:e0AIkUUhxyBKh6ssZNrAMeqhA7RKUj42346d1y02i2g=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463/go.mod h1:qQ0YXyHHx3XkvlzUtpXDkS29lDSafHMZBAZDc03LQ3A=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250404141209-ee84b53bf3d0 h1:0K7wTWyzxZ7J+L47+LbFogJW1nn/gnnMCN0vGXNYtTI=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250404141209-ee84b53bf3d0/go.mod h1:qQ0YXyHHx3XkvlzUtpXDkS29lDSafHMZBAZDc03LQ3A=
 google.golang.org/grpc v1.71.1 h1:ffsFWr7ygTUscGPI0KKK6TLrGz0476KUvvsbqWK0rPI=
