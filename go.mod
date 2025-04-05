@@ -5,9 +5,9 @@ go 1.24.1
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250305211109-43e6fb9fb7a6
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250405181427-c63ee10437fd
 	github.com/Potterli20/socks5-fork v0.0.0-20250319040811-702f4ffff1bb
-	github.com/Potterli20/sqlite v0.0.0-20250330210843-248f28ccf664
+	github.com/Potterli20/sqlite v0.0.0-20250405150749-6d53a7a2af5d
 	github.com/database64128/tfo-go/v2 v2.2.3-0.20250404231317-b5779f1ab9f6
 	github.com/go-sql-driver/mysql v1.9.1
 	github.com/google/uuid v1.6.0
@@ -31,7 +31,7 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/cloudflare/circl v1.6.0 // indirect
-	github.com/database64128/netx-go v0.0.0-20250402041831-49f4a487d5cf // indirect
+	github.com/database64128/netx-go v0.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/google/btree v1.1.3 // indirect
@@ -58,7 +58,7 @@ require (
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
 	golang.org/x/mod v0.24.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/tools v0.31.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b // indirect
