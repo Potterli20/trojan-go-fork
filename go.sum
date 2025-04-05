@@ -17,8 +17,6 @@ github.com/cloudflare/circl v1.6.0/go.mod h1:uddAzsPgqdMAYatqJ0lsjX1oECcQLIlRpzZ
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/database64128/netx-go v0.0.0-20250402041831-49f4a487d5cf h1:RI8/wo0Gn6ZlhZXiBd/YNQUcHRdt4vk8w3konx+saQY=
 github.com/database64128/netx-go v0.0.0-20250402041831-49f4a487d5cf/go.mod h1:hX7u05nphBBhV1fcHmxfgcKvMNksNQEbnT6IEi1Bgs0=
-github.com/database64128/tfo-go/v2 v2.2.3-0.20250402100619-97b66ea657ee h1:PqoE08GBAhR8n8Yt+/WVXr0cce+GacHBagNrHzkGkBw=
-github.com/database64128/tfo-go/v2 v2.2.3-0.20250402100619-97b66ea657ee/go.mod h1:WHEBRrsmgim6hrReCYqDnbsgSJUCjoxmCcYsQ19/dMw=
 github.com/database64128/tfo-go/v2 v2.2.3-0.20250404231317-b5779f1ab9f6 h1:LhXbSEf16nu+ajWkaxB/vBJUwo4ctFUgWNlyeiufVOU=
 github.com/database64128/tfo-go/v2 v2.2.3-0.20250404231317-b5779f1ab9f6/go.mod h1:IN1IB39F0Wb6QWTTyvd5pt65RH9d9IBvn3k85j3j3YE=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
