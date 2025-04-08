@@ -7,7 +7,7 @@ tool golang.org/x/tools/cmd/stringer
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250406211048-6ba9bdf0c323
 	github.com/Potterli20/socks5-fork v0.0.0-20250407054943-8796e7fe2582
-	github.com/Potterli20/sqlite v0.0.0-20250406061210-17f23b665fc9
+	github.com/Potterli20/sqlite v0.0.0-20250408181201-5a8880f5e28c
 	github.com/database64128/tfo-go/v2 v2.2.3-0.20250407190644-e2aad520f32e
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/google/uuid v1.6.0
@@ -55,12 +55,12 @@ require (
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/crypto v0.37.0 // indirect
-	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
+	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
 	golang.org/x/mod v0.24.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
-	golang.org/x/tools v0.31.0 // indirect
+	golang.org/x/tools v0.32.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250407143221-ac9807e6c755 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
