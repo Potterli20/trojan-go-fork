@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250406211048-6ba9bdf0c323
 	github.com/Potterli20/socks5-fork v0.0.0-20250407054943-8796e7fe2582
 	github.com/Potterli20/sqlite v0.0.0-20250406061210-17f23b665fc9
-	github.com/database64128/tfo-go/v2 v2.2.3-0.20250406041925-03f4f99444e3
+	github.com/database64128/tfo-go/v2 v2.2.3-0.20250407190644-e2aad520f32e
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/google/uuid v1.6.0
 	github.com/sagernet/utls v1.6.7
@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/xtaci/smux v1.5.34
 	github.com/xtls/xray-core v1.250306.0
-	golang.org/x/net v0.38.0
+	golang.org/x/net v0.39.0
 	golang.org/x/term v0.31.0
 	golang.org/x/time v0.11.0
 	google.golang.org/genproto v0.0.0-20250219182151-9fdb1cabc7b2
