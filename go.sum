@@ -12,8 +12,6 @@ github.com/Potterli20/sqlite v0.0.0-20250408181201-5a8880f5e28c h1:f9EAQsiWlQkKy
 github.com/Potterli20/sqlite v0.0.0-20250408181201-5a8880f5e28c/go.mod h1:ABgQgYgLxsSwLR3IjU9G/hUC2AwO43hJAbm4XpebvD0=
 github.com/andybalholm/brotli v1.1.1 h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
 github.com/andybalholm/brotli v1.1.1/go.mod h1:05ib4cKhjx3OQYUY22hTVd34Bc8upXjOLL2rKwwZBoA=
-github.com/cloudflare/circl v1.6.0 h1:cr5JKic4HI+LkINy2lg3W2jF8sHCVTBncJr5gIIq7qk=
-github.com/cloudflare/circl v1.6.0/go.mod h1:uddAzsPgqdMAYatqJ0lsjX1oECcQLIlRpzZh3pJrofs=
 github.com/cloudflare/circl v1.6.1 h1:zqIqSPIndyBh1bjLVVDHMPpVKqp8Su/V+6MeDzzQBQ0=
 github.com/cloudflare/circl v1.6.1/go.mod h1:uddAzsPgqdMAYatqJ0lsjX1oECcQLIlRpzZh3pJrofs=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
@@ -170,8 +168,6 @@ google.golang.org/genproto v0.0.0-20250219182151-9fdb1cabc7b2 h1:2v3FMY0zK1tvBif
 google.golang.org/genproto v0.0.0-20250219182151-9fdb1cabc7b2/go.mod h1:8gW3cF0R9yLr/iTl4DCcRcZuuTmm/ohUb1kauVvE354=
 google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b h1:i+d0RZa8Hs2L/MuaOQYI+krthcxdEbEM2N+Tf3kJ4zk=
 google.golang.org/genproto/googleapis/api v0.0.0-20250212204824-5a70512c5d8b/go.mod h1:iYONQfRdizDB8JJBybql13nArx91jcUk7zCXEsOofM4=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20250407143221-ac9807e6c755 h1:TwXJCGVREgQ/cl18iY0Z4wJCTL/GmW+Um2oSwZiZPnc=
-google.golang.org/genproto/googleapis/rpc v0.0.0-20250407143221-ac9807e6c755/go.mod h1:qQ0YXyHHx3XkvlzUtpXDkS29lDSafHMZBAZDc03LQ3A=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250409194420-de1ac958c67a h1:GIqLhp/cYUkuGuiT+vJk8vhOP86L4+SP5j8yXgeVpvI=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20250409194420-de1ac958c67a/go.mod h1:qQ0YXyHHx3XkvlzUtpXDkS29lDSafHMZBAZDc03LQ3A=
 google.golang.org/grpc v1.71.1 h1:ffsFWr7ygTUscGPI0KKK6TLrGz0476KUvvsbqWK0rPI=
