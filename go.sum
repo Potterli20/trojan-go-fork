@@ -17,8 +17,6 @@ github.com/cloudflare/circl v1.6.1/go.mod h1:uddAzsPgqdMAYatqJ0lsjX1oECcQLIlRpzZ
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/database64128/netx-go v0.1.0 h1:4Dgaq1QFBSJWQNH2ACj7SL2slJFlAAbEMJOk9YIGgMA=
 github.com/database64128/netx-go v0.1.0/go.mod h1:ywpvlFnZeN8/9s7tqGvoI+9zSryHBEKPf0FfSsj0H+Y=
-github.com/database64128/tfo-go/v2 v2.2.3-0.20250407190644-e2aad520f32e h1:i1ImxJRDXUBJvUeRDy+6WmSv+5yiv4z5v+EODI9vd8k=
-github.com/database64128/tfo-go/v2 v2.2.3-0.20250407190644-e2aad520f32e/go.mod h1:pdcoWpFC4hIz5G/zIL/hgliKByUcRR80dV3aNO8N4W8=
 github.com/database64128/tfo-go/v2 v2.2.3-0.20250424184909-dd5e0b1810ff h1:a8tPkhcCmNnqlg+7kLNuEDtMC2tL+9uTZufZGNp8B44=
 github.com/database64128/tfo-go/v2 v2.2.3-0.20250424184909-dd5e0b1810ff/go.mod h1:pdcoWpFC4hIz5G/zIL/hgliKByUcRR80dV3aNO8N4W8=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
@@ -93,8 +91,6 @@ github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr8meMVVGxhp+QBTqY91tM8HjEuMjGg=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstvQsPGkxUsCd2KWxErBblirPizecHcpD3ffK+s=
-github.com/sagernet/sing v0.6.6 h1:3JkvJ0vqDj/jJcx0a+ve/6lMOrSzZm30I3wrIuZtmRE=
-github.com/sagernet/sing v0.6.6/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing v0.6.7 h1:NIWBLZ9AUWDXAQBKGleKwsitbQrI9M0nqoheXhUKnrI=
 github.com/sagernet/sing v0.6.7/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegEZaKMv9ipx8=
