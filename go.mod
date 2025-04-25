@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250406211048-6ba9bdf0c323
 	github.com/Potterli20/socks5-fork v0.0.0-20250417031754-2ff2273fd7f0
 	github.com/Potterli20/sqlite v0.0.0-20250417181249-58064827290d
-	github.com/database64128/tfo-go/v2 v2.2.3-0.20250407190644-e2aad520f32e
+	github.com/database64128/tfo-go/v2 v2.2.3-0.20250424184909-dd5e0b1810ff
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/google/uuid v1.6.0
 	github.com/sagernet/utls v1.6.7
@@ -48,7 +48,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
-	github.com/sagernet/sing v0.6.6 // indirect
+	github.com/sagernet/sing v0.6.7 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
