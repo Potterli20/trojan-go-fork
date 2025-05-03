@@ -155,7 +155,7 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
 	if cfg.Websocket.Enabled {
-		if (!strings.HasPrefix(cfg.Websocket.Path, "/")) {
+		if !strings.HasPrefix(cfg.Websocket.Path, "/") {
 			return nil, common.NewError("websocket path must start with \"/\"")
 		}
 	}

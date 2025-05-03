@@ -1,11 +1,11 @@
 package simplelog
 
 import (
+	"html"
 	"io"
 	golog "log"
 	"os"
 	"strings"
-	"html"
 
 	"github.com/Potterli20/trojan-go-fork/log"
 )
