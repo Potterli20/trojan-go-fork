@@ -117,7 +117,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 			log.Debug("websocket closed")
 		},
 		Handshake: func(wsConfig *websocket.Config, httpRequest *http.Request) error {
-			log.Debug("websocket url", httpRequest.URL, "origin", httpRequest.Header.Get("Origin"))
+			log.Debug("websocket url", sanitizeLogInput([]any{httpRequest.URL, httpRequest.Header.Get("Origin")})...)
 			return nil
 		},
 	}

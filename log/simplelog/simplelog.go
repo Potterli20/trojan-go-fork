@@ -72,13 +72,21 @@ func (l *SimpleLogger) Infof(format string, v ...any) {
 
 func (l *SimpleLogger) Debug(v ...any) {
 	if l.logLevel <= log.AllLevel {
-		for i, val := range v {
-			if str, ok := val.(string); ok {
-				v[i] = strings.ReplaceAll(strings.ReplaceAll(str, "\n", ""), "\r", "")
-			}
-		}
-		golog.Println(v...)
+		golog.Println(sanitizeLogInput(v)...)
 	}
+}
+
+func sanitizeLogInput(v []any) []any {
+	for i, val := range v {
+		if str, ok := val.(string); ok {
+			// Remove newline and carriage return characters
+			str = strings.ReplaceAll(strings.ReplaceAll(str, "\n", ""), "\r", "")
+			// Escape HTML special characters
+			str = html.EscapeString(str)
+			v[i] = str
+		}
+	}
+	return v
 }
 
 func (l *SimpleLogger) Debugf(format string, v ...any) {
@@ -94,7 +102,7 @@ func (l *SimpleLogger) Debugf(format string, v ...any) {
 
 func (l *SimpleLogger) Trace(v ...any) {
 	if l.logLevel <= log.AllLevel {
-		golog.Println(v...)
+		golog.Println(sanitizeLogInput(v)...)
 	}
 }
 
