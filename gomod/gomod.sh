@@ -12,3 +12,8 @@ go get github.com/xtls/xray-core@$xray_commit_hash
 gorm_commit_hash=$(curl -s https://api.github.com/repos/go-gorm/gorm/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
 # 使用提取的 commit hash 通过 go get 获取 gorm
 go get gorm.io/gorm@$gorm_commit_hash
+
+# 获取 utls 最新的 commits
+utls_commit_hash=$(curl -s https://api.github.com/repos/refraction-networking/utls/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
+# 使用提取的 commit hash 通过 go get 获取 gorm
+go get github.com/refraction-networking/utls@$utls_commit_hash
