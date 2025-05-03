@@ -45,7 +45,7 @@ jobs:
           else
             echo "ref=${GITHUB_SHA}" >> $GITHUB_ENV
           fi
-          echo "docker_platforms=linux/amd64,linux/arm64,linux/ppc64le,linux/s390x,linux/386" >> $GITHUB_ENV
+          echo "docker_platforms=linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le,linux/s390x,linux/386" >> $GITHUB_ENV
           echo "docker_image=${{ secrets.DOCKERUSERNAME }}/trojan-go-fork" >> $GITHUB_ENV
           echo "github_image=ghcr.io/${{ secrets.GITHUBUSERNAME }}/trojan-go-fork" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
           echo "docker_image_lower=$(echo ${{ secrets.DOCKERUSERNAME }}/trojan-go-fork | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
