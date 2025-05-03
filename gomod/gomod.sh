@@ -17,3 +17,13 @@ go get gorm.io/gorm@$gorm_commit_hash
 utls_commit_hash=$(curl -s https://api.github.com/repos/refraction-networking/utls/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
 # 使用提取的 commit hash 通过 go get 获取 gorm
 go get github.com/refraction-networking/utls@$utls_commit_hash
+
+# 获取 uuid 最新的 commits
+uuid_commit_hash=$(curl -s https://api.github.com/repos/google/uuid/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
+# 使用提取的 commit hash 通过 go get 获取 gorm
+go get github.com/google/uuid@$uuid_commit_hash
+
+# 获取 goconvey 最新的 commits
+goconvey_commit_hash=$(curl -s https://api.github.com/repos/smartystreets/goconvey/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
+# 使用提取的 commit hash 通过 go get 获取 gorm
+go get github.com/smartystreets/goconvey@$goconvey_commit_hash
