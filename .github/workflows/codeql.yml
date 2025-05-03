@@ -54,7 +54,7 @@ jobs:
 
     # 添加 Copilot Autofix 步骤
     - name: Enable Copilot Autofix
-      uses: github/codeql-action/autofix@v3
+      uses: github/codeql-action/autofix@v1
       with:
         autofix: true
 
