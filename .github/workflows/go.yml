@@ -14,17 +14,17 @@ jobs:
       - name: Checkout codebase
         uses: actions/checkout@main
 
-      - name: go
+      - name: go-modules
         run: |
           go clean -modcache
           go mod tidy -compat=1.24
           gofmt -w -r 'interface{} -> any' .
           go get -u
           go mod download
-          # 获取 tfo-go 最新的 commits
-          tfo_commit_hash=$(curl -s https://api.github.com/repos/database64128/tfo-go/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-          # 使用提取的 commit hash 通过 go get 获取 tfo-go
-          go get github.com/database64128/tfo-go/v2@$tfo_commit_hash
+
+      - name:  fix go-modules
+        run: |
+          bash ./gomod/gomod.sh
 
       - name: Git push 
         run: |
