@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"golang.org/x/net/websocket"
+	"strings"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -34,7 +35,11 @@ func runHelloHTTPServer() {
 			conn.Write([]byte("HelloWorld"))
 		},
 		Handshake: func(wsConfig *websocket.Config, httpRequest *http.Request) error {
-			log.Debug("websocket url", httpRequest.URL, "origin", httpRequest.Header.Get("Origin"))
+			sanitizedURL := strings.ReplaceAll(httpRequest.URL.String(), "\n", "")
+			sanitizedURL = strings.ReplaceAll(sanitizedURL, "\r", "")
+			sanitizedOrigin := strings.ReplaceAll(httpRequest.Header.Get("Origin"), "\n", "")
+			sanitizedOrigin = strings.ReplaceAll(sanitizedOrigin, "\r", "")
+			log.Debug("websocket url", sanitizedURL, "origin", sanitizedOrigin)
 			return nil
 		},
 	}
