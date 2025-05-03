@@ -5,10 +5,10 @@ go get github.com/database64128/tfo-go/v2@$tfo_commit_hash
 
 # 获取 xray 最新的 commits
 xray_commit_hash=$(curl -s https://api.github.com/repos/XTLS/Xray-core/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 tfo-go
-go get github.com/XTLS/Xray-core@$xray_commit_hash
+# 使用提取的 commit hash 通过 go get 获取 xray
+go get github.com/xtls/xray-core@$xray_commit_hash
 
 # 获取 gorm 最新的 commits
 gorm_commit_hash=$(curl -s https://api.github.com/repos/go-gorm/gorm/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 tfo-go
-go get gorm.io/gorm@$xray_commit_hash
+# 使用提取的 commit hash 通过 go get 获取 gorm
+go get gorm.io/gorm@$gorm_commit_hash
