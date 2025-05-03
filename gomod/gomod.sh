@@ -31,4 +31,4 @@ go get github.com/smartystreets/goconvey@$goconvey_commit_hash
 # 获取 go-genproto 最新的 commits
 go-genproto_commit_hash=$(curl -s https://api.github.com/repos/googleapis/go-genproto/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
 # 使用提取的 commit hash 通过 go get 获取 gorm
-go get google.golang.org/genproto@go-genproto_commit_hash
+go get google.golang.org/genproto@$go-genproto_commit_hash

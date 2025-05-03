@@ -1,6 +1,6 @@
 module github.com/Potterli20/trojan-go-fork
 
-go 1.24.1
+go 1.24.2
 
 tool golang.org/x/tools/cmd/stringer
 
