@@ -96,7 +96,20 @@ func (l *SimpleLogger) Tracef(format string, v ...any) {
 	}
 }
 
+func obfuscateSensitiveData(v []any) []any {
+	for i, val := range v {
+		if str, ok := val.(string); ok {
+			// Example: Replace sensitive keywords like "password" with "[REDACTED]"
+			if strings.Contains(strings.ToLower(str), "password") {
+				v[i] = "[REDACTED]"
+			}
+		}
+	}
+	return v
+}
+
 func sanitizeLogInput(v []any) []any {
+	v = obfuscateSensitiveData(v)
 	for i, val := range v {
 		if str, ok := val.(string); ok {
 			// Remove newline and carriage return characters
