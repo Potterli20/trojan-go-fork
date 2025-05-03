@@ -11,7 +11,7 @@ require (
 	github.com/database64128/tfo-go/v2 v2.2.3-0.20250424184909-dd5e0b1810ff
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/google/uuid v1.6.0
-	github.com/sagernet/utls v1.6.7
+	github.com/refraction-networking/utls v1.7.1
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.10.0
 	github.com/xtaci/smux v1.5.34
