@@ -72,12 +72,22 @@ func (l *SimpleLogger) Infof(format string, v ...any) {
 
 func (l *SimpleLogger) Debug(v ...any) {
 	if l.logLevel <= log.AllLevel {
+		for i, val := range v {
+			if str, ok := val.(string); ok {
+				v[i] = strings.ReplaceAll(strings.ReplaceAll(str, "\n", ""), "\r", "")
+			}
+		}
 		golog.Println(v...)
 	}
 }
 
 func (l *SimpleLogger) Debugf(format string, v ...any) {
 	if l.logLevel <= log.AllLevel {
+		for i, val := range v {
+			if str, ok := val.(string); ok {
+				v[i] = strings.ReplaceAll(strings.ReplaceAll(str, "\n", ""), "\r", "")
+			}
+		}
 		golog.Printf(format, v...)
 	}
 }
