@@ -98,7 +98,7 @@ $(foreach platform,$(PLATFORMS), \
       $(foreach arm_version,v6 v7, \
         $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(arm_version),$(arch),$(platform),,,, $(arm_version))) \
       ) \
-      $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
+      $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform),,,,$(arm_version))) \
     ) \
     ) \
     ) \
