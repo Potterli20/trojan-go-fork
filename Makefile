@@ -12,9 +12,7 @@ GOBUILD = env CGO_ENABLED=0 $(GO_DIR)go build -tags "full" -trimpath -ldflags="-
 normal: clean trojan-go-fork
 
 clean:
-	rm -rf $(BUILD_DIR)
-	rm -f *.zip
-	rm -f *.dat
+	rm -rf $(BUILD_DIR) *.zip *.dat
 
 geoip.dat:
 	wget https://github.com/v2fly/geoip/raw/release/geoip.dat -O geoip.dat
@@ -69,205 +67,57 @@ uninstall:
 	@-zip -du $(NAME)-$@ *.dat
 	@echo "<<< ---- $(NAME)-$@"
 
-release: geosite.dat geoip.dat geoip-only-cn-private.dat \
-  darwin-amd64.zip darwin-arm64.zip  linux-amd64.zip linux-loong64.zip \
-	linux-ppc64le.zip linux-s390x.zip linux-ppc64.zip linux-riscv64.zip linux-mips64.zip linux-mips64le.zip  \
-	linux-mips-softfloat.zip linux-mips-hardfloat.zip linux-mipsle-softfloat.zip linux-mipsle-hardfloat.zip \
-	freebsd-amd64.zip freebsd-arm.zip freebsd-arm64.zip \
-	netbsd-amd64.zip netbsd-arm.zip netbsd-arm64.zip \
-	openbsd-amd64.zip openbsd-arm.zip openbsd-arm64.zip openbsd-ppc64.zip \
-	windows-amd64.zip windows-arm.zip windows-armv6.zip windows-armv7.zip windows-arm64.zip \
-  darwin-amd64-v2.zip linux-amd64-v2.zip freebsd-amd64-v2.zip netbsd-amd64-v2.zip openbsd-amd64-v2.zip windows-amd64-v2.zip \
-  darwin-amd64-v3.zip linux-amd64-v3.zip freebsd-amd64-v3.zip netbsd-amd64-v3.zip openbsd-amd64-v3.zip windows-amd64-v3.zip \
-  darwin-amd64-v4.zip linux-amd64-v4.zip freebsd-amd64-v4.zip netbsd-amd64-v4.zip openbsd-amd64-v4.zip windows-amd64-v4.zip \
-  linux-386-sse2.zip freebsd-386-sse2.zip windows-386-sse2.zip netbsd-386-sse2.zip openbsd-386-sse2.zip \
-  linux-386-softfloat.zip freebsd-386-softfloat.zip darwin-386-softfloat.zip windows-386-softfloat.zip netbsd-386-softfloat.zip openbsd-386-softfloat.zip
-
-define BUILD_TARGET
+# 通用构建规则，支持 GOMIPS、GO386 和 GOARM 参数
+define BUILD_RULE
 $(1):
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=$(2) $(if $(3),GOAMD64=$(3) ,)GOOS=$(4) $(GOBUILD)/$@
+	mkdir -p $(BUILD_DIR)/$(1)
+	GOARCH=$(2) GOOS=$(3) $(if $(4),GO$(4)=$(5)) $(if $(6),GOMIPS=$(6)) $(if $(7),GO386=$(7)) $(if $(8),GOARM=$(8)) $(GOBUILD)/$(1)
 endef
 
-$(eval $(call BUILD_TARGET,darwin-amd64-v2,amd64,v2,darwin))
-$(eval $(call BUILD_TARGET,linux-amd64-v2,amd64,v2,linux))
-$(eval $(call BUILD_TARGET,freebsd-amd64-v2,amd64,v2,freebsd))
-$(eval $(call BUILD_TARGET,netbsd-amd64-v2,amd64,v2,netbsd))
-$(eval $(call BUILD_TARGET,openbsd-amd64-v2,amd64,v2,openbsd))
-$(eval $(call BUILD_TARGET,windows-amd64-v2,amd64,v2,windows))
-$(eval $(call BUILD_TARGET,darwin-amd64-v3,amd64,v3,darwin))
-$(eval $(call BUILD_TARGET,linux-amd64-v3,amd64,v3,linux))
-$(eval $(call BUILD_TARGET,freebsd-amd64-v3,amd64,v3,freebsd))
-$(eval $(call BUILD_TARGET,netbsd-amd64-v3,amd64,v3,netbsd))
-$(eval $(call BUILD_TARGET,openbsd-amd64-v3,amd64,v3,openbsd))
-$(eval $(call BUILD_TARGET,windows-amd64-v3,amd64,v3,windows))
-$(eval $(call BUILD_TARGET,darwin-amd64-v4,amd64,v4,darwin))
-$(eval $(call BUILD_TARGET,linux-amd64-v4,amd64,v4,linux))
-$(eval $(call BUILD_TARGET,freebsd-amd64-v4,amd64,v4,freebsd))
-$(eval $(call BUILD_TARGET,netbsd-amd64-v4,amd64,v4,netbsd))
-$(eval $(call BUILD_TARGET,openbsd-amd64-v4,amd64,v4,openbsd))
-$(eval $(call BUILD_TARGET,windows-amd64-v4,amd64,v4,windows))
+# 定义支持的平台和架构
+PLATFORMS := darwin linux freebsd netbsd openbsd windows
+ARCHS := amd64 arm64 arm 386 riscv64 ppc64 ppc64le s390x mips mipsle mips64 mips64le loong64
+GOAMD64_VARIANTS := v2 v3 v4
 
-linux-386-sse2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=linux GO386=sse2 $(GOBUILD)/$@
+# 动态生成所有目标，包含 GOMIPS、GO386 和 GOARM 参数的支持
+$(foreach platform,$(PLATFORMS), \
+  $(foreach arch,$(ARCHS), \
+    $(if $(findstring amd64,$(arch)), \
+      $(foreach variant,$(GOAMD64_VARIANTS), \
+        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(variant),$(arch),$(platform),AMD64,$(variant))) \
+      ), \
+      $(if $(findstring mips,$(arch)), \
+        $(eval $(call BUILD_RULE,$(platform)-$(arch)-softfloat,$(arch),$(platform),,softfloat)) \
+        $(eval $(call BUILD_RULE,$(platform)-$(arch)-hardfloat,$(arch),$(platform),,hardfloat)), \
+        $(if $(findstring 386,$(arch)), \
+          $(eval $(call BUILD_RULE,$(platform)-$(arch)-softfloat,$(arch),$(platform),,,softfloat)) \
+          $(eval $(call BUILD_RULE,$(platform)-$(arch)-sse2,$(arch),$(platform),,,sse2)), \
+          $(if $(findstring arm,$(arch)), \
+            $(eval $(call BUILD_RULE,$(platform)-$(arch)-v6,$(arch),$(platform),,,,$(8))) \
+            $(eval $(call BUILD_RULE,$(platform)-$(arch)-v7,$(arch),$(platform),,,,$(7))), \
+            $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
+          ) \
+        ) \
+      ) \
+    ) \
+  ) \
+)
 
-freebsd-386-sse2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=freebsd GO386=sse2 $(GOBUILD)/$@
-
-netbsd-386-sse2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=netbsd GO386=sse2 $(GOBUILD)/$@
-
-openbsd-386-sse2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=openbsd GO386=sse2 $(GOBUILD)/$@
-
-windows-386-sse2:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=windows GO386=sse2 $(GOBUILD)/$@
-
-darwin-386-softfloat:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOOS=darwin GO386=softfloat $(GOBUILD)/$@
-
-linux-386-softfloat:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=linux GO386=softfloat $(GOBUILD)/$@
-
-freebsd-386-softfloat:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=freebsd GO386=softfloat $(GOBUILD)/$@
-
-netbsd-386-softfloat:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=netbsd GO386=softfloat $(GOBUILD)/$@
-
-openbsd-386-softfloat:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=openbsd GO386=softfloat $(GOBUILD)/$@
-
-windows-386-softfloat:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=386 GOOS=windows GO386=softfloat $(GOBUILD)/$@
-
-darwin-amd64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOOS=darwin $(GOBUILD)/$@
-
-darwin-arm64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm64 GOOS=darwin $(GOBUILD)/$@
-
-linux-ppc64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=ppc64 GOOS=linux $(GOBUILD)/$@
-
-linux-riscv64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=riscv64 GOOS=linux $(GOBUILD)/$@
-
-linux-amd64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOOS=linux $(GOBUILD)/$@
-
-linux-mips-softfloat:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=mips GOMIPS=softfloat GOOS=linux $(GOBUILD)/$@
-
-linux-mips-hardfloat:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=mips GOMIPS=hardfloat GOOS=linux $(GOBUILD)/$@
-
-linux-mipsle-softfloat:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=mipsle GOMIPS=softfloat GOOS=linux $(GOBUILD)/$@
-
-linux-mipsle-hardfloat:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=mipsle GOMIPS=hardfloat GOOS=linux $(GOBUILD)/$@
-
-linux-mips64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=mips64 GOOS=linux $(GOBUILD)/$@
-
-linux-mips64le:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=mips64le GOOS=linux $(GOBUILD)/$@
-
-linux-ppc64le:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=mips64le GOOS=linux $(GOBUILD)/$@
-
-linux-s390x:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=s390x GOOS=linux $(GOBUILD)/$@
-
-linux-loong64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=loong64 GOOS=linux $(GOBUILD)/$@
-
-freebsd-amd64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOOS=freebsd $(GOBUILD)/$@
-
-freebsd-arm:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm GOOS=freebsd $(GOBUILD)/$@
-
-freebsd-arm64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm64 GOOS=freebsd $(GOBUILD)/$@
-
-freebsd-riscv64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=riscv64 GOOS=freebsd $(GOBUILD)/$@
-
-netbsd-amd64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOOS=netbsd $(GOBUILD)/$@
-
-netbsd-arm:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm GOOS=netbsd $(GOBUILD)/$@
-
-netbsd-arm64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm64 GOOS=netbsd $(GOBUILD)/$@
-
-openbsd-amd64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOOS=openbsd $(GOBUILD)/$@
-
-openbsd-arm:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm GOOS=openbsd $(GOBUILD)/$@
-
-openbsd-arm64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm64 GOOS=openbsd $(GOBUILD)/$@
-
-openbsd-ppc64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=ppc64 GOOS=openbsd $(GOBUILD)/$@
-
-windows-amd64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=amd64 GOOS=windows $(GOBUILD)/$@
-
-windows-arm:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm GOOS=windows $(GOBUILD)/$@
-
-windows-armv6:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm GOOS=windows GOARM=6 $(GOBUILD)/$@
-
-windows-armv7:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm GOOS=windows GOARM=7 $(GOBUILD)/$@
-
-windows-arm64:
-	mkdir -p $(BUILD_DIR)/$@
-	GOARCH=arm64 GOOS=windows $(GOBUILD)/$@
+# 更新 release 目标，显式列出所有需要生成的 zip 文件
+release: geosite.dat geoip.dat geoip-only-cn-private.dat \
+  $(foreach platform,$(PLATFORMS), \
+    $(foreach arch,$(ARCHS), \
+      $(if $(findstring amd64,$(arch)), \
+        $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip), \
+        $(if $(findstring mips,$(arch)), \
+          $(platform)-$(arch)-softfloat.zip \
+          $(platform)-$(arch)-hardfloat.zip, \
+          $(if $(findstring mipsle,$(arch)), \
+            $(platform)-$(arch)-softfloat.zip \
+            $(platform)-$(arch)-hardfloat.zip, \
+            $(platform)-$(arch).zip \
+          ) \
+        ) \
+      ) \
+    ) \
+  )
