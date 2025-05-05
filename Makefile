@@ -129,8 +129,7 @@ release: geosite.dat geoip.dat geoip-only-cn-private.dat \
               $(if $(findstring arm64,$(arch)), \
                 $(platform)-$(arch).zip, \
                 $(if $(findstring arm,$(arch)), \
-                  $(platform)-$(arch)-v6.zip $(platform)-$(arch)-v7.zip, \
-                  \
+                  $(platform)-$(arch)-v6.zip $(platform)-$(arch)-v7.zip \
                 ) \
               ) \
             ) \
