@@ -109,6 +109,15 @@ $(foreach platform,$(PLATFORMS), \
   ) \
 )
 
+# 添加缺失的规则以生成 linux-arm-v6.zip 和其他类似目标
+$(foreach platform,$(PLATFORMS), \
+  $(foreach arch,arm, \
+    $(foreach arm_version,v6 v7, \
+      $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(arm_version),$(arch),$(platform),,,, $(arm_version))) \
+    ) \
+  ) \
+)
+
 # 更新 release 目标，显式列出所有需要生成的 zip 文件
 release: geosite.dat geoip.dat geoip-only-cn-private.dat \
   $(foreach platform,$(PLATFORMS), \
