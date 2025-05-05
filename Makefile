@@ -6,7 +6,7 @@ COMMIT := `git rev-parse HEAD`
 PLATFORM := linux
 BUILD_DIR := build
 VAR_SETTING := -X $(PACKAGE_NAME)/constant.Version=$(VERSION) -X $(PACKAGE_NAME)/constant.Commit=$(COMMIT)
-GOBUILD = env CGO_ENABLED=0 $(GO_DIR)go build -tags "full" -trimpath -ldflags="-s -w -buildid= $(VAR_SETTING)" -o $(BUILD_DIR)
+GOBUILD = env CGO_ENABLED=0 go build -tags "full" -trimpath -ldflags="-s -w -buildid= $(VAR_SETTING)" -o $(BUILD_DIR)
 
 .PHONY: trojan-go-fork release test
 normal: clean trojan-go-fork
@@ -71,7 +71,12 @@ uninstall:
 define BUILD_RULE
 $(1):
 	mkdir -p $(BUILD_DIR)/$(1)
-	GOARCH=$(2) GOOS=$(3) $(if $(4),GO$(4)=$(5)) $(if $(6),GOMIPS=$(6)) $(if $(7),GO386=$(7)) $(if $(8),GOARM=$(8)) $(GOBUILD) -o $(BUILD_DIR)/$(1)
+	GOARCH=$(2) GOOS=$(3) \
+	$(if $(4),GOAMD64=$(4)) \
+	$(if $(5),GOMIPS=$(5)) \
+	$(if $(6),GO386=$(6)) \
+	$(if $(7),GOARM=$(7)) \
+	$(GOBUILD) -o $(BUILD_DIR)/$(1)/$(NAME)
 endef
 
 # 定义支持的平台和架构
@@ -111,8 +116,8 @@ $(foreach platform,$(PLATFORMS), \
 # 添加缺失的规则以生成 linux-arm-v6.zip 和其他类似目标
 $(foreach platform,$(PLATFORMS), \
   $(foreach arch,arm, \
-    $(foreach arm_version,v6 v7, \
-      $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(arm_version),$(arch),$(platform),,,, $(arm_version))) \
+    $(foreach arm_version,6 7, \
+      $(eval $(call BUILD_RULE,$(platform)-$(arch)-v$(arm_version),$(arch),$(platform),,,,,$(arm_version))) \
     ) \
   ) \
 )
