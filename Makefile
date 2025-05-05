@@ -117,38 +117,32 @@ $(foreach platform,$(PLATFORMS), \
   ) \
 )
 
-# 更新 release 目标，显式列出所有需要生成的 zip 文件
+# 更新 release 目标
 release: geosite.dat geoip.dat geoip-only-cn-private.dat \
-  $(foreach platform,$(PLATFORMS), \
-    $(if $(filter darwin,$(platform)), \
-      $(foreach arch,amd64 arm64, \
-        $(if $(findstring amd64,$(arch)), \
-          $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip), \
-          $(platform)-$(arch).zip \
-        ) \
-      ), \
-      $(foreach arch,$(filter-out 386,$(ARCHS)), \
-        $(if $(findstring amd64,$(arch)), \
-          $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip), \
-          $(if $(findstring mips,$(arch)), \
-            $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip), \
-            $(if $(findstring mipsle,$(arch)), \
-              $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip), \
-              $(if $(findstring arm64,$(arch)), \
-                $(platform)-$(arch).zip, \
-                $(if $(findstring arm,$(arch)), \
-                  $(platform)-$(arch)-v6.zip $(platform)-$(arch)-v7.zip \
-                ) \
-              ) \
-            ) \
-          ) \
-        ) \
-      ) \
-    ), \
-    $(if $(filter-out darwin,$(platform)), \
-      $(foreach arch,386,$(platform)-$(arch).zip) \
-      $(foreach arch,arm, \
-        $(platform)-$(arch)-v6.zip $(platform)-$(arch)-v7.zip \
-      ) \
-    ) \
+  $(foreach platform,$(PLATFORMS),\
+    $(if $(filter darwin,$(platform)),\
+      $(foreach arch,amd64 arm64,\
+        $(if $(findstring amd64,$(arch)),\
+          $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip),\
+          $(platform)-$(arch).zip\
+        )\
+      ),\
+      $(foreach arch,$(ARCHS),\
+        $(if $(findstring amd64,$(arch)),\
+          $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip),\
+          $(if $(findstring mips,$(arch)),\
+            $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip),\
+            $(if $(findstring arm64,$(arch)),\
+              $(platform)-$(arch).zip,\
+              $(if $(findstring arm,$(arch)),\
+                $(platform)-$(arch)-v6.zip $(platform)-$(arch)-v7.zip,\
+                $(if $(findstring 386,$(arch)),\
+                  $(foreach float_type,softfloat sse2,$(platform)-$(arch)-$(float_type).zip)\
+                )\
+              )\
+            )\
+          )\
+        )\
+      )\
+    )\
   )
