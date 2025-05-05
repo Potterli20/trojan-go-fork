@@ -71,7 +71,7 @@ uninstall:
 define BUILD_RULE
 $(1):
 	mkdir -p $(BUILD_DIR)/$(1)
-	GOARCH=$(2) GOOS=$(3) $(if $(4),GO$(4)=$(5)) $(if $(6),GOMIPS=$(6)) $(if $(7),GO386=$(7)) $(if $(8),GOARM=$(8)) $(GOBUILD)/$(1)
+	GOARCH=$(2) GOOS=$(3) $(if $(4),GO$(4)=$(5)) $(if $(6),GOMIPS=$(6)) $(if $(7),GO386=$(7)) $(if $(8),GOARM=$(8)) $(GOBUILD) -o $(BUILD_DIR)/$(1)
 endef
 
 # 定义支持的平台和架构
@@ -86,22 +86,21 @@ $(foreach platform,$(PLATFORMS), \
       $(foreach variant,$(GOAMD64_VARIANTS), \
         $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(variant),$(arch),$(platform),AMD64,$(variant))) \
       ) \
+    ) \
     $(if $(findstring mips,$(arch)), \
       $(foreach float_type,softfloat hardfloat, \
         $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(float_type),$(arch),$(platform),,$(float_type))) \
       ) \
+    ) \
     $(if $(findstring 386,$(arch)), \
       $(foreach float_type,softfloat sse2, \
         $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(float_type),$(arch),$(platform),,,$(float_type))) \
       ) \
+    ) \
     $(if $(findstring arm,$(arch)), \
       $(foreach arm_version,v6 v7, \
         $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(arm_version),$(arch),$(platform),,,, $(arm_version))) \
       ) \
-      $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform),,,,$(arm_version))) \
-    ) \
-    ) \
-    ) \
     ) \
     $(if $(findstring arm64,$(arch)), \
       $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
@@ -145,9 +144,7 @@ release: geosite.dat geoip.dat geoip-only-cn-private.dat \
           ) \
         ) \
       ) \
-    ) \
-  ) \
-  $(foreach platform,$(PLATFORMS), \
+    ), \
     $(if $(filter-out darwin,$(platform)), \
       $(foreach arch,386,$(platform)-$(arch).zip) \
       $(foreach arch,arm, \
