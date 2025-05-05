@@ -119,7 +119,10 @@ release: geosite.dat geoip.dat geoip-only-cn-private.dat \
           $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip), \
           $(if $(findstring mipsle,$(arch)), \
             $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip), \
-            $(if $(findstring arm64,$(arch)),$(platform)-$(arch).zip,$(platform)-$(arch).zip) \
+            $(if $(or $(findstring arm64,$(arch)),$(findstring arm,$(arch))), \
+              $(platform)-$(arch).zip, \
+              $(platform)-$(arch).zip \
+            ) \
           ) \
         ) \
       ) \
