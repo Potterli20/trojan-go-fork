@@ -87,14 +87,17 @@ $(foreach platform,$(PLATFORMS), \
         $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(variant),$(arch),$(platform),AMD64,$(variant))) \
       ), \
       $(if $(findstring mips,$(arch)), \
-        $(eval $(call BUILD_RULE,$(platform)-$(arch)-softfloat,$(arch),$(platform),,softfloat)) \
-        $(eval $(call BUILD_RULE,$(platform)-$(arch)-hardfloat,$(arch),$(platform),,hardfloat)), \
+        $(foreach float_type,softfloat hardfloat, \
+          $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(float_type),$(arch),$(platform),,$(float_type))) \
+        ), \
         $(if $(findstring 386,$(arch)), \
-          $(eval $(call BUILD_RULE,$(platform)-$(arch)-softfloat,$(arch),$(platform),,,softfloat)) \
-          $(eval $(call BUILD_RULE,$(platform)-$(arch)-sse2,$(arch),$(platform),,,sse2)), \
+          $(foreach float_type,softfloat sse2, \
+            $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(float_type),$(arch),$(platform),,,$(float_type))) \
+          ), \
           $(if $(findstring arm,$(arch)), \
-            $(eval $(call BUILD_RULE,$(platform)-$(arch)-v6,$(arch),$(platform),,,,$(8))) \
-            $(eval $(call BUILD_RULE,$(platform)-$(arch)-v7,$(arch),$(platform),,,,$(7))), \
+            $(foreach arm_version,v6 v7, \
+              $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(arm_version),$(arch),$(platform),,,, $(arm_version))) \
+            ), \
             $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
           ) \
         ) \
@@ -110,12 +113,10 @@ release: geosite.dat geoip.dat geoip-only-cn-private.dat \
       $(if $(findstring amd64,$(arch)), \
         $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip), \
         $(if $(findstring mips,$(arch)), \
-          $(platform)-$(arch)-softfloat.zip \
-          $(platform)-$(arch)-hardfloat.zip, \
+          $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip), \
           $(if $(findstring mipsle,$(arch)), \
-            $(platform)-$(arch)-softfloat.zip \
-            $(platform)-$(arch)-hardfloat.zip, \
-            $(platform)-$(arch).zip \
+            $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip), \
+            $(if $(findstring arm64,$(arch)),$(platform)-$(arch).zip,$(platform)-$(arch).zip) \
           ) \
         ) \
       ) \
