@@ -72,10 +72,10 @@ define BUILD_RULE
 $(1):
 	mkdir -p $(BUILD_DIR)/$(1)
 	GOARCH=$(2) GOOS=$(3) \
-	$(if $(4),GOAMD64=$(4)) \
-	$(if $(5),GOMIPS=$(5)) \
-	$(if $(6),GO386=$(6)) \
-	$(if $(7),GOARM=$(7)) \
+	$(if $(4),GOAMD64=$(4),) \
+	$(if $(filter mips%,$(2)),GOMIPS=$(5),) \
+	$(if $(filter 386,$(2)),GO386=$(6),) \
+	$(if $(filter arm,$(2)),GOARM=$(7),) \
 	$(GOBUILD) -o $(BUILD_DIR)/$(1)/$(NAME)
 endef
 
@@ -84,32 +84,31 @@ PLATFORMS := darwin linux freebsd netbsd openbsd windows
 ARCHS := amd64 arm64 arm 386 riscv64 ppc64 ppc64le s390x mips mipsle mips64 mips64le loong64
 GOAMD64_VARIANTS := v2 v3 v4
 
-# 动态生成所有目标，包含 GOMIPS、GO386 和 GOARM 参数的支持
+# 动态生成所有目标
 $(foreach platform,$(PLATFORMS), \
   $(foreach arch,$(ARCHS), \
     $(if $(findstring amd64,$(arch)), \
       $(foreach variant,$(GOAMD64_VARIANTS), \
-        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(variant),$(arch),$(platform),AMD64,$(variant))) \
+        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(variant),$(arch),$(platform),$(variant))) \
       ) \
-    ) \
+    , \
     $(if $(findstring mips,$(arch)), \
-      $(foreach float_type,softfloat hardfloat, \
-        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(float_type),$(arch),$(platform),,$(float_type))) \
+      $(foreach mips_abi,softfloat hardfloat, \
+        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(mips_abi),$(arch),$(platform),,$(mips_abi))) \
       ) \
-    ) \
+    , \
     $(if $(findstring 386,$(arch)), \
-      $(foreach float_type,softfloat sse2, \
-        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(float_type),$(arch),$(platform),,,$(float_type))) \
+      $(foreach x86_abi,softfloat sse2, \
+        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(x86_abi),$(arch),$(platform),,,$(x86_abi))) \
       ) \
-    ) \
-    $(if $(findstring arm,$(arch)), \
+    , \
+    $(if $(filter arm,$(arch)), \
       $(foreach arm_version,v6 v7, \
-        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(arm_version),$(arch),$(platform),,,, $(arm_version))) \
+        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(arm_version),$(arch),$(platform),,,,$(arm_version))) \
       ) \
-    ) \
-    $(if $(findstring arm64,$(arch)), \
+    , \
       $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
-    ) \
+    )))) \
   ) \
 )
 
