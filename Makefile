@@ -113,7 +113,7 @@ $(foreach platform,$(PLATFORMS), \
 release: geosite.dat geoip.dat geoip-only-cn-private.dat \
   $(foreach platform,$(PLATFORMS), \
     $(foreach arch,$(ARCHS), \
-      $(if $(and $(filter darwin,$(platform)),$(filter 386,$(arch))),, \  # 跳过 darwin-386
+      $(if $(filter-out darwin-386,$(platform)-$(arch)), \
         $(if $(findstring amd64,$(arch)), \
           $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip), \
           $(if $(findstring mips,$(arch)), \
@@ -121,8 +121,8 @@ release: geosite.dat geoip.dat geoip-only-cn-private.dat \
             $(if $(findstring mipsle,$(arch)), \
               $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip), \
               $(if $(or $(findstring arm64,$(arch)),$(findstring arm,$(arch))), \
-                $(if $(filter-out darwin,$(platform)),$(platform)-$(arch).zip), \
-                $(platform)-$(arch).zip \
+                $(platform)-$(arch).zip, \
+                \
               ) \
             ) \
           ) \
