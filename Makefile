@@ -101,6 +101,9 @@ $(foreach platform,$(PLATFORMS), \
             $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
           ) \
         ) \
+      ), \
+      $(if $(findstring arm64,$(arch)), \
+        $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
       ) \
     ) \
   ) \
