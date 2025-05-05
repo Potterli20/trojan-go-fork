@@ -5,10 +5,10 @@ go 1.24.2
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250406211048-6ba9bdf0c323
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250505151317-df5a5796c385
 	github.com/Potterli20/socks5-fork v0.0.0-20250417031754-2ff2273fd7f0
-	github.com/Potterli20/sqlite v0.0.0-20250430210819-a07756f91e6f
-	github.com/database64128/tfo-go/v2 v2.2.3-0.20250424184909-dd5e0b1810ff
+	github.com/Potterli20/sqlite v0.0.0-20250505181059-0cca31bfed38
+	github.com/database64128/tfo-go/v2 v2.2.3-0.20250505155305-f7ddbeddc4f8
 	github.com/go-sql-driver/mysql v1.9.2
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.7.1
@@ -58,7 +58,7 @@ require (
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
 	golang.org/x/mod v0.24.0 // indirect
 	golang.org/x/sync v0.13.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/tools v0.32.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250425173222-7b384671a197 // indirect
