@@ -85,26 +85,26 @@ $(foreach platform,$(PLATFORMS), \
     $(if $(findstring amd64,$(arch)), \
       $(foreach variant,$(GOAMD64_VARIANTS), \
         $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(variant),$(arch),$(platform),AMD64,$(variant))) \
-      ), \
-      $(if $(findstring mips,$(arch)), \
-        $(foreach float_type,softfloat hardfloat, \
-          $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(float_type),$(arch),$(platform),,$(float_type))) \
-        ), \
-        $(if $(findstring 386,$(arch)), \
-          $(foreach float_type,softfloat sse2, \
-            $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(float_type),$(arch),$(platform),,,$(float_type))) \
-          ), \
-          $(if $(findstring arm,$(arch)), \
-            $(foreach arm_version,v6 v7, \
-              $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(arm_version),$(arch),$(platform),,,, $(arm_version))) \
-            ), \
-            $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
-          ) \
-        ) \
-      ), \
-      $(if $(findstring arm64,$(arch)), \
-        $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
       ) \
+    $(if $(findstring mips,$(arch)), \
+      $(foreach float_type,softfloat hardfloat, \
+        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(float_type),$(arch),$(platform),,$(float_type))) \
+      ) \
+    $(if $(findstring 386,$(arch)), \
+      $(foreach float_type,softfloat sse2, \
+        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(float_type),$(arch),$(platform),,,$(float_type))) \
+      ) \
+    $(if $(findstring arm,$(arch)), \
+      $(foreach arm_version,v6 v7, \
+        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(arm_version),$(arch),$(platform),,,, $(arm_version))) \
+      ) \
+      $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
+    ) \
+    ) \
+    ) \
+    ) \
+    $(if $(findstring arm64,$(arch)), \
+      $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
     ) \
   ) \
 )
