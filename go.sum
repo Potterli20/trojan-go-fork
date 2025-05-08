@@ -87,6 +87,8 @@ github.com/quic-go/quic-go v0.51.0 h1:K8exxe9zXxeRKxaXxi/GpUqYiTrtdiWP8bo1KFya6W
 github.com/quic-go/quic-go v0.51.0/go.mod h1:MFlGGpcpJqRAfmYi6NC2cptDPSxRWTOGNuP4wqrWmzQ=
 github.com/refraction-networking/utls v1.7.2-0.20250507225715-a7bb5ea040ac h1:x/pMx4ebiHIQ7WtTWJbAoDvgVs6B4oaLl32IA3EbqTM=
 github.com/refraction-networking/utls v1.7.2-0.20250507225715-a7bb5ea040ac/go.mod h1:TUhh27RHMGtQvjQq+RyO11P6ZNQNBb3N0v7wsEjKAIQ=
+github.com/refraction-networking/utls v1.7.2 h1:XOgYzit7lAKaa7kzAO5BJR9l4X/H200eVUD4s8SF8/s=
+github.com/refraction-networking/utls v1.7.2/go.mod h1:TUhh27RHMGtQvjQq+RyO11P6ZNQNBb3N0v7wsEjKAIQ=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr8meMVVGxhp+QBTqY91tM8HjEuMjGg=
