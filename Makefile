@@ -142,7 +142,7 @@ $(foreach platform,$(PLATFORMS), \
       ) \
     , \
     $(if $(filter arm,$(arch)), \
-      $(foreach arm_version,v6 v7, \
+      $(foreach arm_version,6 7, \
         $(eval $(call BUILD_RULE,$(platform)-$(arch)-v$(arm_version),$(arch),$(platform),,,,$(arm_version))) \
       ) \
     , \
@@ -162,7 +162,7 @@ $(foreach platform,$(PLATFORMS), \
       $(if $(findstring mips,$(arch)), \
         $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip), \
         $(if $(filter arm,$(arch)), \
-          $(foreach arm_version,v6 v7,$(platform)-$(arch)-v$(arm_version).zip), \
+          $(foreach arm_version,6 7,$(platform)-$(arch)-v$(arm_version).zip), \
           $(if $(findstring 386,$(arch)), \
             $(foreach float_type,softfloat sse2,$(platform)-$(arch)-$(float_type).zip), \
             $(platform)-$(arch).zip \
