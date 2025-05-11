@@ -112,30 +112,25 @@ $(foreach platform,$(PLATFORMS), \
   ) \
 )
 
+# 生成所有 zip 包目标名
+ALL_ZIPS := \
+$(foreach platform,$(PLATFORMS), \
+  $(foreach arch,$(ARCHS), \
+    $(if $(findstring amd64,$(arch)), \
+      $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip), \
+      $(if $(findstring mips,$(arch)), \
+        $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip), \
+        $(if $(findstring arm,$(arch)), \
+          $(foreach arm_version,v6 v7,$(platform)-$(arch)-v$(arm_version).zip), \
+          $(if $(findstring 386,$(arch)), \
+            $(foreach float_type,softfloat sse2,$(platform)-$(arch)-$(float_type).zip), \
+            $(platform)-$(arch).zip \
+          ) \
+        ) \
+      ) \
+    ) \
+  ) \
+)
+
 # 更新 release 目标
-release: geosite.dat geoip.dat geoip-only-cn-private.dat
-	$(foreach platform,$(PLATFORMS), \
-	  $(foreach arch,$(ARCHS), \
-	    $(if $(findstring amd64,$(arch)), \
-	      $(foreach variant,$(GOAMD64_VARIANTS), \
-	        $(eval echo $(platform)-$(arch)-$(variant).zip) \
-	      ), \
-	      $(if $(findstring mips,$(arch)), \
-	        $(foreach float_type,softfloat hardfloat, \
-	          $(eval echo $(platform)-$(arch)-$(float_type).zip) \
-	        ), \
-	        $(if $(findstring arm,$(arch)), \
-	          $(foreach arm_version,v6 v7, \
-	            $(eval echo $(platform)-$(arch)-v$(arm_version).zip) \
-	          ), \
-	          $(if $(findstring 386,$(arch)), \
-	            $(foreach float_type,softfloat sse2, \
-	              $(eval echo $(platform)-$(arch)-$(float_type).zip) \
-	            ), \
-	            $(eval echo $(platform)-$(arch).zip) \
-	          ) \
-	        ) \
-	      ) \
-	    ) \
-	  ) \
-	)
+release: geosite.dat geoip.dat geoip-only-cn-private.dat $(ALL_ZIPS)
