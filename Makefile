@@ -14,7 +14,11 @@
 # plan9:       386, amd64, arm
 # solaris:     amd64
 # windows:     386, amd64, arm, arm64
-
+#
+# 最低支持平台和架构要求（参考 https://go.dev/wiki/MinimumRequirements ）：
+# - 详见官方文档，不同 GOOS/GOARCH 组合对内核、glibc、Windows 版本等有最低要求。
+# - 例如：linux/amd64 需要内核 >= 2.6.23，glibc >= 2.17；windows/amd64 需要 Windows 7/Server 2008R2 或更高。
+# - 某些架构如 loong64 仅支持 Go 1.19 及以上版本。
 # loong64 架构说明（Go 1.19+）：
 # Go 编译器始终生成可在 LA364、LA464、LA664 或更高版本处理器上运行的 loong64 二进制文件。
 #   LA364: 支持非对齐内存访问，128位SIMD，典型处理器如 loongson-2K2000/2K3000 等。
