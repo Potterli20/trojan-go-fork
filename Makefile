@@ -1,3 +1,28 @@
+# Go 官方支持的 GOOS/GOARCH 组合（参考自 https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63 ）
+# +------------------+------------------------------+
+# |     GOOS         |           GOARCH             |
+# +------------------+------------------------------+
+# | aix              | ppc64                        |
+# | android          | 386, amd64, arm, arm64, riscv64 |
+# | darwin           | amd64, arm64                 |
+# | dragonfly        | amd64                        |
+# | freebsd          | 386, amd64, arm, arm64, riscv64 |
+# | illumos          | amd64                        |
+# | ios              | arm64                        |
+# | js               | wasm                         |
+# | linux            | 386, amd64, arm, arm64, loong64, mips, mipsle, mips64, mips64le, ppc64, ppc64le, riscv64, s390x |
+# | netbsd           | 386, amd64, arm, arm64       |
+# | openbsd          | 386, amd64, arm, arm64, mips64, riscv64 |
+# | plan9            | 386, amd64, arm              |
+# | solaris          | amd64                        |
+# | windows          | 386, amd64, arm, arm64       |
+# +------------------+------------------------------+
+
+# loong64 架构说明（Go 1.19+）：
+# Go 编译器始终生成可在 LA364、LA464、LA664 或更高版本处理器上运行的 loong64 二进制文件。
+#   LA364: 支持非对齐内存访问，128位SIMD，典型处理器如 loongson-2K2000/2K3000 等。
+#   LA464: 支持非对齐内存访问，128/256位SIMD，典型处理器如 loongson-3A5000/3C5000/3D5000 等。
+#   LA664: 支持非对齐内存访问，128/256位SIMD，典型处理器如 loongson-3A6000/3C6000 等。
 NAME := trojan-go-fork
 PACKAGE_NAME := github.com/Potterli20/trojan-go-fork
 VERSION := `git describe --always`
@@ -83,14 +108,24 @@ endef
 PLATFORMS := darwin linux freebsd netbsd openbsd windows
 ARCHS := amd64 arm64 arm 386 riscv64 ppc64 ppc64le s390x mips mipsle mips64 mips64le loong64
 GOAMD64_VARIANTS := v2 v3 v4
+LOONG64_VARIANTS := LA364 LA464 LA664
 DARWIN_UNSUPPORTED_ARCHS := arm 386 riscv64 ppc64 ppc64le s390x mips mipsle mips64 mips64le loong64
+FREEBSD_UNSUPPORTED_ARCHS := ppc64
 
 # 动态生成所有目标
 $(foreach platform,$(PLATFORMS), \
   $(foreach arch,$(ARCHS), \
-    $(if $(and $(filter darwin,$(platform)),$(filter $(arch),$(DARWIN_UNSUPPORTED_ARCHS))),, \
+    $(if $(or \
+      $(and $(filter darwin,$(platform)),$(filter $(arch),$(DARWIN_UNSUPPORTED_ARCHS))), \
+      $(and $(filter freebsd,$(platform)),$(filter $(arch),$(FREEBSD_UNSUPPORTED_ARCHS))) \
+    ),, \
       $(if $(findstring amd64,$(arch)), \
         $(foreach variant,$(GOAMD64_VARIANTS), \
+          $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(variant),$(arch),$(platform),$(variant))) \
+        ) \
+      , \
+      $(if $(findstring loong64,$(arch)), \
+        $(foreach variant,$(LOONG64_VARIANTS), \
           $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(variant),$(arch),$(platform),$(variant))) \
         ) \
       , \
@@ -110,7 +145,7 @@ $(foreach platform,$(PLATFORMS), \
         ) \
       , \
         $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
-      )))) \
+      ))))) \
     ) \
   ) \
 )
@@ -119,9 +154,14 @@ $(foreach platform,$(PLATFORMS), \
 ALL_ZIPS := \
 $(foreach platform,$(PLATFORMS), \
   $(foreach arch,$(ARCHS), \
-    $(if $(and $(filter darwin,$(platform)),$(filter $(arch),$(DARWIN_UNSUPPORTED_ARCHS))),, \
+    $(if $(or \
+      $(and $(filter darwin,$(platform)),$(filter $(arch),$(DARWIN_UNSUPPORTED_ARCHS))), \
+      $(and $(filter freebsd,$(platform)),$(filter $(arch),$(FREEBSD_UNSUPPORTED_ARCHS))) \
+    ),, \
       $(if $(findstring amd64,$(arch)), \
         $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip), \
+      $(if $(findstring loong64,$(arch)), \
+        $(foreach variant,$(LOONG64_VARIANTS),$(platform)-$(arch)-$(variant).zip), \
         $(if $(findstring mips,$(arch)), \
           $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip), \
           $(if $(filter arm,$(arch)), \
@@ -132,6 +172,7 @@ $(foreach platform,$(PLATFORMS), \
             ) \
           ) \
         ) \
+      ) \
       ) \
     ) \
   ) \
