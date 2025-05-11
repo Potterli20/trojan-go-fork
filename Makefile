@@ -87,8 +87,11 @@ GOAMD64_VARIANTS := v2 v3 v4
 # 动态生成所有目标
 $(foreach platform,$(PLATFORMS), \
   $(foreach arch,$(ARCHS), \
-    $(if $(or $(and $(filter arm,$(arch)),$(filter darwin,$(platform))), \
-              $(and $(filter 386,$(arch)),$(filter darwin,$(platform)))),, \
+    $(if $(or \
+      $(and $(filter arm,$(arch)),$(filter darwin,$(platform))), \
+      $(and $(filter 386,$(arch)),$(filter darwin,$(platform))), \
+      $(and $(filter riscv64,$(arch)),$(filter darwin,$(platform))) \
+    ),, \
       $(if $(findstring amd64,$(arch)), \
         $(foreach variant,$(GOAMD64_VARIANTS), \
           $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(variant),$(arch),$(platform),$(variant))) \
@@ -119,8 +122,11 @@ $(foreach platform,$(PLATFORMS), \
 ALL_ZIPS := \
 $(foreach platform,$(PLATFORMS), \
   $(foreach arch,$(ARCHS), \
-    $(if $(or $(and $(filter arm,$(arch)),$(filter darwin,$(platform))), \
-              $(and $(filter 386,$(arch)),$(filter darwin,$(platform)))),, \
+    $(if $(or \
+      $(and $(filter arm,$(arch)),$(filter darwin,$(platform))), \
+      $(and $(filter 386,$(arch)),$(filter darwin,$(platform))), \
+      $(and $(filter riscv64,$(arch)),$(filter darwin,$(platform))) \
+    ),, \
       $(if $(findstring amd64,$(arch)), \
         $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip), \
         $(if $(findstring mips,$(arch)), \
