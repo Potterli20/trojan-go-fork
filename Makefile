@@ -87,28 +87,30 @@ GOAMD64_VARIANTS := v2 v3 v4
 # 动态生成所有目标
 $(foreach platform,$(PLATFORMS), \
   $(foreach arch,$(ARCHS), \
-    $(if $(findstring amd64,$(arch)), \
-      $(foreach variant,$(GOAMD64_VARIANTS), \
-        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(variant),$(arch),$(platform),$(variant))) \
-      ) \
-    , \
-    $(if $(findstring mips,$(arch)), \
-      $(foreach mips_abi,softfloat hardfloat, \
-        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(mips_abi),$(arch),$(platform),,$(mips_abi))) \
-      ) \
-    , \
-    $(if $(findstring 386,$(arch)), \
-      $(foreach x86_abi,softfloat sse2, \
-        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(x86_abi),$(arch),$(platform),,,$(x86_abi))) \
-      ) \
-    , \
-    $(if $(filter arm,$(arch)), \
-      $(foreach arm_version,v6 v7, \
-        $(eval $(call BUILD_RULE,$(platform)-$(arch)-v$(arm_version),$(arch),$(platform),,,,$(arm_version))) \
-      ) \
-    , \
-      $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
-    )))) \
+    $(if $(and $(filter arm,$(arch)),$(filter darwin,$(platform))),, \
+      $(if $(findstring amd64,$(arch)), \
+        $(foreach variant,$(GOAMD64_VARIANTS), \
+          $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(variant),$(arch),$(platform),$(variant))) \
+        ) \
+      , \
+      $(if $(findstring mips,$(arch)), \
+        $(foreach mips_abi,softfloat hardfloat, \
+          $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(mips_abi),$(arch),$(platform),,$(mips_abi))) \
+        ) \
+      , \
+      $(if $(findstring 386,$(arch)), \
+        $(foreach x86_abi,softfloat sse2, \
+          $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(x86_abi),$(arch),$(platform),,,$(x86_abi))) \
+        ) \
+      , \
+      $(if $(filter arm,$(arch)), \
+        $(foreach arm_version,v6 v7, \
+          $(eval $(call BUILD_RULE,$(platform)-$(arch)-v$(arm_version),$(arch),$(platform),,,,$(arm_version))) \
+        ) \
+      , \
+        $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
+      )))) \
+    ) \
   ) \
 )
 
@@ -116,15 +118,17 @@ $(foreach platform,$(PLATFORMS), \
 ALL_ZIPS := \
 $(foreach platform,$(PLATFORMS), \
   $(foreach arch,$(ARCHS), \
-    $(if $(findstring amd64,$(arch)), \
-      $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip), \
-      $(if $(findstring mips,$(arch)), \
-        $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip), \
-        $(if $(filter arm,$(arch)), \
-          $(foreach arm_version,v6 v7,$(platform)-$(arch)-v$(arm_version).zip), \
-          $(if $(findstring 386,$(arch)), \
-            $(foreach float_type,softfloat sse2,$(platform)-$(arch)-$(float_type).zip), \
-            $(platform)-$(arch).zip \
+    $(if $(and $(filter arm,$(arch)),$(filter darwin,$(platform))),, \
+      $(if $(findstring amd64,$(arch)), \
+        $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip), \
+        $(if $(findstring mips,$(arch)), \
+          $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip), \
+          $(if $(filter arm,$(arch)), \
+            $(foreach arm_version,v6 v7,$(platform)-$(arch)-v$(arm_version).zip), \
+            $(if $(findstring 386,$(arch)), \
+              $(foreach float_type,softfloat sse2,$(platform)-$(arch)-$(float_type).zip), \
+              $(platform)-$(arch).zip \
+            ) \
           ) \
         ) \
       ) \
