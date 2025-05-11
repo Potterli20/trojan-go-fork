@@ -120,7 +120,7 @@ $(foreach platform,$(PLATFORMS), \
       $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip), \
       $(if $(findstring mips,$(arch)), \
         $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip), \
-        $(if $(findstring arm,$(arch)), \
+        $(if $(filter arm,$(arch)), \
           $(foreach arm_version,v6 v7,$(platform)-$(arch)-v$(arm_version).zip), \
           $(if $(findstring 386,$(arch)), \
             $(foreach float_type,softfloat sse2,$(platform)-$(arch)-$(float_type).zip), \
