@@ -90,7 +90,8 @@ $(foreach platform,$(PLATFORMS), \
     $(if $(or \
       $(and $(filter arm,$(arch)),$(filter darwin,$(platform))), \
       $(and $(filter 386,$(arch)),$(filter darwin,$(platform))), \
-      $(and $(filter riscv64,$(arch)),$(filter darwin,$(platform))) \
+      $(and $(filter riscv64,$(arch)),$(filter darwin,$(platform))), \
+      $(and $(filter ppc64,$(arch)),$(filter darwin,$(platform))) \
     ),, \
       $(if $(findstring amd64,$(arch)), \
         $(foreach variant,$(GOAMD64_VARIANTS), \
@@ -125,7 +126,8 @@ $(foreach platform,$(PLATFORMS), \
     $(if $(or \
       $(and $(filter arm,$(arch)),$(filter darwin,$(platform))), \
       $(and $(filter 386,$(arch)),$(filter darwin,$(platform))), \
-      $(and $(filter riscv64,$(arch)),$(filter darwin,$(platform))) \
+      $(and $(filter riscv64,$(arch)),$(filter darwin,$(platform))), \
+      $(and $(filter ppc64,$(arch)),$(filter darwin,$(platform))) \
     ),, \
       $(if $(findstring amd64,$(arch)), \
         $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip), \
