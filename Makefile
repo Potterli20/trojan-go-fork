@@ -104,7 +104,7 @@ $(foreach platform,$(PLATFORMS), \
     , \
     $(if $(filter arm,$(arch)), \
       $(foreach arm_version,v6 v7, \
-        $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(arm_version),$(arch),$(platform),,,,$(arm_version))) \
+        $(eval $(call BUILD_RULE,$(platform)-$(arch)-v$(arm_version),$(arch),$(platform),,,,$(arm_version))) \
       ) \
     , \
       $(eval $(call BUILD_RULE,$(platform)-$(arch),$(arch),$(platform))) \
@@ -112,41 +112,30 @@ $(foreach platform,$(PLATFORMS), \
   ) \
 )
 
-# 添加缺失的规则以生成 linux-arm-v6.zip 和其他类似目标
-$(foreach platform,$(PLATFORMS), \
-  $(foreach arch,arm, \
-    $(foreach arm_version,6 7, \
-      $(eval $(call BUILD_RULE,$(platform)-$(arch)-v$(arm_version),$(arch),$(platform),,,,,$(arm_version))) \
-    ) \
-  ) \
-)
-
 # 更新 release 目标
-release: geosite.dat geoip.dat geoip-only-cn-private.dat \
-  $(foreach platform,$(PLATFORMS),\
-    $(if $(filter darwin,$(platform)),\
-      $(foreach arch,amd64 arm64,\
-        $(if $(findstring amd64,$(arch)),\
-          $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip),\
-          $(platform)-$(arch).zip\
-        )\
-      ),\
-      $(foreach arch,$(ARCHS),\
-        $(if $(findstring amd64,$(arch)),\
-          $(foreach variant,$(GOAMD64_VARIANTS),$(platform)-$(arch)-$(variant).zip),\
-          $(if $(findstring mips,$(arch)),\
-            $(foreach float_type,softfloat hardfloat,$(platform)-$(arch)-$(float_type).zip),\
-            $(if $(findstring arm64,$(arch)),\
-              $(platform)-$(arch).zip,\
-              $(if $(findstring arm,$(arch)),\
-                $(platform)-$(arch)-v6.zip $(platform)-$(arch)-v7.zip,\
-                $(if $(findstring 386,$(arch)),\
-                  $(foreach float_type,softfloat sse2,$(platform)-$(arch)-$(float_type).zip)\
-                )\
-              )\
-            )\
-          )\
-        )\
-      )\
-    )\
-  )
+release: geosite.dat geoip.dat geoip-only-cn-private.dat
+	$(foreach platform,$(PLATFORMS), \
+	  $(foreach arch,$(ARCHS), \
+	    $(if $(findstring amd64,$(arch)), \
+	      $(foreach variant,$(GOAMD64_VARIANTS), \
+	        $(eval echo $(platform)-$(arch)-$(variant).zip) \
+	      ), \
+	      $(if $(findstring mips,$(arch)), \
+	        $(foreach float_type,softfloat hardfloat, \
+	          $(eval echo $(platform)-$(arch)-$(float_type).zip) \
+	        ), \
+	        $(if $(findstring arm,$(arch)), \
+	          $(foreach arm_version,v6 v7, \
+	            $(eval echo $(platform)-$(arch)-v$(arm_version).zip) \
+	          ), \
+	          $(if $(findstring 386,$(arch)), \
+	            $(foreach float_type,softfloat sse2, \
+	              $(eval echo $(platform)-$(arch)-$(float_type).zip) \
+	            ), \
+	            $(eval echo $(platform)-$(arch).zip) \
+	          ) \
+	        ) \
+	      ) \
+	    ) \
+	  ) \
+	)
