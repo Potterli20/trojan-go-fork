@@ -113,13 +113,13 @@ github.com/vishvananda/netns v0.0.5 h1:DfiHV+j8bA32MFM7bfEunvT8IAqQ/NzSJHtcmW5zd
 github.com/vishvananda/netns v0.0.5/go.mod h1:SpkAiCQRtJ6TvvxPnOSyH3BMl6unz3xZlaprSwhNNJM=
 github.com/xtaci/smux v1.5.34 h1:OUA9JaDFHJDT8ZT3ebwLWPAgEfE6sWo2LaTy3anXqwg=
 github.com/xtaci/smux v1.5.34/go.mod h1:OMlQbT5vcgl2gb49mFkYo6SMf+zP3rcjcwQz7ZU7IGY=
-github.com/xtls/reality v0.0.0-20240712055506-48f0b2d5ed6d h1:+B97uD9uHLgAAulhigmys4BVwZZypzK7gPN3WtpgRJg=
-github.com/xtls/reality v0.0.0-20240712055506-48f0b2d5ed6d/go.mod h1:dm4y/1QwzjGaK17ofi0Vs6NpKAHegZky8qk6J2JJZAE=
 github.com/xtls/reality v0.0.0-20250513125209-514f8647eac0 h1:ou6jXqJ9Ogs0BaEIzuszo1HMBokiKpf7XpNdsVYcvfA=
-github.com/xtls/xray-core v1.250306.1-0.20250515141503-882975ce5a47 h1:BvXUhK92/eSDDSh+H5suubqfXoz6DjzYt4tISo5E5pY=
-github.com/xtls/xray-core v1.250306.1-0.20250515141503-882975ce5a47/go.mod h1:YVlgqO6KuCm6xKdmDI1mbjmiS83FCDz9nR/attRik34=
+github.com/xtls/reality v0.0.0-20250513125209-514f8647eac0/go.mod h1:bJdU3ExzfUlY40Xxfibq3THW9IHiE8mHu/tEzud5JWM=
+github.com/xtls/reality v0.0.0-20250516070713-4df2ec9a5b47 h1:9aJWkgWBwZ83l3j7+hBh3SurvRKuNfCgsSner5n6BcM=
 github.com/xtls/xray-core v1.250306.1-0.20250516040838-7ddc4a2525bc h1:yQSu/VsgB3mWcqxXdXGIgX4ASMNo2sy+QKg8xRCZ7aM=
 github.com/xtls/xray-core v1.250306.1-0.20250516040838-7ddc4a2525bc/go.mod h1:NGS3557SU1VqPL15FiFme02zTYcMvS2k0DzwDkFYGkw=
+github.com/xtls/xray-core v1.250306.1-0.20250516121834-800b8b50cc01 h1:zthqg0MKk0yJBguuUmE+/Ya0nXGEz8OV7YucmkT2zII=
+github.com/xtls/xray-core v1.250306.1-0.20250516121834-800b8b50cc01/go.mod h1:BNFvL6I5sEaw1bZELtteqijPEugqfQaG+dH75gSaHrc=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 h1:SpG238mmCez9TdHDu0Qba+ol57R+/pUxvJsDXT22Fug=
