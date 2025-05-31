@@ -8,10 +8,10 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20250506010130-16d0b08292ad h1://fd
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20250506010130-16d0b08292ad/go.mod h1:C1Iox+TwwhdyJtEfzUEi1ILk8p+6jpV3RbOTqBBPFHY=
 github.com/Potterli20/socks5-fork v0.0.0-20250508035553-b5e7ad22ac79 h1:HlglozDsWD7fGYE/xjQxO6XGeP7vu3ZysbDmVYDhSSI=
 github.com/Potterli20/socks5-fork v0.0.0-20250508035553-b5e7ad22ac79/go.mod h1:KNLJlqCRHHFj9BLfuVC2hoU+dd0kH6jJrtxBhu3/6lM=
-github.com/Potterli20/sqlite v0.0.0-20250530181311-9e5a609ce85b h1:7zd+8O5yqIaXuBdG59hDXgHCPDqwQk5bTghuXd0BVCg=
-github.com/Potterli20/sqlite v0.0.0-20250530181311-9e5a609ce85b/go.mod h1:chBoASoCcWXxzRpmJgb9XRbcD3IIo0p6kX714qDjK5E=
 github.com/Potterli20/sqlite v0.0.0-20250530210815-b0d9381125a8 h1:qHLC5YGIkFqdX0TkPjHybQUXfqGetLrSknd50Hp9HjE=
 github.com/Potterli20/sqlite v0.0.0-20250530210815-b0d9381125a8/go.mod h1:chBoASoCcWXxzRpmJgb9XRbcD3IIo0p6kX714qDjK5E=
+github.com/Potterli20/sqlite v0.0.0-20250531033507-71b228c423c5 h1:AP5KfW3FzKkjf+Ee7cOrSRBkJvBdtawHeSx6mL8SsQo=
+github.com/Potterli20/sqlite v0.0.0-20250531033507-71b228c423c5/go.mod h1:1Mb9pefekRmUDcON7wewKIwC1I1pt75ZZH4IPx5p9E8=
 github.com/andybalholm/brotli v1.1.1 h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
 github.com/andybalholm/brotli v1.1.1/go.mod h1:05ib4cKhjx3OQYUY22hTVd34Bc8upXjOLL2rKwwZBoA=
 github.com/cloudflare/circl v1.6.1 h1:zqIqSPIndyBh1bjLVVDHMPpVKqp8Su/V+6MeDzzQBQ0=
@@ -141,8 +141,6 @@ go4.org/netipx v0.0.0-20231129151722-fdeea329fbba h1:0b9z3AuHCjxk0x/opv64kcgZLBs
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba/go.mod h1:PLyyIXexvUFg3Owu6p/WfdlivPbZJsZdgWZlrGope/Y=
 golang.org/x/crypto v0.38.0 h1:jt+WWG8IZlBnVbomuhg2Mdq0+BBQaHbtqHEFEigjUV8=
 golang.org/x/crypto v0.38.0/go.mod h1:MvrbAqul58NNYPKnOra203SB9vpuZW0e+RRZV+Ggqjw=
-golang.org/x/exp v0.0.0-20250530174510-65e920069ea6 h1:gllJVKwONftmCc4KlNbN8o/LvmbxotqQy6zzi6yDQOQ=
-golang.org/x/exp v0.0.0-20250530174510-65e920069ea6/go.mod h1:U6Lno4MTRCDY+Ba7aCcauB9T60gsv5s4ralQzP72ZoQ=
 golang.org/x/exp v0.0.0-20250531010427-b6e5de432a8b h1:QoALfVG9rhQ/M7vYDScfPdWjGL9dlsVVM5VGh7aKoAA=
 golang.org/x/exp v0.0.0-20250531010427-b6e5de432a8b/go.mod h1:U6Lno4MTRCDY+Ba7aCcauB9T60gsv5s4ralQzP72ZoQ=
 golang.org/x/mod v0.24.0 h1:ZfthKaKaT4NrhGVZHO1/WDTwGES4De8KtWO0SIbNJMU=
