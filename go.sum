@@ -117,6 +117,8 @@ github.com/xtls/reality v0.0.0-20250607105625-90e738a94c8c h1:GiY3/SynO0ujSH3rQD
 github.com/xtls/reality v0.0.0-20250607105625-90e738a94c8c/go.mod h1:Rkdcxe9Yd8SWQRRP+LSvX6wxk1m4lmNkyUZEHzbPDZw=
 github.com/xtls/xray-core v1.250516.1-0.20250607133724-f38d3f786a47 h1:W5kc0F9Q5vVF3ET2Oj9trDP+NkU2eW5rzaA/UiZ+PiY=
 github.com/xtls/xray-core v1.250516.1-0.20250607133724-f38d3f786a47/go.mod h1:SHDO7kQ7U903zblScXv/zxGlPzUevRaG5fPaeulY/Do=
+github.com/xtls/xray-core v1.250516.1-0.20250608050131-e011b746dc89 h1:iOB3T3puufA50x9hoAOpGngxw2wfWmQZHXK8m6aC37E=
+github.com/xtls/xray-core v1.250516.1-0.20250608050131-e011b746dc89/go.mod h1:SHDO7kQ7U903zblScXv/zxGlPzUevRaG5fPaeulY/Do=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 h1:SpG238mmCez9TdHDu0Qba+ol57R+/pUxvJsDXT22Fug=
