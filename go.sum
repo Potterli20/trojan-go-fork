@@ -87,8 +87,6 @@ github.com/quic-go/qpack v0.5.1 h1:giqksBPnT/HDtZ6VhtFKgoLOWmlyo9Ei6u9PqzIMbhI=
 github.com/quic-go/qpack v0.5.1/go.mod h1:+PC4XFrEskIVkcLzpEkbLqq1uCoxPhQuvK5rH1ZgaEg=
 github.com/quic-go/quic-go v0.52.0 h1:/SlHrCRElyaU6MaEPKqKr9z83sBg2v4FLLvWM+Z47pA=
 github.com/quic-go/quic-go v0.52.0/go.mod h1:MFlGGpcpJqRAfmYi6NC2cptDPSxRWTOGNuP4wqrWmzQ=
-github.com/refraction-networking/utls v1.7.4-0.20250519154908-0557f61cb0b8 h1:hIFg2/OPOR1ozyMok8iUWP03/axmvNauwZRVXqtqmDs=
-github.com/refraction-networking/utls v1.7.4-0.20250519154908-0557f61cb0b8/go.mod h1:TUhh27RHMGtQvjQq+RyO11P6ZNQNBb3N0v7wsEjKAIQ=
 github.com/refraction-networking/utls v1.7.4-0.20250523182334-41ce3ba2c2d7 h1:Ungpy1AjrhM1gNxYzZe0WZ3eqxZhyB/bXNs5ta3UA/c=
 github.com/refraction-networking/utls v1.7.4-0.20250523182334-41ce3ba2c2d7/go.mod h1:TUhh27RHMGtQvjQq+RyO11P6ZNQNBb3N0v7wsEjKAIQ=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
@@ -121,6 +119,8 @@ github.com/xtls/reality v0.0.0-20250608132114-50752aec6bfb h1:X6ziJCMsFF8Ac/0F3W
 github.com/xtls/reality v0.0.0-20250608132114-50752aec6bfb/go.mod h1:yD47RN65bDLZgyHWMfFDiqlzrq4usDMt/Xzsk6tMbhw=
 github.com/xtls/xray-core v1.250516.1-0.20250608135303-fbae89d017ae h1:Be9MicJQI+Iup03zNG7QMEidpbJj3b4//IM8jIAnLKY=
 github.com/xtls/xray-core v1.250516.1-0.20250608135303-fbae89d017ae/go.mod h1:MkfIs2WZ5VLtZHAwDKosSS05Kx5zFFOzvly7Hy6pfPs=
+github.com/xtls/xray-core v1.250608.0 h1:/M0LwzFeFAZf+vdZQhqNYjUXDfPv5hOeYw6jsiAdgWI=
+github.com/xtls/xray-core v1.250608.0/go.mod h1:MkfIs2WZ5VLtZHAwDKosSS05Kx5zFFOzvly7Hy6pfPs=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 h1:SpG238mmCez9TdHDu0Qba+ol57R+/pUxvJsDXT22Fug=
