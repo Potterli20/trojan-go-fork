@@ -8,8 +8,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20250606010317-c8c4589b747e h1:ltUq
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20250606010317-c8c4589b747e/go.mod h1:rhZn4/vgbrs7wSIN1/Hr8rYIn9hqycUb+pjcs+t2bL0=
 github.com/Potterli20/socks5-fork v0.0.0-20250508035553-b5e7ad22ac79 h1:HlglozDsWD7fGYE/xjQxO6XGeP7vu3ZysbDmVYDhSSI=
 github.com/Potterli20/socks5-fork v0.0.0-20250508035553-b5e7ad22ac79/go.mod h1:KNLJlqCRHHFj9BLfuVC2hoU+dd0kH6jJrtxBhu3/6lM=
-github.com/Potterli20/sqlite v0.0.0-20250609121839-2b268dcd2ee6 h1:F18AkK/za2OnohGlxmOEN5XE1SCn2/hyXGbtwtpMxlQ=
-github.com/Potterli20/sqlite v0.0.0-20250609121839-2b268dcd2ee6/go.mod h1:SJi89JjSHgS1Kjk+S+RwYh3U4HiF60+2uFEKBINDq8k=
 github.com/Potterli20/sqlite v0.0.0-20250609151039-7ab9c2baf166 h1:VEm/eM5d2F2bWuqv/e4dV+BywgoON3AbyUkFh9JOvpM=
 github.com/Potterli20/sqlite v0.0.0-20250609151039-7ab9c2baf166/go.mod h1:SJi89JjSHgS1Kjk+S+RwYh3U4HiF60+2uFEKBINDq8k=
 github.com/andybalholm/brotli v1.1.1 h1:PR2pgnyFznKEugtsUo0xLdDop5SKXd5Qf5ysW+7XdTA=
@@ -91,6 +89,8 @@ github.com/quic-go/quic-go v0.52.0 h1:/SlHrCRElyaU6MaEPKqKr9z83sBg2v4FLLvWM+Z47p
 github.com/quic-go/quic-go v0.52.0/go.mod h1:MFlGGpcpJqRAfmYi6NC2cptDPSxRWTOGNuP4wqrWmzQ=
 github.com/refraction-networking/utls v1.7.4-0.20250519154908-0557f61cb0b8 h1:hIFg2/OPOR1ozyMok8iUWP03/axmvNauwZRVXqtqmDs=
 github.com/refraction-networking/utls v1.7.4-0.20250519154908-0557f61cb0b8/go.mod h1:TUhh27RHMGtQvjQq+RyO11P6ZNQNBb3N0v7wsEjKAIQ=
+github.com/refraction-networking/utls v1.7.4-0.20250523182334-41ce3ba2c2d7 h1:Ungpy1AjrhM1gNxYzZe0WZ3eqxZhyB/bXNs5ta3UA/c=
+github.com/refraction-networking/utls v1.7.4-0.20250523182334-41ce3ba2c2d7/go.mod h1:TUhh27RHMGtQvjQq+RyO11P6ZNQNBb3N0v7wsEjKAIQ=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr8meMVVGxhp+QBTqY91tM8HjEuMjGg=
