@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.6 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/database64128/netx-go v0.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
