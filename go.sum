@@ -8,8 +8,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20250606010317-c8c4589b747e h1:ltUq
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20250606010317-c8c4589b747e/go.mod h1:rhZn4/vgbrs7wSIN1/Hr8rYIn9hqycUb+pjcs+t2bL0=
 github.com/Potterli20/socks5-fork v0.0.0-20250508035553-b5e7ad22ac79 h1:HlglozDsWD7fGYE/xjQxO6XGeP7vu3ZysbDmVYDhSSI=
 github.com/Potterli20/socks5-fork v0.0.0-20250508035553-b5e7ad22ac79/go.mod h1:KNLJlqCRHHFj9BLfuVC2hoU+dd0kH6jJrtxBhu3/6lM=
-github.com/Potterli20/sqlite v0.0.0-20250624181345-118374d4ce0c h1:pi11wLt29fou3n4sm5GosDFFRJmPtU8P0XBv1hIkWps=
-github.com/Potterli20/sqlite v0.0.0-20250624181345-118374d4ce0c/go.mod h1:4cVL8+dvGRKaee6q6I16TkwZ/QY9CDVgrSgpK9lCJ2Q=
 github.com/Potterli20/sqlite v0.0.0-20250624210927-878d2384d53a h1:YBKu2uk0OsMBjI9FJRvEDzYJKTdQI8aSZCIzm8PB+/M=
 github.com/Potterli20/sqlite v0.0.0-20250624210927-878d2384d53a/go.mod h1:4cVL8+dvGRKaee6q6I16TkwZ/QY9CDVgrSgpK9lCJ2Q=
 github.com/andybalholm/brotli v1.2.0 h1:ukwgCxwYrmACq68yiUqwIWnGY0cTPox/M94sVwToPjQ=
@@ -185,6 +183,8 @@ gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gorm.io/gorm v1.30.1-0.20250606023501-842ee527ebde h1:rzAD+428MU/llwc+2YZoPYh3S/Jw71VWiVApzJg1G70=
 gorm.io/gorm v1.30.1-0.20250606023501-842ee527ebde/go.mod h1:8Z33v652h4//uMA76KjeDH8mJXPm1QNCYrMeatR0DOE=
+gorm.io/gorm v1.30.1-0.20250625031108-1e8baf545953 h1:TVYcjdayIssqcUYlB9nTDaVTqWl7DiCcDl/MPIf0JpA=
+gorm.io/gorm v1.30.1-0.20250625031108-1e8baf545953/go.mod h1:8Z33v652h4//uMA76KjeDH8mJXPm1QNCYrMeatR0DOE=
 gvisor.dev/gvisor v0.0.0-20250428193742-2d800c3129d5 h1:sfK5nHuG7lRFZ2FdTT3RimOqWBg8IrVm+/Vko1FVOsk=
 gvisor.dev/gvisor v0.0.0-20250428193742-2d800c3129d5/go.mod h1:3r5CMtNQMKIvBlrmM9xWUNamjKBYPOWyXOjmg5Kts3g=
 lukechampine.com/blake3 v1.4.1 h1:I3Smz7gso8w4/TunLKec6K2fn+kyKtDxr/xcQEN84Wg=
