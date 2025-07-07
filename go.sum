@@ -89,6 +89,8 @@ github.com/quic-go/quic-go v0.52.0 h1:/SlHrCRElyaU6MaEPKqKr9z83sBg2v4FLLvWM+Z47p
 github.com/quic-go/quic-go v0.52.0/go.mod h1:MFlGGpcpJqRAfmYi6NC2cptDPSxRWTOGNuP4wqrWmzQ=
 github.com/refraction-networking/utls v1.7.4-0.20250621163342-5abccec539e6 h1:jN13gW+A/o/SQg1EeN0Ki0pskhzlqozpdFvU/Oothw4=
 github.com/refraction-networking/utls v1.7.4-0.20250621163342-5abccec539e6/go.mod h1:TUhh27RHMGtQvjQq+RyO11P6ZNQNBb3N0v7wsEjKAIQ=
+github.com/refraction-networking/utls v1.7.4-0.20250704235630-7bcdf24bc1a8 h1:A5VPkMhVTCCF2F2AVeS9o/2dHp+RJMn02d72TIF3VxY=
+github.com/refraction-networking/utls v1.7.4-0.20250704235630-7bcdf24bc1a8/go.mod h1:TUhh27RHMGtQvjQq+RyO11P6ZNQNBb3N0v7wsEjKAIQ=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr8meMVVGxhp+QBTqY91tM8HjEuMjGg=
@@ -181,8 +183,6 @@ gopkg.in/yaml.v2 v2.4.0 h1:D8xgwECY7CYvx+Y2n4sBz93Jn9JRvxdiyyo8CTfuKaY=
 gopkg.in/yaml.v2 v2.4.0/go.mod h1:RDklbk79AGWmwhnvt/jBztapEOGDOx6ZbXqjP6csGnQ=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
-gorm.io/gorm v1.30.1-0.20250625031108-1e8baf545953 h1:TVYcjdayIssqcUYlB9nTDaVTqWl7DiCcDl/MPIf0JpA=
-gorm.io/gorm v1.30.1-0.20250625031108-1e8baf545953/go.mod h1:8Z33v652h4//uMA76KjeDH8mJXPm1QNCYrMeatR0DOE=
 gorm.io/gorm v1.30.1-0.20250707031510-2f4925e017f0 h1:2Tfgj81fL8V+wGbdhdFNv1Fp3E37hcKcxG0HNZ10KnE=
 gorm.io/gorm v1.30.1-0.20250707031510-2f4925e017f0/go.mod h1:8Z33v652h4//uMA76KjeDH8mJXPm1QNCYrMeatR0DOE=
 gvisor.dev/gvisor v0.0.0-20250428193742-2d800c3129d5 h1:sfK5nHuG7lRFZ2FdTT3RimOqWBg8IrVm+/Vko1FVOsk=
