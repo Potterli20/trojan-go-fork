@@ -5,7 +5,7 @@ go 1.24.2
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250710181905-23922cbfe0dc
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250710211324-52087e2c05a4
 	github.com/Potterli20/socks5-fork v0.0.0-20250710034239-10307a557da4
 	github.com/Potterli20/sqlite v0.0.0-20250710005048-1ad2dbec2a13
 	github.com/database64128/tfo-go/v2 v2.2.3-0.20250709223521-1d58d24f4457
@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/xtaci/smux v1.5.34
 	github.com/xtls/xray-core v1.250608.1-0.20250623124727-cb1afb33e68c
-	golang.org/x/net v0.41.0
+	golang.org/x/net v0.42.0
 	golang.org/x/term v0.33.0
 	golang.org/x/time v0.12.0
 	google.golang.org/genproto v0.0.0-20250707201910-8d1bb00bc6a7
