@@ -10,8 +10,6 @@ github.com/Potterli20/socks5-fork v0.0.0-20250716105112-437b7b9e709b h1:H02y6Hsr
 github.com/Potterli20/socks5-fork v0.0.0-20250716105112-437b7b9e709b/go.mod h1:jmpDMjz0QsF0vXm3dAKzftK3Q8BAyVRwUcDHX+nmPGA=
 github.com/Potterli20/sqlite v0.0.0-20250712005237-770b5389b222 h1:mOad6Qi+hJwqxmOTDsOpSP0JUkkWHxe4/mVooEzNeX0=
 github.com/Potterli20/sqlite v0.0.0-20250712005237-770b5389b222/go.mod h1:5ksWR3ILWNMs9Eb61bzqRKm574O+3+iGl4FqqBkSS5c=
-github.com/andybalholm/brotli v1.2.0 h1:ukwgCxwYrmACq68yiUqwIWnGY0cTPox/M94sVwToPjQ=
-github.com/andybalholm/brotli v1.2.0/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
 github.com/andybalholm/brotli v1.2.1-0.20250628003114-31c50a2ee5b6 h1:S//Znn3QLIBInm53h/KTKSH0iKDvy9LJKwq+TgC8Njk=
 github.com/andybalholm/brotli v1.2.1-0.20250628003114-31c50a2ee5b6/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
 github.com/cloudflare/circl v1.6.1 h1:zqIqSPIndyBh1bjLVVDHMPpVKqp8Su/V+6MeDzzQBQ0=
