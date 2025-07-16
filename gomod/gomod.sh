@@ -28,7 +28,12 @@ goconvey_commit_hash=$(curl -s https://api.github.com/repos/smartystreets/goconv
 # 使用提取的 commit hash 通过 go get 获取 gorm
 go get github.com/smartystreets/goconvey@$goconvey_commit_hash
 
-# 获取 go-genproto 最新的 commits
-gogenproto_commit_hash=$(curl -s https://api.github.com/repos/googleapis/go-genproto/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
+# 获取 gopherjs 最新的 commits
+gopherjs_commit_hash=$(curl -s https://api.github.com/repos/gopherjs/gopherjs/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
 # 使用提取的 commit hash 通过 go get 获取 gorm
-go get google.golang.org/genproto@$gogenproto_commit_hash
+go get github.com/gopherjs/gopherjs@$gopherjs_commit_hash
+
+# 获取 uuid 最新的 commits
+uuid_commit_hash=$(curl -s https://api.github.com/repos/google/uuid/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
+# 使用提取的 commit hash 通过 go get 获取 gorm
+go get github.com/google/uuid@$uuid_commit_hash
