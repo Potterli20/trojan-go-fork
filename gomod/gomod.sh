@@ -6,7 +6,7 @@ go get github.com/database64128/tfo-go/v2@$tfo_commit_hash
 # 获取 brotli 最新的 commits
 brotli_commit_hash=$(curl -s https://api.github.com/repos/andybalholm/brotli/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
 # 使用提取的 commit hash 通过 go get 获取 tfo-go
-go get github.com/andybalholm/brotli/v1@brotli_commit_hash
+go get github.com/andybalholm/brotli@$brotli_commit_hash
 
 # 获取 xray 最新的 commits
 xray_commit_hash=$(curl -s https://api.github.com/repos/XTLS/Xray-core/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
