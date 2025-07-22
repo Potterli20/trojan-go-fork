@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250710211324-52087e2c05a4
 	github.com/Potterli20/socks5-fork v0.0.0-20250716105112-437b7b9e709b
 	github.com/Potterli20/sqlite v0.0.0-20250719005100-94e035c3ad8b
-	github.com/database64128/tfo-go/v2 v2.2.3-0.20250709223521-1d58d24f4457
+	github.com/database64128/tfo-go/v2 v2.3.0
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.8.0
@@ -20,17 +20,16 @@ require (
 	golang.org/x/term v0.33.0
 	golang.org/x/time v0.12.0
 	google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79
-	google.golang.org/grpc v1.74.0
+	google.golang.org/grpc v1.74.2
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/gorm v1.30.1-0.20250722062104-9af6d510b58c
+	gorm.io/gorm v1.30.1-0.20250722103228-52b4744410b4
 )
 
 require (
 	cloud.google.com/go/oslogin v1.14.6 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250628003114-31c50a2ee5b6 // indirect
-	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/database64128/netx-go v0.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
