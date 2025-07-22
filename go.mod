@@ -11,7 +11,7 @@ require (
 	github.com/database64128/tfo-go/v2 v2.2.3-0.20250709223521-1d58d24f4457
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
-	github.com/refraction-networking/utls v1.7.4-0.20250722001902-8d029b975279
+	github.com/refraction-networking/utls v1.8.0
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.10.0
 	github.com/xtaci/smux v1.5.34
@@ -23,7 +23,7 @@ require (
 	google.golang.org/grpc v1.74.0
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/gorm v1.30.1-0.20250721095520-c63374f5d154
+	gorm.io/gorm v1.30.1-0.20250722062104-9af6d510b58c
 )
 
 require (
