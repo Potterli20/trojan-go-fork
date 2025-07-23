@@ -15,7 +15,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.10.0
 	github.com/xtaci/smux v1.5.34
-	github.com/xtls/xray-core v1.250608.1-0.20250721045543-eed05549fc99
+	github.com/xtls/xray-core v1.250608.1-0.20250723023758-7f23a1cb652d
 	golang.org/x/net v0.42.0
 	golang.org/x/term v0.33.0
 	golang.org/x/time v0.12.0
@@ -23,7 +23,7 @@ require (
 	google.golang.org/grpc v1.74.2
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/gorm v1.30.1-0.20250722103228-52b4744410b4
+	gorm.io/gorm v1.30.1-0.20250723050249-49eaeacb892c
 )
 
 require (
