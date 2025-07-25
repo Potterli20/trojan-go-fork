@@ -8,14 +8,14 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250710211324-52087e2c05a4
 	github.com/Potterli20/socks5-fork v0.0.0-20250716105112-437b7b9e709b
 	github.com/Potterli20/sqlite v0.0.0-20250724061608-443099f36f9d
-	github.com/database64128/tfo-go/v2 v2.3.0
+	github.com/database64128/tfo-go/v2 v2.3.1-0.20250725073802-f70ecf8ae7df
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.8.0
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.10.0
 	github.com/xtaci/smux v1.5.34
-	github.com/xtls/xray-core v1.250608.1-0.20250724021908-4f45c5faa5f1
+	github.com/xtls/xray-core v1.250725.0
 	golang.org/x/net v0.42.0
 	golang.org/x/term v0.33.0
 	golang.org/x/time v0.12.0
