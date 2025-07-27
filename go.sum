@@ -8,8 +8,6 @@ github.com/Potterli20/socks5-fork v0.0.0-20250716105112-437b7b9e709b h1:H02y6Hsr
 github.com/Potterli20/socks5-fork v0.0.0-20250716105112-437b7b9e709b/go.mod h1:jmpDMjz0QsF0vXm3dAKzftK3Q8BAyVRwUcDHX+nmPGA=
 github.com/Potterli20/sqlite v0.0.0-20250726005105-56577169056e h1:ZneQ7i/yvrhA0byBAGN0jhkuAOunSa9yUd6MTI8yHEE=
 github.com/Potterli20/sqlite v0.0.0-20250726005105-56577169056e/go.mod h1:wL7i3yq/k7BIY7/Nfs8UpcdcAlTpozesP1Z+FKN0iKo=
-github.com/andybalholm/brotli v1.2.1-0.20250628003114-31c50a2ee5b6 h1:S//Znn3QLIBInm53h/KTKSH0iKDvy9LJKwq+TgC8Njk=
-github.com/andybalholm/brotli v1.2.1-0.20250628003114-31c50a2ee5b6/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
 github.com/andybalholm/brotli v1.2.1-0.20250724193841-aa20fd335bf8 h1:JJo1uvLgV3DItLjDI+mRhxJ3X9JW/2XTpOuH0ISZZbM=
 github.com/andybalholm/brotli v1.2.1-0.20250724193841-aa20fd335bf8/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
 github.com/cloudflare/circl v1.6.1 h1:zqIqSPIndyBh1bjLVVDHMPpVKqp8Su/V+6MeDzzQBQ0=
@@ -96,8 +94,6 @@ github.com/quic-go/qpack v0.5.1 h1:giqksBPnT/HDtZ6VhtFKgoLOWmlyo9Ei6u9PqzIMbhI=
 github.com/quic-go/qpack v0.5.1/go.mod h1:+PC4XFrEskIVkcLzpEkbLqq1uCoxPhQuvK5rH1ZgaEg=
 github.com/quic-go/quic-go v0.54.0 h1:6s1YB9QotYI6Ospeiguknbp2Znb/jZYjZLRXn9kMQBg=
 github.com/quic-go/quic-go v0.54.0/go.mod h1:e68ZEaCdyviluZmy44P6Iey98v/Wfz6HCjQEm+l8zTY=
-github.com/refraction-networking/utls v1.8.0 h1:L38krhiTAyj9EeiQQa2sg+hYb4qwLCqdMcpZrRfbONE=
-github.com/refraction-networking/utls v1.8.0/go.mod h1:jkSOEkLqn+S/jtpEHPOsVv/4V4EVnelwbMQl4vCWXAM=
 github.com/refraction-networking/utls v1.8.1-0.20250726151951-a5511b382b81 h1:uD+Kn86P2HsT600Ytqax69wCoW9+sarHaukaRmGR/Vs=
 github.com/refraction-networking/utls v1.8.1-0.20250726151951-a5511b382b81/go.mod h1:jkSOEkLqn+S/jtpEHPOsVv/4V4EVnelwbMQl4vCWXAM=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
