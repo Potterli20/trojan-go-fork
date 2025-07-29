@@ -36,7 +36,7 @@ require (
 	github.com/evanw/esbuild v0.25.4 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/google/btree v1.1.3 // indirect
-	github.com/gopherjs/gopherjs v1.19.0-beta1.0.20250728155759-d466fe393f91 // indirect
+	github.com/gopherjs/gopherjs v1.19.0-beta1.0.20250728234122-e7546c029ddb // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
