@@ -48,8 +48,6 @@ github.com/google/pprof v0.0.0-20250317173921-a4b03ec1a45e h1:ijClszYn+mADRFY17k
 github.com/google/pprof v0.0.0-20250317173921-a4b03ec1a45e/go.mod h1:boTsfXsheKC2y+lKOCMpSfarhxDeIzfZG1jqGcPl3cA=
 github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518 h1:UBg1xk+oAsIVbFuGg6hdfAm7EvCv3EL80vFxJNsslqw=
 github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
-github.com/gopherjs/gopherjs v1.19.0-beta1.0.20250728155759-d466fe393f91 h1:JqgiU9MTke12jZkgi8Ft1s1491Vf3L7pF/5RKA7dXpA=
-github.com/gopherjs/gopherjs v1.19.0-beta1.0.20250728155759-d466fe393f91/go.mod h1:2WavbyDw5YmfMgwzeuZQ+rK6sxrzCy5vJ/vLriB+Mpw=
 github.com/gopherjs/gopherjs v1.19.0-beta1.0.20250728234122-e7546c029ddb h1:MwCERVF/2hY/8MkBSeB0pC28AHy9pAlmr2GLNOKOuqM=
 github.com/gopherjs/gopherjs v1.19.0-beta1.0.20250728234122-e7546c029ddb/go.mod h1:2WavbyDw5YmfMgwzeuZQ+rK6sxrzCy5vJ/vLriB+Mpw=
 github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
