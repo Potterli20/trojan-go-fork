@@ -16,8 +16,6 @@ github.com/cpuguy83/go-md2man/v2 v2.0.6/go.mod h1:oOW0eioCTA6cOiMLiUPZOpcVxMig6N
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/database64128/netx-go v0.1.0 h1:4Dgaq1QFBSJWQNH2ACj7SL2slJFlAAbEMJOk9YIGgMA=
 github.com/database64128/netx-go v0.1.0/go.mod h1:ywpvlFnZeN8/9s7tqGvoI+9zSryHBEKPf0FfSsj0H+Y=
-github.com/database64128/tfo-go/v2 v2.3.1-0.20250725073802-f70ecf8ae7df h1:KKFojFku6gZC18pf1CkrKA8u+PRhchZLFNTR3Oq3Gk0=
-github.com/database64128/tfo-go/v2 v2.3.1-0.20250725073802-f70ecf8ae7df/go.mod h1:P0mrA11nut9ngh8SiKSIkjW29PCGKgDlXehh+lhJCyM=
 github.com/database64128/tfo-go/v2 v2.3.1-0.20250730105059-085b2a1e8a84 h1:DPbLL4mIgoMkRKZ/Ox/3XDm0oqvRdhF6HILPs5U7vBY=
 github.com/database64128/tfo-go/v2 v2.3.1-0.20250730105059-085b2a1e8a84/go.mod h1:P0mrA11nut9ngh8SiKSIkjW29PCGKgDlXehh+lhJCyM=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
