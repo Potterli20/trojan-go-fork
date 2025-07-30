@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250710211324-52087e2c05a4
 	github.com/Potterli20/socks5-fork v0.0.0-20250716105112-437b7b9e709b
 	github.com/Potterli20/sqlite v0.0.0-20250729122050-de4e1cc6f1ee
-	github.com/database64128/tfo-go/v2 v2.3.1-0.20250725073802-f70ecf8ae7df
+	github.com/database64128/tfo-go/v2 v2.3.1-0.20250730105059-085b2a1e8a84
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.8.1-0.20250726151951-a5511b382b81
