@@ -50,6 +50,8 @@ github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518 h1:UBg1xk+oAsIVbFuGg
 github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/gopherjs/gopherjs v1.19.0-beta1.0.20250728234122-e7546c029ddb h1:MwCERVF/2hY/8MkBSeB0pC28AHy9pAlmr2GLNOKOuqM=
 github.com/gopherjs/gopherjs v1.19.0-beta1.0.20250728234122-e7546c029ddb/go.mod h1:2WavbyDw5YmfMgwzeuZQ+rK6sxrzCy5vJ/vLriB+Mpw=
+github.com/gopherjs/gopherjs v1.19.0-beta1.0.20250801204254-a87964c08abf h1:qcE9NA+m0ljsaZMxc3lkVLzZ0cWlf+pFYRowq6F23T8=
+github.com/gopherjs/gopherjs v1.19.0-beta1.0.20250801204254-a87964c08abf/go.mod h1:2WavbyDw5YmfMgwzeuZQ+rK6sxrzCy5vJ/vLriB+Mpw=
 github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
