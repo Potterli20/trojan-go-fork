@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250805111948-9352ffe9b452
-	github.com/Potterli20/socks5-fork v0.0.0-20250805113830-d780fe6d0dbf
+	github.com/Potterli20/socks5-fork v0.0.0-20250805125931-6e15924a2117
 	github.com/Potterli20/sqlite v0.0.0-20250729122050-de4e1cc6f1ee
 	github.com/database64128/tfo-go/v2 v2.3.1-0.20250730105059-085b2a1e8a84
 	github.com/go-sql-driver/mysql v1.9.3
@@ -15,7 +15,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.10.0
 	github.com/xtaci/smux v1.5.34
-	github.com/xtls/xray-core v1.250803.1-0.20250805032140-8222f43eea34
+	github.com/xtls/xray-core v1.250803.1-0.20250805180251-935984414904
 	golang.org/x/net v0.42.0
 	golang.org/x/term v0.33.0
 	golang.org/x/time v0.12.0
@@ -52,14 +52,12 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/msvitok77/goembed v0.3.5 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
 	github.com/neelance/astrewrite v0.0.0-20160511093645-99348263ae86 // indirect
 	github.com/neelance/sourcemap v0.0.0-20200213170602-2833bce08e4c // indirect
-	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pires/go-proxyproto v0.8.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
@@ -94,10 +92,8 @@ require (
 	golang.org/x/tools v0.35.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	modernc.org/libc v1.66.6 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.38.2 // indirect
-	zgo.at/zcache/v2 v2.2.0 // indirect
 )
