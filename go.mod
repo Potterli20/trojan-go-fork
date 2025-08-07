@@ -5,9 +5,9 @@ go 1.24.5
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250805111948-9352ffe9b452
-	github.com/Potterli20/socks5-fork v0.0.0-20250805125931-6e15924a2117
-	github.com/Potterli20/sqlite v0.0.0-20250729122050-de4e1cc6f1ee
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250807122912-1d626b403c89
+	github.com/Potterli20/socks5-fork v0.0.0-20250807093331-a4691a088a8b
+	github.com/Potterli20/sqlite v0.0.0-20250807122100-1e22cf49a4ae
 	github.com/database64128/tfo-go/v2 v2.3.1-0.20250730105059-085b2a1e8a84
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
@@ -21,7 +21,7 @@ require (
 	golang.org/x/time v0.12.0
 	google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79
 	google.golang.org/grpc v1.74.2
-	google.golang.org/protobuf v1.36.6
+	google.golang.org/protobuf v1.36.7
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.30.2-0.20250804040730-6cc2c01268c2
 )
@@ -79,7 +79,7 @@ require (
 	github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
-	github.com/zondax/golem v0.26.0 // indirect
+	github.com/zondax/golem v0.26.2-0.20250807082612-8968e7ba0dea // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
@@ -87,7 +87,7 @@ require (
 	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792 // indirect
 	golang.org/x/mod v0.26.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
 	golang.org/x/tools v0.35.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
