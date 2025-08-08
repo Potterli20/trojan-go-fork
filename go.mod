@@ -5,18 +5,18 @@ go 1.24.5
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250807151604-7c1849fe2991
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250808011022-558084af221a
 	github.com/Potterli20/socks5-fork v0.0.0-20250807153049-edafbf0f7304
-	github.com/Potterli20/sqlite v0.0.0-20250807181532-10204fceefb1
-	github.com/database64128/tfo-go/v2 v2.3.1-0.20250730105059-085b2a1e8a84
+	github.com/Potterli20/sqlite v0.0.0-20250807210822-1115ea80ed02
+	github.com/database64128/tfo-go/v2 v2.3.1-0.20250807172437-ae65371805e8
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.8.1-0.20250726151951-a5511b382b81
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.10.0
 	github.com/xtaci/smux v1.5.34
-	github.com/xtls/xray-core v1.250803.1-0.20250805180251-935984414904
-	golang.org/x/net v0.42.0
+	github.com/xtls/xray-core v1.250803.1-0.20250808003751-0cceea75daac
+	golang.org/x/net v0.43.0
 	golang.org/x/term v0.34.0
 	golang.org/x/time v0.12.0
 	google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79
