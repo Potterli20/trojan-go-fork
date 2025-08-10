@@ -46,4 +46,4 @@ go get github.com/google/uuid@$uuid_commit_hash
 # 获取 socks5 最新的 commits
 socks5_commit_hash=$(curl -s https://api.github.com/repos/Potterli20/socks5-fork/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
 # 使用提取的 commit hash 通过 go get 获取 gorm
-go get github.com/potterli20/socks5-fork@$socks5_commit_hash
+go get github.com/Potterli20/socks5-fork@$socks5_commit_hash
