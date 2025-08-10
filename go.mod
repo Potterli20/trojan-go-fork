@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250808011022-558084af221a
-	github.com/Potterli20/socks5-fork v0.0.0-20250810144024-2fdc90514895
+	github.com/Potterli20/socks5-fork v0.0.0-20250810145423-4266ca4c8bdd
 	github.com/Potterli20/sqlite v0.0.0-20250808210850-4f2517b5c076
 	github.com/database64128/tfo-go/v2 v2.3.1-0.20250807172437-ae65371805e8
 	github.com/go-sql-driver/mysql v1.9.3
@@ -67,6 +67,7 @@ require (
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
+	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/sagernet/sing v0.7.5 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
@@ -80,6 +81,8 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	github.com/zondax/golem v0.26.2-0.20250807100918-5b0fc86624ce // indirect
+	go.opentelemetry.io/otel v1.37.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.37.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
@@ -92,6 +95,7 @@ require (
 	golang.org/x/tools v0.36.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	modernc.org/libc v1.66.6 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
