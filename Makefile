@@ -30,38 +30,6 @@ PACKAGE_NAME := github.com/Potterli20/trojan-go-fork
 VERSION := `git describe --always`
 COMMIT := `git rev-parse HEAD`
 
-# 是否跳过不支持 gopsutil 的平台构建
-SKIP_UNSUPPORTED_GOPSUTIL ?= 0
-
-# gopsutil support check
-define check_gopsutil_support
-    ifeq ($(1),freebsd)
-        ifneq ($(filter $(2),386 amd64 arm),)
-            GOPSUTIL_SUPPORTED := 1
-        endif
-    else ifeq ($(1),linux)
-        ifneq ($(filter $(2),386 amd64 arm arm64),)
-            GOPSUTIL_SUPPORTED := 1
-        endif
-    else ifeq ($(1),windows)
-        ifneq ($(filter $(2),386 amd64 arm arm64),)
-            GOPSUTIL_SUPPORTED := 1
-        endif
-    else ifeq ($(1),darwin)
-        ifneq ($(filter $(2),amd64 arm64),)
-            GOPSUTIL_SUPPORTED := 1
-        endif
-    else ifeq ($(1),openbsd)
-        ifneq ($(filter $(2),386 amd64 armv7 arm64 riscv64),)
-            GOPSUTIL_SUPPORTED := 1
-        endif
-    else ifeq ($(1),solaris)
-        ifeq ($(2),amd64)
-            GOPSUTIL_SUPPORTED := 1
-        endif
-    endif
-endef
-
 PLATFORM := linux
 BUILD_DIR := build
 VAR_SETTING := -X $(PACKAGE_NAME)/constant.Version=$(VERSION) -X $(PACKAGE_NAME)/constant.Commit=$(COMMIT)
@@ -129,39 +97,20 @@ uninstall:
 # 通用构建规则，支持 GOMIPS、GO386 和 GOARM 参数
 define BUILD_RULE
 $(1):
-	@$(eval GOPSUTIL_SUPPORTED :=)
-	@$(call check_gopsutil_support,$(3),$(2))
-	@if [ "$(GOPSUTIL_SUPPORTED)" = "1" ]; then \
-		echo "Building for $(3)/$(2) (gopsutil supported)"; \
-		mkdir -p $(BUILD_DIR)/$(1); \
-		GOARCH=$(2) GOOS=$(3) \
-		$(if $(4),GOAMD64=$(4),) \
-		$(if $(filter mips%,$(2)),GOMIPS=$(5),) \
-		$(if $(filter 386,$(2)),GO386=$(6),) \
-		$(if $(filter arm,$(2)),GOARM=$(7),) \
-		$(GOBUILD) -o $(BUILD_DIR)/$(1)/$(NAME) -tags "full,gopsutil"; \
-	else \
-		if [ "$(SKIP_UNSUPPORTED_GOPSUTIL)" = "1" ]; then \
-			echo "Skipping build for $(3)/$(2) (gopsutil not supported)"; \
-			exit 0; \
-		else \
-			echo "Warning: Building for $(3)/$(2) without gopsutil support"; \
-			mkdir -p $(BUILD_DIR)/$(1); \
-			GOARCH=$(2) GOOS=$(3) \
-			$(if $(4),GOAMD64=$(4),) \
-			$(if $(filter mips%,$(2)),GOMIPS=$(5),) \
-			$(if $(filter 386,$(2)),GO386=$(6),) \
-			$(if $(filter arm,$(2)),GOARM=$(7),) \
-			$(GOBUILD) -o $(BUILD_DIR)/$(1)/$(NAME) -tags "full,nogopsutil"; \
-		fi \
-	fi
+	mkdir -p $(BUILD_DIR)/$(1)
+	GOARCH=$(2) GOOS=$(3) \
+	$(if $(4),GOAMD64=$(4),) \
+	$(if $(filter mips%,$(2)),GOMIPS=$(5),) \
+	$(if $(filter 386,$(2)),GO386=$(6),) \
+	$(if $(filter arm,$(2)),GOARM=$(7),) \
+	$(GOBUILD) -o $(BUILD_DIR)/$(1)/$(NAME)
 endef
 
 # 定义支持的平台和架构（仅包含官方支持的组合）
 PLATFORMS := darwin linux freebsd netbsd openbsd windows
 ARCHS_darwin   := amd64 arm64
 ARCHS_linux    := 386 amd64 arm arm64 loong64 mips mipsle mips64 mips64le ppc64 ppc64le riscv64 s390x
-ARCHS_freebsd  := 386 amd64 arm arm64 riscv64
+ARCHS_freebsd  := 386 amd64 arm arm64
 ARCHS_netbsd   := 386 amd64 arm arm64
 ARCHS_openbsd  := 386 amd64 arm arm64 riscv64
 ARCHS_windows  := 386 amd64 arm arm64
