@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250808011022-558084af221a
-	github.com/Potterli20/socks5-fork v0.0.0-20250810155229-73efadb9616a
+	github.com/Potterli20/socks5-fork v0.0.0-20250811121701-861ffcbbd012
 	github.com/Potterli20/sqlite v0.0.0-20250808210850-4f2517b5c076
 	github.com/database64128/tfo-go/v2 v2.3.1-0.20250807172437-ae65371805e8
 	github.com/go-sql-driver/mysql v1.9.3
@@ -19,7 +19,7 @@ require (
 	golang.org/x/net v0.43.0
 	golang.org/x/term v0.34.0
 	golang.org/x/time v0.12.0
-	google.golang.org/genproto v0.0.0-20250715232539-7130f93afb79
+	google.golang.org/genproto v0.0.0-20250804133106-a7a43d27e69b
 	google.golang.org/grpc v1.74.2
 	google.golang.org/protobuf v1.36.7
 	gopkg.in/yaml.v3 v3.0.1
@@ -29,6 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.6 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/Potterli20/golem v0.0.0-20250811121240-5f5c08bd9e58 // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250724193841-aa20fd335bf8 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -37,6 +38,7 @@ require (
 	github.com/dgraph-io/ristretto v0.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
+	github.com/ebitengine/purego v0.8.4 // indirect
 	github.com/evanw/esbuild v0.25.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-chi/chi/v5 v5.2.2 // indirect
@@ -52,6 +54,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/lufia/plan9stats v0.0.0-20250317134145-8bc96cf8fc35 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/msvitok77/goembed v0.3.5 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -61,6 +64,7 @@ require (
 	github.com/pires/go-proxyproto v0.8.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/prometheus/client_golang v1.23.0 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.65.0 // indirect
@@ -69,10 +73,11 @@ require (
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/sagernet/sing v0.7.5 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
+	github.com/shirou/gopsutil/v4 v4.25.8-0.20250809033336-ffcdc2b7662f // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
 	github.com/spf13/cobra v1.9.1 // indirect
-	github.com/spf13/pflag v1.0.6 // indirect
+	github.com/spf13/pflag v1.0.7 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
@@ -90,9 +95,9 @@ require (
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/tools v0.36.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20250804133106-a7a43d27e69b // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
-	modernc.org/libc v1.66.6 // indirect
+	modernc.org/libc v1.66.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.38.2 // indirect
