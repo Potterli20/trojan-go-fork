@@ -6,9 +6,9 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250808011022-558084af221a
-	github.com/Potterli20/socks5-fork v0.0.0-20250811121701-861ffcbbd012
-	github.com/Potterli20/sqlite v0.0.0-20250811122019-b5a4a43e2eae
-	github.com/database64128/tfo-go/v2 v2.3.1-0.20250807172437-ae65371805e8
+	github.com/Potterli20/socks5-fork v0.0.0-20250811153033-cb44362cc334
+	github.com/Potterli20/sqlite v0.0.0-20250811151226-7a5f46e2f636
+	github.com/database64128/tfo-go/v2 v2.3.1-0.20250811134617-c3fcb7f23ec9
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.8.1-0.20250726151951-a5511b382b81
@@ -94,7 +94,7 @@ require (
 	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/tools v0.36.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250804133106-a7a43d27e69b // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250811160224-6b04f9b4fc78 // indirect
 	modernc.org/libc v1.66.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
