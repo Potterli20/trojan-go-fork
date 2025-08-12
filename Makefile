@@ -111,7 +111,7 @@ PLATFORMS := darwin linux freebsd openbsd windows solaris
 ARCHS_darwin   := amd64 arm64
 ARCHS_linux    := 386 amd64 arm
 ARCHS_freebsd  := 386 amd64 arm
-ARCHS_openbsd  := 386 amd64 armv7 arm64 riscv64
+ARCHS_openbsd  := 386 amd64 arm arm64 riscv64
 ARCHS_windows  := 386 amd64 arm arm64
 ARCHS_solaris  := amd64
 
