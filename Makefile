@@ -164,7 +164,7 @@ $(foreach platform,$(PLATFORMS), \
         $(if $(filter arm,$(arch)), \
           $(foreach arm_version,6 7,$(platform)-$(arch)-v$(arm_version).zip), \
           $(if $(findstring 386,$(arch)), \
-            $(foreach float_type,softfloat sse2,$(platform)-$(arch)-$(float_type).zip), \
+            $(foreach float_type,softfloat,$(platform)-$(arch)-$(float_type).zip), \
             $(platform)-$(arch).zip \
           ) \
         ) \
