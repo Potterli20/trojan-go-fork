@@ -106,14 +106,13 @@ $(1):
 	$(GOBUILD) -o $(BUILD_DIR)/$(1)/$(NAME)
 endef
 
-# 定义支持的平台和架构（基于 gopsutil 支持的组合）
-PLATFORMS := darwin linux freebsd openbsd windows solaris
+# 定义支持的平台和架构（基于依赖库兼容性）
+PLATFORMS := darwin linux freebsd openbsd windows
 ARCHS_darwin   := amd64 arm64
 ARCHS_linux    := 386 amd64 arm
 ARCHS_freebsd  := 386 amd64 arm
 ARCHS_openbsd  := 386 amd64 arm arm64 riscv64
 ARCHS_windows  := 386 amd64 arm arm64
-ARCHS_solaris  := amd64
 
 GOAMD64_VARIANTS := v2 v3 v4
 LOONG64_VARIANTS := LA364 LA464 LA664
