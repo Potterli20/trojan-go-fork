@@ -137,7 +137,7 @@ $(foreach platform,$(PLATFORMS), \
       ) \
     , \
     $(if $(findstring 386,$(arch)), \
-      $(foreach x86_abi,softfloat sse2, \
+      $(foreach x86_abi,softfloat, \
         $(eval $(call BUILD_RULE,$(platform)-$(arch)-$(x86_abi),$(arch),$(platform),,,$(x86_abi))) \
       ) \
     , \
