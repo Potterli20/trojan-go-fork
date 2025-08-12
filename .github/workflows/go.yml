@@ -16,11 +16,19 @@ jobs:
 
       - name: go-modules
         run: |
-          go clean -modcache
-          go mod tidy -compat=1.24
-          gofmt -w -r 'interface{} -> any' .
-          go get -u
-          go mod download
+          if [ -f "go.mod" ]; then
+            go clean -modcache
+            go mod tidy -compat=1.24
+            gofmt -w -r 'interface{} -> any' .
+            # 仅在有 go.mod 文件时执行 go get
+            if [ -f "go.mod" ]; then
+              go get -u ./...
+              go mod download
+            fi
+          else
+            echo "没有找到 go.mod 文件，跳过模块更新"
+            exit 0
+          fi
 
       - name:  fix go-modules
         run: |
