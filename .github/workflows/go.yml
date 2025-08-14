@@ -10,7 +10,7 @@ jobs:
       - name: Setup Go 1.x.y
         uses: actions/setup-go@main
         with:
-          go-version: ^1.24
+          go-version: ^1.25
       - name: Checkout codebase
         uses: actions/checkout@main
 
@@ -18,7 +18,7 @@ jobs:
         run: |
           if [ -f "go.mod" ]; then
             go clean -modcache
-            go mod tidy -compat=1.24
+            go mod tidy -compat=1.25
             gofmt -w -r 'interface{} -> any' .
             # 仅在有 go.mod 文件时执行 go get
             if [ -f "go.mod" ]; then
