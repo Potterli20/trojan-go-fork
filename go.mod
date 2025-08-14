@@ -6,8 +6,8 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250808011022-558084af221a
-	github.com/Potterli20/socks5-fork v0.0.0-20250813152455-c74751197fc4
-	github.com/Potterli20/sqlite v0.0.0-20250813150842-9951e961f24a
+	github.com/Potterli20/socks5-fork v0.0.0-20250813212347-570658cbc971
+	github.com/Potterli20/sqlite v0.0.0-20250813181427-84e9336cd728
 	github.com/database64128/tfo-go/v2 v2.3.1-0.20250811134617-c3fcb7f23ec9
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
@@ -15,7 +15,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.10.0
 	github.com/xtaci/smux v1.5.34
-	github.com/xtls/xray-core v1.250803.1-0.20250811013746-b1107b9810a3
+	github.com/xtls/xray-core v1.250803.1-0.20250813214642-836b6487e48f
 	golang.org/x/net v0.43.0
 	golang.org/x/term v0.34.0
 	golang.org/x/time v0.12.0
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.6 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20250813181546-f0ff5922ce6e // indirect
+	github.com/Potterli20/golem v0.0.0-20250814005442-a81eae4aa022 // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250724193841-aa20fd335bf8 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -71,7 +71,7 @@ require (
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
-	github.com/sagernet/sing v0.7.6-0.20250813174432-bf460591becd // indirect
+	github.com/sagernet/sing v0.7.6-0.20250814014249-64cd8117e0ad // indirect
 	github.com/shirou/gopsutil/v4 v4.25.8-0.20250809033336-ffcdc2b7662f // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
