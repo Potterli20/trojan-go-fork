@@ -6,8 +6,8 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250814151522-5f7458a01dea
-	github.com/Potterli20/socks5-fork v0.0.0-20250819092649-b58cbbc0e78a
-	github.com/Potterli20/sqlite v0.0.0-20250814181436-f1424724713e
+	github.com/Potterli20/socks5-fork v0.0.0-20250819212409-9be64282fa7e
+	github.com/Potterli20/sqlite v0.0.0-20250820004508-7cdac5fd4e8c
 	github.com/database64128/tfo-go/v2 v2.3.1-0.20250811134617-c3fcb7f23ec9
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
@@ -15,7 +15,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.10.0
 	github.com/xtaci/smux v1.5.35
-	github.com/xtls/xray-core v1.250803.1-0.20250819140312-5b2d33f4e042
+	github.com/xtls/xray-core v1.250803.1-0.20250819214913-6d1695a686b5
 	golang.org/x/net v0.43.0
 	golang.org/x/term v0.34.0
 	golang.org/x/time v0.12.0
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.6 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20250819181524-d7ababb0ff3a // indirect
+	github.com/Potterli20/golem v0.0.0-20250820005035-826ca61b7c59 // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250724193841-aa20fd335bf8 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -46,7 +46,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-redsync/redsync/v4 v4.13.0 // indirect
 	github.com/google/btree v1.1.3 // indirect
-	github.com/gopherjs/gopherjs v1.19.0-beta1.0.20250818145416-15689083e828 // indirect
+	github.com/gopherjs/gopherjs v1.19.0-beta2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -87,7 +87,7 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/exp v0.0.0-20250819170805-f6d41f060dd3 // indirect
+	golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b // indirect
 	golang.org/x/mod v0.27.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
