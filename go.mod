@@ -13,7 +13,7 @@ require (
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.8.1-0.20250726151951-a5511b382b81
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.0
 	github.com/xtaci/smux v1.5.35
 	github.com/xtls/xray-core v1.250803.1-0.20250821103638-33272a04994e
 	golang.org/x/net v0.43.0
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.6 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20250823121751-e7875b61e546 // indirect
+	github.com/Potterli20/golem v0.0.0-20250824181341-5afae86bdc38 // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250821183917-b70ce549fa67 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -71,7 +71,7 @@ require (
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
-	github.com/sagernet/sing v0.7.6-0.20250823024003-88f1880f43af // indirect
+	github.com/sagernet/sing v0.7.6-0.20250824160943-cb68b269cd16 // indirect
 	github.com/shirou/gopsutil/v4 v4.25.8-0.20250809033336-ffcdc2b7662f // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
