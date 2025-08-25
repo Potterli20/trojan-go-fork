@@ -6,8 +6,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20250814151522-5f7458a01dea h1:LzFF
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20250814151522-5f7458a01dea/go.mod h1:Q+0IACcSXuIgbL9ZWsg9rX/lWJpLSzUSyl1EOx7v6Nc=
 github.com/Potterli20/golem v0.0.0-20250825005314-d5a1cd633b64 h1:yfOU4b513lbVjVjAD4peo78m8XycuCVHQl47TKr0cUI=
 github.com/Potterli20/golem v0.0.0-20250825005314-d5a1cd633b64/go.mod h1:wOtAdtFkSO3gpjjBM4ONenidcLBWiNhIDWE1vyZFY6c=
-github.com/Potterli20/socks5-fork v0.0.0-20250824212108-4246bfee3b6b h1:VUk8ZNr9NIUNTIVoLmYAShRVr6Q5xukong1z6yCQTME=
-github.com/Potterli20/socks5-fork v0.0.0-20250824212108-4246bfee3b6b/go.mod h1:xqvhbnnLNOKrHiKEN+SKNNLFR07fOcg7+g4BN1mM8GM=
 github.com/Potterli20/socks5-fork v0.0.0-20250825035009-3547bd7e9745 h1:8n4wqZGwC0TKkBfbnrisPE67urHsJf1SajkKQxdU67A=
 github.com/Potterli20/socks5-fork v0.0.0-20250825035009-3547bd7e9745/go.mod h1:37ra9/pKu0hLuqajeDV/fULzDBhHMMy3YswZUXcNnaI=
 github.com/Potterli20/sqlite v0.0.0-20250820004508-7cdac5fd4e8c h1:yKD6mLppjh7iwV2Yp5rweKbpb+zCAPExazS3lNp3n1s=
@@ -25,8 +23,12 @@ github.com/cloudflare/circl v1.6.1/go.mod h1:uddAzsPgqdMAYatqJ0lsjX1oECcQLIlRpzZ
 github.com/cpuguy83/go-md2man/v2 v2.0.6/go.mod h1:oOW0eioCTA6cOiMLiUPZOpcVxMig6NIQQ7OS05n1F4g=
 github.com/database64128/netx-go v0.1.0 h1:4Dgaq1QFBSJWQNH2ACj7SL2slJFlAAbEMJOk9YIGgMA=
 github.com/database64128/netx-go v0.1.0/go.mod h1:ywpvlFnZeN8/9s7tqGvoI+9zSryHBEKPf0FfSsj0H+Y=
+github.com/database64128/netx-go v0.1.1 h1:dT5LG7Gs7zFZBthFBbzWE6K8wAHjSNAaK7wCYZT7NzM=
+github.com/database64128/netx-go v0.1.1/go.mod h1:LNlYVipaYkQArRFDNNJ02VkNV+My9A5XR/IGS7sIBQc=
 github.com/database64128/tfo-go/v2 v2.3.1-0.20250811134617-c3fcb7f23ec9 h1:6gd4q8HWG/tGVQGjlEJEtw0ZZYwh25ouhASzfpKh8SQ=
 github.com/database64128/tfo-go/v2 v2.3.1-0.20250811134617-c3fcb7f23ec9/go.mod h1:SUN/pWI43Zk66YSdjrsYz5rdLkyb6mqgMJlx7RZ+Jcc=
+github.com/database64128/tfo-go/v2 v2.3.1 h1:EGE+ELd5/AQ0X6YBlQ9RgKs8+kciNhgN3d8lRvfEJQw=
+github.com/database64128/tfo-go/v2 v2.3.1/go.mod h1:k9wcpg/8i5zenspBkc9jUEYehpZZccBnCElzOJB++bU=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -170,6 +172,8 @@ github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sagernet/sing v0.7.6-0.20250824160943-cb68b269cd16 h1:JSW+fbz2VdDpO1nyf3+0x0LwSA/q45IHEBDGl/K8VHE=
 github.com/sagernet/sing v0.7.6-0.20250824160943-cb68b269cd16/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
+github.com/sagernet/sing v0.7.6-0.20250825115037-1dbcbdf691a5 h1:ozQMu9iZGuSNdNaoBTy2E9ukYsE0uY4p9U0jA0CqrsM=
+github.com/sagernet/sing v0.7.6-0.20250825115037-1dbcbdf691a5/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegEZaKMv9ipx8=
 github.com/sagernet/sing-shadowsocks v0.2.7/go.mod h1:0rIKJZBR65Qi0zwdKezt4s57y/Tl1ofkaq6NlkzVuyE=
 github.com/seiflotfy/cuckoofilter v0.0.0-20240715131351-a2f2c23f1771 h1:emzAzMZ1L9iaKCTxdy3Em8Wv4ChIAGnfiz18Cda70g4=
@@ -212,6 +216,8 @@ github.com/xtls/reality v0.0.0-20250725142056-5b52a03d4fb7 h1:Ript0vN+nSO33+Vj4n
 github.com/xtls/reality v0.0.0-20250725142056-5b52a03d4fb7/go.mod h1:XxvnCCgBee4WWE0bc4E+a7wbk8gkJ/rS0vNVNtC5qp0=
 github.com/xtls/xray-core v1.250803.1-0.20250821103638-33272a04994e h1:9pk1hdMlClxJoCciiYPhHU0KwFfNazzqfBE5KhZ8/fc=
 github.com/xtls/xray-core v1.250803.1-0.20250821103638-33272a04994e/go.mod h1:ge+AMZbONOtGLEWDYZIlmQlHcrEca+/Z51IUhJqnyOo=
+github.com/xtls/xray-core v1.250803.1-0.20250825123744-b65da7726769 h1:xP3In1aasxTF0aWRQl4zcEjG6DEclHGOBiaf/Ik1/oY=
+github.com/xtls/xray-core v1.250803.1-0.20250825123744-b65da7726769/go.mod h1:50czoW+iiuq6Qzao535A/xm5tNwYydw1hOwVcmay8aQ=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/yuin/gopher-lua v1.1.1 h1:kYKnWBjvbNP4XLT3+bPEwAXJx262OhaHDWDVOPjL46M=
