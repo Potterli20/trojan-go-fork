@@ -6,8 +6,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20250814151522-5f7458a01dea h1:LzFF
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20250814151522-5f7458a01dea/go.mod h1:Q+0IACcSXuIgbL9ZWsg9rX/lWJpLSzUSyl1EOx7v6Nc=
 github.com/Potterli20/golem v0.0.0-20250826005106-d33e737c642a h1:18e6n/WXlx80UcLlX45AW2MH2oQwngkptfYLddb2ilw=
 github.com/Potterli20/golem v0.0.0-20250826005106-d33e737c642a/go.mod h1:rDiSPH/6hMg9Sgzs3yXQbvKZgbeuXOaalUz2OetN788=
-github.com/Potterli20/socks5-fork v0.0.0-20250825212249-0036f49d7937 h1:ZakOQbU9uUX+oJFucRty3ZRgCr9Z6mPkSNiewTERya8=
-github.com/Potterli20/socks5-fork v0.0.0-20250825212249-0036f49d7937/go.mod h1:1Pe1QVv/KR91ORIwfvJeI9Lt+dvpybsdCpuW0Vp6JaM=
 github.com/Potterli20/socks5-fork v0.0.0-20250826034306-7f15e5e16332 h1:CyyUjGAzJSSH3BK/uH1OjJ5Ke06N8vniz4ECEId17ww=
 github.com/Potterli20/socks5-fork v0.0.0-20250826034306-7f15e5e16332/go.mod h1:g4lRCxUGK0S6Mol52TYqvuGfBY59kHj8MNol5BlOpx0=
 github.com/Potterli20/sqlite v0.0.0-20250820004508-7cdac5fd4e8c h1:yKD6mLppjh7iwV2Yp5rweKbpb+zCAPExazS3lNp3n1s=
@@ -170,6 +168,8 @@ github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sagernet/sing v0.7.6-0.20250825141840-811aa328e57b h1:RCfo1Q6VDAXfumNupRyqTomKzDODhASswkxVCqM8l2M=
 github.com/sagernet/sing v0.7.6-0.20250825141840-811aa328e57b/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
+github.com/sagernet/sing v0.7.6-0.20250826072854-1486bd975b78 h1:0QVkiQ/XMuwluoNIKQmlyWT2hdlywaZr2H+5FVAkpK8=
+github.com/sagernet/sing v0.7.6-0.20250826072854-1486bd975b78/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegEZaKMv9ipx8=
 github.com/sagernet/sing-shadowsocks v0.2.7/go.mod h1:0rIKJZBR65Qi0zwdKezt4s57y/Tl1ofkaq6NlkzVuyE=
 github.com/seiflotfy/cuckoofilter v0.0.0-20240715131351-a2f2c23f1771 h1:emzAzMZ1L9iaKCTxdy3Em8Wv4ChIAGnfiz18Cda70g4=
@@ -293,8 +293,6 @@ gopkg.in/yaml.v2 v2.4.0 h1:D8xgwECY7CYvx+Y2n4sBz93Jn9JRvxdiyyo8CTfuKaY=
 gopkg.in/yaml.v2 v2.4.0/go.mod h1:RDklbk79AGWmwhnvt/jBztapEOGDOx6ZbXqjP6csGnQ=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
-gorm.io/gorm v1.30.2-0.20250820045117-4e34a6d21b63 h1:B55hqmDAb94H2Dlbp6gTU3W7JaoUm+5KLPAtldgomU8=
-gorm.io/gorm v1.30.2-0.20250820045117-4e34a6d21b63/go.mod h1:8Z33v652h4//uMA76KjeDH8mJXPm1QNCYrMeatR0DOE=
 gorm.io/gorm v1.30.2-0.20250826062429-7ceb0d9e63ca h1:HjQyobN2pL22YhFrOE8H57Vi1Y6atjAh2VF+p4+1YTo=
 gorm.io/gorm v1.30.2-0.20250826062429-7ceb0d9e63ca/go.mod h1:8Z33v652h4//uMA76KjeDH8mJXPm1QNCYrMeatR0DOE=
 gvisor.dev/gvisor v0.0.0-20250428193742-2d800c3129d5 h1:sfK5nHuG7lRFZ2FdTT3RimOqWBg8IrVm+/Vko1FVOsk=
