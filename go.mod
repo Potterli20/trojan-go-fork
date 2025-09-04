@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250814151522-5f7458a01dea
-	github.com/Potterli20/socks5-fork v0.0.0-20250904033143-250fec4b30f0
+	github.com/Potterli20/socks5-fork v0.0.0-20250904152500-13423097bb10
 	github.com/Potterli20/sqlite v0.0.0-20250828091032-db9feb1a19a4
 	github.com/database64128/tfo-go/v2 v2.3.2-0.20250825161410-c8678a8d4cf6
 	github.com/go-sql-driver/mysql v1.9.3
@@ -15,7 +15,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.35
-	github.com/xtls/xray-core v1.250831.1-0.20250903232517-d20397c15d59
+	github.com/xtls/xray-core v1.250831.1-0.20250904151837-8e4f881e76c6
 	golang.org/x/net v0.43.0
 	golang.org/x/term v0.34.0
 	golang.org/x/time v0.12.0
@@ -23,7 +23,7 @@ require (
 	google.golang.org/grpc v1.75.0
 	google.golang.org/protobuf v1.36.8
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/gorm v1.30.2
+	gorm.io/gorm v1.30.3
 )
 
 require (
@@ -66,7 +66,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
-	github.com/prometheus/client_golang v1.23.0 // indirect
+	github.com/prometheus/client_golang v1.23.1 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.66.0 // indirect
 	github.com/prometheus/procfs v0.17.0 // indirect
