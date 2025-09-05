@@ -6,8 +6,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20250814151522-5f7458a01dea h1:LzFF
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20250814151522-5f7458a01dea/go.mod h1:Q+0IACcSXuIgbL9ZWsg9rX/lWJpLSzUSyl1EOx7v6Nc=
 github.com/Potterli20/golem v0.0.0-20250905004734-91482d0ee05b h1:4EBF6GoPUCqfvkfFtBp1b93n3DwNwXPY+v7gF2bE+3c=
 github.com/Potterli20/golem v0.0.0-20250905004734-91482d0ee05b/go.mod h1:1PIuBAz0Mx9xDqLiPrKAiaJlDzs5gXPbRA4EaQGMa9Q=
-github.com/Potterli20/socks5-fork v0.0.0-20250904212120-cf754c11a814 h1:KPhVX+4uIuz7E045wm3kgY+CvsxCdFV36x5xHqkHVcI=
-github.com/Potterli20/socks5-fork v0.0.0-20250904212120-cf754c11a814/go.mod h1:4/J9xYYZAPr9Jh+0iwBwcTTC+T9oqENXy0SyxXxUQos=
+github.com/Potterli20/golem v0.0.0-20250905121915-99a6c2205942 h1:yA50feeHOChglqmFB5AJ6jaNCQNygFh5gsbvrN+PPuQ=
+github.com/Potterli20/golem v0.0.0-20250905121915-99a6c2205942/go.mod h1:6SgJflMK33BIdKBjEdrOsjNMDYAkU4bQnF1SxKm4MEY=
 github.com/Potterli20/socks5-fork v0.0.0-20250905033322-42f0b1c8957b h1:I+u6ou/KAMWPqAAYuVVHB6TzN8YbBQWhrrI2chK3aGo=
 github.com/Potterli20/socks5-fork v0.0.0-20250905033322-42f0b1c8957b/go.mod h1:bcrJYVpVamjaTMjLOGQ5mPLhVOHeM5iK2tHt6qxGLJw=
 github.com/Potterli20/sqlite v0.0.0-20250828091032-db9feb1a19a4 h1:RcAbc5p4ou5EoVjSVMlei2UUGxJKec2NDVe2wfcBWPo=
@@ -87,6 +87,8 @@ github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aN
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc h1:GN2Lv3MGO7AS6PrRoT6yV5+wkrOpcszoIsO4+4ds248=
 github.com/grafana/regexp v0.0.0-20240518133315-a468a5bfb3bc/go.mod h1:+JKpmjMGhpgPL+rXZ5nsZieVzvarn86asRlBg4uNGnk=
+github.com/grafana/regexp v0.0.0-20250905093917-f7b3be9d1853 h1:cLN4IBkmkYZNnk7EAJ0BHIethd+J6LqxFNw5mSiI2bM=
+github.com/grafana/regexp v0.0.0-20250905093917-f7b3be9d1853/go.mod h1:+JKpmjMGhpgPL+rXZ5nsZieVzvarn86asRlBg4uNGnk=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY2I=
 github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
@@ -151,6 +153,8 @@ github.com/prometheus/client_model v0.6.2 h1:oBsgwpGs7iVziMvrGhE53c/GrLUsZdHnqNw
 github.com/prometheus/client_model v0.6.2/go.mod h1:y3m2F6Gdpfy6Ut/GBsUqTWZqCUvMVzSfMLjcu6wAwpE=
 github.com/prometheus/common v0.66.0 h1:K/rJPHrG3+AoQs50r2+0t7zMnMzek2Vbv31OFVsMeVY=
 github.com/prometheus/common v0.66.0/go.mod h1:Ux6NtV1B4LatamKE63tJBntoxD++xmtI/lK0VtEplN4=
+github.com/prometheus/common v0.66.1 h1:h5E0h5/Y8niHc5DlaLlWLArTQI7tMrsfQjHV+d9ZoGs=
+github.com/prometheus/common v0.66.1/go.mod h1:gcaUsgf3KfRSwHY4dIMXLPV0K/Wg1oZ8+SbZk/HH/dA=
 github.com/prometheus/procfs v0.17.0 h1:FuLQ+05u4ZI+SS/w9+BWEM2TXiHKsUQ9TADiRH7DuK0=
 github.com/prometheus/procfs v0.17.0/go.mod h1:oPQLaDAMRbA+u8H5Pbfq+dl3VDAvHxMUOVhe0wYB2zw=
 github.com/quic-go/qpack v0.5.1 h1:giqksBPnT/HDtZ6VhtFKgoLOWmlyo9Ei6u9PqzIMbhI=
@@ -172,6 +176,8 @@ github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sagernet/sing v0.7.7-0.20250903021737-7299d397aa6d h1:B/ZQ4pD5jHh7CjWmaZLabZ5uig+MClXaktBBNrVod8I=
 github.com/sagernet/sing v0.7.7-0.20250903021737-7299d397aa6d/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
+github.com/sagernet/sing v0.7.7 h1:o46FzVZS+wKbBMEkMEdEHoVZxyM9jvfRpKXc7pEgS/c=
+github.com/sagernet/sing v0.7.7/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegEZaKMv9ipx8=
 github.com/sagernet/sing-shadowsocks v0.2.7/go.mod h1:0rIKJZBR65Qi0zwdKezt4s57y/Tl1ofkaq6NlkzVuyE=
 github.com/seiflotfy/cuckoofilter v0.0.0-20240715131351-a2f2c23f1771 h1:emzAzMZ1L9iaKCTxdy3Em8Wv4ChIAGnfiz18Cda70g4=
@@ -214,6 +220,8 @@ github.com/xtls/reality v0.0.0-20250828044527-046fad5ab64f h1:o1Kryl9qEYYzNep9RI
 github.com/xtls/reality v0.0.0-20250828044527-046fad5ab64f/go.mod h1:XxvnCCgBee4WWE0bc4E+a7wbk8gkJ/rS0vNVNtC5qp0=
 github.com/xtls/xray-core v1.250831.1-0.20250904215121-53bd06a13692 h1:jRJJcrEzRQIehPVXAGGcurtDEpvPEWj0pLhkpRDCivg=
 github.com/xtls/xray-core v1.250831.1-0.20250904215121-53bd06a13692/go.mod h1:WB/73DmN9Vs7lxtx4Xc/D0Ub1VUu06hAh1mMh8JN2uM=
+github.com/xtls/xray-core v1.250905.0 h1:VNL3l/6fcwyeYXJTRbf+TYqPfJYkk0Wmmz7qoQNkxY8=
+github.com/xtls/xray-core v1.250905.0/go.mod h1:WB/73DmN9Vs7lxtx4Xc/D0Ub1VUu06hAh1mMh8JN2uM=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/yuin/gopher-lua v1.1.1 h1:kYKnWBjvbNP4XLT3+bPEwAXJx262OhaHDWDVOPjL46M=
@@ -242,6 +250,8 @@ go.uber.org/multierr v1.11.0 h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
 go.uber.org/multierr v1.11.0/go.mod h1:20+QtiLqy0Nd6FdQB9TLXag12DsQkrbs3htMFfDN80Y=
 go.uber.org/zap v1.27.0 h1:aJMhYGrd5QSmlpLMr2MftRKl7t8J8PTZPA732ud/XR8=
 go.uber.org/zap v1.27.0/go.mod h1:GB2qFLM7cTU87MWRP2mPIjqfIDnGu+VIO4V/SdhGo2E=
+go.yaml.in/yaml/v2 v2.4.2 h1:DzmwEr2rDGHl7lsFgAHxmNz/1NlQ7xLIrlN2h5d1eGI=
+go.yaml.in/yaml/v2 v2.4.2/go.mod h1:081UH+NErpNdqlCXm3TtEran0rJZGxAYx9hb/ELlsPU=
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba h1:0b9z3AuHCjxk0x/opv64kcgZLBseWJUpBw5I82+2U4M=
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba/go.mod h1:PLyyIXexvUFg3Owu6p/WfdlivPbZJsZdgWZlrGope/Y=
 golang.org/x/crypto v0.41.0 h1:WKYxWedPGCTVVl5+WHSSrOBT0O8lx32+zxmHxijgXp4=
