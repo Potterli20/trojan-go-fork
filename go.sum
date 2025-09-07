@@ -166,8 +166,6 @@ github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstv
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
-github.com/sagernet/sing v0.7.8-0.20250906004629-421beb6473ea h1:CDRl4q5Y2dM6MQE1MwukhrxbObfK/rj0QtK7vnJhST0=
-github.com/sagernet/sing v0.7.8-0.20250906004629-421beb6473ea/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing v0.7.8-0.20250906150757-e84b7ae4bf6e h1:+9mhL7+EujzsuGNuIXEGdbKIDfznLw/F59UCiwSJ94Y=
 github.com/sagernet/sing v0.7.8-0.20250906150757-e84b7ae4bf6e/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegEZaKMv9ipx8=
