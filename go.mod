@@ -5,17 +5,17 @@ go 1.25.0
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250907122124-2ecaac3db7d7
-	github.com/Potterli20/socks5-fork v0.0.0-20250906033002-a013a86ed6f3
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250907151034-820222703868
+	github.com/Potterli20/socks5-fork v0.0.0-20250907152019-9870f36bbf05
 	github.com/Potterli20/sqlite v0.0.0-20250828091032-db9feb1a19a4
-	github.com/database64128/tfo-go/v2 v2.3.2-0.20250906200853-d8daa3c734e5
+	github.com/database64128/tfo-go/v2 v2.3.2-0.20250907141339-aeb863daa843
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.8.1-0.20250726151951-a5511b382b81
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.35
-	github.com/xtls/xray-core v1.250905.1-0.20250907103821-4740ba242514
+	github.com/xtls/xray-core v1.250905.1-0.20250907141221-ab1fa13ebebd
 	golang.org/x/net v0.43.0
 	golang.org/x/term v0.34.0
 	golang.org/x/time v0.13.0
@@ -71,7 +71,7 @@ require (
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
-	github.com/sagernet/sing v0.7.8-0.20250906150757-e84b7ae4bf6e // indirect
+	github.com/sagernet/sing v0.7.8-0.20250907125815-3d24f9b5ff7c // indirect
 	github.com/shirou/gopsutil/v4 v4.25.8 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
