@@ -6,6 +6,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20250908211112-20b6c55c65cd h1:xhVo
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20250908211112-20b6c55c65cd/go.mod h1:bn6wNjXUC/4b91M1f72Y0rBdUIH6gruL59y5QAoqjLI=
 github.com/Potterli20/golem v0.0.0-20250913121728-3a4337aa60da h1:LGseUY1p8+dIpjaUTNDuC3WsTxgCPuqdUFlqB4UStAU=
 github.com/Potterli20/golem v0.0.0-20250913121728-3a4337aa60da/go.mod h1:zgGerwhHbd7r6c1nfyHTQbF2b+/0moWnK8euA+0dQOU=
+github.com/Potterli20/golem v0.0.0-20250915181510-f9f89d9c9c72 h1:h1MvIiT/NlyUun3VrjB1rBJEDtU745v6TCxIqpbMsB4=
+github.com/Potterli20/golem v0.0.0-20250915181510-f9f89d9c9c72/go.mod h1:CHlU2N/3MfcpeDHGc9OgVKnRQr+cUE2mBrjIzAt6Tcg=
 github.com/Potterli20/socks5-fork v0.0.0-20250913151921-bce4f9dd05c4 h1:VJFBDcRZzVNmru6d3UJHBo1jBQAe9FnapZLJlAnQZ9w=
 github.com/Potterli20/socks5-fork v0.0.0-20250913151921-bce4f9dd05c4/go.mod h1:xXGgqQYHnQa2qARqZ6UT+6ZkLeQ1lgWAR/le7CEMcJk=
 github.com/Potterli20/sqlite v0.0.0-20250828091032-db9feb1a19a4 h1:RcAbc5p4ou5EoVjSVMlei2UUGxJKec2NDVe2wfcBWPo=
@@ -210,6 +212,8 @@ github.com/xtls/reality v0.0.0-20250904214705-431b6ff8c67c h1:LHLhQY3mKXSpTcQAkj
 github.com/xtls/reality v0.0.0-20250904214705-431b6ff8c67c/go.mod h1:XxvnCCgBee4WWE0bc4E+a7wbk8gkJ/rS0vNVNtC5qp0=
 github.com/xtls/xray-core v1.250911.1-0.20250911134820-83c5370eec69 h1:+exzW7FnJb9M55SMpSqgKBNnFEXFopAsBB19uWAhtiw=
 github.com/xtls/xray-core v1.250911.1-0.20250911134820-83c5370eec69/go.mod h1:pOFdaOfxViLRo2izXjXYn10akJZpbemMWm8yh0jQEgc=
+github.com/xtls/xray-core v1.250911.1-0.20250915133127-fe57507fd987 h1:FN2MJOFtKhmYjU1VSLGaDaiFAEY3ZkCJTo4WOKx/z50=
+github.com/xtls/xray-core v1.250911.1-0.20250915133127-fe57507fd987/go.mod h1:pOFdaOfxViLRo2izXjXYn10akJZpbemMWm8yh0jQEgc=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/yuin/gopher-lua v1.1.1 h1:kYKnWBjvbNP4XLT3+bPEwAXJx262OhaHDWDVOPjL46M=
@@ -220,6 +224,7 @@ github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 h1:SpG238mmC
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055/go.mod h1:CiDImH0b0JKWrAXdXqw9cBrz31oDVUBWdthDYs7dpkI=
 go.opentelemetry.io/auto/sdk v1.2.0 h1:YpRtUFjvhSymycLS2T81lT6IGhcUP+LUPtv0iv1N8bM=
 go.opentelemetry.io/auto/sdk v1.2.0/go.mod h1:1deq2zL7rwjwC8mR7XgY2N+tlIl6pjmEUoLDENMEzwk=
+go.opentelemetry.io/auto/sdk v1.2.1 h1:jXsnJ4Lmnqd11kwkBV2LgLoFMZKizbCi5fNZ/ipaZ64=
 go.opentelemetry.io/otel v1.38.0 h1:RkfdswUDRimDg0m2Az18RKOsnI8UDzppJAtj01/Ymk8=
 go.opentelemetry.io/otel v1.38.0/go.mod h1:zcmtmQ1+YmQM9wrNsTGV/q/uyusom3P8RxwExxkZhjM=
 go.opentelemetry.io/otel/metric v1.38.0 h1:Kl6lzIYGAh5M159u9NgiRkmoMKjvbsKtYRwgfrA6WpA=
@@ -319,8 +324,6 @@ modernc.org/opt v0.1.4 h1:2kNGMRiUjrp4LcaPuLY2PzUfqM/w9N23quVwhKt5Qm8=
 modernc.org/opt v0.1.4/go.mod h1:03fq9lsNfvkYSfxrfUhZCWPk1lm4cq4N+Bh//bEtgns=
 modernc.org/sortutil v1.2.1 h1:+xyoGf15mM3NMlPDnFqrteY07klSFxLElE2PVuWIJ7w=
 modernc.org/sortutil v1.2.1/go.mod h1:7ZI3a3REbai7gzCLcotuw9AC4VZVpYMjDzETGsSMqJE=
-modernc.org/sqlite v1.38.2 h1:Aclu7+tgjgcQVShZqim41Bbw9Cho0y/7WzYptXqkEek=
-modernc.org/sqlite v1.38.2/go.mod h1:cPTJYSlgg3Sfg046yBShXENNtPrWrDX8bsbAQBzgQ5E=
 modernc.org/sqlite v1.39.0 h1:6bwu9Ooim0yVYA7IZn9demiQk/Ejp0BtTjBWFLymSeY=
 modernc.org/sqlite v1.39.0/go.mod h1:cPTJYSlgg3Sfg046yBShXENNtPrWrDX8bsbAQBzgQ5E=
 modernc.org/strutil v1.2.1 h1:UneZBkQA+DX2Rp35KcM69cSsNES9ly8mQWD71HKlOA0=
