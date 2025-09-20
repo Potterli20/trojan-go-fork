@@ -6,10 +6,10 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20250908211112-20b6c55c65cd h1:xhVo
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20250908211112-20b6c55c65cd/go.mod h1:bn6wNjXUC/4b91M1f72Y0rBdUIH6gruL59y5QAoqjLI=
 github.com/Potterli20/golem v0.0.0-20250920061401-1e5500dbdd6b h1:l7tXs6IAjaL2H09+HHBiAFJmpJ0MHdydTWRsOm8leGI=
 github.com/Potterli20/golem v0.0.0-20250920061401-1e5500dbdd6b/go.mod h1:C29Q+jQpGEwhvprbfypUpKAMVoPphY+tlawK40HCwT8=
-github.com/Potterli20/socks5-fork v0.0.0-20250920033039-07fe93fb41f6 h1:zYy0ZV0aZwabBEXuHwXJ/NAeKLJKgTTUjLTfeCeLz/M=
-github.com/Potterli20/socks5-fork v0.0.0-20250920033039-07fe93fb41f6/go.mod h1:xREf4HByWsYrFQPBovRm7C8+uJUl1om9qYjq6lWCTRM=
 github.com/Potterli20/socks5-fork v0.0.0-20250920092204-58132e5c9907 h1:5KNgiH9hLljzuy716LSlI1iWSY5WTFGDNB/F48Cp+CU=
 github.com/Potterli20/socks5-fork v0.0.0-20250920092204-58132e5c9907/go.mod h1:wUz8E9RFAJfvCpo2uGZ/411NXLThJMQl5CklfTv70zw=
+github.com/Potterli20/socks5-fork v0.0.0-20250920152102-cadb5bf0ad2f h1:fZc4JDdFUgHyxJVTGUKvMrFueDWNIFheauAQ7lFD9eM=
+github.com/Potterli20/socks5-fork v0.0.0-20250920152102-cadb5bf0ad2f/go.mod h1:iojOvgtmsMeEpab0X+BU+L23rUg/MOs+ipUs8CfYkBk=
 github.com/Potterli20/sqlite v0.0.0-20250828091032-db9feb1a19a4 h1:RcAbc5p4ou5EoVjSVMlei2UUGxJKec2NDVe2wfcBWPo=
 github.com/Potterli20/sqlite v0.0.0-20250828091032-db9feb1a19a4/go.mod h1:RZimDqNRT+i2m9LEJeoHtuMQRCPf6o7O+y1ucAxTJFY=
 github.com/alicebob/miniredis/v2 v2.35.0 h1:QwLphYqCEAo1eu1TqPRN2jgVMPBweeQcR21jeqDCONI=
@@ -42,6 +42,8 @@ github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkp
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/ebitengine/purego v0.8.4 h1:CF7LEKg5FFOsASUj0+QwaXf8Ht6TlFxg09+S9wz0omw=
 github.com/ebitengine/purego v0.8.4/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
+github.com/ebitengine/purego v0.9.0 h1:mh0zpKBIXDceC63hpvPuGLiJ8ZAa3DfrFTudmfi8A4k=
+github.com/ebitengine/purego v0.9.0/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
 github.com/evanw/esbuild v0.25.4 h1:k1bTSim+usBG27w7BfOCorhgx3tO+6bAfMj5pR+6SKg=
 github.com/evanw/esbuild v0.25.4/go.mod h1:D2vIQZqV/vIf/VRHtViaUtViZmG7o+kKmlBfVQuRi48=
 github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S9k=
@@ -114,9 +116,8 @@ github.com/lufia/plan9stats v0.0.0-20250827001030-24949be3fa54 h1:mFWunSatvkQQDh
 github.com/lufia/plan9stats v0.0.0-20250827001030-24949be3fa54/go.mod h1:autxFIvghDt3jPTLoqZ9OZ7s9qTGNAWmYCjVFWPX/zg=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/miekg/dns v1.1.69-0.20250901082624-d495d3329772 h1:IyEwPSM6PU1ufN/nQ2eyVfjXYLkTPPBjCwRZU1W3hx0=
-github.com/miekg/dns v1.1.69-0.20250901082624-d495d3329772/go.mod h1:fnam+ZplEAuM/wLdG9Cq30qqQ2hLvFg4j94DhKZAp/8=
 github.com/miekg/dns v1.1.69-0.20250920065150-294d37389ccc h1:hBFUTIJViiANS9sSTdXza7R8RgpksG6Hx6xkjBcuSkA=
+github.com/miekg/dns v1.1.69-0.20250920065150-294d37389ccc/go.mod h1:fnam+ZplEAuM/wLdG9Cq30qqQ2hLvFg4j94DhKZAp/8=
 github.com/msvitok77/goembed v0.3.5 h1:SNdkLLipv4YGNVWCVCn+/N01aSp7Ga6/YOcB+kYxnhk=
 github.com/msvitok77/goembed v0.3.5/go.mod h1:ycBNmh+53HrsZPQfWOJHYXbu7vLwb1QYdJISOyKlnnc=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=

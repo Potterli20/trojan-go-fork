@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250908211112-20b6c55c65cd
-	github.com/Potterli20/socks5-fork v0.0.0-20250920092204-58132e5c9907
+	github.com/Potterli20/socks5-fork v0.0.0-20250920152102-cadb5bf0ad2f
 	github.com/Potterli20/sqlite v0.0.0-20250828091032-db9feb1a19a4
 	github.com/database64128/tfo-go/v2 v2.3.2-0.20250907141339-aeb863daa843
 	github.com/go-sql-driver/mysql v1.9.3
@@ -38,7 +38,7 @@ require (
 	github.com/dgraph-io/ristretto v0.2.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/ebitengine/purego v0.8.4 // indirect
+	github.com/ebitengine/purego v0.9.0 // indirect
 	github.com/evanw/esbuild v0.25.4 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-chi/chi/v5 v5.2.3 // indirect
