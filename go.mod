@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20250908211112-20b6c55c65cd
-	github.com/Potterli20/socks5-fork v0.0.0-20251007033311-7c1ce074b48e
+	github.com/Potterli20/socks5-fork v0.0.0-20251007152702-75557ac9c341
 	github.com/Potterli20/sqlite v0.0.0-20250828091032-db9feb1a19a4
 	github.com/database64128/tfo-go/v2 v2.3.2-0.20250907141339-aeb863daa843
 	github.com/go-sql-driver/mysql v1.9.3
@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.35
 	github.com/xtls/xray-core v1.250911.1-0.20251006001553-195248801d71
-	golang.org/x/net v0.44.0
+	golang.org/x/net v0.45.0
 	golang.org/x/term v0.35.0
 	golang.org/x/time v0.13.0
 	google.golang.org/genproto v0.0.0-20251006185510-65f7160b3a87
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.7 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20251007004659-fe71af284b08 // indirect
+	github.com/Potterli20/golem v0.0.0-20251007181549-1fadde6644e5 // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250821183917-b70ce549fa67 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -67,7 +67,7 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
 	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
-	github.com/prometheus/common v0.66.1 // indirect
+	github.com/prometheus/common v0.67.1 // indirect
 	github.com/prometheus/procfs v0.17.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
@@ -77,7 +77,7 @@ require (
 	github.com/smarty/assertions v1.15.1 // indirect
 	github.com/spf13/cobra v1.10.1 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	github.com/stretchr/objx v0.5.2 // indirect
+	github.com/stretchr/objx v0.5.3 // indirect
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae // indirect
