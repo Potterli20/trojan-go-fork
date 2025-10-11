@@ -6,10 +6,12 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20251008211112-1d80b5cd5262 h1:bxn3
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20251008211112-1d80b5cd5262/go.mod h1:9rX4NuPCOkCnio30Fh5om7dKzPfzbtVTiN1wa2yfSCU=
 github.com/Potterli20/golem v0.0.0-20251011004444-76e47a499042 h1:jctyqqBk4NBJnbOpuuWM49MyjPtQ1OVKdhxSo9A3eew=
 github.com/Potterli20/golem v0.0.0-20251011004444-76e47a499042/go.mod h1:QotYfwerQ+gL8FWh1f7qnzReUFpA4EeDtGwjAQYg5EE=
-github.com/Potterli20/socks5-fork v0.0.0-20251010212007-b53cae2ed4c1 h1:eqFULaNdkXvsyCE48yrQGH65M2aNtnwSll8GFq5DtkQ=
-github.com/Potterli20/socks5-fork v0.0.0-20251010212007-b53cae2ed4c1/go.mod h1:UwlTAV4pU/tdP926faOYojHqSg2qdROgqSX9oIa/Xbs=
+github.com/Potterli20/golem v0.0.0-20251011061423-f478a7a47b07 h1:eScslIoWiBcpS0rBQR6bGAuwXtPGSeIpxIEojsEPc/U=
+github.com/Potterli20/golem v0.0.0-20251011061423-f478a7a47b07/go.mod h1:QotYfwerQ+gL8FWh1f7qnzReUFpA4EeDtGwjAQYg5EE=
 github.com/Potterli20/socks5-fork v0.0.0-20251011032947-574565805c98 h1:MznlL3ZXMzbxgwg+UVDiPh0xJKjeVCjBFVM+Kg9LOU4=
 github.com/Potterli20/socks5-fork v0.0.0-20251011032947-574565805c98/go.mod h1:Ka3y2iyYJ3/8YJ2KhI4jmiDj4vIW8ZMP8V0WZPprX6A=
+github.com/Potterli20/socks5-fork v0.0.0-20251011092126-951948e9d52a h1:0DQqZPqX96XqYiMXFjQXPFWYlgr9QmqKBz5dFYKHOkY=
+github.com/Potterli20/socks5-fork v0.0.0-20251011092126-951948e9d52a/go.mod h1:0ptufTK2Hbfu+0U643nSULjfBXJJsiDqULFedLrcjHo=
 github.com/Potterli20/sqlite v0.0.0-20250828091032-db9feb1a19a4 h1:RcAbc5p4ou5EoVjSVMlei2UUGxJKec2NDVe2wfcBWPo=
 github.com/Potterli20/sqlite v0.0.0-20250828091032-db9feb1a19a4/go.mod h1:RZimDqNRT+i2m9LEJeoHtuMQRCPf6o7O+y1ucAxTJFY=
 github.com/alicebob/miniredis/v2 v2.35.0 h1:QwLphYqCEAo1eu1TqPRN2jgVMPBweeQcR21jeqDCONI=
