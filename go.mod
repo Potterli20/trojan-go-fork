@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20251008211112-1d80b5cd5262
-	github.com/Potterli20/socks5-fork v0.0.0-20251010125017-27fa258c67c5
+	github.com/Potterli20/socks5-fork v0.0.0-20251010212007-b53cae2ed4c1
 	github.com/Potterli20/sqlite v0.0.0-20250828091032-db9feb1a19a4
 	github.com/database64128/tfo-go/v2 v2.3.2-0.20251008143924-47236d81fa59
 	github.com/go-sql-driver/mysql v1.9.3
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.7 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20251009061644-a9b3b68353c3 // indirect
+	github.com/Potterli20/golem v0.0.0-20251011004444-76e47a499042 // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250821183917-b70ce549fa67 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -44,7 +44,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.3 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/go-redsync/redsync/v4 v4.13.0 // indirect
+	github.com/go-redsync/redsync/v4 v4.14.0 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/gopherjs/gopherjs v1.19.0-beta2.0.20251008200541-113c92b42b18 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect

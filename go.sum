@@ -6,10 +6,12 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20251008211112-1d80b5cd5262 h1:bxn3
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20251008211112-1d80b5cd5262/go.mod h1:9rX4NuPCOkCnio30Fh5om7dKzPfzbtVTiN1wa2yfSCU=
 github.com/Potterli20/golem v0.0.0-20251009061644-a9b3b68353c3 h1:+6BXT7DYllXJHGU9gFM0bpe6+SCA13lWK6MqCAn07h0=
 github.com/Potterli20/golem v0.0.0-20251009061644-a9b3b68353c3/go.mod h1:5kCJ0nd6E8ycnQ/YCPhhkZK2Apu+IHojgbDZtFbiB2Q=
-github.com/Potterli20/socks5-fork v0.0.0-20251010092623-4cfdf4ee5105 h1:95HjkB2CakZnPNgo+FU1qG/nqfWW4Yho+EIVvp+DZhs=
-github.com/Potterli20/socks5-fork v0.0.0-20251010092623-4cfdf4ee5105/go.mod h1:qketzQySE1WKrp91nE2Vx7Y52mEHeCJUaOqKtd5JHPE=
+github.com/Potterli20/golem v0.0.0-20251011004444-76e47a499042 h1:jctyqqBk4NBJnbOpuuWM49MyjPtQ1OVKdhxSo9A3eew=
+github.com/Potterli20/golem v0.0.0-20251011004444-76e47a499042/go.mod h1:QotYfwerQ+gL8FWh1f7qnzReUFpA4EeDtGwjAQYg5EE=
 github.com/Potterli20/socks5-fork v0.0.0-20251010125017-27fa258c67c5 h1:SWRhGhg7oMKgoZ/IP3N3jODV1pWuHd3KKY+QncqirDk=
 github.com/Potterli20/socks5-fork v0.0.0-20251010125017-27fa258c67c5/go.mod h1:qketzQySE1WKrp91nE2Vx7Y52mEHeCJUaOqKtd5JHPE=
+github.com/Potterli20/socks5-fork v0.0.0-20251010212007-b53cae2ed4c1 h1:eqFULaNdkXvsyCE48yrQGH65M2aNtnwSll8GFq5DtkQ=
+github.com/Potterli20/socks5-fork v0.0.0-20251010212007-b53cae2ed4c1/go.mod h1:UwlTAV4pU/tdP926faOYojHqSg2qdROgqSX9oIa/Xbs=
 github.com/Potterli20/sqlite v0.0.0-20250828091032-db9feb1a19a4 h1:RcAbc5p4ou5EoVjSVMlei2UUGxJKec2NDVe2wfcBWPo=
 github.com/Potterli20/sqlite v0.0.0-20250828091032-db9feb1a19a4/go.mod h1:RZimDqNRT+i2m9LEJeoHtuMQRCPf6o7O+y1ucAxTJFY=
 github.com/alicebob/miniredis/v2 v2.35.0 h1:QwLphYqCEAo1eu1TqPRN2jgVMPBweeQcR21jeqDCONI=
@@ -65,6 +67,8 @@ github.com/go-redis/redis/v8 v8.11.5 h1:AcZZR7igkdvfVmQTPnu9WE37LRrO/YrBH5zWyjDC
 github.com/go-redis/redis/v8 v8.11.5/go.mod h1:gREzHqY1hg6oD9ngVRbLStwAWKhA0FEgq8Jd4h5lpwo=
 github.com/go-redsync/redsync/v4 v4.13.0 h1:49X6GJfnbLGaIpBBREM/zA4uIMDXKAh1NDkvQ1EkZKA=
 github.com/go-redsync/redsync/v4 v4.13.0/go.mod h1:HMW4Q224GZQz6x1Xc7040Yfgacukdzu7ifTDAKiyErQ=
+github.com/go-redsync/redsync/v4 v4.14.0 h1:zyxzFJsmQHIPBl8iBT7KFKohWsjsghgGLiP8TnFMLNc=
+github.com/go-redsync/redsync/v4 v4.14.0/go.mod h1:twMlVd19upZ/juvJyJGlQOSQxor1oeHtjs62l4pRFzo=
 github.com/go-sql-driver/mysql v1.9.3 h1:U/N249h2WzJ3Ukj8SowVFjdtZKfu9vlLZxjPXV1aweo=
 github.com/go-sql-driver/mysql v1.9.3/go.mod h1:qn46aNg1333BRMNU69Lq93t8du/dwxI64Gl8i5p1WMU=
 github.com/golang/mock v1.7.0-rc.1 h1:YojYx61/OLFsiv6Rw1Z96LpldJIy31o+UHmwAUMJ6/U=
@@ -73,6 +77,7 @@ github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek
 github.com/golang/protobuf v1.5.4/go.mod h1:lnTiLA8Wa4RWRcIUkrtSVa5nRhsEGBg48fD6rSs7xps=
 github.com/gomodule/redigo v1.8.9 h1:Sl3u+2BI/kk+VEatbj0scLdrFhjPmbxOc1myhDP41ws=
 github.com/gomodule/redigo v1.8.9/go.mod h1:7ArFNvsTjH8GMMzB4uy1snslv2BwmginuMs06a1uzZE=
+github.com/gomodule/redigo v1.9.2 h1:HrutZBLhSIU8abiSfW8pj8mPhOyMYjZT/wcA4/L9L9s=
 github.com/google/btree v1.1.3 h1:CVpQJjYgC4VbzxeGVHfvZrv1ctoYCAI8vbl07Fcxlyg=
 github.com/google/btree v1.1.3/go.mod h1:qOPhT0dTNdNzV6Z/lhRX0YXUafgPLFUh+gZMl761Gm4=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
@@ -157,8 +162,10 @@ github.com/quic-go/quic-go v0.55.0 h1:zccPQIqYCXDt5NmcEabyYvOnomjs8Tlwl7tISjJh9M
 github.com/quic-go/quic-go v0.55.0/go.mod h1:DR51ilwU1uE164KuWXhinFcKWGlEjzys2l8zUl5Ss1U=
 github.com/redis/go-redis/v9 v9.5.1 h1:H1X4D3yHPaYrkL5X06Wh6xNVM/pX0Ft4RV0vMGvLBh8=
 github.com/redis/go-redis/v9 v9.5.1/go.mod h1:hdY0cQFCN4fnSYT6TkisLufl/4W5UIXyv0b/CLO2V2M=
+github.com/redis/go-redis/v9 v9.14.0 h1:u4tNCjXOyzfgeLN+vAZaW1xUooqWDqVEsZN0U01jfAE=
 github.com/redis/rueidis v1.0.19 h1:s65oWtotzlIFN8eMPhyYwxlwLR1lUdhza2KtWprKYSo=
 github.com/redis/rueidis v1.0.19/go.mod h1:8B+r5wdnjwK3lTFml5VtxjzGOQAC+5UmujoD12pDrEo=
+github.com/redis/rueidis v1.0.64 h1:XqgbueDuNV3qFdVdQwAHJl1uNt90zUuAJuzqjH4cw6Y=
 github.com/refraction-networking/utls v1.8.1-0.20250726151951-a5511b382b81 h1:uD+Kn86P2HsT600Ytqax69wCoW9+sarHaukaRmGR/Vs=
 github.com/refraction-networking/utls v1.8.1-0.20250726151951-a5511b382b81/go.mod h1:jkSOEkLqn+S/jtpEHPOsVv/4V4EVnelwbMQl4vCWXAM=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
