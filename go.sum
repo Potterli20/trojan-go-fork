@@ -6,6 +6,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20251008211112-1d80b5cd5262 h1:bxn3
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20251008211112-1d80b5cd5262/go.mod h1:9rX4NuPCOkCnio30Fh5om7dKzPfzbtVTiN1wa2yfSCU=
 github.com/Potterli20/golem v0.0.0-20251017004911-c628cef0f2f7 h1:H502hPInV2tz28mYX3UcLXMhiaMahZ0lvt2sJ+S12tg=
 github.com/Potterli20/golem v0.0.0-20251017004911-c628cef0f2f7/go.mod h1:QAJokqR6ZgMCrO93apcZ0OPfcuAdjmscvbzqtkNifvI=
+github.com/Potterli20/golem v0.0.0-20251020122120-d2d5108f9dfb h1:27FzFCxAZmg+rSzHPelvO35NfRB6VDrSWbeXSEMPPVg=
+github.com/Potterli20/golem v0.0.0-20251020122120-d2d5108f9dfb/go.mod h1:KU7lLwjZWuY9vy9r5bVOzw11+e3jjxBHtYD8zguGwRU=
 github.com/Potterli20/socks5-fork v0.0.0-20251017033611-74e651d6549b h1:qxRI0Y/QWMQW29r32b/ohUYHtON6y1pOy8j72A/AE/Y=
 github.com/Potterli20/socks5-fork v0.0.0-20251017033611-74e651d6549b/go.mod h1:cfz0+yjnLp2A6iYLCRez+SrDI3cKONT2Olx31iUKw8w=
 github.com/Potterli20/sqlite v0.0.0-20251018032105-195b682bb207 h1:ItXyKnFTVpEKajg38nZHQp/dPpUsiiIgvw53RaxFU1E=
@@ -100,6 +102,8 @@ github.com/juju/ratelimit v1.0.2 h1:sRxmtRiajbvrcLQT7S+JbqU0ntsb9W2yhSdNN8tWfaI=
 github.com/juju/ratelimit v1.0.2/go.mod h1:qapgC/Gy+xNh9UxzV13HGGl/6UXNN+ct+vwSgWNm/qk=
 github.com/klauspost/compress v1.18.0 h1:c/Cqfb0r+Yi+JtIEq73FWXVkRonBlf0CRNYc8Zttxdo=
 github.com/klauspost/compress v1.18.0/go.mod h1:2Pp+KzxcywXVXMr50+X0Q/Lsb43OQHYWRCY2AiWywWQ=
+github.com/klauspost/compress v1.18.1 h1:bcSGx7UbpBqMChDtsF28Lw6v/G94LPrrbMbdC3JH2co=
+github.com/klauspost/compress v1.18.1/go.mod h1:ZQFFVG+MdnR0P+l6wpXgIL4NTtwiKIdBnrBd8Nrxr+0=
 github.com/klauspost/cpuid/v2 v2.0.12 h1:p9dKCg8i4gmOxtv35DvrYoWqYzQrvEVdjQ762Y0OqZE=
 github.com/klauspost/cpuid/v2 v2.0.12/go.mod h1:g2LTdtYhdyuGPqyWyv7qRAmj1WBqxuObKfj5c0PQa7c=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=

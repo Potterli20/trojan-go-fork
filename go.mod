@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.7 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20251017004911-c628cef0f2f7 // indirect
+	github.com/Potterli20/golem v0.0.0-20251020122120-d2d5108f9dfb // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250916002408-014fb9c9e8f7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -53,7 +53,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
-	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/klauspost/compress v1.18.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20251013123823-9fd1530e3ec3 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/msvitok77/goembed v0.3.5 // indirect
