@@ -6,8 +6,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20251008211112-1d80b5cd5262 h1:bxn3
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20251008211112-1d80b5cd5262/go.mod h1:9rX4NuPCOkCnio30Fh5om7dKzPfzbtVTiN1wa2yfSCU=
 github.com/Potterli20/golem v0.0.0-20251022005209-a274b77ffc3f h1:jw3T83wO92W39f6b/hP40Vv9mawn5FOLFu1ZPXr66u0=
 github.com/Potterli20/golem v0.0.0-20251022005209-a274b77ffc3f/go.mod h1:rCiCYVCcOutwmtI7gDcsyYXX5LIXPNBcHnJ3aGVSYt4=
-github.com/Potterli20/socks5-fork v0.0.0-20251021212234-7e1b6bda58f0 h1:vgyq+bDZfVgoxJhgzpqoVHfu/r8jxohQHVvoAQn/0Ps=
-github.com/Potterli20/socks5-fork v0.0.0-20251021212234-7e1b6bda58f0/go.mod h1:rPJa1Xu2Ad4ApMlo/N1dYJAsCnkTru0H1h+IcdyPwng=
 github.com/Potterli20/socks5-fork v0.0.0-20251022034603-b38a5847f593 h1:rc/boI0cOJJQOj6hIC14AgiKXbdRr3wLx/64Hl44fMo=
 github.com/Potterli20/socks5-fork v0.0.0-20251022034603-b38a5847f593/go.mod h1:O25BDE0ic45OxdJyL73M8RXG8AhIqtckRtMCGFBcnTY=
 github.com/Potterli20/sqlite v0.0.0-20251018032105-195b682bb207 h1:ItXyKnFTVpEKajg38nZHQp/dPpUsiiIgvw53RaxFU1E=
@@ -151,6 +149,8 @@ github.com/prometheus/common v0.67.1 h1:OTSON1P4DNxzTg4hmKCc37o4ZAZDv0cfXLkOt0oE
 github.com/prometheus/common v0.67.1/go.mod h1:RpmT9v35q2Y+lsieQsdOh5sXZ6ajUGC8NjZAmr8vb0Q=
 github.com/prometheus/procfs v0.17.0 h1:FuLQ+05u4ZI+SS/w9+BWEM2TXiHKsUQ9TADiRH7DuK0=
 github.com/prometheus/procfs v0.17.0/go.mod h1:oPQLaDAMRbA+u8H5Pbfq+dl3VDAvHxMUOVhe0wYB2zw=
+github.com/prometheus/procfs v0.18.0 h1:2QTA9cKdznfYJz7EDaa7IiJobHuV7E1WzeBwcrhk0ao=
+github.com/prometheus/procfs v0.18.0/go.mod h1:M0aotyiemPhBCM0z5w87kL22CxfcH05ZpYlu+b4J7mw=
 github.com/quic-go/qpack v0.5.1 h1:giqksBPnT/HDtZ6VhtFKgoLOWmlyo9Ei6u9PqzIMbhI=
 github.com/quic-go/qpack v0.5.1/go.mod h1:+PC4XFrEskIVkcLzpEkbLqq1uCoxPhQuvK5rH1ZgaEg=
 github.com/quic-go/quic-go v0.55.0 h1:zccPQIqYCXDt5NmcEabyYvOnomjs8Tlwl7tISjJh9Mk=
