@@ -23,13 +23,13 @@ require (
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/gorm v1.31.1-0.20250919014906-b88148363a95
+	gorm.io/gorm v1.31.1-0.20251026123109-141388f28b58
 )
 
 require (
 	cloud.google.com/go/oslogin v1.14.7 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20251026005352-9837af3651f9 // indirect
+	github.com/Potterli20/golem v0.0.0-20251026121837-7215d24570ad // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250916002408-014fb9c9e8f7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -68,7 +68,7 @@ require (
 	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.67.1 // indirect
-	github.com/prometheus/procfs v0.19.0 // indirect
+	github.com/prometheus/procfs v0.19.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/sagernet/sing v0.8.0-beta.5 // indirect
