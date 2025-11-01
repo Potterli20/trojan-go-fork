@@ -6,8 +6,12 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20251008211112-1d80b5cd5262 h1:bxn3
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20251008211112-1d80b5cd5262/go.mod h1:9rX4NuPCOkCnio30Fh5om7dKzPfzbtVTiN1wa2yfSCU=
 github.com/Potterli20/golem v0.0.0-20251031005108-e733cface6c7 h1:94Kd5MonlmsG01UBl1MG2Jq1VBPm+EDsyhiraQCtTvU=
 github.com/Potterli20/golem v0.0.0-20251031005108-e733cface6c7/go.mod h1:8Ahos7xiW6zgRK6kGJYM9uvVG5SgAEAB3vxwR9NyZFk=
+github.com/Potterli20/golem v0.0.0-20251101061439-213237818009 h1:bD/TfpHkOfH6Qodo4Ny/BHrmfHdDF9MyWOQCMS6Mxcc=
+github.com/Potterli20/golem v0.0.0-20251101061439-213237818009/go.mod h1:k2+HPRJgFbVIR9/Y3VEUu3J8Pe518n716tTl76ea71E=
 github.com/Potterli20/socks5-fork v0.0.0-20251031034617-b7aa4b13dbed h1:IZ6AQa8OCAD2qqEsRLrrNYEhSaeOlF4CFyNqcNBT790=
 github.com/Potterli20/socks5-fork v0.0.0-20251031034617-b7aa4b13dbed/go.mod h1:LFQAINOxvd3D09AOmZYFkE685JXLmXAyTkG3IQnkPpY=
+github.com/Potterli20/socks5-fork v0.0.0-20251101034422-8a517b759f10 h1:T7hK9X8OWdr+ptfnqU67/m0wTBM4LOWHlHrIrcfPuio=
+github.com/Potterli20/socks5-fork v0.0.0-20251101034422-8a517b759f10/go.mod h1:VpvMUZARYg3O5PvsZ9rl++5/fg6ANACy1+xBPCMFwyk=
 github.com/Potterli20/sqlite v0.0.0-20251031033806-0f0e7857e168 h1:rGsV+m4Rnfh6H1r5dWQAqOqPYCfee2JliHNEOiX+J0s=
 github.com/Potterli20/sqlite v0.0.0-20251031033806-0f0e7857e168/go.mod h1:wuC7JJY3lK6CxJrb4G2bf9vgbbZcHysWtruqxLYRM20=
 github.com/alicebob/miniredis/v2 v2.35.0 h1:QwLphYqCEAo1eu1TqPRN2jgVMPBweeQcR21jeqDCONI=
@@ -174,8 +178,6 @@ github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegE
 github.com/sagernet/sing-shadowsocks v0.2.7/go.mod h1:0rIKJZBR65Qi0zwdKezt4s57y/Tl1ofkaq6NlkzVuyE=
 github.com/seiflotfy/cuckoofilter v0.0.0-20240715131351-a2f2c23f1771 h1:emzAzMZ1L9iaKCTxdy3Em8Wv4ChIAGnfiz18Cda70g4=
 github.com/seiflotfy/cuckoofilter v0.0.0-20240715131351-a2f2c23f1771/go.mod h1:bR6DqgcAl1zTcOX8/pE2Qkj9XO00eCNqmKb7lXP8EAg=
-github.com/shirou/gopsutil/v4 v4.25.9 h1:JImNpf6gCVhKgZhtaAHJ0serfFGtlfIlSC08eaKdTrU=
-github.com/shirou/gopsutil/v4 v4.25.9/go.mod h1:gxIxoC+7nQRwUl/xNhutXlD8lq+jxTgpIkEf3rADHL8=
 github.com/shirou/gopsutil/v4 v4.25.10 h1:at8lk/5T1OgtuCp+AwrDofFRjnvosn0nkN2OLQ6g8tA=
 github.com/shirou/gopsutil/v4 v4.25.10/go.mod h1:+kSwyC8DRUD9XXEHCAFjK+0nuArFJM0lva+StQAcskM=
 github.com/sirupsen/logrus v1.8.1 h1:dJKuHgqk1NNQlqoA6BTlM1Wf9DOH3NBjQyu0h9+AZZE=
