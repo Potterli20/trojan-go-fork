@@ -23,7 +23,7 @@ require (
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/gorm v1.31.2-0.20251104070452-0011f39aec71
+	gorm.io/gorm v1.31.2-0.20251116041105-6e7eb0a07326
 )
 
 require (
