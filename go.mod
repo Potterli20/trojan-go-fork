@@ -6,8 +6,8 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20251112010210-949c5c70abe3
-	github.com/Potterli20/socks5-fork v0.0.0-20251114034801-41c496d4a337
-	github.com/Potterli20/sqlite v0.0.0-20251114210849-5fb8f22e4a6a
+	github.com/Potterli20/socks5-fork v0.0.0-20251117152846-9f3de8927c4e
+	github.com/Potterli20/sqlite v0.0.0-20251117181340-a71596a5465b
 	github.com/database64128/tfo-go/v2 v2.3.2-0.20251108125828-3466b26f39ad
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.7 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20251117122144-75ad079065e8 // indirect
+	github.com/Potterli20/golem v0.0.0-20251117181538-b1919e4c5d88 // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250916002408-014fb9c9e8f7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -99,5 +99,5 @@ require (
 	modernc.org/libc v1.67.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.40.0 // indirect
+	modernc.org/sqlite v1.40.1 // indirect
 )
