@@ -6,6 +6,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20251120010102-e181315233f8 h1:E1hb
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20251120010102-e181315233f8/go.mod h1:mdJKDnFjQIe0g4MTiOea1CgRrsCXl26VzbsA34Eu3wU=
 github.com/Potterli20/golem v0.0.0-20251203061806-dd34cb9de048 h1:chP83Z1BxMc+ybfR0B5kH4WSnJY7sUoDGEPSLAbUe9Y=
 github.com/Potterli20/golem v0.0.0-20251203061806-dd34cb9de048/go.mod h1:bIoFar3LmBUoTy5dsgwtLE9l6gHbINuRqrGsf6H/zgQ=
+github.com/Potterli20/golem v0.0.0-20251204005334-a4f8d59de58c h1:Bc5+xsX+5WzhJijWRl0C99LlISV9E2RzoTFsc21Lpz4=
+github.com/Potterli20/golem v0.0.0-20251204005334-a4f8d59de58c/go.mod h1:U7y6RCXUlMBdk9U0APcYx6UJNHUlVbcB8gX2dRcnFkY=
 github.com/Potterli20/socks5-fork v0.0.0-20251203093047-f9003eaede08 h1:rqY+9yn8rH9HjPuVZEyurw+vnLSe61o4tYrPEKAbgoY=
 github.com/Potterli20/socks5-fork v0.0.0-20251203093047-f9003eaede08/go.mod h1:EvRYJeJgWz2FU6TiI4TCEWIQy9MA0XJVQqxixU48iGA=
 github.com/Potterli20/sqlite v0.0.0-20251126004757-72a32a28d35d h1:we+j/xnfacGALQ2VreXLwtNCaNx22q24Bx8bIxTmhmU=
@@ -184,8 +186,8 @@ github.com/smarty/assertions v1.15.1 h1:812oFiXI+G55vxsFf+8bIZ1ux30qtkdqzKbEFwyX
 github.com/smarty/assertions v1.15.1/go.mod h1:yABtdzeQs6l1brC900WlRNwj6ZR55d7B+E8C6HtKdec=
 github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5 h1:pYSJFHZ6tAxXlbMIaq58Z+sY6r8Od605HWCXd7ZJihQ=
 github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5/go.mod h1:888ddOL9jxDyzIIzEoMxPKAS13U/m1GrRZxgCoe2IQ8=
-github.com/spf13/cobra v1.10.1 h1:lJeBwCfmrnXthfAupyUTzJ/J4Nc1RsHC/mSRU2dll/s=
-github.com/spf13/cobra v1.10.1/go.mod h1:7SmJGaTHFVBY0jW4NXGluQoLvhqFQM+6XSKD+P4XaB0=
+github.com/spf13/cobra v1.10.2 h1:DMTTonx5m65Ic0GOoRY2c16WCbHxOOw6xxezuLaBpcU=
+github.com/spf13/cobra v1.10.2/go.mod h1:7C1pvHqHw5A4vrJfjNwvOdzYu0Gml16OCs2GRiTUUS4=
 github.com/spf13/pflag v1.0.9/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
 github.com/spf13/pflag v1.0.10 h1:4EBh2KAYBwaONj6b2Ye1GiHfwjqyROoF4RwYO+vPwFk=
 github.com/spf13/pflag v1.0.10/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=
@@ -242,6 +244,7 @@ go.uber.org/zap v1.27.1 h1:08RqriUEv8+ArZRYSTXy1LeBScaMpVSTBhCeaZYfMYc=
 go.uber.org/zap v1.27.1/go.mod h1:GB2qFLM7cTU87MWRP2mPIjqfIDnGu+VIO4V/SdhGo2E=
 go.yaml.in/yaml/v2 v2.4.3 h1:6gvOSjQoTB3vt1l+CU+tSyi/HOjfOjRLJ4YwYZGwRO0=
 go.yaml.in/yaml/v2 v2.4.3/go.mod h1:zSxWcmIDjOzPXpjlTTbAsKokqkDNAVtZO0WOMiT90s8=
+go.yaml.in/yaml/v3 v3.0.4/go.mod h1:DhzuOOF2ATzADvBadXxruRBLzYTpT36CKvDb3+aBEFg=
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba h1:0b9z3AuHCjxk0x/opv64kcgZLBseWJUpBw5I82+2U4M=
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba/go.mod h1:PLyyIXexvUFg3Owu6p/WfdlivPbZJsZdgWZlrGope/Y=
 golang.org/x/crypto v0.45.0 h1:jMBrvKuj23MTlT0bQEOBcAE0mjg8mK9RXFhRH6nyF3Q=
