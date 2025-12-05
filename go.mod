@@ -46,7 +46,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-redsync/redsync/v4 v4.14.1 // indirect
 	github.com/google/btree v1.1.3 // indirect
-	github.com/gopherjs/gopherjs v1.19.0-beta2.0.20251104194636-751ba01dd350 // indirect
+	github.com/gopherjs/gopherjs v1.19.0-beta2.0.20251205165646-9ee247474df6 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -73,7 +73,7 @@ require (
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/sagernet/sing v0.8.0-beta.6 // indirect
 	github.com/shirou/gopsutil/v4 v4.25.11 // indirect
-	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/sirupsen/logrus v1.8.3 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
