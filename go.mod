@@ -5,10 +5,10 @@ go 1.25.3
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20251208151511-c829acc9ec15
-	github.com/Potterli20/socks5-fork v0.0.0-20251208153010-2b090bcbe7b6
-	github.com/Potterli20/sqlite v0.0.0-20251208181603-eb1c5a526008
-	github.com/database64128/tfo-go/v2 v2.3.2-0.20251120165126-d59ba0557ef4
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20251209010405-8ceb52acbb06
+	github.com/Potterli20/socks5-fork v0.0.0-20251208212223-13795535df46
+	github.com/Potterli20/sqlite v0.0.0-20251208210923-068f0c250f9b
+	github.com/database64128/tfo-go/v2 v2.3.2-0.20251208194807-71489b44c690
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.8.1
@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.44
 	github.com/xtls/xray-core v1.251208.0
-	golang.org/x/net v0.47.0
+	golang.org/x/net v0.48.0
 	golang.org/x/term v0.38.0
 	golang.org/x/time v0.14.0
 	google.golang.org/genproto v0.0.0-20251202230838-ff82c1b0f217
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.7 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20251208181804-5c155d046ea0 // indirect
+	github.com/Potterli20/golem v0.0.0-20251209005415-88766f4c6fb1 // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250916002408-014fb9c9e8f7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -87,7 +87,7 @@ require (
 	go.uber.org/zap v1.27.1 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.45.0 // indirect
+	golang.org/x/crypto v0.46.0 // indirect
 	golang.org/x/exp v0.0.0-20251125195548-87e1e737ad39 // indirect
 	golang.org/x/mod v0.30.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
