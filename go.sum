@@ -8,6 +8,8 @@ github.com/Potterli20/golem v0.0.0-20251210005532-6b4effe65d18 h1:eyWjYa0j3m/Dtr
 github.com/Potterli20/golem v0.0.0-20251210005532-6b4effe65d18/go.mod h1:9jUuVyrRA2g67mEMczul75iaNvXWo6vx2hF+WiZbxss=
 github.com/Potterli20/socks5-fork v0.0.0-20251210035734-b17513fb1ce2 h1:Rafs3pQ2qzkwxVqonpUjPPgEArOgygW4xTFu9R2dn5w=
 github.com/Potterli20/socks5-fork v0.0.0-20251210035734-b17513fb1ce2/go.mod h1:zb4zEJku8k2kWXd+Nddxv4wGDBZZuU2fddNIRdoGT0Y=
+github.com/Potterli20/socks5-fork v0.0.0-20251211153246-92d48680d3bd h1:1LscKF/mFdnENQ+86aYPn/378cENOADLCBVSyqUZtRs=
+github.com/Potterli20/socks5-fork v0.0.0-20251211153246-92d48680d3bd/go.mod h1:f1OLQftRBN+cNQ104KHm4xj5WZLfsZ4uoPfHRHKzEJs=
 github.com/Potterli20/sqlite v0.0.0-20251209210904-cb4a1ca4f9fe h1:J8M1PgoKKXEWu+rQCDMNDY3Sbwas6B/ZSZdFaCkZimU=
 github.com/Potterli20/sqlite v0.0.0-20251209210904-cb4a1ca4f9fe/go.mod h1:FYYCYFZFaPiA5EXjQoCD+fCjO8q11sMrTiuR9yYEdfA=
 github.com/alicebob/miniredis/v2 v2.35.0 h1:QwLphYqCEAo1eu1TqPRN2jgVMPBweeQcR21jeqDCONI=
@@ -117,6 +119,7 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/miekg/dns v1.1.69-0.20251113160555-b39ef963336b h1:QkPrAoDWgwyb67nduUeFOdcbm/cL89fxVi/9Gh4Yk6w=
 github.com/miekg/dns v1.1.69-0.20251113160555-b39ef963336b/go.mod h1:7OyjD9nEba5OkqQ/hB4fy3PIoxafSZJtducccIelz3g=
+github.com/miekg/dns v1.1.69-0.20251211151047-acb3aba38ede h1:sl4Eocfm8MH191EvRlvt8s2FsLOGwIavFi1WqB0WGo4=
 github.com/msvitok77/goembed v0.3.5 h1:SNdkLLipv4YGNVWCVCn+/N01aSp7Ga6/YOcB+kYxnhk=
 github.com/msvitok77/goembed v0.3.5/go.mod h1:ycBNmh+53HrsZPQfWOJHYXbu7vLwb1QYdJISOyKlnnc=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
