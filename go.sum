@@ -6,10 +6,12 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20251209010405-8ceb52acbb06 h1:BP9Y
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20251209010405-8ceb52acbb06/go.mod h1:hrTfIlxaEu34ro0Dc2rYAhAShTjIm36C88iPVMyKWxk=
 github.com/Potterli20/golem v0.0.0-20251216005559-9e10efb8a712 h1:2KNVUZNDcPmi57z5gdxTC6MN9d6InFJjw6+Zzr2+WQc=
 github.com/Potterli20/golem v0.0.0-20251216005559-9e10efb8a712/go.mod h1:loH58FeIDII2piYJ+k6g+MVprz3Zv5TPfQQVkxrcaSo=
-github.com/Potterli20/socks5-fork v0.0.0-20251215184031-f82b93a83e41 h1:LGC4RwrSNitsOv1d1rqMrPui59iQp7hjzzwejGcF+T8=
-github.com/Potterli20/socks5-fork v0.0.0-20251215184031-f82b93a83e41/go.mod h1:6v4VjisFab+GoBYB/QN9/gpTf7YvrMysO+D8ntxSWAA=
+github.com/Potterli20/golem v0.0.0-20251216061920-d2c532ca48a2 h1:oi3kkx7O1u9P2ZXmKCjZpmuZ+SgELLeCD8xeJ5IKRLY=
+github.com/Potterli20/golem v0.0.0-20251216061920-d2c532ca48a2/go.mod h1:loH58FeIDII2piYJ+k6g+MVprz3Zv5TPfQQVkxrcaSo=
 github.com/Potterli20/socks5-fork v0.0.0-20251216035945-7ea35473095d h1:EoyZFqUvCqn+ZV8pAvBJ2ZxVmB0mD5aZJCc4b8sm1Yw=
 github.com/Potterli20/socks5-fork v0.0.0-20251216035945-7ea35473095d/go.mod h1:XKEE5M+aq4lMa2D/cjsR5zhYeOdHDY3Vuf0zIlmw76c=
+github.com/Potterli20/socks5-fork v0.0.0-20251216093253-0c8614c9885f h1:JOcZi/IGtgXa8u0UhDdsFhfpTuIH6KBDfJpo1x08RHk=
+github.com/Potterli20/socks5-fork v0.0.0-20251216093253-0c8614c9885f/go.mod h1:dVAhjcAdH4OjAZ/BoHC48Vf6b69s5nXd5VE/5YKoIgI=
 github.com/Potterli20/sqlite v0.0.0-20251209210904-cb4a1ca4f9fe h1:J8M1PgoKKXEWu+rQCDMNDY3Sbwas6B/ZSZdFaCkZimU=
 github.com/Potterli20/sqlite v0.0.0-20251209210904-cb4a1ca4f9fe/go.mod h1:FYYCYFZFaPiA5EXjQoCD+fCjO8q11sMrTiuR9yYEdfA=
 github.com/alicebob/miniredis/v2 v2.35.0 h1:QwLphYqCEAo1eu1TqPRN2jgVMPBweeQcR21jeqDCONI=
@@ -119,6 +121,7 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/miekg/dns v1.1.69 h1:Kb7Y/1Jo+SG+a2GtfoFUfDkG//csdRPwRLkCsxDG9Sc=
 github.com/miekg/dns v1.1.69/go.mod h1:7OyjD9nEba5OkqQ/hB4fy3PIoxafSZJtducccIelz3g=
+github.com/miekg/dns v1.1.70-0.20251216091959-3126b782690b h1:MV++anGdEF1UYanI0di/U0J1Yfcmqy0VlXAdLkRTRyQ=
 github.com/msvitok77/goembed v0.3.5 h1:SNdkLLipv4YGNVWCVCn+/N01aSp7Ga6/YOcB+kYxnhk=
 github.com/msvitok77/goembed v0.3.5/go.mod h1:ycBNmh+53HrsZPQfWOJHYXbu7vLwb1QYdJISOyKlnnc=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
