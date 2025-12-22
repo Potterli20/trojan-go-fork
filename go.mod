@@ -15,7 +15,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.49
-	github.com/xtls/xray-core v1.251208.1-0.20251215030102-74df63add2cd
+	github.com/xtls/xray-core v1.251208.1-0.20251222032833-6bf0376773e8
 	golang.org/x/net v0.48.0
 	golang.org/x/term v0.38.0
 	golang.org/x/time v0.14.0
@@ -71,7 +71,7 @@ require (
 	github.com/prometheus/procfs v0.19.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
-	github.com/sagernet/sing v0.8.0-beta.6.0.20251207063731-56fd482ce1c6 // indirect
+	github.com/sagernet/sing v0.8.0-beta.6.0.20251222061657-f63bfef76452 // indirect
 	github.com/shirou/gopsutil/v4 v4.25.11 // indirect
 	github.com/sirupsen/logrus v1.8.3 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
