@@ -19,7 +19,7 @@ require (
 	golang.org/x/net v0.48.0
 	golang.org/x/term v0.38.0
 	golang.org/x/time v0.14.0
-	google.golang.org/genproto v0.0.0-20251213004720-97cd9d5aeac2
+	google.golang.org/genproto v0.0.0-20251222181119-0a764e51fe1b
 	google.golang.org/grpc v1.77.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.7 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20251219061827-2787cbd3b851 // indirect
+	github.com/Potterli20/golem v0.0.0-20251223005518-e83e6844c99b // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250916002408-014fb9c9e8f7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -94,7 +94,7 @@ require (
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
 	golang.org/x/tools v0.40.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20251213004720-97cd9d5aeac2 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20251222181119-0a764e51fe1b // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251222181119-0a764e51fe1b // indirect
 	modernc.org/libc v1.67.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
