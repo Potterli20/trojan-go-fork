@@ -216,6 +216,8 @@ github.com/xtls/reality v0.0.0-20251014195629-e4eec4520535 h1:nwobseOLLRtdbP6z7Z
 github.com/xtls/reality v0.0.0-20251014195629-e4eec4520535/go.mod h1:vbHCV/3VWUvy1oKvTxxWJRPEWSeR1sYgQHIh6u/JiZQ=
 github.com/xtls/xray-core v1.251208.1-0.20251223101442-7f6ceb39f7f1 h1:6WfJW3cisvAUGX/mtjRMZvl6v/RIbOVapSrRal57mT8=
 github.com/xtls/xray-core v1.251208.1-0.20251223101442-7f6ceb39f7f1/go.mod h1:hjK11nIhcyb3ksjWmk55KhGx3nqbqLXUk+xOSk9FiiY=
+github.com/xtls/xray-core v1.251208.1-0.20251225014554-36968909a1da h1:fc+DMVBdXVmblskYHIoKve7l04wnwMIXwyJJkAFYHZI=
+github.com/xtls/xray-core v1.251208.1-0.20251225014554-36968909a1da/go.mod h1:HmMweKFbIRLwALo9cHVM6rrvQ+4DPbjXTAB9W00olAE=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/yuin/gopher-lua v1.1.1 h1:kYKnWBjvbNP4XLT3+bPEwAXJx262OhaHDWDVOPjL46M=
