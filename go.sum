@@ -8,8 +8,6 @@ github.com/Potterli20/golem v0.0.0-20251223181733-3e667b3b2547 h1:0XG+Ns53+PvdH7
 github.com/Potterli20/golem v0.0.0-20251223181733-3e667b3b2547/go.mod h1:Xu39xMm0mqUv5VTs+qo5FGpyc2fatapKp1Rl7T9YA04=
 github.com/Potterli20/socks5-fork v0.0.0-20251223212512-0f19e971e0db h1:CyGrC5pO0j9f/pXmRf1muZImBB2RiSM/Sg9VMN5Z8u8=
 github.com/Potterli20/socks5-fork v0.0.0-20251223212512-0f19e971e0db/go.mod h1:/qRVKOQLtq+JnkmDJCGjcJJ7oUKUbRD0PJQdXQ0RRq4=
-github.com/Potterli20/sqlite v0.0.0-20251225122002-23109b83a656 h1:qsEcjgls15CGCVrCP2NCrQKwXv+qQvs35ZCy6xGwTVk=
-github.com/Potterli20/sqlite v0.0.0-20251225122002-23109b83a656/go.mod h1:WnyQBQGyvn61cK9S6oh1xA7aNIDOuYcqQsxnVS2iD+Y=
 github.com/Potterli20/sqlite v0.0.0-20251225151024-c7e4ffedbeef h1:ZzvidLlKOkpv1qDZuepKe/3Ml/3a1IDEgE1rUYWjRjo=
 github.com/Potterli20/sqlite v0.0.0-20251225151024-c7e4ffedbeef/go.mod h1:WnyQBQGyvn61cK9S6oh1xA7aNIDOuYcqQsxnVS2iD+Y=
 github.com/alicebob/miniredis/v2 v2.35.0 h1:QwLphYqCEAo1eu1TqPRN2jgVMPBweeQcR21jeqDCONI=
