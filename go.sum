@@ -10,6 +10,8 @@ github.com/Potterli20/socks5-fork v0.0.0-20251227092642-dfe113b1bd82 h1:q14iBT3B
 github.com/Potterli20/socks5-fork v0.0.0-20251227092642-dfe113b1bd82/go.mod h1:AtL3UbgTGV93TNuaK96MF4BO0P4ujR9yVH+yOJEeJFc=
 github.com/Potterli20/sqlite v0.0.0-20251228005819-effb804f531b h1:WyGJduonNuAsz+dB0de35DricHbGO6V7IEBUfcJ1q54=
 github.com/Potterli20/sqlite v0.0.0-20251228005819-effb804f531b/go.mod h1:IFNpcItg3ekmeh7kiecqF4P3UqVMzKHZGglvj7JIFkA=
+github.com/Potterli20/sqlite v0.0.0-20251228150911-ff562fd59023 h1:WXOohMP1l95YFv1sYxQzSQdS5lF1e+K1SurG4zAqTK0=
+github.com/Potterli20/sqlite v0.0.0-20251228150911-ff562fd59023/go.mod h1:SDzqahR0WgVTdj3tu5fyTsLOm8nkoc7JN//lIukqP/M=
 github.com/alicebob/miniredis/v2 v2.35.0 h1:QwLphYqCEAo1eu1TqPRN2jgVMPBweeQcR21jeqDCONI=
 github.com/alicebob/miniredis/v2 v2.35.0/go.mod h1:TcL7YfarKPGDAthEtl5NBeHZfeUQj6OXMm/+iu5cLMM=
 github.com/andybalholm/brotli v1.2.1-0.20250916002408-014fb9c9e8f7 h1:G5DE1OB1vleQjUteSBsiTK7CNvZ5pCM18ObE2nRZbzo=
@@ -171,8 +173,6 @@ github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstv
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
-github.com/sagernet/sing v0.8.0-beta.8.0.20251227115808-99b7f22820bb h1:xjnNvJu01TqmyZijQiaQtllgo3yRr6eUiYG5a4kGOOc=
-github.com/sagernet/sing v0.8.0-beta.8.0.20251227115808-99b7f22820bb/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing v0.8.0-beta.8.0.20251228065706-fddde903aa5b h1:8V18qWgwfhs/APMCQQx8yAmvwn5RYpa0B2WV7um6SM4=
 github.com/sagernet/sing v0.8.0-beta.8.0.20251228065706-fddde903aa5b/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegEZaKMv9ipx8=
@@ -214,6 +214,8 @@ github.com/vishvananda/netns v0.0.5 h1:DfiHV+j8bA32MFM7bfEunvT8IAqQ/NzSJHtcmW5zd
 github.com/vishvananda/netns v0.0.5/go.mod h1:SpkAiCQRtJ6TvvxPnOSyH3BMl6unz3xZlaprSwhNNJM=
 github.com/xtaci/smux v1.5.49 h1:V3pdyzGLGDMX4R/rbx+e7yo5nB9ticxCcCkQZMxCWwE=
 github.com/xtaci/smux v1.5.49/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
+github.com/xtaci/smux v1.5.50 h1:y/1DlWQC9bnMeZzsyk4oL2hbLK6uVk4BKTz5BeQqUEA=
+github.com/xtaci/smux v1.5.50/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20251014195629-e4eec4520535 h1:nwobseOLLRtdbP6z7Z2aVI97u8ZptTgD1ofovhAKmeU=
 github.com/xtls/reality v0.0.0-20251014195629-e4eec4520535/go.mod h1:vbHCV/3VWUvy1oKvTxxWJRPEWSeR1sYgQHIh6u/JiZQ=
 github.com/xtls/xray-core v1.251208.1-0.20251226210706-ad468e462db7 h1:CrJnxxC2p8HPGtTi/tfxNM1xk+bzHeSzf0+ctyrwlR4=
@@ -328,8 +330,6 @@ modernc.org/opt v0.1.4 h1:2kNGMRiUjrp4LcaPuLY2PzUfqM/w9N23quVwhKt5Qm8=
 modernc.org/opt v0.1.4/go.mod h1:03fq9lsNfvkYSfxrfUhZCWPk1lm4cq4N+Bh//bEtgns=
 modernc.org/sortutil v1.2.1 h1:+xyoGf15mM3NMlPDnFqrteY07klSFxLElE2PVuWIJ7w=
 modernc.org/sortutil v1.2.1/go.mod h1:7ZI3a3REbai7gzCLcotuw9AC4VZVpYMjDzETGsSMqJE=
-modernc.org/sqlite v1.42.1 h1:Uq9MgEygn10NFglbbQUhp7yVyRvvoB2tCdK4hxhVfrI=
-modernc.org/sqlite v1.42.1/go.mod h1:+VkC6v3pLOAE0A0uVucQEcbVW0I5nHCeDaBf+DpsQT8=
 modernc.org/sqlite v1.42.2 h1:7hkZUNJvJFN2PgfUdjni9Kbvd4ef4mNLOu0B9FGxM74=
 modernc.org/sqlite v1.42.2/go.mod h1:+VkC6v3pLOAE0A0uVucQEcbVW0I5nHCeDaBf+DpsQT8=
 modernc.org/strutil v1.2.1 h1:UneZBkQA+DX2Rp35KcM69cSsNES9ly8mQWD71HKlOA0=
