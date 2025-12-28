@@ -71,7 +71,7 @@ require (
 	github.com/prometheus/procfs v0.19.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
-	github.com/sagernet/sing v0.8.0-beta.8.0.20251227115808-99b7f22820bb // indirect
+	github.com/sagernet/sing v0.8.0-beta.8.0.20251228065706-fddde903aa5b // indirect
 	github.com/shirou/gopsutil/v4 v4.25.11 // indirect
 	github.com/sirupsen/logrus v1.8.3 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
@@ -99,5 +99,5 @@ require (
 	modernc.org/libc v1.67.2 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.42.1 // indirect
+	modernc.org/sqlite v1.42.2 // indirect
 )
