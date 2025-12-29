@@ -8,10 +8,10 @@ github.com/Potterli20/golem v0.0.0-20251227061723-98473369586e h1:quj2ISX4qjqO5M
 github.com/Potterli20/golem v0.0.0-20251227061723-98473369586e/go.mod h1:RiAYOcc5XUqFKHqHY2iNPaA8Dgt7luws5Qjm7/EI024=
 github.com/Potterli20/socks5-fork v0.0.0-20251227092642-dfe113b1bd82 h1:q14iBT3B+hEtI39ZDF9szqzXWFFaIiW7Q4e6DT9hB0k=
 github.com/Potterli20/socks5-fork v0.0.0-20251227092642-dfe113b1bd82/go.mod h1:AtL3UbgTGV93TNuaK96MF4BO0P4ujR9yVH+yOJEeJFc=
-github.com/Potterli20/sqlite v0.0.0-20251228005819-effb804f531b h1:WyGJduonNuAsz+dB0de35DricHbGO6V7IEBUfcJ1q54=
-github.com/Potterli20/sqlite v0.0.0-20251228005819-effb804f531b/go.mod h1:IFNpcItg3ekmeh7kiecqF4P3UqVMzKHZGglvj7JIFkA=
 github.com/Potterli20/sqlite v0.0.0-20251228150911-ff562fd59023 h1:WXOohMP1l95YFv1sYxQzSQdS5lF1e+K1SurG4zAqTK0=
 github.com/Potterli20/sqlite v0.0.0-20251228150911-ff562fd59023/go.mod h1:SDzqahR0WgVTdj3tu5fyTsLOm8nkoc7JN//lIukqP/M=
+github.com/Potterli20/sqlite v0.0.0-20251228181454-164975a46108 h1:3KGOQ4gqq7Y7UJjJ+aPPawwPK/oqtARlUeDKQ4SqhuI=
+github.com/Potterli20/sqlite v0.0.0-20251228181454-164975a46108/go.mod h1:SDzqahR0WgVTdj3tu5fyTsLOm8nkoc7JN//lIukqP/M=
 github.com/alicebob/miniredis/v2 v2.35.0 h1:QwLphYqCEAo1eu1TqPRN2jgVMPBweeQcR21jeqDCONI=
 github.com/alicebob/miniredis/v2 v2.35.0/go.mod h1:TcL7YfarKPGDAthEtl5NBeHZfeUQj6OXMm/+iu5cLMM=
 github.com/andybalholm/brotli v1.2.1-0.20250916002408-014fb9c9e8f7 h1:G5DE1OB1vleQjUteSBsiTK7CNvZ5pCM18ObE2nRZbzo=
@@ -212,8 +212,6 @@ github.com/vishvananda/netlink v1.3.1 h1:3AEMt62VKqz90r0tmNhog0r/PpWKmrEShJU0wJW
 github.com/vishvananda/netlink v1.3.1/go.mod h1:ARtKouGSTGchR8aMwmkzC0qiNPrrWO5JS/XMVl45+b4=
 github.com/vishvananda/netns v0.0.5 h1:DfiHV+j8bA32MFM7bfEunvT8IAqQ/NzSJHtcmW5zdEY=
 github.com/vishvananda/netns v0.0.5/go.mod h1:SpkAiCQRtJ6TvvxPnOSyH3BMl6unz3xZlaprSwhNNJM=
-github.com/xtaci/smux v1.5.49 h1:V3pdyzGLGDMX4R/rbx+e7yo5nB9ticxCcCkQZMxCWwE=
-github.com/xtaci/smux v1.5.49/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtaci/smux v1.5.50 h1:y/1DlWQC9bnMeZzsyk4oL2hbLK6uVk4BKTz5BeQqUEA=
 github.com/xtaci/smux v1.5.50/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20251014195629-e4eec4520535 h1:nwobseOLLRtdbP6z7Z2aVI97u8ZptTgD1ofovhAKmeU=
