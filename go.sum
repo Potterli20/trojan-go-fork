@@ -8,6 +8,8 @@ github.com/Potterli20/golem v0.0.0-20260108181629-a82b76fef88f h1:S6U42UFJenSQDx
 github.com/Potterli20/golem v0.0.0-20260108181629-a82b76fef88f/go.mod h1:qRKqav5gyVdIpUR0VgkxQCPWRR0lGr95vpUgQxbZYLI=
 github.com/Potterli20/socks5-fork v0.0.0-20260108212848-91ba2e511492 h1:G4I4EsbUaJLXjVekPB2i/LdCwLQaZevh456TaI5UxQY=
 github.com/Potterli20/socks5-fork v0.0.0-20260108212848-91ba2e511492/go.mod h1:p+Lfo6sZ6Lwyqx2UZkTBeuqO5D/D3nYtn50pOzHsCV4=
+github.com/Potterli20/socks5-fork v0.0.0-20260109153058-f006629c012b h1:U+E3cZwytriZqCKCC2K7mC3JboUeJzVkZkhMu9oHBg8=
+github.com/Potterli20/socks5-fork v0.0.0-20260109153058-f006629c012b/go.mod h1:LpnN5opieQO/JJaJ4+8+V9ziJ26zO6+fQWjlFpuG8Ms=
 github.com/Potterli20/sqlite v0.0.0-20260108211048-9ac7a160e811 h1:JhUu2Z9xuOEibHNa1Mn2pFZbB5jwes4rbyTYyrHlkfs=
 github.com/Potterli20/sqlite v0.0.0-20260108211048-9ac7a160e811/go.mod h1:ozPmKiTZrbbSLpUVq3czh3c2Hpe/9PyPyLn32rkVcSA=
 github.com/alicebob/miniredis/v2 v2.35.0 h1:QwLphYqCEAo1eu1TqPRN2jgVMPBweeQcR21jeqDCONI=
@@ -117,6 +119,7 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/miekg/dns v1.1.70-0.20260108060350-9516b4949037 h1:yOzY0inrOMoPA0nUJ4VsQ1o1u50VDULAjDFSbHQKV/A=
 github.com/miekg/dns v1.1.70-0.20260108060350-9516b4949037/go.mod h1:+EuEPhdHOsfk6Wk5TT2CzssZdqkmFhf8r+aVyDEToIs=
+github.com/miekg/dns v1.1.70 h1:DZ4u2AV35VJxdD9Fo9fIWm119BsQL5cZU1cQ9s0LkqA=
 github.com/msvitok77/goembed v0.3.5 h1:SNdkLLipv4YGNVWCVCn+/N01aSp7Ga6/YOcB+kYxnhk=
 github.com/msvitok77/goembed v0.3.5/go.mod h1:ycBNmh+53HrsZPQfWOJHYXbu7vLwb1QYdJISOyKlnnc=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
@@ -173,6 +176,8 @@ github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sagernet/sing v0.8.0-beta.9 h1:LTFjTYiEr6A5NZ04tbrjWLb0T7unSmEJX2ksJkfI1lY=
 github.com/sagernet/sing v0.8.0-beta.9/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
+github.com/sagernet/sing v0.8.0-beta.9.0.20260109141034-50e1ed36c6f6 h1:TgmW2IKThK+3wWhoB/UKjwdW2NUyWqCyXZoCYTMizv8=
+github.com/sagernet/sing v0.8.0-beta.9.0.20260109141034-50e1ed36c6f6/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegEZaKMv9ipx8=
 github.com/sagernet/sing-shadowsocks v0.2.7/go.mod h1:0rIKJZBR65Qi0zwdKezt4s57y/Tl1ofkaq6NlkzVuyE=
 github.com/seiflotfy/cuckoofilter v0.0.0-20240715131351-a2f2c23f1771 h1:emzAzMZ1L9iaKCTxdy3Em8Wv4ChIAGnfiz18Cda70g4=
@@ -216,6 +221,8 @@ github.com/xtls/reality v0.0.0-20251014195629-e4eec4520535 h1:nwobseOLLRtdbP6z7Z
 github.com/xtls/reality v0.0.0-20251014195629-e4eec4520535/go.mod h1:vbHCV/3VWUvy1oKvTxxWJRPEWSeR1sYgQHIh6u/JiZQ=
 github.com/xtls/xray-core v1.251208.1-0.20260109001124-0ca13452b8e9 h1:foQlTO1ctv0FrjTjl6pk5a+HdA8YSXWpva8ngNnwY5g=
 github.com/xtls/xray-core v1.251208.1-0.20260109001124-0ca13452b8e9/go.mod h1:HmMweKFbIRLwALo9cHVM6rrvQ+4DPbjXTAB9W00olAE=
+github.com/xtls/xray-core v1.251208.1-0.20260109142207-07a0dafa413d h1:ekXeJvnHtRU8qbYl2fRlpd77qzL3wg02r0nSB2WKzO8=
+github.com/xtls/xray-core v1.251208.1-0.20260109142207-07a0dafa413d/go.mod h1:HmMweKFbIRLwALo9cHVM6rrvQ+4DPbjXTAB9W00olAE=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/yuin/gopher-lua v1.1.1 h1:kYKnWBjvbNP4XLT3+bPEwAXJx262OhaHDWDVOPjL46M=
