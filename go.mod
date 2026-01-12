@@ -1,11 +1,11 @@
 module github.com/Potterli20/trojan-go-fork
 
-go 1.25.3
+go 1.25.5
 
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260108151750-bd0cf8dde568
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260112182153-9c25243a77b5
 	github.com/Potterli20/socks5-fork v0.0.0-20260110092656-6362609a0552
 	github.com/Potterli20/sqlite v0.0.0-20260110035109-ea501ba7bc6d
 	github.com/database64128/tfo-go/v2 v2.3.2-0.20260108140930-bf72ed9a3b38
@@ -15,8 +15,8 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.50
-	github.com/xtls/xray-core v1.251208.1-0.20260112111745-2c6352f7dd4d
-	golang.org/x/net v0.48.0
+	github.com/xtls/xray-core v1.251208.1-0.20260112181802-e742e84ded3e
+	golang.org/x/net v0.49.0
 	golang.org/x/term v0.39.0
 	golang.org/x/time v0.14.0
 	google.golang.org/genproto v0.0.0-20251222181119-0a764e51fe1b
@@ -87,7 +87,7 @@ require (
 	go.uber.org/zap v1.27.1 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.46.0 // indirect
+	golang.org/x/crypto v0.47.0 // indirect
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
 	golang.org/x/mod v0.31.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
