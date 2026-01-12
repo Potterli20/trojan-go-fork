@@ -171,8 +171,6 @@ github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstv
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
-github.com/sagernet/sing v0.8.0-beta.9.0.20260109141034-50e1ed36c6f6 h1:TgmW2IKThK+3wWhoB/UKjwdW2NUyWqCyXZoCYTMizv8=
-github.com/sagernet/sing v0.8.0-beta.9.0.20260109141034-50e1ed36c6f6/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing v0.8.0-beta.10 h1:xLTfDWM3CfLRQC7BZSR3LMvc6hNolYCPBEdSD2mZXa8=
 github.com/sagernet/sing v0.8.0-beta.10/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegEZaKMv9ipx8=
@@ -216,8 +214,6 @@ github.com/xtaci/smux v1.5.50 h1:y/1DlWQC9bnMeZzsyk4oL2hbLK6uVk4BKTz5BeQqUEA=
 github.com/xtaci/smux v1.5.50/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20251014195629-e4eec4520535 h1:nwobseOLLRtdbP6z7Z2aVI97u8ZptTgD1ofovhAKmeU=
 github.com/xtls/reality v0.0.0-20251014195629-e4eec4520535/go.mod h1:vbHCV/3VWUvy1oKvTxxWJRPEWSeR1sYgQHIh6u/JiZQ=
-github.com/xtls/xray-core v1.251208.1-0.20260109142207-07a0dafa413d h1:ekXeJvnHtRU8qbYl2fRlpd77qzL3wg02r0nSB2WKzO8=
-github.com/xtls/xray-core v1.251208.1-0.20260109142207-07a0dafa413d/go.mod h1:HmMweKFbIRLwALo9cHVM6rrvQ+4DPbjXTAB9W00olAE=
 github.com/xtls/xray-core v1.251208.1-0.20260111142645-14e171ac8e87 h1:nsfI/H9IrJAEFHKmkQasRxIqz2bbArQ3hjQgt1mGYKA=
 github.com/xtls/xray-core v1.251208.1-0.20260111142645-14e171ac8e87/go.mod h1:xU3ZJfDUAC32q+zxkLVO3V/7Wt0GvHupfmVRQfZDll0=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
