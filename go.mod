@@ -14,8 +14,8 @@ require (
 	github.com/refraction-networking/utls v1.8.2
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
-	github.com/xtaci/smux v1.5.50
-	github.com/xtls/xray-core v1.260123.0
+	github.com/xtaci/smux v1.5.51
+	github.com/xtls/xray-core v1.260123.1-0.20260124151144-daf9cba29f01
 	golang.org/x/net v0.49.0
 	golang.org/x/term v0.39.0
 	golang.org/x/time v0.14.0
@@ -61,7 +61,7 @@ require (
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/neelance/astrewrite v0.0.0-20160511093645-99348263ae86 // indirect
 	github.com/neelance/sourcemap v0.0.0-20200213170602-2833bce08e4c // indirect
-	github.com/pires/go-proxyproto v0.9.0 // indirect
+	github.com/pires/go-proxyproto v0.9.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
