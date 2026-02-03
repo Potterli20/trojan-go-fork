@@ -19,7 +19,7 @@ require (
 	golang.org/x/net v0.49.0
 	golang.org/x/term v0.39.0
 	golang.org/x/time v0.14.0
-	google.golang.org/genproto v0.0.0-20260128011058-8636f8732409
+	google.golang.org/genproto v0.0.0-20260202165425-ce8ad4cf556b
 	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.7 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20260201122537-7c91f72e60ee // indirect
+	github.com/Potterli20/golem v0.0.0-20260203011033-49ea42ec7026 // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250916002408-014fb9c9e8f7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -71,7 +71,7 @@ require (
 	github.com/prometheus/procfs v0.19.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
-	github.com/sagernet/sing v0.8.0-beta.15 // indirect
+	github.com/sagernet/sing v0.8.0-beta.15.0.20260202162209-7c477e13f41e // indirect
 	github.com/shirou/gopsutil/v4 v4.26.1 // indirect
 	github.com/sirupsen/logrus v1.8.3 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
@@ -94,8 +94,8 @@ require (
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/tools v0.41.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260128011058-8636f8732409 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260128011058-8636f8732409 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260202165425-ce8ad4cf556b // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260202165425-ce8ad4cf556b // indirect
 	modernc.org/libc v1.67.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
