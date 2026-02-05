@@ -6,8 +6,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20260112211333-97c534b45f13 h1:fWs8
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260112211333-97c534b45f13/go.mod h1:a4Mv1bBVlQq1fUmqlR+/BrPF6ec3/e1rVJcjLSKiEf0=
 github.com/Potterli20/golem v0.0.0-20260205010646-9a7bfa397e6a h1:xRc+erK0RLnCHGkcFxj9gSzrFZPzPAbs/2Es4fUbt2s=
 github.com/Potterli20/golem v0.0.0-20260205010646-9a7bfa397e6a/go.mod h1:tfurkAqzXJVV7WS4H+UnEWajgyYup3axnw4a8f0tB1c=
-github.com/Potterli20/socks5-fork v0.0.0-20260204213945-4ff0560d9376 h1:q4GlQpK/TkhjB9vFswEMsbZERoMnipCYi24i/Tgb0yI=
-github.com/Potterli20/socks5-fork v0.0.0-20260204213945-4ff0560d9376/go.mod h1:3Lli8mZROO1oZ933uQlr1oSUQ5ejQnquRnYzfsj/AOM=
+github.com/Potterli20/golem v0.0.0-20260205123608-7f2dd009e958 h1:IKAA1910lKb3XsoJXvXXtIUXvwMoefgLSBEfhEIe0/g=
+github.com/Potterli20/golem v0.0.0-20260205123608-7f2dd009e958/go.mod h1:EI31S77tEH7Ws+/wILWsQMRiwJkRySb9schCPnVgpTk=
 github.com/Potterli20/socks5-fork v0.0.0-20260205045328-c31651017742 h1:Wpd1zQEHnUa2hWONw2Ks/inJ3KcmL1l2hI3sCbJqY+4=
 github.com/Potterli20/socks5-fork v0.0.0-20260205045328-c31651017742/go.mod h1:9KtxF+yBQoDjHQgNA+Podip8hN3RvBoGozwKo77UoXk=
 github.com/Potterli20/sqlite v0.0.0-20260125181507-1453ea5a66ed h1:y+Ve2VXevJhWxZrbvgEzORU7jr1TxzVYRo6c6piD228=
@@ -51,6 +51,8 @@ github.com/ghodss/yaml v1.0.1-0.20220118164431-d8423dcdf344 h1:Arcl6UOIS/kgO2nW3
 github.com/ghodss/yaml v1.0.1-0.20220118164431-d8423dcdf344/go.mod h1:GIjDIg/heH5DOkXY3YJ/wNhfHsQHoXGjl8G8amsYQ1I=
 github.com/go-chi/chi/v5 v5.2.4 h1:WtFKPHwlywe8Srng8j2BhOD9312j9cGUxG1SP4V2cR4=
 github.com/go-chi/chi/v5 v5.2.4/go.mod h1:X7Gx4mteadT3eDOMTsXzmI4/rwUpOwBHLpAfupzFJP0=
+github.com/go-chi/chi/v5 v5.2.5 h1:Eg4myHZBjyvJmAFjFvWgrqDTXFyOzjj7YIm3L3mu6Ug=
+github.com/go-chi/chi/v5 v5.2.5/go.mod h1:X7Gx4mteadT3eDOMTsXzmI4/rwUpOwBHLpAfupzFJP0=
 github.com/go-logr/logr v1.4.3 h1:CjnDlHq8ikf6E492q6eKboGOC0T8CDaOvkHCIg8idEI=
 github.com/go-logr/logr v1.4.3/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-logr/stdr v1.2.2 h1:hSWxHoqTgW2S2qGc0LTAI563KZ5YKYRhT3MFKZMbjag=
