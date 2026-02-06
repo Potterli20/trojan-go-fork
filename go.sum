@@ -6,8 +6,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20260112211333-97c534b45f13 h1:fWs8
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260112211333-97c534b45f13/go.mod h1:a4Mv1bBVlQq1fUmqlR+/BrPF6ec3/e1rVJcjLSKiEf0=
 github.com/Potterli20/golem v0.0.0-20260205183533-485c4303d929 h1:5DgLOsI1O1sDjVSxoUs4qwYtYQVO128K2JXQC2pZ/Kc=
 github.com/Potterli20/golem v0.0.0-20260205183533-485c4303d929/go.mod h1:EI31S77tEH7Ws+/wILWsQMRiwJkRySb9schCPnVgpTk=
-github.com/Potterli20/socks5-fork v0.0.0-20260205154858-733f0e5da7d1 h1:qGrXa3fLW4seMHWLgCCrPg+HFT1kRlXcUmBNj+6OAu4=
-github.com/Potterli20/socks5-fork v0.0.0-20260205154858-733f0e5da7d1/go.mod h1:f3DWHHfeJ2ccEqD/p0+suhH6rffCQ8+kPVX8FMgRIy4=
 github.com/Potterli20/socks5-fork v0.0.0-20260205213655-71d012619b3b h1:VmC0EwrWYsiX5h5LMTPwDWY7JkYcciqNKOIaPw6xR2U=
 github.com/Potterli20/socks5-fork v0.0.0-20260205213655-71d012619b3b/go.mod h1:Ic5kolWjzmLmMLF142jWgdjg3LAb6Q2uYMsLy827Vsk=
 github.com/Potterli20/sqlite v0.0.0-20260125181507-1453ea5a66ed h1:y+Ve2VXevJhWxZrbvgEzORU7jr1TxzVYRo6c6piD228=
@@ -107,6 +105,8 @@ github.com/klauspost/compress v1.18.3 h1:9PJRvfbmTabkOX8moIpXPbMMbYN60bWImDDU7L+
 github.com/klauspost/compress v1.18.3/go.mod h1:R0h/fSBs8DE4ENlcrlib3PsXS61voFxhIs2DeRhCvJ4=
 github.com/klauspost/cpuid/v2 v2.0.12 h1:p9dKCg8i4gmOxtv35DvrYoWqYzQrvEVdjQ762Y0OqZE=
 github.com/klauspost/cpuid/v2 v2.0.12/go.mod h1:g2LTdtYhdyuGPqyWyv7qRAmj1WBqxuObKfj5c0PQa7c=
+github.com/klauspost/cpuid/v2 v2.3.0 h1:S4CRMLnYUhGeDFDqkGriYKdfoFlDnMtqTiI/sFzhA9Y=
+github.com/klauspost/cpuid/v2 v2.3.0/go.mod h1:hqwkgyIinND0mEev00jJYCxPNVRVXFQeu1XKlok6oO0=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
@@ -210,8 +210,6 @@ github.com/xtaci/smux v1.5.55 h1:BdOj0tHZmiZOeZ8VQaOKpBcuL2MIMed5Ubhn5G3xDlo=
 github.com/xtaci/smux v1.5.55/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20251014195629-e4eec4520535 h1:nwobseOLLRtdbP6z7Z2aVI97u8ZptTgD1ofovhAKmeU=
 github.com/xtls/reality v0.0.0-20251014195629-e4eec4520535/go.mod h1:vbHCV/3VWUvy1oKvTxxWJRPEWSeR1sYgQHIh6u/JiZQ=
-github.com/xtls/xray-core v1.260204.0 h1:GHtCLBsqIPbjS13uIE7pqo0sQaMNbE+60t6ob4KOlwY=
-github.com/xtls/xray-core v1.260204.0/go.mod h1:cxzYFZrxu1B1NtPjHsqv4UzgDvRA71mV4rXYH4KtO7Q=
 github.com/xtls/xray-core v1.260204.1-0.20260206015732-4632984b66a4 h1:h9X7CNlf0t/Xgn3A3+5yJD13EcBbMUmmhhORp7lxk+k=
 github.com/xtls/xray-core v1.260204.1-0.20260206015732-4632984b66a4/go.mod h1:i6XlvSKDcdP683GIc3q0avtOBsv4SamMOaN+U6Y5+ss=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
