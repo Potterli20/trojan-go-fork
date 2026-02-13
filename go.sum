@@ -6,8 +6,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20260209213234-a80532536f3f h1:8Eev
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260209213234-a80532536f3f/go.mod h1:Ux0HNQROi3798yZo7z90qM9UJVZIzZ8qk+8063itsjI=
 github.com/Potterli20/golem v0.0.0-20260213011449-d1347e50dea6 h1:fehFtq2h9mH2kJBAIhPiFpKkqmiXG36KS3sAcbxzOxs=
 github.com/Potterli20/golem v0.0.0-20260213011449-d1347e50dea6/go.mod h1:DeGn44wc1K/bhSDurjkKrr9OCfzoXYdBFY11DaPrltw=
-github.com/Potterli20/socks5-fork v0.0.0-20260212214035-3d3e21c5fb03 h1:gVMej+YYECJONQpYT2y+bGgtHj80nn7kRnvwlevrxf4=
-github.com/Potterli20/socks5-fork v0.0.0-20260212214035-3d3e21c5fb03/go.mod h1:M8kiVRXD4MrvtRm7K1cRE6iQH1pbodY1pPfZ0r11BPU=
+github.com/Potterli20/golem v0.0.0-20260213123347-0ab26ef1cc43 h1:RH2ljFs85jbQ6fB6BoY2lhXTwDUZ1pdhBZ1/5qOt0Ts=
+github.com/Potterli20/golem v0.0.0-20260213123347-0ab26ef1cc43/go.mod h1:VjP110UL0/KjfmE/BUrIohgi9VqjlX/mMzEpAUyBvlE=
 github.com/Potterli20/socks5-fork v0.0.0-20260213045826-6c03b1d6194c h1:V7dvh34WHg4aDprvJsXAqwXx1WgKqJLLBNjmQ8QWTr8=
 github.com/Potterli20/socks5-fork v0.0.0-20260213045826-6c03b1d6194c/go.mod h1:7TwFUJADuF2G5rR59wr2E407iajhvA1K9KN+k+nWql8=
 github.com/Potterli20/sqlite v0.0.0-20260213011000-0a2c54534547 h1:g6OQzQ1kLiQp+vHOsZJtR67oZrFaAXnskHzumouEsNs=
@@ -29,6 +29,8 @@ github.com/database64128/netx-go v0.1.1 h1:dT5LG7Gs7zFZBthFBbzWE6K8wAHjSNAaK7wCY
 github.com/database64128/netx-go v0.1.1/go.mod h1:LNlYVipaYkQArRFDNNJ02VkNV+My9A5XR/IGS7sIBQc=
 github.com/database64128/tfo-go/v2 v2.3.2-0.20260208171027-7080a013e6c8 h1:GUwbmZy0UYGPEgg5mkrrRRgMAjvPsnxCieK0mjTP5rY=
 github.com/database64128/tfo-go/v2 v2.3.2-0.20260208171027-7080a013e6c8/go.mod h1:GC3uB5oa4beGpCUbRb2ZOWP73bJJFmMyAVgQSO7r724=
+github.com/database64128/tfo-go/v2 v2.3.2 h1:UhZMKiMq3swZGUiETkLBDzQnZBPSAeBMClpJGlnJ5Fw=
+github.com/database64128/tfo-go/v2 v2.3.2/go.mod h1:GC3uB5oa4beGpCUbRb2ZOWP73bJJFmMyAVgQSO7r724=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
@@ -280,8 +282,6 @@ google.golang.org/genproto/googleapis/api v0.0.0-20260209200024-4cfbd4190f57 h1:
 google.golang.org/genproto/googleapis/api v0.0.0-20260209200024-4cfbd4190f57/go.mod h1:kSJwQxqmFXeo79zOmbrALdflXQeAYcUbgS7PbpMknCY=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 h1:mWPCjDEyshlQYzBpMNHaEof6UX1PmHcaUODUywQ0uac=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57/go.mod h1:j9x/tPzZkyxcgEFkiKEEGxfvyumM01BEtsW8xzOahRQ=
-google.golang.org/grpc v1.79.0 h1:6/+EFlxsMyoSbHbBoEDx94n/Ycx/bi0IhJ5Qh7b7LaA=
-google.golang.org/grpc v1.79.0/go.mod h1:KmT0Kjez+0dde/v2j9vzwoAScgEPx/Bw1CYChhHLrHQ=
 google.golang.org/grpc v1.79.1 h1:zGhSi45ODB9/p3VAawt9a+O/MULLl9dpizzNNpq7flY=
 google.golang.org/grpc v1.79.1/go.mod h1:KmT0Kjez+0dde/v2j9vzwoAScgEPx/Bw1CYChhHLrHQ=
 google.golang.org/protobuf v1.36.11 h1:fV6ZwhNocDyBLK0dj+fg8ektcVegBBuEolpbTQyBNVE=
