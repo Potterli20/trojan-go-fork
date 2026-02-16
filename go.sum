@@ -6,8 +6,12 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20260209213234-a80532536f3f h1:8Eev
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260209213234-a80532536f3f/go.mod h1:Ux0HNQROi3798yZo7z90qM9UJVZIzZ8qk+8063itsjI=
 github.com/Potterli20/golem v0.0.0-20260215063813-e62ced5b2288 h1:kwbw7o3lo0+l50j7Tj543j7mEi35BcJomYbRvPx7hXU=
 github.com/Potterli20/golem v0.0.0-20260215063813-e62ced5b2288/go.mod h1:qA+OPBJ0aLt1wn73biBIMesuwx0sPDmczJPz2Qb6suE=
+github.com/Potterli20/golem v0.0.0-20260216182848-ffb9d23075df h1:OmLR9zqe3YANRFpYKtwZxp0fMO5cRBUjG+jP2wu9ZEw=
+github.com/Potterli20/golem v0.0.0-20260216182848-ffb9d23075df/go.mod h1:Pw1PXmE10mpuA2KJxnrXcmcaY2rf0yoYh1oI1B2VsLo=
 github.com/Potterli20/socks5-fork v0.0.0-20260215093914-cc8291596ac9 h1:DDOW2+1DuphqwtwcJ+UBObJOS8KtkgZQcI+Yk+A+EN8=
 github.com/Potterli20/socks5-fork v0.0.0-20260215093914-cc8291596ac9/go.mod h1:fwaRp6FTTYgHJt1fQRSsCn3dJDTSAyifoLSf/pOOA1M=
+github.com/Potterli20/socks5-fork v0.0.0-20260216154857-4319761d0686 h1:cSibFo5oxcN7CuCfbxFlTYvcDZYe6K9/cIiL+7tx0ME=
+github.com/Potterli20/socks5-fork v0.0.0-20260216154857-4319761d0686/go.mod h1:gfZzDK2uW88N3VoTCrqk+X5nNS1Ual6Jc+1SbdVjdN4=
 github.com/Potterli20/sqlite v0.0.0-20260213011000-0a2c54534547 h1:g6OQzQ1kLiQp+vHOsZJtR67oZrFaAXnskHzumouEsNs=
 github.com/Potterli20/sqlite v0.0.0-20260213011000-0a2c54534547/go.mod h1:1kellrSXSiNRfZ9f/cC+Eig7gvS2ZU6fBl94BZB79O0=
 github.com/alicebob/miniredis/v2 v2.36.1 h1:Dvc5oAnNOr7BIfPn7tF269U8DvRW1dBG2D5n0WrfYMI=
@@ -113,6 +117,8 @@ github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/lufia/plan9stats v0.0.0-20251013123823-9fd1530e3ec3 h1:PwQumkgq4/acIiZhtifTV5OUqqiP82UAl0h87xj/l9k=
 github.com/lufia/plan9stats v0.0.0-20251013123823-9fd1530e3ec3/go.mod h1:autxFIvghDt3jPTLoqZ9OZ7s9qTGNAWmYCjVFWPX/zg=
+github.com/lufia/plan9stats v0.0.0-20260216142805-b3301c5f2a88 h1:PTw+yKnXcOFCR6+8hHTyWBeQ/P4Nb7dd4/0ohEcWQuM=
+github.com/lufia/plan9stats v0.0.0-20260216142805-b3301c5f2a88/go.mod h1:autxFIvghDt3jPTLoqZ9OZ7s9qTGNAWmYCjVFWPX/zg=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/miekg/dns v1.1.73-0.20260209135720-ce76cb6c9b5f h1:zlZdF7srRc+HkXUC3vFhcKGrSCa7G9ydgfshfsoCVCE=
