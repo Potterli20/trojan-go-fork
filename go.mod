@@ -7,7 +7,7 @@ tool golang.org/x/tools/cmd/stringer
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260209213234-a80532536f3f
 	github.com/Potterli20/socks5-fork v0.0.0-20260217045826-b8af96f407b6
-	github.com/Potterli20/sqlite v0.0.0-20260217123430-33ffd5b153af
+	github.com/Potterli20/sqlite v0.0.0-20260217153942-453f0930c82b
 	github.com/database64128/tfo-go/v2 v2.3.2
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
@@ -28,7 +28,7 @@ require (
 
 require (
 	cloud.google.com/go/oslogin v1.14.7 // indirect
-	filippo.io/edwards25519 v1.1.0 // indirect
+	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/Potterli20/golem v0.0.0-20260217010926-260c203be4d1 // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250916002408-014fb9c9e8f7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
