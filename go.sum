@@ -8,8 +8,6 @@ github.com/Potterli20/golem v0.0.0-20260218064919-d655f0e8a655 h1:gGJ5ktbeDJ+sZU
 github.com/Potterli20/golem v0.0.0-20260218064919-d655f0e8a655/go.mod h1:6iDNRXvtftkzBdUg+T74iI7iNc0VcIaEZZfWcjzGa4I=
 github.com/Potterli20/socks5-fork v0.0.0-20260218095732-0ec4cd35abfe h1:zu3jPy5C3tnjcXYWxZAeoFtbNy+iset6XKHYKoE/crY=
 github.com/Potterli20/socks5-fork v0.0.0-20260218095732-0ec4cd35abfe/go.mod h1:ITu6P5lr5bZujTb3shAdcHiSAs9VrFE/8p/9jSv0WEk=
-github.com/Potterli20/sqlite v0.0.0-20260218183607-fb8f0724746e h1:OeqhE725keDk1PXKi7yBe7emTj9vtpMEQUa0b95qzMY=
-github.com/Potterli20/sqlite v0.0.0-20260218183607-fb8f0724746e/go.mod h1:9TsDN7CwL532WV5Fp+XNnevwu9Lj90VWKTx93GD0bP8=
 github.com/Potterli20/sqlite v0.0.0-20260219010707-90657ca12f94 h1:1cdg1VVYK3bcutP7v3Tn8D2c61z4Wt1CBadTHaYxhs8=
 github.com/Potterli20/sqlite v0.0.0-20260219010707-90657ca12f94/go.mod h1:9VKwCOOJYI372j8f/pNptJQlBqy7GoBFQ1sOvQVm0L4=
 github.com/alicebob/miniredis/v2 v2.36.1 h1:Dvc5oAnNOr7BIfPn7tF269U8DvRW1dBG2D5n0WrfYMI=
@@ -245,8 +243,6 @@ go4.org/netipx v0.0.0-20231129151722-fdeea329fbba h1:0b9z3AuHCjxk0x/opv64kcgZLBs
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba/go.mod h1:PLyyIXexvUFg3Owu6p/WfdlivPbZJsZdgWZlrGope/Y=
 golang.org/x/crypto v0.48.0 h1:/VRzVqiRSggnhY7gNRxPauEQ5Drw9haKdM0jqfcCFts=
 golang.org/x/crypto v0.48.0/go.mod h1:r0kV5h3qnFPlQnBSrULhlsRfryS2pmewsg+XfMgkVos=
-golang.org/x/exp v0.0.0-20260212183809-81e46e3db34a h1:ovFr6Z0MNmU7nH8VaX5xqw+05ST2uO1exVfZPVqRC5o=
-golang.org/x/exp v0.0.0-20260212183809-81e46e3db34a/go.mod h1:K79w1Vqn7PoiZn+TkNpx3BUWUQksGO3JcVX6qIjytmA=
 golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa h1:Zt3DZoOFFYkKhDT3v7Lm9FDMEV06GpzjG2jrqW+QTE0=
 golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa/go.mod h1:K79w1Vqn7PoiZn+TkNpx3BUWUQksGO3JcVX6qIjytmA=
 golang.org/x/mod v0.33.0 h1:tHFzIWbBifEmbwtGz65eaWyGiGZatSrT9prnU8DbVL8=
