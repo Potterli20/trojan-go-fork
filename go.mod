@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260209213234-a80532536f3f
-	github.com/Potterli20/socks5-fork v0.0.0-20260225024500-94ca58e62f87
+	github.com/Potterli20/socks5-fork v0.0.0-20260225045840-843de726e71d
 	github.com/Potterli20/sqlite v0.0.0-20260219010707-90657ca12f94
 	github.com/database64128/tfo-go/v2 v2.3.2
 	github.com/go-sql-driver/mysql v1.9.3
@@ -44,7 +44,7 @@ require (
 	github.com/go-chi/chi/v5 v5.2.5 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
-	github.com/go-redsync/redsync/v4 v4.15.0 // indirect
+	github.com/go-redsync/redsync/v4 v4.16.0 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/gopherjs/gopherjs v1.20.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
