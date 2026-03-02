@@ -114,7 +114,7 @@ ARCHS_darwin   := amd64 arm64
 ARCHS_linux    := 386 amd64 arm
 ARCHS_freebsd  := 386 amd64 arm
 ARCHS_openbsd  := 386 amd64 arm arm64 riscv64
-ARCHS_windows  := 386 amd64 arm arm64
+ARCHS_windows  := 386 amd64 arm64
 
 GOAMD64_VARIANTS := v2 v3 v4
 LOONG64_VARIANTS := LA364 LA464 LA664
