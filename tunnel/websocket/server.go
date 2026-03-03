@@ -142,6 +142,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		OutboundConn: OutboundConn{
 			tcpConn: conn,
 			Conn:    wsConn,
+			Request: req,
 		},
 		ctx:    ctx,
 		cancel: cancel,

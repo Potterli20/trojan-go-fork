@@ -10,8 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/net/websocket"
 	"strings"
+
+	"golang.org/x/net/websocket"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -59,8 +60,10 @@ func runHelloHTTPServer() {
 }
 
 var (
-	EchoAddr string
-	EchoPort int
+	EchoAddr    string
+	EchoPort    int
+	UDPEchoAddr string
+	UDPEchoPort int
 )
 
 func runTCPEchoServer() {
@@ -95,7 +98,7 @@ func runTCPEchoServer() {
 }
 
 func runUDPEchoServer() {
-	conn, err := net.ListenPacket("udp", EchoAddr)
+	conn, err := net.ListenPacket("udp", UDPEchoAddr)
 	common.Must(err)
 	wg.Done()
 	go func() {
@@ -118,8 +121,10 @@ func GeneratePayload(length int) []byte {
 }
 
 var (
-	BlackHoleAddr string
-	BlackHolePort int
+	BlackHoleAddr    string
+	BlackHolePort    int
+	UDPBlackHoleAddr string
+	UDPBlackHolePort int
 )
 
 func runTCPBlackHoleServer() {
@@ -142,7 +147,9 @@ func runTCPBlackHoleServer() {
 }
 
 func runUDPBlackHoleServer() {
-	conn, err := net.ListenPacket("udp", BlackHoleAddr)
+	UDPBlackHolePort = common.PickPort("udp", "127.0.0.1")
+	UDPBlackHoleAddr = fmt.Sprintf("127.0.0.1:%d", UDPBlackHolePort)
+	conn, err := net.ListenPacket("udp", UDPBlackHoleAddr)
 	common.Must(err)
 	wg.Done()
 	go func() {
@@ -165,6 +172,9 @@ func init() {
 
 	EchoPort = common.PickPort("tcp", "127.0.0.1")
 	EchoAddr = fmt.Sprintf("127.0.0.1:%d", EchoPort)
+
+	UDPEchoPort = common.PickPort("udp", "127.0.0.1")
+	UDPEchoAddr = fmt.Sprintf("127.0.0.1:%d", UDPEchoPort)
 
 	BlackHolePort = common.PickPort("tcp", "127.0.0.1")
 	BlackHoleAddr = fmt.Sprintf("127.0.0.1:%d", BlackHolePort)

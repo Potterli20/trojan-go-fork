@@ -51,7 +51,7 @@ func (c *stickyConn) Close() error {
 
 func (c *stickyConn) Write(p []byte) (int, error) {
 	if len(p) == 8 {
-		if p[0] == 1 || p[0] == 2 { // smux 8 bytes header
+		if p[0] == 1 { // smux 8 bytes header (version 1)
 			switch p[1] {
 			// THE CONTENT OF THE BUFFER MIGHT CHANGE
 			// NEVER STORE THE POINTER TO HEADER, COPY THE HEADER INSTEAD

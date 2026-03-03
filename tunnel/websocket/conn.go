@@ -3,6 +3,7 @@ package websocket
 import (
 	"context"
 	"net"
+	"net/http"
 
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"golang.org/x/net/websocket"
@@ -11,6 +12,7 @@ import (
 type OutboundConn struct {
 	*websocket.Conn
 	tcpConn net.Conn
+	Request *http.Request
 }
 
 func (c *OutboundConn) Metadata() *tunnel.Metadata {

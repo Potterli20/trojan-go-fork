@@ -7,7 +7,6 @@ import (
 	"encoding/pem"
 	"io"
 	"io/ioutil"
-	"net"
 	"strings"
 
 	utls "github.com/refraction-networking/utls"
@@ -46,16 +45,11 @@ func (c *Client) DialPacket(tunnel tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel.Conn, error) {
-	if address == nil {
-		return nil, common.NewError("Address is nil")
-	}
-
-	conn, err := net.Dial("tcp", address.String())
+	conn, err := c.underlay.DialConn(address, tunnel)
 	if err != nil {
-		return nil, common.NewError("failed to dial TCP connection").Base(err)
+		return nil, common.NewError("failed to dial connection through underlay").Base(err)
 	}
 
-	var tlsConn *tls.Conn
 	if c.fingerprint != "" {
 		// Use utls for fingerprinting
 		uconn := utls.UClient(conn, &utls.Config{
@@ -63,6 +57,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 			ServerName:         c.sni,
 			InsecureSkipVerify: !c.verify,
 			KeyLogWriter:       c.keyLogger,
+			MinVersion:         utls.VersionTLS12,
 		}, c.helloID)
 		if err := uconn.Handshake(); err != nil {
 			return nil, common.NewError("TLS handshake failed").Base(err)
@@ -70,21 +65,20 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		return &transport.Conn{Conn: uconn}, nil
 	} else {
 		// Use default Go TLS library
-		tlsConn = tls.Client(conn, &tls.Config{
+		tlsConn := tls.Client(conn, &tls.Config{
 			InsecureSkipVerify:     !c.verify,
 			ServerName:             c.sni,
 			RootCAs:                c.ca,
 			KeyLogWriter:           c.keyLogger,
 			CipherSuites:           c.cipher,
 			SessionTicketsDisabled: !c.sessionTicket,
+			MinVersion:             tls.VersionTLS12,
 		})
+		if err := tlsConn.Handshake(); err != nil {
+			return nil, common.NewError("TLS handshake failed").Base(err)
+		}
+		return &transport.Conn{Conn: tlsConn}, nil
 	}
-
-	if err := tlsConn.Handshake(); err != nil {
-		return nil, common.NewError("TLS handshake failed").Base(err)
-	}
-
-	return &transport.Conn{Conn: tlsConn}, nil
 }
 
 // NewClient creates a tls client

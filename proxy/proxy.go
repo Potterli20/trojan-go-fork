@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"math/rand"
-	"time"
 
 	"os"
 	"strings"
@@ -95,9 +94,6 @@ func (p *Proxy) relayConnLoop() {
 					case <-p.ctx.Done():
 						log.Debug("shutting down conn relay")
 						return
-					case <-time.After(time.Second * 30):
-						log.Debug("timeout conn relay")
-						return
 					}
 					log.Debug("conn relay ends")
 				}(inbound)
@@ -162,8 +158,6 @@ func (p *Proxy) relayPacketLoop() {
 						}
 					case <-p.ctx.Done():
 						log.Debug("shutting down packet relay")
-					case <-time.After(time.Second * 30):
-						log.Debug("timeout packet relay")
 						return
 					}
 					log.Debug("packet relay ends")

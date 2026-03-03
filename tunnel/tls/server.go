@@ -86,6 +86,7 @@ func (s *Server) acceptLoop() {
 				SessionTicketsDisabled:   !s.sessionTicket,
 				NextProtos:               s.alpn,
 				KeyLogWriter:             s.keyLogger,
+				MinVersion:               tls.VersionTLS12,
 				GetCertificate: func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 					s.keyPairLock.RLock()
 					defer s.keyPairLock.RUnlock()

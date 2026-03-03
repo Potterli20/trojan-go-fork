@@ -3,6 +3,11 @@ package trojan
 import (
 	"context"
 	"fmt"
+	"io"
+	"net"
+	"strings"
+	"sync/atomic"
+
 	"github.com/Potterli20/trojan-go-fork/api"
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -15,10 +20,6 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"github.com/Potterli20/trojan-go-fork/tunnel/mux"
 	"github.com/Potterli20/trojan-go-fork/tunnel/websocket"
-	"io"
-	"net"
-	"strings"
-	"sync/atomic"
 )
 
 var Auth statistic.Authenticator
@@ -70,24 +71,28 @@ func (c *InboundConn) Close() error {
 func GetRealIP(c *InboundConn) string {
 	switch conn := c.Conn.(type) {
 	case *websocket.InboundConn:
-		for name, value := range conn.OutboundConn.Request().Header {
-			if name == "X-Forwarded-For" {
-				ips := strings.Split(value[0], ",")
-				return ips[0]
-			}
-			if name == "CF-Connecting-IP" {
-				return value[0]
-			}
-		}
-	case *common.RewindConn:
-		if wsConn, ok := conn.Conn.(*websocket.InboundConn); ok {
-			for name, value := range wsConn.OutboundConn.Request().Header {
+		if conn.OutboundConn.Request != nil {
+			for name, value := range conn.OutboundConn.Request.Header {
 				if name == "X-Forwarded-For" {
 					ips := strings.Split(value[0], ",")
 					return ips[0]
 				}
 				if name == "CF-Connecting-IP" {
 					return value[0]
+				}
+			}
+		}
+	case *common.RewindConn:
+		if wsConn, ok := conn.Conn.(*websocket.InboundConn); ok {
+			if wsConn.OutboundConn.Request != nil {
+				for name, value := range wsConn.OutboundConn.Request.Header {
+					if name == "X-Forwarded-For" {
+						ips := strings.Split(value[0], ",")
+						return ips[0]
+					}
+					if name == "CF-Connecting-IP" {
+						return value[0]
+					}
 				}
 			}
 		}

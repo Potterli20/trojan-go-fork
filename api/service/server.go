@@ -221,6 +221,7 @@ func newAPIServer(cfg *Config) (*grpc.Server, error) {
 		}
 		tlsConfig := &tls.Config{
 			Certificates: []tls.Certificate{keyPair},
+			MinVersion:   tls.VersionTLS12,
 		}
 		if cfg.API.SSL.VerifyClient {
 			tlsConfig.ClientAuth = tls.RequireAndVerifyClientCert
