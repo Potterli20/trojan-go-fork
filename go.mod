@@ -15,7 +15,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.56
-	github.com/xtls/xray-core v1.260206.1-0.20260307124640-5138ffcf2232
+	github.com/xtls/xray-core v1.260206.1-0.20260307182135-acb06e831bb7
 	golang.org/x/net v0.51.0
 	golang.org/x/term v0.40.0
 	golang.org/x/time v0.14.0
