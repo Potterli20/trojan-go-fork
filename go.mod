@@ -5,9 +5,9 @@ go 1.26
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260308123151-521b769a5219
-	github.com/Potterli20/socks5-fork v0.0.0-20260307093549-4d6ee4cf4bc2
-	github.com/Potterli20/sqlite v0.0.0-20260308122237-320f8e84943b
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260308151617-22302f9663d8
+	github.com/Potterli20/socks5-fork v0.0.0-20260308153038-1699e173e6c2
+	github.com/Potterli20/sqlite v0.0.0-20260308151239-594c0f3d23fa
 	github.com/database64128/tfo-go/v2 v2.3.3-0.20260304100532-37afa948dc55
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
