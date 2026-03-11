@@ -1,8 +1,9 @@
 package mux
 
 import (
+	"crypto/rand"
 	"io"
-	"math/rand"
+	"math/big"
 
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
@@ -42,7 +43,12 @@ func (c *stickyConn) Close() error {
 	const maxPaddingLength = 512
 	padding := [maxPaddingLength + 8]byte{'A', 'B', 'C', 'D', 'E', 'F'} // for debugging
 	buf := c.stickToPayload(nil)
-	_, err := c.Write(append(buf, padding[:rand.Intn(maxPaddingLength)]...))
+	length, err := rand.Int(rand.Reader, big.NewInt(maxPaddingLength))
+	if err != nil {
+		log.Error("failed to generate random padding length:", err)
+		return c.Conn.Close()
+	}
+	_, err = c.Write(append(buf, padding[:length.Int64()]...))
 	if err != nil {
 		log.Error("failed to write padding:", err)
 	}

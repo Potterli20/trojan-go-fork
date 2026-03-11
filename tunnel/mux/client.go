@@ -2,8 +2,9 @@ package mux
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"sync"
 	"time"
 
@@ -18,7 +19,12 @@ import (
 type muxID uint64
 
 func generateMuxID() muxID {
-	return muxID(rand.Uint32())
+	id, err := rand.Int(rand.Reader, big.NewInt(0xFFFFFFFF))
+	if err != nil {
+		// Fallback to time-based ID if crypto/rand fails
+		return muxID(time.Now().UnixNano())
+	}
+	return muxID(id.Uint64())
 }
 
 type smuxClientInfo struct {

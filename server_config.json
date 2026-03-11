@@ -1,0 +1,13 @@
+{
+  "run_type": "server",
+  "local_addr": "127.0.0.1",
+  "local_port": 443,
+  "remote_addr": "127.0.0.1",
+  "remote_port": 8080,
+  "password": ["12345678"],
+  "ssl": {
+    "cert": "server.crt",
+    "key": "server.key",
+    "sni": "localhost"
+  }
+}
