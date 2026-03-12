@@ -5,8 +5,8 @@ go 1.26
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260308151617-22302f9663d8
-	github.com/Potterli20/socks5-fork v0.0.0-20260311044804-f2283555cbdd
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260312011749-6d21888a0491
+	github.com/Potterli20/socks5-fork v0.0.0-20260311213928-659885703478
 	github.com/Potterli20/sqlite v0.0.0-20260311183757-c4487951db93
 	github.com/database64128/tfo-go/v2 v2.3.3-0.20260308172453-39439ca49693
 	github.com/go-sql-driver/mysql v1.9.3
@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.56
 	github.com/xtls/xray-core v1.260206.1-0.20260309124949-e86c36557241
-	golang.org/x/net v0.51.0
+	golang.org/x/net v0.52.0
 	golang.org/x/term v0.41.0
 	golang.org/x/time v0.15.0
 	google.golang.org/genproto v0.0.0-20260311181403-84a4fc48630c
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.7 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20260311183959-7b5161377a6c // indirect
+	github.com/Potterli20/golem v0.0.0-20260312010201-c57231a63b22 // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20250916002408-014fb9c9e8f7 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -88,7 +88,7 @@ require (
 	go.uber.org/zap v1.27.1 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/crypto v0.48.0 // indirect
+	golang.org/x/crypto v0.49.0 // indirect
 	golang.org/x/mod v0.33.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.42.0 // indirect
