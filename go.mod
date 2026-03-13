@@ -14,7 +14,7 @@ require (
 	github.com/refraction-networking/utls v1.8.3-0.20260301010127-aa6edf4b11af
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
-	github.com/xtaci/smux v1.5.56
+	github.com/xtaci/smux v1.5.57
 	github.com/xtls/xray-core v1.260206.1-0.20260309124949-e86c36557241
 	golang.org/x/net v0.52.0
 	golang.org/x/term v0.41.0
