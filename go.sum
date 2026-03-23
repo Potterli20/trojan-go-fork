@@ -6,8 +6,6 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20260312044227-3e204767931f h1:mB/G
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260312044227-3e204767931f/go.mod h1:dN7PxgQFl/TCmUlY7ZRdeVLIyoNZbijzYYcNrcmc/ks=
 github.com/Potterli20/golem v0.0.0-20260323011404-9dc6bac01fdc h1:0boN980wkWpYW0HharGNzkJwvcsyc8gaugZkyHeK94I=
 github.com/Potterli20/golem v0.0.0-20260323011404-9dc6bac01fdc/go.mod h1:CUGUTttY6Zswl0brApLB4WqmLrmBkpg2ut4OrKrwuaU=
-github.com/Potterli20/socks5-fork v0.0.0-20260322213250-28208b07ed2c h1:fZmucSHb40apIb8mwU+NmJZXKXXB5MaEYYpmHV+0pao=
-github.com/Potterli20/socks5-fork v0.0.0-20260322213250-28208b07ed2c/go.mod h1:TNRixM88IK3JaciW5t7bK/VnX1Il4WluuYHY6E+gpyw=
 github.com/Potterli20/socks5-fork v0.0.0-20260323050913-0c11c512dfc5 h1:8sK7Ap/9Mg8ccfgQMTvBD7hTLn6xiF/Z8N0qSrCEesU=
 github.com/Potterli20/socks5-fork v0.0.0-20260323050913-0c11c512dfc5/go.mod h1:YPD837QLoLN0bDFUs/S3R7vEHUTjB/Nv4m/fNZxmbaU=
 github.com/Potterli20/sqlite v0.0.0-20260317184405-e86be396ded3 h1:LG4Rm5AKqknH5wMxvXS2aQ/uYgMmSTCp+Coj+/14ibA=
@@ -214,6 +212,8 @@ github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f h1:iy2JRioxmUpoJ3SzbF
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f/go.mod h1:DsJblcWDGt76+FVqBVwbwRhxyyNJsGV48gJLch0OOWI=
 github.com/xtls/xray-core v1.260206.1-0.20260322174833-f926ee4aa0aa h1:aa2fterH8oH8zeUr+WMqzb2lsqeC8AMj2BSaOeG4/NE=
 github.com/xtls/xray-core v1.260206.1-0.20260322174833-f926ee4aa0aa/go.mod h1:OXMlhBloFry8mw0KwWLWLd3RQyXJzEYsCGlgsX36h60=
+github.com/xtls/xray-core v1.260206.1-0.20260323102121-cb7bfeb54c79 h1:vbtDlO98sECqvk4twVT7TCCSrADrUl+jwUIlyFZs2Sk=
+github.com/xtls/xray-core v1.260206.1-0.20260323102121-cb7bfeb54c79/go.mod h1:OXMlhBloFry8mw0KwWLWLd3RQyXJzEYsCGlgsX36h60=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/yuin/gopher-lua v1.1.1 h1:kYKnWBjvbNP4XLT3+bPEwAXJx262OhaHDWDVOPjL46M=
@@ -300,6 +300,8 @@ gorm.io/driver/sqlite v1.6.0 h1:WHRRrIiulaPiPFmDcod6prc4l2VGVWHz80KspNsxSfQ=
 gorm.io/driver/sqlite v1.6.0/go.mod h1:AO9V1qIQddBESngQUKWL9yoH93HIeA1X6V633rBwyT8=
 gorm.io/gorm v1.31.2-0.20260321115139-ba38501922bb h1:2K31EkXs9ay0ElpJKqu1KJHAMnDCrQoAZQusEWY5xsw=
 gorm.io/gorm v1.31.2-0.20260321115139-ba38501922bb/go.mod h1:XyQVbO2k6YkOis7C2437jSit3SsDK72s7n7rsSHd+Gs=
+gorm.io/gorm v1.31.2-0.20260323100506-40cd2afdadf2 h1:J5tRe/VGdWscLp7aZ4kxnuNYS6q052AU4m0TwZwP45E=
+gorm.io/gorm v1.31.2-0.20260323100506-40cd2afdadf2/go.mod h1:XyQVbO2k6YkOis7C2437jSit3SsDK72s7n7rsSHd+Gs=
 gvisor.dev/gvisor v0.0.0-20260122175437-89a5d21be8f0 h1:Lk6hARj5UPY47dBep70OD/TIMwikJ5fGUGX0Rm3Xigk=
 gvisor.dev/gvisor v0.0.0-20260122175437-89a5d21be8f0/go.mod h1:QkHjoMIBaYtpVufgwv3keYAbln78mBoCuShZrPrer1Q=
 lukechampine.com/blake3 v1.4.1 h1:I3Smz7gso8w4/TunLKec6K2fn+kyKtDxr/xcQEN84Wg=
