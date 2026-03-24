@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260312044227-3e204767931f
-	github.com/Potterli20/socks5-fork v0.0.0-20260323214419-2c5f5e1b3036
+	github.com/Potterli20/socks5-fork v0.0.0-20260324045929-913f90a1fd29
 	github.com/Potterli20/sqlite v0.0.0-20260317184405-e86be396ded3
 	github.com/database64128/tfo-go/v2 v2.3.3-0.20260318153910-b3351019ca96
 	github.com/go-sql-driver/mysql v1.9.3
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.7 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20260324010649-bcc38cf0744a // indirect
+	github.com/Potterli20/golem v0.0.0-20260324065126-18864930fd98 // indirect
 	github.com/andybalholm/brotli v1.2.1-0.20260323234532-946c3e407119 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -55,7 +55,7 @@ require (
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/klauspost/compress v1.18.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
-	github.com/lufia/plan9stats v0.0.0-20260216142805-b3301c5f2a88 // indirect
+	github.com/lufia/plan9stats v0.0.0-20260324052639-156f7da3f749 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/msvitok77/goembed v0.3.5 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
