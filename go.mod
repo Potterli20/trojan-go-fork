@@ -7,7 +7,7 @@ tool golang.org/x/tools/cmd/stringer
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260312044227-3e204767931f
 	github.com/Potterli20/socks5-fork v0.0.0-20260327051525-4fa0c4585759
-	github.com/Potterli20/sqlite v0.0.0-20260327184022-eed89bf7c9b4
+	github.com/Potterli20/sqlite v0.0.0-20260327212347-32d9bf52d087
 	github.com/database64128/tfo-go/v2 v2.3.3-0.20260318153910-b3351019ca96
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
@@ -15,7 +15,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.57
-	github.com/xtls/xray-core v1.260206.1-0.20260327174540-d2758a023cd7
+	github.com/xtls/xray-core v1.260327.0
 	golang.org/x/net v0.52.0
 	golang.org/x/term v0.41.0
 	golang.org/x/time v0.15.0
