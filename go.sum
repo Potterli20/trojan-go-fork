@@ -8,8 +8,6 @@ github.com/Potterli20/golem v0.0.0-20260327011702-e74eddbe7c06 h1:Vd4bOrBBmXtOq8
 github.com/Potterli20/golem v0.0.0-20260327011702-e74eddbe7c06/go.mod h1:9NCCuCl4rvNoptbC6wvlSb9zIVGYjdwrpG3q++K4PY4=
 github.com/Potterli20/socks5-fork v0.0.0-20260327051525-4fa0c4585759 h1:vxHcZldG0/VRoXeshkmKKF4QVUoanp953FAl9PP6HaA=
 github.com/Potterli20/socks5-fork v0.0.0-20260327051525-4fa0c4585759/go.mod h1:9GTkRzWmOV4MsSTwJwjunn3GlZBcUBAAFOFfIAaboh8=
-github.com/Potterli20/sqlite v0.0.0-20260327184022-eed89bf7c9b4 h1:HqYhBsnZYFlTp1ui/aQB2r7qCMwBmLZdM40UV0MS3Y4=
-github.com/Potterli20/sqlite v0.0.0-20260327184022-eed89bf7c9b4/go.mod h1:Yu5IdFMJuNkNjT76Gj5UAIOePsymOvlVTKlgD8dbu0w=
 github.com/Potterli20/sqlite v0.0.0-20260327212347-32d9bf52d087 h1:y5Haw1wu/oXIB98dKEUK9DzCIVhL7RQno6QcwYPc7A4=
 github.com/Potterli20/sqlite v0.0.0-20260327212347-32d9bf52d087/go.mod h1:Yu5IdFMJuNkNjT76Gj5UAIOePsymOvlVTKlgD8dbu0w=
 github.com/alicebob/miniredis/v2 v2.37.0 h1:RheObYW32G1aiJIj81XVt78ZHJpHonHLHW7OLIshq68=
@@ -212,8 +210,6 @@ github.com/xtaci/smux v1.5.57 h1:N72VbGoSYxgcm6mPOYX0QzEZNVD3UI/JlVvAtXF+WrY=
 github.com/xtaci/smux v1.5.57/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f h1:iy2JRioxmUpoJ3SzbFPyTxHZMbR/rSHP7dOOgYaq1O8=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f/go.mod h1:DsJblcWDGt76+FVqBVwbwRhxyyNJsGV48gJLch0OOWI=
-github.com/xtls/xray-core v1.260206.1-0.20260327174540-d2758a023cd7 h1:0OuuU2di24aiYcVlWK1rmOlg+xRvOhD7tXoCF9h7zzc=
-github.com/xtls/xray-core v1.260206.1-0.20260327174540-d2758a023cd7/go.mod h1:OXMlhBloFry8mw0KwWLWLd3RQyXJzEYsCGlgsX36h60=
 github.com/xtls/xray-core v1.260327.0 h1:g4TzxMwyPrxslZh6uD+FiG3lXKTrnNO+b4ky2OhogHE=
 github.com/xtls/xray-core v1.260327.0/go.mod h1:OXMlhBloFry8mw0KwWLWLd3RQyXJzEYsCGlgsX36h60=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
