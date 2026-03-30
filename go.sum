@@ -6,6 +6,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20260312044227-3e204767931f h1:mB/G
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260312044227-3e204767931f/go.mod h1:dN7PxgQFl/TCmUlY7ZRdeVLIyoNZbijzYYcNrcmc/ks=
 github.com/Potterli20/golem v0.0.0-20260327011702-e74eddbe7c06 h1:Vd4bOrBBmXtOq8rfLYQPclScTMweL8LapPTOe/t/Xms=
 github.com/Potterli20/golem v0.0.0-20260327011702-e74eddbe7c06/go.mod h1:9NCCuCl4rvNoptbC6wvlSb9zIVGYjdwrpG3q++K4PY4=
+github.com/Potterli20/golem v0.0.0-20260330125242-2484ecb78d82 h1:FF/9BE2ekldow7Bq9gFBw9yEyoiNavyr8eW0E3ifnQo=
+github.com/Potterli20/golem v0.0.0-20260330125242-2484ecb78d82/go.mod h1:PRh4ct1kQubS2bezhyoTPrwqC8DU/a767sT5woUgDoA=
 github.com/Potterli20/socks5-fork v0.0.0-20260327051525-4fa0c4585759 h1:vxHcZldG0/VRoXeshkmKKF4QVUoanp953FAl9PP6HaA=
 github.com/Potterli20/socks5-fork v0.0.0-20260327051525-4fa0c4585759/go.mod h1:9GTkRzWmOV4MsSTwJwjunn3GlZBcUBAAFOFfIAaboh8=
 github.com/Potterli20/sqlite v0.0.0-20260327212347-32d9bf52d087 h1:y5Haw1wu/oXIB98dKEUK9DzCIVhL7RQno6QcwYPc7A4=
@@ -27,6 +29,8 @@ github.com/database64128/netx-go v0.1.1 h1:dT5LG7Gs7zFZBthFBbzWE6K8wAHjSNAaK7wCY
 github.com/database64128/netx-go v0.1.1/go.mod h1:LNlYVipaYkQArRFDNNJ02VkNV+My9A5XR/IGS7sIBQc=
 github.com/database64128/tfo-go/v2 v2.3.3-0.20260318153910-b3351019ca96 h1:7S7c502DCmZfud8IiVneZaebutTBYqi4HedxhO3DhEE=
 github.com/database64128/tfo-go/v2 v2.3.3-0.20260318153910-b3351019ca96/go.mod h1:floVt2REc8xeOxFIyttPCvnd6XPIyHPTQ4fDA3EXdUs=
+github.com/database64128/tfo-go/v2 v2.3.3-0.20260330124458-c54a1f044370 h1:hg/dEXih2OOF7MCq4GWDo0c9i5RMeduvTdDc5oIVB38=
+github.com/database64128/tfo-go/v2 v2.3.3-0.20260330124458-c54a1f044370/go.mod h1:floVt2REc8xeOxFIyttPCvnd6XPIyHPTQ4fDA3EXdUs=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
@@ -113,6 +117,8 @@ github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/lufia/plan9stats v0.0.0-20260324052639-156f7da3f749 h1:Qj3hTcdWH8uMZDI41HNuTuJN525C7NBrbtH5kSO6fPk=
 github.com/lufia/plan9stats v0.0.0-20260324052639-156f7da3f749/go.mod h1:autxFIvghDt3jPTLoqZ9OZ7s9qTGNAWmYCjVFWPX/zg=
+github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e h1:Q6MvJtQK/iRcRtzAscm/zF23XxJlbECiGPyRicsX+Ak=
+github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e/go.mod h1:autxFIvghDt3jPTLoqZ9OZ7s9qTGNAWmYCjVFWPX/zg=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
