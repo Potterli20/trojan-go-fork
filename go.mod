@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260312044227-3e204767931f
-	github.com/Potterli20/socks5-fork v0.0.0-20260401032654-4fe4f3b7691f
+	github.com/Potterli20/socks5-fork v0.0.0-20260401101058-cc2a6b1312ca
 	github.com/Potterli20/sqlite v0.0.0-20260327212347-32d9bf52d087
 	github.com/database64128/tfo-go/v2 v2.3.4-0.20260330163515-99463907255d
 	github.com/go-sql-driver/mysql v1.9.3
@@ -20,7 +20,7 @@ require (
 	golang.org/x/term v0.41.0
 	golang.org/x/time v0.15.0
 	google.golang.org/genproto v0.0.0-20260401024825-9d38bb4040a9
-	google.golang.org/grpc v1.79.3
+	google.golang.org/grpc v1.80.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.31.2-0.20260323100506-40cd2afdadf2
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.14.7 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20260401070736-04f08e842fc3 // indirect
+	github.com/Potterli20/golem v0.0.0-20260401125320-41f4613a7517 // indirect
 	github.com/andybalholm/brotli v1.2.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -72,7 +72,7 @@ require (
 	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
-	github.com/sagernet/sing v0.8.3 // indirect
+	github.com/sagernet/sing v0.8.4 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.3 // indirect
 	github.com/sirupsen/logrus v1.8.3 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
