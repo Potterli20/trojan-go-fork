@@ -210,8 +210,6 @@ github.com/xtaci/smux v2.0.1+incompatible h1:4NrCD5VzuFktMCxK08IShR0C5vKyNICJRSh
 github.com/xtaci/smux v2.0.1+incompatible/go.mod h1:f+nYm6SpuHMy/SH0zpbvAFHT1QoMcgLOsWcFip5KfPw=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f h1:iy2JRioxmUpoJ3SzbFPyTxHZMbR/rSHP7dOOgYaq1O8=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f/go.mod h1:DsJblcWDGt76+FVqBVwbwRhxyyNJsGV48gJLch0OOWI=
-github.com/xtls/xray-core v1.260327.1-0.20260411183932-32937846c577 h1:fhO0M7XwefQLikdm8ss+T8q109dyhEcYh8CbvoCxif8=
-github.com/xtls/xray-core v1.260327.1-0.20260411183932-32937846c577/go.mod h1:PAs13Se+ikchM4seIiHdxk3jzHuVy2wX5pqVnKbPue8=
 github.com/xtls/xray-core v1.260327.1-0.20260411211658-c93478b891d8 h1:u/yPcEbXO+IPH+oVtLNQtuxKjPpsOCwxH2pBqnm8qwo=
 github.com/xtls/xray-core v1.260327.1-0.20260411211658-c93478b891d8/go.mod h1:PAs13Se+ikchM4seIiHdxk3jzHuVy2wX5pqVnKbPue8=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
