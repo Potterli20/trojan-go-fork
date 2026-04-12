@@ -72,7 +72,7 @@ require (
 	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
-	github.com/sagernet/sing v0.8.5-0.20260404181712-947827ec3849 // indirect
+	github.com/sagernet/sing v0.8.5-0.20260411123740-2a8053daaf99 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.3 // indirect
 	github.com/sirupsen/logrus v1.8.3 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
