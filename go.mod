@@ -15,7 +15,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v2.0.1+incompatible
-	github.com/xtls/xray-core v1.260327.1-0.20260411211658-c93478b891d8
+	github.com/xtls/xray-core v1.260327.1-0.20260413133810-806b8dc27db2
 	golang.org/x/net v0.53.0
 	golang.org/x/term v0.42.0
 	golang.org/x/time v0.15.0
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.15.0 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20260410071433-094c80eb2ad3 // indirect
+	github.com/Potterli20/golem v0.0.0-20260413125913-f659d82c910e // indirect
 	github.com/andybalholm/brotli v1.2.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
