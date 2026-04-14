@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260409185243-cb174859be5e
 	github.com/Potterli20/socks5-fork v0.0.0-20260414102023-03d50fc121c8
 	github.com/Potterli20/sqlite v0.0.0-20260410212551-19e792af9699
-	github.com/database64128/tfo-go/v2 v2.3.4-0.20260413142900-ffcdfe3d2fb7
+	github.com/database64128/tfo-go/v2 v2.3.4-0.20260414152113-bbdb9fa2429c
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.8.3-0.20260301010127-aa6edf4b11af
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.16.0 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20260414071615-06090dd48298 // indirect
+	github.com/Potterli20/golem v0.0.0-20260414185735-06a691b990da // indirect
 	github.com/andybalholm/brotli v1.2.2-0.20260411142453-785aba538b21 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
