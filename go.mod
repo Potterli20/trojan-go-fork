@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260409185243-cb174859be5e
-	github.com/Potterli20/socks5-fork v0.0.0-20260415102126-21aeb63eba69
+	github.com/Potterli20/socks5-fork v0.0.0-20260415215718-d5366c68bdb6
 	github.com/Potterli20/sqlite v0.0.0-20260410212551-19e792af9699
 	github.com/database64128/tfo-go/v2 v2.3.4-0.20260414152113-bbdb9fa2429c
 	github.com/go-sql-driver/mysql v1.9.3
@@ -15,7 +15,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v2.0.1+incompatible
-	github.com/xtls/xray-core v1.260327.1-0.20260415165751-3691741440b0
+	github.com/xtls/xray-core v1.260327.1-0.20260415235634-c5edc122b70e
 	golang.org/x/net v0.53.0
 	golang.org/x/term v0.42.0
 	golang.org/x/time v0.15.0
@@ -29,7 +29,7 @@ require (
 require (
 	cloud.google.com/go/oslogin v1.16.0 // indirect
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20260415071709-5f74183a4ff7 // indirect
+	github.com/Potterli20/golem v0.0.0-20260416012726-985309ba391e // indirect
 	github.com/andybalholm/brotli v1.2.2-0.20260411142453-785aba538b21 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -46,7 +46,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-redsync/redsync/v4 v4.16.0 // indirect
 	github.com/google/btree v1.1.3 // indirect
-	github.com/gopherjs/gopherjs v1.20.1 // indirect
+	github.com/gopherjs/gopherjs v1.20.2-0.20260415193114-04f8851016fc // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -62,7 +62,7 @@ require (
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/neelance/astrewrite v0.0.0-20160511093645-99348263ae86 // indirect
 	github.com/neelance/sourcemap v0.0.0-20200213170602-2833bce08e4c // indirect
-	github.com/pires/go-proxyproto v0.11.0 // indirect
+	github.com/pires/go-proxyproto v0.12.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/power-devops/perfstat v0.0.0-20240221224432-82ca36839d55 // indirect
