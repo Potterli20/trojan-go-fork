@@ -8,8 +8,6 @@ github.com/Potterli20/golem v0.0.0-20260417071805-104e3ac4d855 h1:1BKUBrgVGt9TMX
 github.com/Potterli20/golem v0.0.0-20260417071805-104e3ac4d855/go.mod h1:CTGIy6RerLBlz/eTyRTbsEexT6fwYTSorC9m57x4J5k=
 github.com/Potterli20/socks5-fork v0.0.0-20260417101801-ae8ff4ec1ab3 h1:1LQsSfRRiAfiaX4/935SMpqUZWed9VNwfj/AuteVJkk=
 github.com/Potterli20/socks5-fork v0.0.0-20260417101801-ae8ff4ec1ab3/go.mod h1:IbT4Bb/mYzLXKTt9EA+L6jeUWajous2bwgYoXsJowFk=
-github.com/Potterli20/sqlite v0.0.0-20260417184014-d67d4cacd9a2 h1:d/HdZF8A6skehxi9lMV/h/loYCy/IDCu+BazVUeeKVc=
-github.com/Potterli20/sqlite v0.0.0-20260417184014-d67d4cacd9a2/go.mod h1:I4bSnDWkx51TmO6STQhNc8MlDr2BEGTrIZif+jd/kxY=
 github.com/Potterli20/sqlite v0.0.0-20260418011413-ec2b5ed2cc54 h1:f63eGIOboM7TU+Xpo1UaRzp56nK1pDgORMF73Vcz2Zg=
 github.com/Potterli20/sqlite v0.0.0-20260418011413-ec2b5ed2cc54/go.mod h1:3Y+FnM2JO4gBU6GX30fzHm3tgBbVVRWG2YuyBNV04NA=
 github.com/alicebob/miniredis/v2 v2.37.0 h1:RheObYW32G1aiJIj81XVt78ZHJpHonHLHW7OLIshq68=
@@ -175,6 +173,8 @@ github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sagernet/sing v0.8.7-0.20260416084641-60846c117dd8 h1:gBTi6DvU/F/ZKcq9HvEWpT/DhpNU68FTGHK2c+m80vo=
 github.com/sagernet/sing v0.8.7-0.20260416084641-60846c117dd8/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
+github.com/sagernet/sing v0.8.7-0.20260417135631-0d22698ed386 h1:gNonzIaoKi4MiEmK/5iJI+RoGof1PtYqzSaNE/lmWLw=
+github.com/sagernet/sing v0.8.7-0.20260417135631-0d22698ed386/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegEZaKMv9ipx8=
 github.com/sagernet/sing-shadowsocks v0.2.7/go.mod h1:0rIKJZBR65Qi0zwdKezt4s57y/Tl1ofkaq6NlkzVuyE=
 github.com/shirou/gopsutil/v4 v4.26.3 h1:2ESdQt90yU3oXF/CdOlRCJxrP+Am1aBYubTMTfxJ1qc=
@@ -212,8 +212,6 @@ github.com/xtaci/smux v2.0.1+incompatible h1:4NrCD5VzuFktMCxK08IShR0C5vKyNICJRSh
 github.com/xtaci/smux v2.0.1+incompatible/go.mod h1:f+nYm6SpuHMy/SH0zpbvAFHT1QoMcgLOsWcFip5KfPw=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f h1:iy2JRioxmUpoJ3SzbFPyTxHZMbR/rSHP7dOOgYaq1O8=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f/go.mod h1:DsJblcWDGt76+FVqBVwbwRhxyyNJsGV48gJLch0OOWI=
-github.com/xtls/xray-core v1.260327.1-0.20260415235634-c5edc122b70e h1:Ndk6i7q2rExWGsXzp1KsUvqkY4Id+NgpGr73Sg/x4lM=
-github.com/xtls/xray-core v1.260327.1-0.20260415235634-c5edc122b70e/go.mod h1:nFFTSnhpW0qTKUOeABKy3XAxdZ9WRuyhP4dEtPy1Qps=
 github.com/xtls/xray-core v1.260327.1-0.20260417230405-b4650360d6a0 h1:9cf2NebR+d4bytVztd5CM3PAfJyfJT4WHucjCYrLv+g=
 github.com/xtls/xray-core v1.260327.1-0.20260417230405-b4650360d6a0/go.mod h1:DowU2gGzHZ9NB9kG2ykRx8SQ09KpSyNjLrdc8XPHVm8=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
@@ -329,8 +327,6 @@ modernc.org/opt v0.1.4 h1:2kNGMRiUjrp4LcaPuLY2PzUfqM/w9N23quVwhKt5Qm8=
 modernc.org/opt v0.1.4/go.mod h1:03fq9lsNfvkYSfxrfUhZCWPk1lm4cq4N+Bh//bEtgns=
 modernc.org/sortutil v1.2.1 h1:+xyoGf15mM3NMlPDnFqrteY07klSFxLElE2PVuWIJ7w=
 modernc.org/sortutil v1.2.1/go.mod h1:7ZI3a3REbai7gzCLcotuw9AC4VZVpYMjDzETGsSMqJE=
-modernc.org/sqlite v1.49.0 h1:isQFJ0Vs7/t8PkjU+EKHskE+WRCKUpUIO4DdTniFTV8=
-modernc.org/sqlite v1.49.0/go.mod h1:m0w8xhwYUVY3H6pSDwc3gkJ/irZT/0YEXwBlhaxQEew=
 modernc.org/sqlite v1.49.1 h1:dYGHTKcX1sJ+EQDnUzvz4TJ5GbuvhNJa8Fg6ElGx73U=
 modernc.org/sqlite v1.49.1/go.mod h1:m0w8xhwYUVY3H6pSDwc3gkJ/irZT/0YEXwBlhaxQEew=
 modernc.org/strutil v1.2.1 h1:UneZBkQA+DX2Rp35KcM69cSsNES9ly8mQWD71HKlOA0=
