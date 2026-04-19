@@ -2,9 +2,9 @@ package geodata
 
 import (
 	"io/ioutil"
+	"reflect"
 	"strings"
 
-	v2router "github.com/xtls/xray-core/app/router"
 	v2geodata "github.com/xtls/xray-core/common/geodata"
 	"google.golang.org/protobuf/proto"
 
@@ -65,7 +65,7 @@ func (g geoipCache) Unmarshal(filename, code string) (*v2geodata.GeoIP, error) {
 			return nil, err
 		}
 		for _, geoip := range geoipList.GetEntry() {
-			if strings.EqualFold(code, geoip.GetCountryCode()) {
+			if strings.EqualFold(code, countryCodeFromGeoIP(geoip)) {
 				g.Set(idx, geoip)
 				return geoip, nil
 			}
@@ -76,6 +76,26 @@ func (g geoipCache) Unmarshal(filename, code string) (*v2geodata.GeoIP, error) {
 	}
 
 	return nil, common.NewError("country code " + code + " not found in " + filename)
+}
+
+func countryCodeFromGeoIP(geoip *v2geodata.GeoIP) string {
+	v := reflect.ValueOf(geoip).Elem()
+	f := v.FieldByName("CountryCode")
+	if f.IsValid() && f.CanInterface() {
+		if s, ok := f.Interface().(string); ok {
+			return s
+		}
+	}
+	method := v.MethodByName("GetCountryCode")
+	if method.IsValid() {
+		result := method.Call(nil)
+		if len(result) > 0 {
+			if s, ok := result[0].Interface().(string); ok {
+				return s
+			}
+		}
+	}
+	return ""
 }
 
 type geositeCache map[string]*v2geodata.GeoSite
@@ -131,7 +151,7 @@ func (g geositeCache) Unmarshal(filename, code string) (*v2geodata.GeoSite, erro
 			return nil, err
 		}
 		for _, geosite := range geositeList.GetEntry() {
-			if strings.EqualFold(code, geosite.GetCountryCode()) {
+			if strings.EqualFold(code, countryCodeFromGeoSite(geosite)) {
 				g.Set(idx, geosite)
 				return geosite, nil
 			}
@@ -142,4 +162,24 @@ func (g geositeCache) Unmarshal(filename, code string) (*v2geodata.GeoSite, erro
 	}
 
 	return nil, common.NewError("list " + code + " not found in " + filename)
+}
+
+func countryCodeFromGeoSite(geosite *v2geodata.GeoSite) string {
+	v := reflect.ValueOf(geosite).Elem()
+	f := v.FieldByName("CountryCode")
+	if f.IsValid() && f.CanInterface() {
+		if s, ok := f.Interface().(string); ok {
+			return s
+		}
+	}
+	method := v.MethodByName("GetCountryCode")
+	if method.IsValid() {
+		result := method.Call(nil)
+		if len(result) > 0 {
+			if s, ok := result[0].Interface().(string); ok {
+				return s
+			}
+		}
+	}
+	return ""
 }

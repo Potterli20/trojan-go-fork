@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	v2router "github.com/xtls/xray-core/app/router"
+	v2geodata "github.com/xtls/xray-core/common/geodata"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/common/geodata"
@@ -33,17 +33,17 @@ const (
 
 const MaxPacketSize = 1024 * 8
 
-func matchDomain(list []*v2router.Domain, target string) bool {
+func matchDomain(list []*v2geodata.Domain, target string) bool {
 	for _, d := range list {
-		switch d.GetType() {
-		case v2router.Domain_Full:
-			domain := d.GetValue()
+		switch d.Type {
+		case v2geodata.Domain_Full:
+			domain := d.Value
 			if domain == target {
 				log.Tracef("domain %s hit domain(full) rule: %s", target, domain)
 				return true
 			}
-		case v2router.Domain_Domain:
-			domain := d.GetValue()
+		case v2geodata.Domain_Domain:
+			domain := d.Value
 			if strings.HasSuffix(target, domain) {
 				idx := strings.Index(target, domain)
 				if idx == 0 || target[idx-1] == '.' {
@@ -51,30 +51,29 @@ func matchDomain(list []*v2router.Domain, target string) bool {
 					return true
 				}
 			}
-		case v2router.Domain_Plain:
-			// keyword
-			if strings.Contains(target, d.GetValue()) {
-				log.Tracef("domain %s hit keyword rule: %s", target, d.GetValue())
+		case v2geodata.Domain_Substr:
+			if strings.Contains(target, d.Value) {
+				log.Tracef("domain %s hit keyword rule: %s", target, d.Value)
 				return true
 			}
-		case v2router.Domain_Regex:
-			matched, err := regexp.Match(d.GetValue(), []byte(target))
+		case v2geodata.Domain_Regex:
+			matched, err := regexp.Match(d.Value, []byte(target))
 			if err != nil {
-				log.Error("invalid regex", d.GetValue())
+				log.Error("invalid regex", d.Value)
 				return false
 			}
 			if matched {
-				log.Tracef("domain %s hit regex rule: %s", target, d.GetValue())
+				log.Tracef("domain %s hit regex rule: %s", target, d.Value)
 				return true
 			}
 		default:
-			log.Debug("unknown rule type:", d.GetType().String())
+			log.Debug("unknown rule type:", d.Type.String())
 		}
 	}
 	return false
 }
 
-func matchIP(list []*v2router.CIDR, target net.IP) bool {
+func matchIP(list []*v2geodata.CIDR, target net.IP) bool {
 	isIPv6 := true
 	len := net.IPv6len
 	if target.To4() != nil {
@@ -82,14 +81,14 @@ func matchIP(list []*v2router.CIDR, target net.IP) bool {
 		isIPv6 = false
 	}
 	for _, c := range list {
-		n := int(c.GetPrefix())
+		n := int(c.Prefix)
 		mask := net.CIDRMask(n, 8*len)
-		cidrIP := net.IP(c.GetIp())
-		if cidrIP.To4() != nil { // IPv4 CIDR
+		cidrIP := net.IP(c.Ip)
+		if cidrIP.To4() != nil {
 			if isIPv6 {
 				continue
 			}
-		} else { // IPv6 CIDR
+		} else {
 			if !isIPv6 {
 				continue
 			}
@@ -120,8 +119,8 @@ func newIPAddress(address *tunnel.Address) (*tunnel.Address, error) {
 }
 
 type Client struct {
-	domains        [3][]*v2router.Domain
-	cidrs          [3][]*v2router.CIDR
+	domains        [3][]*v2geodata.Domain
+	cidrs          [3][]*v2geodata.CIDR
 	defaultPolicy  int
 	domainStrategy int
 	underlay       tunnel.Client
@@ -276,8 +275,8 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	}
 
 	client := &Client{
-		domains:  [3][]*v2router.Domain{},
-		cidrs:    [3][]*v2router.CIDR{},
+		domains:  [3][]*v2geodata.Domain{},
+		cidrs:    [3][]*v2geodata.CIDR{},
 		underlay: underlay,
 		direct:   direct,
 		ctx:      ctx,
@@ -327,16 +326,15 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	for _, c := range siteCode {
 		code := c.code
 		attrWanted := ""
-		// Test if user wants domains that have an attribute
 		if attrIdx := strings.Index(code, "@"); attrIdx > 0 {
 			if !strings.HasSuffix(code, "@") {
 				code = c.code[:attrIdx]
 				attrWanted = c.code[attrIdx+1:]
-			} else { // "geosite:google@" is invalid
+			} else {
 				log.Warnf("geosite:%s invalid", code)
 				continue
 			}
-		} else if attrIdx == 0 { // "geosite:@cn" is invalid
+		} else if attrIdx == 0 {
 			log.Warnf("geosite:%s invalid", code)
 			continue
 		}
@@ -348,8 +346,8 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 			found := false
 			if attrWanted != "" {
 				for _, domain := range domainList {
-					for _, attr := range domain.GetAttribute() {
-						if strings.EqualFold(attrWanted, attr.GetKey()) {
+					for _, attr := range domain.Attribute {
+						if strings.EqualFold(attrWanted, attr.Key) {
 							client.domains[c.strategy] = append(client.domains[c.strategy], domain)
 							found = true
 						}
@@ -371,8 +369,8 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 
 	domainInfo := loadCode(cfg, "domain:")
 	for _, info := range domainInfo {
-		client.domains[info.strategy] = append(client.domains[info.strategy], &v2router.Domain{
-			Type:      v2router.Domain_Domain,
+		client.domains[info.strategy] = append(client.domains[info.strategy], &v2geodata.Domain{
+			Type:      v2geodata.Domain_Domain,
 			Value:     strings.ToLower(info.code),
 			Attribute: nil,
 		})
@@ -380,8 +378,8 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 
 	keywordInfo := loadCode(cfg, "keyword:")
 	for _, info := range keywordInfo {
-		client.domains[info.strategy] = append(client.domains[info.strategy], &v2router.Domain{
-			Type:      v2router.Domain_Plain,
+		client.domains[info.strategy] = append(client.domains[info.strategy], &v2geodata.Domain{
+			Type:      v2geodata.Domain_Substr,
 			Value:     strings.ToLower(info.code),
 			Attribute: nil,
 		})
@@ -392,21 +390,20 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		if _, err := regexp.Compile(info.code); err != nil {
 			return nil, common.NewError("invalid regular expression: " + info.code).Base(err)
 		}
-		client.domains[info.strategy] = append(client.domains[info.strategy], &v2router.Domain{
-			Type:      v2router.Domain_Regex,
+		client.domains[info.strategy] = append(client.domains[info.strategy], &v2geodata.Domain{
+			Type:      v2geodata.Domain_Regex,
 			Value:     info.code,
 			Attribute: nil,
 		})
 	}
 
-	// Just for compatibility with V2Ray rule type `regexp`
 	regexpInfo := loadCode(cfg, "regexp:")
 	for _, info := range regexpInfo {
 		if _, err := regexp.Compile(info.code); err != nil {
 			return nil, common.NewError("invalid regular expression: " + info.code).Base(err)
 		}
-		client.domains[info.strategy] = append(client.domains[info.strategy], &v2router.Domain{
-			Type:      v2router.Domain_Regex,
+		client.domains[info.strategy] = append(client.domains[info.strategy], &v2geodata.Domain{
+			Type:      v2geodata.Domain_Regex,
 			Value:     info.code,
 			Attribute: nil,
 		})
@@ -414,8 +411,8 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 
 	fullInfo := loadCode(cfg, "full:")
 	for _, info := range fullInfo {
-		client.domains[info.strategy] = append(client.domains[info.strategy], &v2router.Domain{
-			Type:      v2router.Domain_Full,
+		client.domains[info.strategy] = append(client.domains[info.strategy], &v2geodata.Domain{
+			Type:      v2geodata.Domain_Full,
 			Value:     strings.ToLower(info.code),
 			Attribute: nil,
 		})
@@ -435,7 +432,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		if err != nil {
 			return nil, common.NewError("invalid prefix").Base(err)
 		}
-		client.cidrs[info.strategy] = append(client.cidrs[info.strategy], &v2router.CIDR{
+		client.cidrs[info.strategy] = append(client.cidrs[info.strategy], &v2geodata.CIDR{
 			Ip:     ip,
 			Prefix: uint32(prefix),
 		})
@@ -447,8 +444,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 
 	log.Debugf("GeoIP rules -> Alloc: %s; TotalAlloc: %s", common.HumanFriendlyTraffic(m2.Alloc-m1.Alloc), common.HumanFriendlyTraffic(m2.TotalAlloc-m1.TotalAlloc))
 	log.Debugf("GeoSite rules -> Alloc: %s; TotalAlloc: %s", common.HumanFriendlyTraffic(m3.Alloc-m2.Alloc), common.HumanFriendlyTraffic(m3.TotalAlloc-m2.TotalAlloc))
-	log.Debugf("Plaintext rules -> Alloc: %s; TotalAlloc: %s", common.HumanFriendlyTraffic(m4.Alloc-m3.Alloc), common.HumanFriendlyTraffic(m4.TotalAlloc-m3.TotalAlloc))
-	log.Debugf("Total(router) -> Alloc: %s; TotalAlloc: %s", common.HumanFriendlyTraffic(m4.Alloc-m1.Alloc), common.HumanFriendlyTraffic(m4.TotalAlloc-m1.TotalAlloc))
+	log.Debugf("Manual rules -> Alloc: %s; TotalAlloc: %s", common.HumanFriendlyTraffic(m4.Alloc-m3.Alloc), common.HumanFriendlyTraffic(m4.TotalAlloc-m3.TotalAlloc))
 
 	return client, nil
 }

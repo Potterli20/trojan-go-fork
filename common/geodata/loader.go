@@ -3,7 +3,6 @@ package geodata
 import (
 	"runtime"
 
-	v2router "github.com/xtls/xray-core/app/router"
 	v2geodata "github.com/xtls/xray-core/common/geodata"
 )
 
@@ -19,7 +18,7 @@ func NewGeodataLoader() GeodataLoader {
 	}
 }
 
-func (g *geodataCache) LoadIP(filename, country string) ([]*v2router.CIDR, error) {
+func (g *geodataCache) LoadIP(filename, country string) ([]*v2geodata.CIDR, error) {
 	geoip, err := g.geoipCache.Unmarshal(filename, country)
 	if err != nil {
 		return nil, err
@@ -28,7 +27,7 @@ func (g *geodataCache) LoadIP(filename, country string) ([]*v2router.CIDR, error
 	return geoip.GetCidr(), nil
 }
 
-func (g *geodataCache) LoadSite(filename, list string) ([]*v2router.Domain, error) {
+func (g *geodataCache) LoadSite(filename, list string) ([]*v2geodata.Domain, error) {
 	geosite, err := g.geositeCache.Unmarshal(filename, list)
 	if err != nil {
 		return nil, err
@@ -37,10 +36,10 @@ func (g *geodataCache) LoadSite(filename, list string) ([]*v2router.Domain, erro
 	return geosite.GetDomain(), nil
 }
 
-func (g *geodataCache) LoadGeoIP(country string) ([]*v2router.CIDR, error) {
+func (g *geodataCache) LoadGeoIP(country string) ([]*v2geodata.CIDR, error) {
 	return g.LoadIP("geoip.dat", country)
 }
 
-func (g *geodataCache) LoadGeoSite(list string) ([]*v2router.Domain, error) {
+func (g *geodataCache) LoadGeoSite(list string) ([]*v2geodata.Domain, error) {
 	return g.LoadSite("geosite.dat", list)
 }
