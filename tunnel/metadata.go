@@ -19,33 +19,35 @@ type Metadata struct {
 	*Address
 }
 
-func (r *Metadata) ReadFrom(rr io.Reader) error {
+func (r *Metadata) ReadFrom(rr io.Reader) (int64, error) {
 	byteBuf := make([]byte, 1)
-	_, err := io.ReadFull(rr, byteBuf[:])
+	n, err := io.ReadFull(rr, byteBuf[:])
 	if err != nil {
-		return err
+		return int64(n), err
 	}
 	r.Command = Command(byteBuf[0])
 	r.Address = new(Address)
-	err = r.Address.ReadFrom(rr)
+	n2, err := r.Address.ReadFrom(rr)
 	if err != nil {
-		return common.NewError("failed to unmarshal address: ").Base(err)
+		return int64(n) + n2, common.NewError("failed to unmarshal address: ").Base(err)
 	}
-	return nil
+	return int64(n) + n2, nil
 }
 
-func (r *Metadata) WriteTo(w io.Writer) error {
+func (r *Metadata) WriteTo(w io.Writer) (int64, error) {
 	buf := bytes.NewBuffer(make([]byte, 0, 64))
 	buf.WriteByte(byte(r.Command))
-	if err := r.Address.WriteTo(buf); err != nil {
-		return err
+	_, err := r.Address.WriteTo(buf)
+	if err != nil {
+		return 0, err
 	}
 	// use tcp by default
 	r.Address.NetworkType = "tcp"
-	if _, err := buf.WriteTo(w); err != nil {
-		return err
+	n, err := buf.WriteTo(w)
+	if err != nil {
+		return n, err
 	}
-	return nil
+	return n, nil
 }
 
 func (r *Metadata) Network() string {
@@ -161,40 +163,45 @@ func NewAddressFromHostPort(network string, host string, port int) *Address {
 	}
 }
 
-func (a *Address) ReadFrom(r io.Reader) error {
+func (a *Address) ReadFrom(r io.Reader) (int64, error) {
 	byteBuf := make([]byte, 1)
-	_, err := io.ReadFull(r, byteBuf[:])
+	n, err := io.ReadFull(r, byteBuf[:])
 	if err != nil {
-		return common.NewError("unable to read ATYP").Base(err)
+		return int64(n), common.NewError("unable to read ATYP").Base(err)
 	}
 	a.AddressType = AddressType(byteBuf[0])
+	total := int64(n)
 	switch a.AddressType {
 	case IPv4:
 		var buf [6]byte
-		_, err := io.ReadFull(r, buf[:])
+		n, err := io.ReadFull(r, buf[:])
+		total += int64(n)
 		if err != nil {
-			return common.NewError("failed to read IPv4").Base(err)
+			return total, common.NewError("failed to read IPv4").Base(err)
 		}
 		a.IP = buf[0:4]
 		a.Port = int(binary.BigEndian.Uint16(buf[4:6]))
 	case IPv6:
 		var buf [18]byte
-		_, err := io.ReadFull(r, buf[:])
+		n, err := io.ReadFull(r, buf[:])
+		total += int64(n)
 		if err != nil {
-			return common.NewError("failed to read IPv6").Base(err)
+			return total, common.NewError("failed to read IPv6").Base(err)
 		}
 		a.IP = buf[0:16]
 		a.Port = int(binary.BigEndian.Uint16(buf[16:18]))
 	case DomainName:
-		_, err := io.ReadFull(r, byteBuf[:])
+		n, err := io.ReadFull(r, byteBuf[:])
+		total += int64(n)
 		length := byteBuf[0]
 		if err != nil {
-			return common.NewError("failed to read domain name length")
+			return total, common.NewError("failed to read domain name length")
 		}
 		buf := make([]byte, length+2)
-		_, err = io.ReadFull(r, buf)
+		n, err = io.ReadFull(r, buf)
+		total += int64(n)
 		if err != nil {
-			return common.NewError("failed to read domain name")
+			return total, common.NewError("failed to read domain name")
 		}
 		// check if the domain name is actually an IP address
 		if ip := net.ParseIP(string(buf[:length])); ip != nil {
@@ -209,32 +216,41 @@ func (a *Address) ReadFrom(r io.Reader) error {
 		}
 		a.Port = int(binary.BigEndian.Uint16(buf[length : length+2]))
 	default:
-		return common.NewError("invalid address type " + strconv.FormatInt(int64(a.AddressType), 10))
+		return total, common.NewError("invalid address type " + strconv.FormatInt(int64(a.AddressType), 10))
 	}
-	return nil
+	return total, nil
 }
 
-func (a *Address) WriteTo(w io.Writer) error {
-	_, err := w.Write([]byte{byte(a.AddressType)})
+func (a *Address) WriteTo(w io.Writer) (int64, error) {
+	n, err := w.Write([]byte{byte(a.AddressType)})
 	if err != nil {
-		return err
+		return int64(n), err
 	}
+	total := int64(n)
 	switch a.AddressType {
 	case DomainName:
-		w.Write([]byte{byte(len(a.DomainName))})
-		_, err = w.Write([]byte(a.DomainName))
+		n, err := w.Write([]byte{byte(len(a.DomainName))})
+		total += int64(n)
+		if err != nil {
+			return total, err
+		}
+		n, err = w.Write([]byte(a.DomainName))
+		total += int64(n)
 	case IPv4:
-		_, err = w.Write(a.IP.To4())
+		n, err = w.Write(a.IP.To4())
+		total += int64(n)
 	case IPv6:
-		_, err = w.Write(a.IP.To16())
+		n, err = w.Write(a.IP.To16())
+		total += int64(n)
 	default:
-		return common.NewError("invalid ATYP " + strconv.FormatInt(int64(a.AddressType), 10))
+		return total, common.NewError("invalid ATYP " + strconv.FormatInt(int64(a.AddressType), 10))
 	}
 	if err != nil {
-		return err
+		return total, err
 	}
 	port := [2]byte{}
 	binary.BigEndian.PutUint16(port[:], uint16(a.Port))
-	_, err = w.Write(port[:])
-	return err
+	n, err = w.Write(port[:])
+	total += int64(n)
+	return total, err
 }

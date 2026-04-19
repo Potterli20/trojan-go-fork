@@ -75,8 +75,7 @@ func TestSocks(t *testing.T) {
 	common.Must(err)
 	s, _ := socks5.NewClassicServer(socksAddr.String(), "127.0.0.1", "", "", 0, 0)
 	s.Handle = &socks5.DefaultHandle{}
-	go s.RunTCPServer()
-	go s.RunUDPServer()
+	go s.ListenAndServe(&socks5.DefaultHandle{})
 
 	time.Sleep(time.Second * 2)
 	conn, err := client.DialConn(target, nil)

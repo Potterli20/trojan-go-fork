@@ -74,7 +74,8 @@ func TestSocks(t *testing.T) {
 	payload := util.GeneratePayload(1024)
 	buf := bytes.NewBuffer(make([]byte, 0, 4096))
 	buf.Write([]byte{0, 0, 0}) // RSV, FRAG
-	common.Must(addr.WriteTo(buf))
+	_, err = addr.WriteTo(buf)
+	common.Must(err)
 	buf.Write(payload)
 
 	udpConn.WriteTo(buf.Bytes(), &net.UDPAddr{
@@ -108,7 +109,8 @@ func TestSocks(t *testing.T) {
 	header := [3]byte{}
 	r.Read(header[:])
 	addr = new(tunnel.Address)
-	common.Must(addr.ReadFrom(r))
+	_, err = addr.ReadFrom(r)
+	common.Must(err)
 	if addr.IP.String() != "123.123.234.234" || addr.Port != 12345 {
 		t.Fail()
 	}

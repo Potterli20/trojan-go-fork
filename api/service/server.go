@@ -40,7 +40,11 @@ func (s *ServerAPI) GetUsers(stream TrojanServerService_GetUsersServer) error {
 			return common.NewError("user is unspecified")
 		}
 		if req.User.Hash == "" {
-			req.User.Hash = common.SHA224String(req.User.Password)
+			hash, err := common.HashPassword(req.User.Password)
+			if err != nil {
+				return common.NewError("Failed to hash password").Base(err)
+			}
+			req.User.Hash = hash
 		}
 		valid, user := s.auth.AuthUser(req.User.Hash)
 		if !valid {
@@ -95,7 +99,11 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 			return common.NewError("status is unspecified")
 		}
 		if req.Status.User.Hash == "" {
-			req.Status.User.Hash = common.SHA224String(req.Status.User.Password)
+			hash, err := common.HashPassword(req.Status.User.Password)
+			if err != nil {
+				return common.NewError("Failed to hash password").Base(err)
+			}
+			req.Status.User.Hash = hash
 		}
 		switch req.Operation {
 		case SetUsersRequest_Add:

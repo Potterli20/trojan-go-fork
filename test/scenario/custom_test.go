@@ -299,6 +299,4 @@ outbound:
 	}
 }
 
-func CheckClientServer(clientData, serverData string, socksPort int) {
-	panic("unimplemented")
-}
+

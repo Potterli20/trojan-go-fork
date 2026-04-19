@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"math/rand"
+	"sync/atomic"
 	"time"
 
 	"os"

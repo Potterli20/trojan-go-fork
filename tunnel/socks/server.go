@@ -87,7 +87,8 @@ func (s *Server) handshake(conn net.Conn) (*Conn, error) {
 	}
 
 	addr := new(tunnel.Address)
-	if err := addr.ReadFrom(conn); err != nil {
+	_, err := addr.ReadFrom(conn)
+	if err != nil {
 		return nil, err
 	}
 
@@ -107,8 +108,9 @@ func (s *Server) connect(conn net.Conn) error {
 
 func (s *Server) associate(conn net.Conn, addr *tunnel.Address) error {
 	buf := bytes.NewBuffer([]byte{0x05, 0x00, 0x00})
-	common.Must(addr.WriteTo(buf))
-	_, err := conn.Write(buf.Bytes())
+	_, err := addr.WriteTo(buf)
+	common.Must(err)
+	_, err = conn.Write(buf.Bytes())
 	return err
 }
 
@@ -146,9 +148,10 @@ func (s *Server) packetDispatchLoop() {
 					case info := <-conn.output:
 						buf := bytes.NewBuffer(make([]byte, 0, MaxPacketSize))
 						buf.Write([]byte{0, 0, 0}) // RSV, FRAG
-						common.Must(info.metadata.Address.WriteTo(buf))
+						_, err := info.metadata.Address.WriteTo(buf)
+						common.Must(err)
 						buf.Write(info.payload)
-						_, err := s.listenPacketConn.WriteTo(buf.Bytes(), conn.src)
+						_, err = s.listenPacketConn.WriteTo(buf.Bytes(), conn.src)
 						if err != nil {
 							log.Error("socks failed to respond packet to", src)
 							return
@@ -176,7 +179,8 @@ func (s *Server) packetDispatchLoop() {
 		}
 		r := bytes.NewBuffer(buf[3:n])
 		address := new(tunnel.Address)
-		if err := address.ReadFrom(r); err != nil {
+		_, err = address.ReadFrom(r)
+		if err != nil {
 			log.Error(common.NewError("socks failed to parse incoming packet").Base(err))
 			continue
 		}

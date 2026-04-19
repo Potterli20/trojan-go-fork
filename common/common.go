@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/Potterli20/trojan-go-fork/log"
 )
 
@@ -14,6 +16,20 @@ type Runnable interface {
 	Close() error
 }
 
+func HashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
+}
+
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
+// SHA224String is kept for backward compatibility
 func SHA224String(password string) string {
 	hash := sha256.New224()
 	hash.Write([]byte(password))

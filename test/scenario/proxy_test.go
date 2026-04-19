@@ -12,7 +12,6 @@ import (
 	"time"
 
 	netproxy "golang.org/x/net/proxy"
-	"google.golang.org/genproto/googleapis/cloud/oslogin/v1"
 
 	_ "github.com/Potterli20/trojan-go-fork/api"
 	_ "github.com/Potterli20/trojan-go-fork/api/service"

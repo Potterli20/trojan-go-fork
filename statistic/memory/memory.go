@@ -227,6 +227,21 @@ func (a *Authenticator) AuthUser(hash string) (bool, statistic.User) {
 	return false, nil
 }
 
+func (a *Authenticator) AuthUserWithPassword(password string) (bool, statistic.User) {
+	var foundUser statistic.User
+	found := false
+	a.users.Range(func(k, v any) bool {
+		user := v.(*User)
+		if common.CheckPasswordHash(password, user.Hash) {
+			foundUser = user
+			found = true
+			return false
+		}
+		return true
+	})
+	return found, foundUser
+}
+
 func (a *Authenticator) SetKeyShare(hash string, pwd string) error {
 	u, exist := a.users.Load(hash)
 	if !exist {
@@ -383,7 +398,11 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 			}
 		}
 	for _, password := range cfg.Passwords {
-		hash := common.SHA224String(password)
+		hash, err := common.HashPassword(password)
+		if err != nil {
+			log.Errorf("Failed to hash password: %v", err)
+			continue
+		}
 		a.AddUser(hash)
 		a.SetKeyShare(hash, password)
 		a.SetUserIPLimit(hash, cfg.MaxIPPerUser)
