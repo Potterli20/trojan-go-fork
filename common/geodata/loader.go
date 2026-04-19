@@ -4,6 +4,7 @@ import (
 	"runtime"
 
 	v2router "github.com/xtls/xray-core/app/router"
+	v2geodata "github.com/xtls/xray-core/common/geodata"
 )
 
 type geodataCache struct {
@@ -13,8 +14,8 @@ type geodataCache struct {
 
 func NewGeodataLoader() GeodataLoader {
 	return &geodataCache{
-		make(map[string]*v2router.GeoIP),
-		make(map[string]*v2router.GeoSite),
+		make(map[string]*v2geodata.GeoIP),
+		make(map[string]*v2geodata.GeoSite),
 	}
 }
 
@@ -24,7 +25,7 @@ func (g *geodataCache) LoadIP(filename, country string) ([]*v2router.CIDR, error
 		return nil, err
 	}
 	runtime.GC()
-	return geoip.Cidr, nil
+	return geoip.GetCidr(), nil
 }
 
 func (g *geodataCache) LoadSite(filename, list string) ([]*v2router.Domain, error) {
@@ -33,7 +34,7 @@ func (g *geodataCache) LoadSite(filename, list string) ([]*v2router.Domain, erro
 		return nil, err
 	}
 	runtime.GC()
-	return geosite.Domain, nil
+	return geosite.GetDomain(), nil
 }
 
 func (g *geodataCache) LoadGeoIP(country string) ([]*v2router.CIDR, error) {

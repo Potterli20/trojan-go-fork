@@ -128,7 +128,7 @@ func (c *Client) newMuxClient() (*smuxClientInfo, error) {
 
 func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 	createNewConn := func(info *smuxClientInfo) (tunnel.Conn, error) {
-		rwc, err := info.client.Open()
+		rwc, err := info.client.OpenStream()
 		info.lastActiveTime = time.Now()
 		if err != nil {
 			info.underlayConn.Close()
@@ -137,8 +137,9 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 			return nil, common.NewError("mux failed to open stream from client").Base(err)
 		}
 		return &Conn{
-			rwc:  rwc,
-			Conn: info.underlayConn,
+			rwc:            rwc,
+			Conn:           info.underlayConn,
+			lastActiveTime: &info.lastActiveTime,
 		}, nil
 	}
 

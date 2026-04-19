@@ -5,33 +5,34 @@ import (
 	"strings"
 
 	v2router "github.com/xtls/xray-core/app/router"
+	v2geodata "github.com/xtls/xray-core/common/geodata"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
 )
 
-type geoipCache map[string]*v2router.GeoIP
+type geoipCache map[string]*v2geodata.GeoIP
 
 func (g geoipCache) Has(key string) bool {
 	return !(g.Get(key) == nil)
 }
 
-func (g geoipCache) Get(key string) *v2router.GeoIP {
+func (g geoipCache) Get(key string) *v2geodata.GeoIP {
 	if g == nil {
 		return nil
 	}
 	return g[key]
 }
 
-func (g geoipCache) Set(key string, value *v2router.GeoIP) {
+func (g geoipCache) Set(key string, value *v2geodata.GeoIP) {
 	if g == nil {
-		g = make(map[string]*v2router.GeoIP)
+		g = make(map[string]*v2geodata.GeoIP)
 	}
 	g[key] = value
 }
 
-func (g geoipCache) Unmarshal(filename, code string) (*v2router.GeoIP, error) {
+func (g geoipCache) Unmarshal(filename, code string) (*v2geodata.GeoIP, error) {
 	asset := common.GetAssetLocation(filename)
 	idx := strings.ToLower(asset + ":" + code)
 	if g.Has(idx) {
@@ -42,7 +43,7 @@ func (g geoipCache) Unmarshal(filename, code string) (*v2router.GeoIP, error) {
 	geoipBytes, err := Decode(asset, code)
 	switch err {
 	case nil:
-		var geoip v2router.GeoIP
+		var geoip v2geodata.GeoIP
 		if err := proto.Unmarshal(geoipBytes, &geoip); err != nil {
 			return nil, err
 		}
@@ -59,7 +60,7 @@ func (g geoipCache) Unmarshal(filename, code string) (*v2router.GeoIP, error) {
 		if err != nil {
 			return nil, err
 		}
-		var geoipList v2router.GeoIPList
+		var geoipList v2geodata.GeoIPList
 		if err := proto.Unmarshal(geoipBytes, &geoipList); err != nil {
 			return nil, err
 		}
@@ -77,27 +78,27 @@ func (g geoipCache) Unmarshal(filename, code string) (*v2router.GeoIP, error) {
 	return nil, common.NewError("country code " + code + " not found in " + filename)
 }
 
-type geositeCache map[string]*v2router.GeoSite
+type geositeCache map[string]*v2geodata.GeoSite
 
 func (g geositeCache) Has(key string) bool {
 	return !(g.Get(key) == nil)
 }
 
-func (g geositeCache) Get(key string) *v2router.GeoSite {
+func (g geositeCache) Get(key string) *v2geodata.GeoSite {
 	if g == nil {
 		return nil
 	}
 	return g[key]
 }
 
-func (g geositeCache) Set(key string, value *v2router.GeoSite) {
+func (g geositeCache) Set(key string, value *v2geodata.GeoSite) {
 	if g == nil {
-		g = make(map[string]*v2router.GeoSite)
+		g = make(map[string]*v2geodata.GeoSite)
 	}
 	g[key] = value
 }
 
-func (g geositeCache) Unmarshal(filename, code string) (*v2router.GeoSite, error) {
+func (g geositeCache) Unmarshal(filename, code string) (*v2geodata.GeoSite, error) {
 	asset := common.GetAssetLocation(filename)
 	idx := strings.ToLower(asset + ":" + code)
 	if g.Has(idx) {
@@ -108,7 +109,7 @@ func (g geositeCache) Unmarshal(filename, code string) (*v2router.GeoSite, error
 	geositeBytes, err := Decode(asset, code)
 	switch err {
 	case nil:
-		var geosite v2router.GeoSite
+		var geosite v2geodata.GeoSite
 		if err := proto.Unmarshal(geositeBytes, &geosite); err != nil {
 			return nil, err
 		}
@@ -125,7 +126,7 @@ func (g geositeCache) Unmarshal(filename, code string) (*v2router.GeoSite, error
 		if err != nil {
 			return nil, err
 		}
-		var geositeList v2router.GeoSiteList
+		var geositeList v2geodata.GeoSiteList
 		if err := proto.Unmarshal(geositeBytes, &geositeList); err != nil {
 			return nil, err
 		}
