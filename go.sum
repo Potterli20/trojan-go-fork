@@ -6,8 +6,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20260409185243-cb174859be5e h1:9KGZ
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260409185243-cb174859be5e/go.mod h1:nWrYM/kdS3su0Upcr/lhEHKpcbSmnwWaKDoTqJHgHsQ=
 github.com/Potterli20/golem v0.0.0-20260419012818-3bf2c1a86297 h1:Woa6WvBeFVv6Rokv53cG+XpFXM1AnlGHyneB7D4fJJE=
 github.com/Potterli20/golem v0.0.0-20260419012818-3bf2c1a86297/go.mod h1:fYKo6p8E2a6C7Cp37+rbfATkHbcqSjaSlkDwoXbjlS0=
-github.com/Potterli20/socks5-fork v0.0.0-20260417101801-ae8ff4ec1ab3 h1:1LQsSfRRiAfiaX4/935SMpqUZWed9VNwfj/AuteVJkk=
-github.com/Potterli20/socks5-fork v0.0.0-20260417101801-ae8ff4ec1ab3/go.mod h1:IbT4Bb/mYzLXKTt9EA+L6jeUWajous2bwgYoXsJowFk=
+github.com/Potterli20/golem v0.0.0-20260419070541-bd4975ac4833 h1:MrUR0O1THqbA6U0u0G+8zZAXtMislsI98gkAf0qMuSg=
+github.com/Potterli20/golem v0.0.0-20260419070541-bd4975ac4833/go.mod h1:fYKo6p8E2a6C7Cp37+rbfATkHbcqSjaSlkDwoXbjlS0=
 github.com/Potterli20/socks5-fork v0.0.0-20260419033347-85956aaeabaf h1:4s2KgFXrIX4/ro4HO4DQSFv5hN5ZD+3CjXro6FZcGk8=
 github.com/Potterli20/socks5-fork v0.0.0-20260419033347-85956aaeabaf/go.mod h1:h8hukQ6K4+s3lRA2nSH2NZZDrmVQCR5OrIK2KISsSTU=
 github.com/Potterli20/sqlite v0.0.0-20260418011413-ec2b5ed2cc54 h1:f63eGIOboM7TU+Xpo1UaRzp56nK1pDgORMF73Vcz2Zg=
@@ -173,8 +173,6 @@ github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstv
 github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
 github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
-github.com/sagernet/sing v0.8.7-0.20260417135631-0d22698ed386 h1:gNonzIaoKi4MiEmK/5iJI+RoGof1PtYqzSaNE/lmWLw=
-github.com/sagernet/sing v0.8.7-0.20260417135631-0d22698ed386/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing v0.8.7-0.20260419045022-49bc0f27f072 h1:YZt0bnBVoYLQVomL5V52Q7Sw7r7KP5zqVxC+pa9d4Fc=
 github.com/sagernet/sing v0.8.7-0.20260419045022-49bc0f27f072/go.mod h1:ARkL0gM13/Iv5VCZmci/NuoOlePoIsW0m7BWfln/Hak=
 github.com/sagernet/sing-shadowsocks v0.2.7 h1:zaopR1tbHEw5Nk6FAkM05wCslV6ahVegEZaKMv9ipx8=
@@ -212,8 +210,6 @@ github.com/vishvananda/netns v0.0.5 h1:DfiHV+j8bA32MFM7bfEunvT8IAqQ/NzSJHtcmW5zd
 github.com/vishvananda/netns v0.0.5/go.mod h1:SpkAiCQRtJ6TvvxPnOSyH3BMl6unz3xZlaprSwhNNJM=
 github.com/xtaci/smux v1.5.57 h1:N72VbGoSYxgcm6mPOYX0QzEZNVD3UI/JlVvAtXF+WrY=
 github.com/xtaci/smux v1.5.57/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
-github.com/xtaci/smux v2.0.1+incompatible h1:4NrCD5VzuFktMCxK08IShR0C5vKyNICJRShUzvk0U34=
-github.com/xtaci/smux v2.0.1+incompatible/go.mod h1:f+nYm6SpuHMy/SH0zpbvAFHT1QoMcgLOsWcFip5KfPw=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f h1:iy2JRioxmUpoJ3SzbFPyTxHZMbR/rSHP7dOOgYaq1O8=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f/go.mod h1:DsJblcWDGt76+FVqBVwbwRhxyyNJsGV48gJLch0OOWI=
 github.com/xtls/xray-core v1.260327.1-0.20260417230405-b4650360d6a0 h1:9cf2NebR+d4bytVztd5CM3PAfJyfJT4WHucjCYrLv+g=
