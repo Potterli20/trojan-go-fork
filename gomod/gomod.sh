@@ -1,3 +1,9 @@
+# 更新所有依赖到最新版本
+go get -u ./...
+
+# 整理模块并确保与 Go 1.26 兼容
+go mod tidy -compat=1.26
+
 # 获取 tfo-go 最新的 commits
 tfo_commit_hash=$(curl -s https://api.github.com/repos/database64128/tfo-go/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
 # 使用提取的 commit hash 通过 go get 获取 tfo-go
@@ -57,3 +63,6 @@ go get github.com/sagernet/sing@$sing_commit_hash
 smux_commit_hash=$(curl -s https://api.github.com/repos/xtaci/smux/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
 # 使用提取的 commit hash 通过 go get 获取 gorm
 go get github.com/xtaci/smux@$smux_commit_hash
+
+# 最后再次整理模块，确保 go.sum 与 go.mod 一致
+go mod tidy -compat=1.26

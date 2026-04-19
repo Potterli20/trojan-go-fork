@@ -18,11 +18,12 @@ jobs:
         run: |
           if [ -f "go.mod" ]; then
             go clean -modcache
-            go mod tidy -compat=1.25
+            go mod tidy -compat=1.26
             gofmt -w -r 'interface{} -> any' .
             # 仅在有 go.mod 文件时执行 go get
             if [ -f "go.mod" ]; then
               go get -u ./...
+              go mod tidy -compat=1.26
               go mod download
             fi
           else
@@ -34,7 +35,7 @@ jobs:
         run: |
           bash ./gomod/gomod.sh
 
-      - name: Git push 
+      - name: Git push
         run: |
           git init
           git config --local user.name "github-actions[bot]"
@@ -45,7 +46,7 @@ jobs:
           git add --all
           git commit -m "update go $(date +%Y.%m.%d.%H.%M)"
           git push -f -u origin master
-          
+
     # 删除无用 workflow runs;
       - name: Delete workflow runs
         uses: GitRML/delete-workflow-runs@main
