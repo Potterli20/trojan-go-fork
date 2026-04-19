@@ -92,11 +92,17 @@ func (p *Proxy) relayConnLoop() {
 						if err != nil {
 							log.Error(err)
 						}
+						// Close both connections to ensure both goroutines exit
+						inbound.Close()
+						outbound.Close()
 					case <-p.ctx.Done():
 						log.Debug("shutting down conn relay")
 						return
 					case <-time.After(time.Second * 30):
 						log.Debug("timeout conn relay")
+						// Close both connections on timeout
+						inbound.Close()
+						outbound.Close()
 						return
 					}
 					log.Debug("conn relay ends")
