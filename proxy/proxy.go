@@ -46,10 +46,23 @@ func (p *Proxy) Close() error {
 	return nil
 }
 
-var bufPool = sync.Pool{
-	New: func() any {
-		return make([]byte, 8*1024, 8*1024)
-	},
+var (
+	bufPool sync.Pool
+	bufSize int = 8 * 1024
+	bufCount int32 = 0
+	maxBufCount int32 = 1024
+)
+
+func init() {
+	bufPool = sync.Pool{
+		New: func() any {
+			if atomic.LoadInt32(&bufCount) >= maxBufCount {
+				return make([]byte, 1024, 1024) // 当达到最大数量时，返回小buffer
+			}
+			atomic.AddInt32(&bufCount, 1)
+			return make([]byte, bufSize, bufSize)
+		},
+	}
 }
 
 func (p *Proxy) relayConnLoop() {
@@ -64,14 +77,14 @@ func (p *Proxy) relayConnLoop() {
 	for _, source := range p.sources {
 		go func(source tunnel.Server) {
 			for {
+				select {
+				case <-p.ctx.Done():
+					log.Debug("exiting")
+					return
+				default:
+				}
 				inbound, err := source.AcceptConn(nil)
 				if err != nil {
-					select {
-					case <-p.ctx.Done():
-						log.Debug("exiting")
-						return
-					default:
-					}
 					log.Error(common.NewError("failed to accept connection").Base(err))
 					continue
 				}
@@ -92,17 +105,11 @@ func (p *Proxy) relayConnLoop() {
 						if err != nil {
 							log.Error(err)
 						}
-						// Close both connections to ensure both goroutines exit
-						inbound.Close()
-						outbound.Close()
 					case <-p.ctx.Done():
 						log.Debug("shutting down conn relay")
 						return
 					case <-time.After(time.Second * 30):
 						log.Debug("timeout conn relay")
-						// Close both connections on timeout
-						inbound.Close()
-						outbound.Close()
 						return
 					}
 					log.Debug("conn relay ends")
@@ -116,18 +123,19 @@ func (p *Proxy) relayPacketLoop() {
 	copyPacket := func(a, b tunnel.PacketConn, errChan chan error) {
 		for {
 			buf := bufPool.Get().([]byte)
-			defer bufPool.Put(buf)
-
 			n, metadata, err := a.ReadWithMetadata(buf)
 			if err != nil {
+				bufPool.Put(buf)
 				errChan <- err
 				return
 			}
 			if n == 0 {
+				bufPool.Put(buf)
 				errChan <- nil
 				return
 			}
 			_, err = b.WriteWithMetadata(buf[:n], metadata)
+			bufPool.Put(buf)
 			if err != nil {
 				errChan <- err
 				return
@@ -138,14 +146,14 @@ func (p *Proxy) relayPacketLoop() {
 	for _, source := range p.sources {
 		go func(source tunnel.Server) {
 			for {
+				select {
+				case <-p.ctx.Done():
+					log.Debug("exiting")
+					return
+				default:
+				}
 				inbound, err := source.AcceptPacket(nil)
 				if err != nil {
-					select {
-					case <-p.ctx.Done():
-						log.Debug("exiting")
-						return
-					default:
-					}
 					log.Error(common.NewError("failed to accept packet").Base(err))
 					continue
 				}
@@ -180,6 +188,12 @@ func (p *Proxy) relayPacketLoop() {
 }
 
 func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.Server, sink tunnel.Client) *Proxy {
+	// 从配置中读取buffer大小和数量限制
+	if cfg, ok := config.FromContext(ctx, Name).(*Config); ok {
+		if cfg.RelayBufferSize > 0 {
+			bufSize = cfg.RelayBufferSize
+		}
+	}
 	return &Proxy{
 		sources: sources,
 		sink:    sink,

@@ -103,6 +103,13 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 				err = common.NewError("failed to add new user").Base(err)
 				break
 			}
+			// Set password for the new user
+			if memoryAuth, ok := s.auth.(interface{ SetKeyShare(string, string) error }); ok {
+				if err = memoryAuth.SetKeyShare(req.Status.User.Hash, req.Status.User.Password); err != nil {
+					err = common.NewError("failed to set user password").Base(err)
+					break
+				}
+			}
 			if req.Status.SpeedLimit != nil {
 				err = s.auth.SetUserSpeedLimit(req.Status.User.Hash, int(req.Status.SpeedLimit.DownloadSpeed), int(req.Status.SpeedLimit.UploadSpeed))
 				if err != nil {

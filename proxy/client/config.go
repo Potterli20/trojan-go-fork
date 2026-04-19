@@ -7,7 +7,9 @@ type MuxConfig struct {
 }
 
 type WebsocketConfig struct {
-	Enabled bool `json:"enabled" yaml:"enabled"`
+	Enabled bool   `json:"enabled" yaml:"enabled"`
+	Host    string `json:"host" yaml:"host"`
+	Path    string `json:"path" yaml:"path"`
 }
 
 type RouterConfig struct {

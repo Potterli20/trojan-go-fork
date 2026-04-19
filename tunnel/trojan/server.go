@@ -50,14 +50,14 @@ func (c *InboundConn) Metadata() *tunnel.Metadata {
 func (c *InboundConn) Write(p []byte) (int, error) {
 	n, err := c.Conn.Write(p)
 	atomic.AddUint64(&c.sent, uint64(n))
-	c.user.AddSentTraffic(n)
+	c.user.AddRecvTraffic(n) // 服务端写入数据到客户端，对应客户端的接收，即服务端的下行
 	return n, err
 }
 
 func (c *InboundConn) Read(p []byte) (int, error) {
 	n, err := c.Conn.Read(p)
 	atomic.AddUint64(&c.recv, uint64(n))
-	c.user.AddRecvTraffic(n)
+	c.user.AddSentTraffic(n) // 服务端从客户端读取数据，对应客户端的发送，即服务端的上行
 	return n, err
 }
 
