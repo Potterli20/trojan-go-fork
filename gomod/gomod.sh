@@ -52,3 +52,8 @@ go get github.com/Potterli20/socks5-fork@$socks5_commit_hash
 sing_commit_hash=$(curl -s https://api.github.com/repos/sagernet/sing/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
 # 使用提取的 commit hash 通过 go get 获取 gorm
 go get github.com/sagernet/sing@$sing_commit_hash
+
+# 获取 smux 最新的 commits
+smux_commit_hash=$(curl -s https://api.github.com/repos/xtaci/smux/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
+# 使用提取的 commit hash 通过 go get 获取 gorm
+go get github.com/xtaci/smux@$smux_commit_hash
