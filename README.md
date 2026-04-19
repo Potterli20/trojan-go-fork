@@ -4,6 +4,8 @@
 如果有能力去修复，麻烦pr叭
 我的go.mod都会自动更新
 
+注意：现在的项目已经用ai修复和修改
+
 <details>
 <summary><code><strong>docker镜像<br/></strong></code></summary>
 docker：https://hub.docker.com/r/trliwork/trojan-go-fork/tags
@@ -32,7 +34,7 @@ docker pull ghcr.io/potterli20/trojan-go-fork:latest
 - [x] 服务端支持使用sqlite实现用户数据持久化（仅linux）
 - [x] 支持指定转发buffer大小及数量限制，可以更好的控制内存占用
 - [x] 服务端修复上行限速无效的问题
-- [ ] 修复连接转发时阻塞可能导致goroutin泄露的问题
+- [x] 修复连接转发时阻塞可能导致goroutin泄露的问题
 - [x] 修复client tcp and ws无法连接的问题
 - [x] add TCP FAST OPEN
 
