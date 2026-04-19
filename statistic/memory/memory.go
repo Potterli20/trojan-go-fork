@@ -372,31 +372,31 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 		}
 	}
 	if a.pst != nil {
-			err := a.pst.ListUser(func(hash string, u statistic.Metadata) bool {
-				if _, found := a.users.Load(hash); found {
-					log.Error("hash " + hash + " is already exist")
-					return true
-				}
-				ctx, cancel := context.WithCancel(a.ctx)
-				user := &User{
-					Hash:    hash,
-					ipTable: make(map[string]bool),
-					ctx:     ctx,
-					cancel:  cancel,
-				}
-				user.setIPLimit(u.GetIPLimit())
-				user.SetSpeedLimit(u.GetSpeedLimit())
-				user.setTraffic(u.GetTraffic())
-				user.setPassword(u.GetKeyShare())
-				go user.speedUpdater()
-				go user.trafficUpdater(a.pst)
-				a.users.Store(hash, user)
+		err := a.pst.ListUser(func(hash string, u statistic.Metadata) bool {
+			if _, found := a.users.Load(hash); found {
+				log.Error("hash " + hash + " is already exist")
 				return true
-			})
-			if err != nil {
-				log.Errorf("List user from persistencer: %s", err)
 			}
+			ctx, cancel := context.WithCancel(a.ctx)
+			user := &User{
+				Hash:    hash,
+				ipTable: make(map[string]bool),
+				ctx:     ctx,
+				cancel:  cancel,
+			}
+			user.setIPLimit(u.GetIPLimit())
+			user.SetSpeedLimit(u.GetSpeedLimit())
+			user.setTraffic(u.GetTraffic())
+			user.setPassword(u.GetKeyShare())
+			go user.speedUpdater()
+			go user.trafficUpdater(a.pst)
+			a.users.Store(hash, user)
+			return true
+		})
+		if err != nil {
+			log.Errorf("List user from persistencer: %s", err)
 		}
+	}
 	for _, password := range cfg.Passwords {
 		hash, err := common.HashPassword(password)
 		if err != nil {
