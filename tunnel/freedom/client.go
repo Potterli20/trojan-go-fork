@@ -22,6 +22,7 @@ type Client struct {
 	proxyAddr    *tunnel.Address
 	username     string
 	password     string
+	outboundLocalIP net.IP
 }
 
 func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, error) {
@@ -51,6 +52,9 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 		network = "tcp4"
 	}
 	dialer := new(net.Dialer)
+	if c.outboundLocalIP != nil {
+		dialer.LocalAddr = &net.TCPAddr{IP: c.outboundLocalIP}
+	}
 	tcpConn, err := dialer.DialContext(c.ctx, network, addr.String())
 	if err != nil {
 		return nil, common.NewError("freedom failed to dial " + addr.String()).Base(err)
@@ -103,7 +107,11 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	if c.preferIPv4 {
 		network = "udp4"
 	}
-	udpConn, err := net.ListenPacket(network, "")
+	listenAddr := ""
+	if c.outboundLocalIP != nil {
+		listenAddr = (&net.UDPAddr{IP: c.outboundLocalIP, Port: 0}).String()
+	}
+	udpConn, err := net.ListenPacket(network, listenAddr)
 	if err != nil {
 		return nil, common.NewError("freedom failed to listen udp socket").Base(err)
 	}
@@ -120,16 +128,26 @@ func (c *Client) Close() error {
 func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
 	addr := tunnel.NewAddressFromHostPort("tcp", cfg.ForwardProxy.ProxyHost, cfg.ForwardProxy.ProxyPort)
+
+	var outboundLocalIP net.IP
+	if cfg.OutboundLocalAddr != "" {
+		outboundLocalIP = net.ParseIP(cfg.OutboundLocalAddr)
+		if outboundLocalIP == nil {
+			return nil, common.NewError("freedom: invalid outbound_local_addr: " + cfg.OutboundLocalAddr)
+		}
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	return &Client{
-		ctx:          ctx,
-		cancel:       cancel,
-		noDelay:      cfg.TCP.NoDelay,
-		keepAlive:    cfg.TCP.KeepAlive,
-		preferIPv4:   cfg.TCP.PreferIPV4,
-		forwardProxy: cfg.ForwardProxy.Enabled,
-		proxyAddr:    addr,
-		username:     cfg.ForwardProxy.Username,
-		password:     cfg.ForwardProxy.Password,
+		ctx:             ctx,
+		cancel:          cancel,
+		noDelay:         cfg.TCP.NoDelay,
+		keepAlive:       cfg.TCP.KeepAlive,
+		preferIPv4:      cfg.TCP.PreferIPV4,
+		forwardProxy:    cfg.ForwardProxy.Enabled,
+		proxyAddr:       addr,
+		username:        cfg.ForwardProxy.Username,
+		password:        cfg.ForwardProxy.Password,
+		outboundLocalIP: outboundLocalIP,
 	}, nil
 }

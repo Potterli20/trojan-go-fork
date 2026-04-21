@@ -3,10 +3,11 @@ package freedom
 import "github.com/p4gefau1t/trojan-go/config"
 
 type Config struct {
-	LocalHost    string             `json:"local_addr" yaml:"local-addr"`
-	LocalPort    int                `json:"local_port" yaml:"local-port"`
-	TCP          TCPConfig          `json:"tcp" yaml:"tcp"`
-	ForwardProxy ForwardProxyConfig `json:"forward_proxy" yaml:"forward-proxy"`
+	LocalHost         string             `json:"local_addr" yaml:"local-addr"`
+	LocalPort         int                `json:"local_port" yaml:"local-port"`
+	OutboundLocalAddr string             `json:"outbound_local_addr" yaml:"outbound-local-addr"`
+	TCP               TCPConfig          `json:"tcp" yaml:"tcp"`
+	ForwardProxy      ForwardProxyConfig `json:"forward_proxy" yaml:"forward-proxy"`
 }
 
 type TCPConfig struct {
