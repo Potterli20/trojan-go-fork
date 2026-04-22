@@ -18,6 +18,7 @@ import (
 	"github.com/p4gefau1t/trojan-go/log"
 	"github.com/p4gefau1t/trojan-go/recorder"
 	"github.com/p4gefau1t/trojan-go/statistic"
+	"github.com/p4gefau1t/trojan-go/tunnel/freedom"
 	"github.com/p4gefau1t/trojan-go/tunnel/trojan"
 )
 
@@ -209,6 +210,35 @@ func (s *ServerAPI) GetRecords(req *GetRecordsRequest, stream TrojanServerServic
 			}
 		}
 	}
+}
+
+func (s *ServerAPI) SetOutboundConfig(ctx context.Context, req *SetOutboundConfigRequest) (*SetOutboundConfigResponse, error) {
+	log.Debug("API: SetOutboundConfig")
+	var ip net.IP
+	if req.LocalAddr != "" {
+		ip = net.ParseIP(req.LocalAddr)
+		if ip == nil {
+			return &SetOutboundConfigResponse{
+				Success: false,
+				Info:    "invalid local_addr: " + req.LocalAddr,
+			}, nil
+		}
+	}
+	freedom.SetGlobalOutbound(ip, int(req.Fwmark))
+	return &SetOutboundConfigResponse{Success: true}, nil
+}
+
+func (s *ServerAPI) GetOutboundConfig(ctx context.Context, req *GetOutboundConfigRequest) (*GetOutboundConfigResponse, error) {
+	log.Debug("API: GetOutboundConfig")
+	ip, mark := freedom.GetGlobalOutbound()
+	addr := ""
+	if ip != nil {
+		addr = ip.String()
+	}
+	return &GetOutboundConfigResponse{
+		LocalAddr: addr,
+		Fwmark:    int32(mark),
+	}, nil
 }
 
 func newAPIServer(cfg *Config) (*grpc.Server, error) {

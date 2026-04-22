@@ -15,7 +15,75 @@ import (
 	"github.com/p4gefau1t/trojan-go/common"
 	"github.com/p4gefau1t/trojan-go/config"
 	"github.com/p4gefau1t/trojan-go/statistic/memory"
+	"github.com/p4gefau1t/trojan-go/tunnel/freedom"
 )
+
+func TestOutboundConfigAPI(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctx = config.WithConfig(ctx, memory.Name, &memory.Config{Passwords: []string{}})
+	port := common.PickPort("tcp", "127.0.0.1")
+	ctx = config.WithConfig(ctx, Name, &Config{
+		APIConfig{Enabled: true, APIHost: "127.0.0.1", APIPort: port},
+	})
+	auth, err := memory.NewAuthenticator(ctx)
+	common.Must(err)
+	go RunServerAPI(ctx, auth)
+	time.Sleep(time.Second * 2)
+
+	freedom.SetGlobalOutbound(nil, 0)
+	defer freedom.SetGlobalOutbound(nil, 0)
+
+	conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithInsecure())
+	common.Must(err)
+	defer conn.Close()
+	client := NewTrojanServerServiceClient(conn)
+
+	setResp, err := client.SetOutboundConfig(ctx, &SetOutboundConfigRequest{LocalAddr: "127.0.0.2", Fwmark: 0x1234})
+	common.Must(err)
+	if !setResp.Success {
+		t.Fatalf("SetOutboundConfig failed: %s", setResp.Info)
+	}
+	ip, mark := freedom.GetGlobalOutbound()
+	if ip == nil || ip.String() != "127.0.0.2" {
+		t.Fatalf("local_addr not set in freedom: got %v", ip)
+	}
+	if mark != 0x1234 {
+		t.Fatalf("fwmark not set in freedom: got %d", mark)
+	}
+
+	getResp, err := client.GetOutboundConfig(ctx, &GetOutboundConfigRequest{})
+	common.Must(err)
+	if getResp.LocalAddr != "127.0.0.2" || getResp.Fwmark != 0x1234 {
+		t.Fatalf("GetOutboundConfig mismatch: %+v", getResp)
+	}
+
+	setResp, err = client.SetOutboundConfig(ctx, &SetOutboundConfigRequest{LocalAddr: "not-an-ip"})
+	common.Must(err)
+	if setResp.Success {
+		t.Fatal("expected failure for invalid IP")
+	}
+	ip, mark = freedom.GetGlobalOutbound()
+	if ip == nil || ip.String() != "127.0.0.2" || mark != 0x1234 {
+		t.Fatal("failed SetOutboundConfig must not modify state")
+	}
+
+	setResp, err = client.SetOutboundConfig(ctx, &SetOutboundConfigRequest{LocalAddr: "", Fwmark: 0})
+	common.Must(err)
+	if !setResp.Success {
+		t.Fatalf("clear failed: %s", setResp.Info)
+	}
+	ip, mark = freedom.GetGlobalOutbound()
+	if ip != nil || mark != 0 {
+		t.Fatalf("clear did not reset state: ip=%v mark=%d", ip, mark)
+	}
+
+	getResp, err = client.GetOutboundConfig(ctx, &GetOutboundConfigRequest{})
+	common.Must(err)
+	if getResp.LocalAddr != "" || getResp.Fwmark != 0 {
+		t.Fatalf("GetOutboundConfig after clear: %+v", getResp)
+	}
+}
 
 func TestServerAPI(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())

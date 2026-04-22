@@ -12,6 +12,8 @@
         "key": "your_key.key",
         "sni": "your-domain-name.com"
     },
+    "outbound_local_addr": "192.168.1.100",
+    "outbound_fwmark": 256,
     "router": {
         "enabled": true,
         "block": [

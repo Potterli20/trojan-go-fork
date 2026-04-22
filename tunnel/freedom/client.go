@@ -9,24 +9,25 @@ import (
 
 	"github.com/p4gefau1t/trojan-go/common"
 	"github.com/p4gefau1t/trojan-go/config"
+	"github.com/p4gefau1t/trojan-go/log"
 	"github.com/p4gefau1t/trojan-go/tunnel"
 )
 
 type Client struct {
-	preferIPv4   bool
-	noDelay      bool
-	keepAlive    bool
-	ctx          context.Context
-	cancel       context.CancelFunc
-	forwardProxy bool
-	proxyAddr    *tunnel.Address
-	username     string
-	password     string
+	preferIPv4      bool
+	noDelay         bool
+	keepAlive       bool
+	ctx             context.Context
+	cancel          context.CancelFunc
+	forwardProxy    bool
+	proxyAddr       *tunnel.Address
+	username        string
+	password        string
 	outboundLocalIP net.IP
+	outboundFwmark  int
 }
 
 func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, error) {
-	// forward proxy
 	if c.forwardProxy {
 		var auth *proxy.Auth
 		if c.username != "" {
@@ -51,9 +52,13 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 	if c.preferIPv4 {
 		network = "tcp4"
 	}
+	localIP, fwmark := getGlobalOutbound()
 	dialer := new(net.Dialer)
-	if c.outboundLocalIP != nil {
-		dialer.LocalAddr = &net.TCPAddr{IP: c.outboundLocalIP}
+	if localIP != nil {
+		dialer.LocalAddr = &net.TCPAddr{IP: localIP}
+	}
+	if ctrl := fwmarkControl(fwmark); ctrl != nil {
+		dialer.Control = ctrl
 	}
 	tcpConn, err := dialer.DialContext(c.ctx, network, addr.String())
 	if err != nil {
@@ -96,7 +101,6 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 			}
 			socksAddr.IP = ip
 		}
-		// fmt.Printf("socksAddr: %v\n", socksAddr)
 		return &SocksPacketConn{
 			PacketConn:  packetConn,
 			socksAddr:   socksAddr,
@@ -107,11 +111,16 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	if c.preferIPv4 {
 		network = "udp4"
 	}
+	localIP, fwmark := getGlobalOutbound()
 	listenAddr := ""
-	if c.outboundLocalIP != nil {
-		listenAddr = (&net.UDPAddr{IP: c.outboundLocalIP, Port: 0}).String()
+	if localIP != nil {
+		listenAddr = (&net.UDPAddr{IP: localIP, Port: 0}).String()
 	}
-	udpConn, err := net.ListenPacket(network, listenAddr)
+	lc := net.ListenConfig{}
+	if ctrl := fwmarkControl(fwmark); ctrl != nil {
+		lc.Control = ctrl
+	}
+	udpConn, err := lc.ListenPacket(c.ctx, network, listenAddr)
 	if err != nil {
 		return nil, common.NewError("freedom failed to listen udp socket").Base(err)
 	}
@@ -137,7 +146,14 @@ func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 		}
 	}
 
+	fwmark := cfg.OutboundFwmark
+	if fwmark != 0 && !fwmarkSupported {
+		log.Warn("freedom: outbound_fwmark is set but not supported on this platform; ignored")
+		fwmark = 0
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
+	SetGlobalOutbound(outboundLocalIP, fwmark)
 	return &Client{
 		ctx:             ctx,
 		cancel:          cancel,
@@ -149,5 +165,6 @@ func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 		username:        cfg.ForwardProxy.Username,
 		password:        cfg.ForwardProxy.Password,
 		outboundLocalIP: outboundLocalIP,
+		outboundFwmark:  fwmark,
 	}, nil
 }

@@ -9,6 +9,8 @@ ssl:
   cert: your_cert.crt
   key: your_key.key
   sni: your-domain-name.com
+outbound-local-addr: 192.168.1.100
+outbound-fwmark: 256
 router:
   enabled: true
   block:

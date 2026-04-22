@@ -61,13 +61,12 @@ func TestDialConn_SourceIPBinding(t *testing.T) {
 	}
 	const localIP = "127.0.0.2"
 
+	SetGlobalOutbound(net.ParseIP(localIP), 0)
+	defer resetGlobalOutbound()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	client := &Client{
-		ctx:             ctx,
-		cancel:          cancel,
-		outboundLocalIP: net.ParseIP(localIP),
-	}
+	client := &Client{ctx: ctx, cancel: cancel}
 	addr, err := tunnel.NewAddressFromAddr("tcp", util.EchoAddr)
 	common.Must(err)
 
@@ -90,13 +89,12 @@ func TestDialConn_SourceIPBinding(t *testing.T) {
 }
 
 func TestDialConn_InvalidSourceIP(t *testing.T) {
+	SetGlobalOutbound(net.ParseIP("203.0.113.99"), 0)
+	defer resetGlobalOutbound()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	client := &Client{
-		ctx:             ctx,
-		cancel:          cancel,
-		outboundLocalIP: net.ParseIP("203.0.113.99"),
-	}
+	client := &Client{ctx: ctx, cancel: cancel}
 	addr, err := tunnel.NewAddressFromAddr("tcp", util.EchoAddr)
 	common.Must(err)
 
@@ -112,13 +110,12 @@ func TestDialPacket_SourceIPBinding(t *testing.T) {
 	}
 	const localIP = "127.0.0.2"
 
+	SetGlobalOutbound(net.ParseIP(localIP), 0)
+	defer resetGlobalOutbound()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	client := &Client{
-		ctx:             ctx,
-		cancel:          cancel,
-		outboundLocalIP: net.ParseIP(localIP),
-	}
+	client := &Client{ctx: ctx, cancel: cancel}
 	pc, err := client.DialPacket(nil)
 	common.Must(err)
 	defer pc.Close()
@@ -141,6 +138,7 @@ func TestDialPacket_SourceIPBinding(t *testing.T) {
 }
 
 func TestDialPacket_EmptyLocalAddr_DefaultsToWildcard(t *testing.T) {
+	resetGlobalOutbound()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	client := &Client{ctx: ctx, cancel: cancel}
