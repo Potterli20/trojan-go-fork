@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine AS builder
+FROM golang:1.26-alpine AS builder
 WORKDIR /trojan-go
 RUN apk add git make gcc g++ libtool
 COPY . .
