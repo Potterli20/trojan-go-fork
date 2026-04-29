@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260409185243-cb174859be5e
-	github.com/Potterli20/socks5-fork v0.0.0-20260428165756-0d5822dd4536
+	github.com/Potterli20/socks5-fork v0.0.0-20260428220418-2597904df3a1
 	github.com/Potterli20/sqlite v0.0.0-20260427080138-758b5b838e60
 	github.com/database64128/tfo-go/v2 v2.3.4-0.20260414152113-bbdb9fa2429c
 	github.com/go-sql-driver/mysql v1.9.3
@@ -15,7 +15,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.57
-	github.com/xtls/xray-core v1.260327.1-0.20260425231635-b4f08981becb
+	github.com/xtls/xray-core v1.260327.1-0.20260428205720-1836b1c6e4f6
 	golang.org/x/crypto v0.50.0
 	golang.org/x/net v0.53.0
 	golang.org/x/term v0.42.0
@@ -42,7 +42,7 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-redsync/redsync/v4 v4.16.0 // indirect
-	github.com/gopherjs/gopherjs v1.20.3-0.20260421221738-204ca8811823 // indirect
+	github.com/gopherjs/gopherjs v1.20.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
