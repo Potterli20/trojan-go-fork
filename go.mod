@@ -5,10 +5,10 @@ go 1.26.0
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260508131348-ca9133bb6e79
-	github.com/Potterli20/socks5-fork v0.0.0-20260508104307-13df3a692b21
-	github.com/Potterli20/sqlite v0.0.0-20260508130345-8da8a5f7600a
-	github.com/database64128/tfo-go/v2 v2.3.4-0.20260414152113-bbdb9fa2429c
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260508190553-f0112ff9dfaf
+	github.com/Potterli20/socks5-fork v0.0.0-20260508161947-fb875d01035f
+	github.com/Potterli20/sqlite v0.0.0-20260508190047-961a71d09444
+	github.com/database64128/tfo-go/v2 v2.3.4-0.20260508145602-bf26ed5265ce
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.8.3-0.20260301010127-aa6edf4b11af
@@ -16,9 +16,9 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.57
 	github.com/xtls/xray-core v1.260327.1-0.20260507141325-1dbafe629a09
-	golang.org/x/crypto v0.50.0
+	golang.org/x/crypto v0.51.0
 	golang.org/x/net v0.53.0
-	golang.org/x/term v0.42.0
+	golang.org/x/term v0.43.0
 	golang.org/x/time v0.15.0
 	google.golang.org/grpc v1.81.0
 	google.golang.org/protobuf v1.36.11
@@ -74,11 +74,11 @@ require (
 	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/mod v0.34.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.44.0 // indirect
-	golang.org/x/text v0.36.0 // indirect
-	golang.org/x/tools v0.43.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/tools v0.44.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260504160031-60b97b32f348 // indirect
 	modernc.org/libc v1.72.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
