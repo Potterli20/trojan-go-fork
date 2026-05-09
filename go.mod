@@ -5,8 +5,8 @@ go 1.26.0
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260508190553-f0112ff9dfaf
-	github.com/Potterli20/socks5-fork v0.0.0-20260508161947-fb875d01035f
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260508215231-fc432de3f334
+	github.com/Potterli20/socks5-fork v0.0.0-20260508220301-1fa71f302982
 	github.com/Potterli20/sqlite v0.0.0-20260508190047-961a71d09444
 	github.com/database64128/tfo-go/v2 v2.3.4-0.20260508145602-bf26ed5265ce
 	github.com/go-sql-driver/mysql v1.10.0
@@ -17,7 +17,7 @@ require (
 	github.com/xtaci/smux v1.5.57
 	github.com/xtls/xray-core v1.260327.1-0.20260507141325-1dbafe629a09
 	golang.org/x/crypto v0.51.0
-	golang.org/x/net v0.53.0
+	golang.org/x/net v0.54.0
 	golang.org/x/term v0.43.0
 	golang.org/x/time v0.15.0
 	google.golang.org/grpc v1.81.0
@@ -28,7 +28,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20260508130550-35bc51e0bb51 // indirect
+	github.com/Potterli20/golem v0.0.0-20260509015213-5f3b406ec8da // indirect
 	github.com/andybalholm/brotli v1.2.2-0.20260411142453-785aba538b21 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
