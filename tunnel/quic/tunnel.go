@@ -1,25 +1,25 @@
 package quic
 
 import (
-"context"
+	"context"
 
-"github.com/Potterli20/trojan-go-fork/tunnel"
+	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
 type Tunnel struct{}
 
 func (*Tunnel) Name() string {
-return Name
+	return Name
 }
 
 func (*Tunnel) NewServer(ctx context.Context, underlay tunnel.Server) (tunnel.Server, error) {
-return NewServer(ctx, underlay)
+	return NewServer(ctx, underlay)
 }
 
 func (*Tunnel) NewClient(ctx context.Context, underlay tunnel.Client) (tunnel.Client, error) {
-return NewClient(ctx, underlay)
+	return NewClient(ctx, underlay)
 }
 
 func init() {
-tunnel.RegisterTunnel(Name, &Tunnel{})
+	tunnel.RegisterTunnel(Name, &Tunnel{})
 }
