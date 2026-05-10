@@ -37,14 +37,17 @@ type Client struct {
 	timeout        time.Duration
 	ctx            context.Context
 	cancel         context.CancelFunc
+	wg             sync.WaitGroup
 }
 
 func (c *Client) Close() error {
 	c.cancel()
+	c.wg.Wait()
 	c.clientPoolLock.Lock()
 	defer c.clientPoolLock.Unlock()
 	for id, info := range c.clientPool {
 		info.client.Close()
+		info.underlayConn.Close()
 		log.Debug("mux client", id, "closed")
 	}
 	return nil
@@ -178,7 +181,11 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		cancel:      cancel,
 		clientPool:  make(map[muxID]*smuxClientInfo),
 	}
-	go client.cleanLoop()
+	client.wg.Add(1)
+	go func() {
+		defer client.wg.Done()
+		client.cleanLoop()
+	}()
 	log.Debug("mux client created")
 	return client, nil
 }

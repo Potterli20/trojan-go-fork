@@ -77,6 +77,8 @@ func (r *RewindReader) Rewind() {
 func (r *RewindReader) StopBuffering() {
 	r.mu.Lock()
 	r.buffering = false
+	r.buf = nil
+	r.bufReadIdx = 0
 	r.mu.Unlock()
 }
 

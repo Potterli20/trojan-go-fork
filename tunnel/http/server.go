@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -42,8 +43,11 @@ func (c *OtherConn) Read(p []byte) (int, error) {
 		if n != 0 {
 			panic("non zero")
 		}
-		for range c.ctx.Done() {
+		select {
+		case <-c.ctx.Done():
 			return 0, common.NewError("http conn closed")
+		default:
+			return 0, io.EOF
 		}
 	}
 	return n, err
@@ -65,6 +69,7 @@ type Server struct {
 	connChan chan tunnel.Conn
 	ctx      context.Context
 	cancel   context.CancelFunc
+	wg       sync.WaitGroup
 }
 
 func (s *Server) acceptLoop() {
@@ -81,7 +86,9 @@ func (s *Server) acceptLoop() {
 			}
 		}
 
+		s.wg.Add(1)
 		go func(conn net.Conn) {
+			defer s.wg.Done()
 			reqBufReader := bufio.NewReader(io.NopCloser(conn))
 			req, err := http.ReadRequest(reqBufReader)
 			if err != nil {
@@ -181,6 +188,7 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 
 func (s *Server) Close() error {
 	s.cancel()
+	s.wg.Wait()
 	return s.underlay.Close()
 }
 

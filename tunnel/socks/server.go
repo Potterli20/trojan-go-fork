@@ -37,6 +37,7 @@ type Server struct {
 	mappingLock      sync.RWMutex
 	ctx              context.Context
 	cancel           context.CancelFunc
+	wg               sync.WaitGroup
 }
 
 func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
@@ -59,6 +60,8 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 
 func (s *Server) Close() error {
 	s.cancel()
+	s.wg.Wait()
+	s.listenPacketConn.Close()
 	return s.underlay.Close()
 }
 
@@ -141,7 +144,9 @@ func (s *Server) packetDispatchLoop() {
 				PacketConn: s.listenPacketConn,
 				src:        src,
 			}
+			s.wg.Add(1)
 			go func(conn *PacketConn) {
+				defer s.wg.Done()
 				defer conn.Close()
 				for {
 					select {
