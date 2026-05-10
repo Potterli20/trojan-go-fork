@@ -41,6 +41,7 @@ type User struct {
 func (u *User) Close() error {
 	u.ResetTraffic()
 	u.cancel()
+	u.wg.Wait()
 	return nil
 }
 
@@ -63,7 +64,11 @@ func (u *User) AddIP(ip string) bool {
 
 	u.ipTable[ip] = time.Now()
 	atomic.AddInt32(&u.ipNum, 1)
-	go u.DelIP(ip)
+	u.wg.Add(1)
+	go func() {
+		defer u.wg.Done()
+		u.DelIP(ip)
+	}()
 	return true
 }
 
@@ -72,7 +77,11 @@ func (u *User) DelIP(ip string) bool {
 		return true
 	}
 
-	time.Sleep(10 * time.Second)
+	select {
+	case <-time.After(10 * time.Second):
+	case <-u.ctx.Done():
+		return false
+	}
 
 	u.ipLock.Lock()
 	defer u.ipLock.Unlock()
@@ -277,10 +286,18 @@ func (a *Authenticator) AddUser(hash string) error {
 		ctx:     ctx,
 		cancel:  cancel,
 	}
-	go meter.speedUpdater()
+	meter.wg.Add(1)
+	go func() {
+		defer meter.wg.Done()
+		meter.speedUpdater()
+	}()
 	a.users.Store(hash, meter)
 	if a.pst != nil {
-		go meter.trafficUpdater(a.pst)
+		meter.wg.Add(1)
+		go func() {
+			defer meter.wg.Done()
+			meter.trafficUpdater(a.pst)
+		}()
 		err := a.pst.SaveUser(meter)
 		if err != nil {
 			log.Errorf("Save user %s failed: %s", hash, err)
@@ -312,6 +329,10 @@ func (a *Authenticator) ListUsers() []statistic.User {
 }
 
 func (a *Authenticator) Close() error {
+	a.users.Range(func(k, v any) bool {
+		v.(*User).Close()
+		return true
+	})
 	return nil
 }
 
@@ -392,8 +413,16 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 			user.SetSpeedLimit(u.GetSpeedLimit())
 			user.setTraffic(u.GetTraffic())
 			user.setPassword(u.GetKeyShare())
-			go user.speedUpdater()
-			go user.trafficUpdater(a.pst)
+			user.wg.Add(1)
+			go func() {
+				defer user.wg.Done()
+				user.speedUpdater()
+			}()
+			user.wg.Add(1)
+			go func() {
+				defer user.wg.Done()
+				user.trafficUpdater(a.pst)
+			}()
 			a.users.Store(hash, user)
 			return true
 		})

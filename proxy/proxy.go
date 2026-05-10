@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"math/rand"
-	"sync/atomic"
 	"time"
 
 	"os"
@@ -48,19 +47,13 @@ func (p *Proxy) Close() error {
 }
 
 var (
-	bufPool     sync.Pool
-	bufSize     int   = 8 * 1024
-	bufCount    int32 = 0
-	maxBufCount int32 = 1024
+	bufPool sync.Pool
+	bufSize int = 8 * 1024
 )
 
 func init() {
 	bufPool = sync.Pool{
 		New: func() any {
-			if atomic.LoadInt32(&bufCount) >= maxBufCount {
-				return make([]byte, 1024, 1024) // 当达到最大数量时，返回小buffer
-			}
-			atomic.AddInt32(&bufCount, 1)
 			return make([]byte, bufSize, bufSize)
 		},
 	}

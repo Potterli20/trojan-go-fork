@@ -111,6 +111,11 @@ func (c *RewindConn) Read(p []byte) (int, error) {
 	return c.RewindReader.Read(p)
 }
 
+func (c *RewindConn) Close() error {
+	c.RewindReader.StopBuffering()
+	return c.Conn.Close()
+}
+
 func NewRewindConn(conn net.Conn) *RewindConn {
 	return &RewindConn{
 		Conn: conn,

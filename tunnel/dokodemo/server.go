@@ -23,6 +23,7 @@ type Server struct {
 	mapping     map[string]*PacketConn
 	ctx         context.Context
 	cancel      context.CancelFunc
+	wg          sync.WaitGroup
 }
 
 func (s *Server) dispatchLoop() {
@@ -66,7 +67,9 @@ func (s *Server) dispatchLoop() {
 		conn.input <- toInput
 		s.packetChan <- conn
 
+		s.wg.Add(1)
 		go func(conn *PacketConn) {
+			defer s.wg.Done()
 			for {
 				select {
 				case payload := <-conn.output:
@@ -115,6 +118,7 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 
 func (s *Server) Close() error {
 	s.cancel()
+	s.wg.Wait()
 	s.tcpListener.Close()
 	s.udpListener.Close()
 	return nil

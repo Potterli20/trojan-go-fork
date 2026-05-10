@@ -101,7 +101,9 @@ func (r *Redirector) worker() {
 	for {
 		select {
 		case redirection := <-r.redirectionChan:
-			r.wg.Go(func() {
+			r.wg.Add(1)
+			go func() {
+				defer r.wg.Done()
 				handle := func() {
 					if redirection.InboundConn == nil || reflect.ValueOf(redirection.InboundConn).IsNil() {
 						log.Error("nil inbound conn")
@@ -145,7 +147,7 @@ func (r *Redirector) worker() {
 					}
 				}
 				handle()
-			})
+			}()
 		case <-r.ctx.Done():
 			r.wg.Wait()
 			log.Debug("shutting down redirector")
