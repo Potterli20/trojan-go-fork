@@ -31,7 +31,7 @@ type Server struct {
 func (s *Server) Close() error {
 	s.cancel()
 	s.listener.(interface{ Close() error }).Close()
-	s.activeConns.Range(func(key, value interface{}) bool {
+	s.activeConns.Range(func(key, value any) bool {
 		conn := value.(any)
 		conn.(interface {
 			CloseWithError(code uint32, reason string) error

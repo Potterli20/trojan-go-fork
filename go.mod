@@ -5,31 +5,31 @@ go 1.26.0
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260409185243-cb174859be5e
-	github.com/Potterli20/socks5-fork v0.0.0-20260419095327-a50d67a87644
-	github.com/Potterli20/sqlite v0.0.0-20260418011413-ec2b5ed2cc54
-	github.com/apernet/quic-go v0.59.1-0.20260330051153-c402ee641eb6
-	github.com/database64128/tfo-go/v2 v2.3.4-0.20260414152113-bbdb9fa2429c
-	github.com/go-sql-driver/mysql v1.9.3
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260508215231-fc432de3f334
+	github.com/Potterli20/socks5-fork v0.0.0-20260509101208-dca3f443babc
+	github.com/Potterli20/sqlite v0.0.0-20260508190047-961a71d09444
+	github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716
+	github.com/database64128/tfo-go/v2 v2.3.4-0.20260508145602-bf26ed5265ce
+	github.com/go-sql-driver/mysql v1.10.0
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.8.3-0.20260301010127-aa6edf4b11af
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.57
-	github.com/xtls/xray-core v1.260327.1-0.20260417230405-b4650360d6a0
-	golang.org/x/crypto v0.50.0
-	golang.org/x/net v0.53.0
-	golang.org/x/term v0.42.0
+	github.com/xtls/xray-core v1.260327.1-0.20260509173629-1bdb488c9ec0
+	golang.org/x/crypto v0.51.0
+	golang.org/x/net v0.54.0
+	golang.org/x/term v0.43.0
 	golang.org/x/time v0.15.0
-	google.golang.org/grpc v1.80.0
+	google.golang.org/grpc v1.81.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/gorm v1.31.2-0.20260323100506-40cd2afdadf2
+	gorm.io/gorm v1.31.2-0.20260507142624-332292962288
 )
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20260419070541-bd4975ac4833 // indirect
+	github.com/Potterli20/golem v0.0.0-20260509074129-f5007254eb2f // indirect
 	github.com/andybalholm/brotli v1.2.2-0.20260411142453-785aba538b21 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -43,15 +43,15 @@ require (
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-redsync/redsync/v4 v4.16.0 // indirect
-	github.com/gopherjs/gopherjs v1.20.2-0.20260415193114-04f8851016fc // indirect
+	github.com/gopherjs/gopherjs v1.20.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
-	github.com/klauspost/compress v1.18.5 // indirect
+	github.com/klauspost/compress v1.18.6 // indirect
 	github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e // indirect
-	github.com/mattn/go-isatty v0.0.21 // indirect
+	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -63,7 +63,7 @@ require (
 	github.com/prometheus/procfs v0.20.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
-	github.com/shirou/gopsutil/v4 v4.26.3 // indirect
+	github.com/shirou/gopsutil/v4 v4.26.4 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
 	github.com/stretchr/objx v0.5.3 // indirect
 	github.com/tklauser/go-sysconf v0.3.16 // indirect
@@ -72,17 +72,17 @@ require (
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.27.1 // indirect
+	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
-	golang.org/x/mod v0.34.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.43.0 // indirect
-	golang.org/x/text v0.36.0 // indirect
-	golang.org/x/tools v0.43.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478 // indirect
-	modernc.org/libc v1.72.0 // indirect
+	golang.org/x/sys v0.44.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
+	golang.org/x/tools v0.44.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260504160031-60b97b32f348 // indirect
+	modernc.org/libc v1.72.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.49.1 // indirect
+	modernc.org/sqlite v1.50.0 // indirect
 )
