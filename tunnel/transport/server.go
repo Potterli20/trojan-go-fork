@@ -58,33 +58,42 @@ func (s *Server) acceptLoop() {
 func (s *Server) handleConnection(tcpConn net.Conn) {
 	log.Debug("tcp connection from", tcpConn.RemoteAddr())
 	s.httpLock.RLock()
-	defer s.httpLock.RUnlock()
+	isHTTP := s.nextHTTP
+	s.httpLock.RUnlock()
 
-	if s.nextHTTP { // plaintext mode enabled
-		// we use real http header parser to mimic a real http server
+	if isHTTP { // plaintext mode enabled
 		rewindConn := common.NewRewindConn(tcpConn)
 		rewindConn.SetBufferSize(512)
-		defer rewindConn.StopBuffering()
 
 		r := bufio.NewReader(rewindConn)
 		httpReq, err := http.ReadRequest(r)
 		rewindConn.Rewind()
 		rewindConn.StopBuffering()
 		if err != nil {
-			// this is not a http request, pass it to trojan protocol layer for further inspection
-			s.connChan <- &Conn{
+			select {
+			case s.connChan <- &Conn{
 				Conn: rewindConn,
+			}:
+			case <-s.ctx.Done():
+				rewindConn.Close()
 			}
 		} else {
-			// this is a http request, pass it to websocket protocol layer
 			log.Debug("plaintext http request: ", httpReq)
-			s.wsChan <- &Conn{
+			select {
+			case s.wsChan <- &Conn{
 				Conn: rewindConn,
+			}:
+			case <-s.ctx.Done():
+				rewindConn.Close()
 			}
 		}
 	} else {
-		s.connChan <- &Conn{
+		select {
+		case s.connChan <- &Conn{
 			Conn: tcpConn,
+		}:
+		case <-s.ctx.Done():
+			tcpConn.Close()
 		}
 	}
 }

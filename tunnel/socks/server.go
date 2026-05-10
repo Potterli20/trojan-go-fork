@@ -209,12 +209,18 @@ func (s *Server) acceptLoop() {
 		conn, err := s.underlay.AcceptConn(&Tunnel{})
 		if err != nil {
 			log.Error(common.NewError("socks accept err").Base(err))
-			return
+			select {
+			case <-s.ctx.Done():
+				return
+			default:
+				continue
+			}
 		}
 		go func(conn net.Conn) {
 			newConn, err := s.handshake(conn)
 			if err != nil {
 				log.Error(common.NewError("socks failed to handshake with client").Base(err))
+				conn.Close()
 				return
 			}
 			log.Info("socks connection from", conn.RemoteAddr(), "metadata", newConn.metadata.String())
@@ -225,8 +231,11 @@ func (s *Server) acceptLoop() {
 					newConn.Close()
 					return
 				}
-				s.connChan <- newConn
-				return
+				select {
+				case s.connChan <- newConn:
+				case <-s.ctx.Done():
+					newConn.Close()
+				}
 			case Associate:
 				defer newConn.Close()
 				associateAddr := tunnel.NewAddressFromHostPort("udp", s.localHost, s.localPort)
@@ -234,8 +243,12 @@ func (s *Server) acceptLoop() {
 					log.Error(common.NewError("socks failed to respond to associate request").Base(err))
 					return
 				}
+				newConn.SetReadDeadline(time.Now().Add(s.timeout))
 				buf := [16]byte{}
-				newConn.Read(buf[:])
+				_, err = newConn.Read(buf[:])
+				if err != nil {
+					log.Debug("socks udp session read error or timeout:", err)
+				}
 				log.Debug("socks udp session ends")
 			default:
 				log.Error(common.NewError(fmt.Sprintf("unknown socks command %d", newConn.metadata.Command)))

@@ -93,6 +93,7 @@ func (s *Server) acceptLoop() {
 			req, err := http.ReadRequest(reqBufReader)
 			if err != nil {
 				log.Error(common.NewError("not a valid http request").Base(err))
+				conn.Close()
 				return
 			}
 
@@ -100,6 +101,7 @@ func (s *Server) acceptLoop() {
 				addr, err := tunnel.NewAddressFromAddr("tcp", req.Host)
 				if err != nil {
 					log.Error(common.NewError("invalid http dest address").Base(err))
+					req.Body.Close()
 					conn.Close()
 					return
 				}
@@ -107,9 +109,11 @@ func (s *Server) acceptLoop() {
 				_, err = conn.Write([]byte(resp))
 				if err != nil {
 					log.Error("http failed to respond connect request")
+					req.Body.Close()
 					conn.Close()
 					return
 				}
+				req.Body.Close()
 				s.connChan <- &ConnectConn{
 					Conn: conn,
 					metadata: &tunnel.Metadata{
@@ -138,32 +142,44 @@ func (s *Server) acceptLoop() {
 						reqReader:  reqReader,
 						respWriter: respWriter,
 					}
-					s.connChan <- newConn // pass this http session connection to proxy.RelayConn
 
-					err = req.Write(reqWriter) // write request to the remote
-					if err != nil {
-						log.Error(common.NewError("http failed to write http request").Base(err))
+					select {
+					case s.connChan <- newConn:
+					case <-s.ctx.Done():
+						newConn.Close()
+						req.Body.Close()
 						return
 					}
 
-					respBufReader := bufio.NewReader(io.NopCloser(respReader)) // read response from the remote
+					err = req.Write(reqWriter)
+					reqWriter.Close()
+					if err != nil {
+						log.Error(common.NewError("http failed to write http request").Base(err))
+						req.Body.Close()
+						return
+					}
+
+					respBufReader := bufio.NewReader(io.NopCloser(respReader))
 					resp, err := http.ReadResponse(respBufReader, req)
 					if err != nil {
 						log.Error(common.NewError("http failed to read http response").Base(err))
+						req.Body.Close()
 						return
 					}
-					err = resp.Write(conn) // send the response back to the local
+					err = resp.Write(conn)
 					if err != nil {
 						log.Error(common.NewError("http failed to write the response back").Base(err))
+						req.Body.Close()
+						resp.Body.Close()
 						return
 					}
 					newConn.Close()
 					req.Body.Close()
 					resp.Body.Close()
 
-					req, err = http.ReadRequest(reqBufReader) // read the next http request from local
+					req, err = http.ReadRequest(reqBufReader)
 					if err != nil {
-						log.Error(common.NewError("http failed to the read request from local").Base(err))
+						log.Error(common.NewError("http failed to read request from local").Base(err))
 						return
 					}
 				}

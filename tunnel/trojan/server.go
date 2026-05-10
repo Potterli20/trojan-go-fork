@@ -192,7 +192,6 @@ func (s *Server) acceptLoop() {
 
 			rewindConn := common.NewRewindConn(conn)
 			rewindConn.SetBufferSize(128)
-			defer rewindConn.StopBuffering()
 
 			inboundConn := &InboundConn{
 				Conn: rewindConn,
@@ -213,22 +212,38 @@ func (s *Server) acceptLoop() {
 			switch inboundConn.metadata.Command {
 			case Connect:
 				if inboundConn.metadata.DomainName == "MUX_CONN" {
-					s.muxChan <- inboundConn
-					log.Debug("mux(r) connection")
+					select {
+					case s.muxChan <- inboundConn:
+						log.Debug("mux(r) connection")
+					case <-s.ctx.Done():
+						inboundConn.Close()
+					}
 				} else {
-					s.connChan <- inboundConn
-					log.Debug("normal trojan connection")
-					inboundConn.Record()
+					select {
+					case s.connChan <- inboundConn:
+						log.Debug("normal trojan connection")
+						inboundConn.Record()
+					case <-s.ctx.Done():
+						inboundConn.Close()
+					}
 				}
 
 			case Associate:
-				s.packetChan <- &PacketConn{
+				select {
+				case s.packetChan <- &PacketConn{
 					Conn: inboundConn,
+				}:
+					log.Debug("trojan udp connection")
+				case <-s.ctx.Done():
+					inboundConn.Close()
 				}
-				log.Debug("trojan udp connection")
 			case Mux:
-				s.muxChan <- inboundConn
-				log.Debug("mux connection")
+				select {
+				case s.muxChan <- inboundConn:
+					log.Debug("mux connection")
+				case <-s.ctx.Done():
+					inboundConn.Close()
+				}
 			default:
 				log.Error(common.NewError(fmt.Sprintf("unknown trojan command %d", inboundConn.metadata.Command)))
 				inboundConn.Close()
