@@ -46,20 +46,34 @@ func (s *Server) acceptConnLoop() {
 		rewindConn.StopBuffering()
 		if err != nil {
 			log.Error(common.NewError("failed to detect proxy protocol type").Base(err))
+			rewindConn.Close()
 			continue
 		}
 		s.socksLock.RLock()
-		if buf[0] == 5 && s.nextSocks {
-			s.socksLock.RUnlock()
+		isSocks := buf[0] == 5 && s.nextSocks
+		s.socksLock.RUnlock()
+
+		freedomConn := &freedom.Conn{
+			Conn: rewindConn,
+		}
+
+		if isSocks {
 			log.Debug("socks5 connection")
-			s.socksConn <- &freedom.Conn{
-				Conn: rewindConn,
+			select {
+			case s.socksConn <- freedomConn:
+			case <-s.ctx.Done():
+				freedomConn.Close()
+				log.Debug("exiting")
+				return
 			}
 		} else {
-			s.socksLock.RUnlock()
 			log.Debug("http connection")
-			s.httpConn <- &freedom.Conn{
-				Conn: rewindConn,
+			select {
+			case s.httpConn <- freedomConn:
+			case <-s.ctx.Done():
+				freedomConn.Close()
+				log.Debug("exiting")
+				return
 			}
 		}
 	}

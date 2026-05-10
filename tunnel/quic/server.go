@@ -32,8 +32,7 @@ func (s *Server) Close() error {
 	s.cancel()
 	s.listener.(interface{ Close() error }).Close()
 	s.activeConns.Range(func(key, value any) bool {
-		conn := value.(any)
-		conn.(interface {
+		value.(interface {
 			CloseWithError(code uint32, reason string) error
 		}).CloseWithError(0, "server closed")
 		return true
@@ -76,7 +75,7 @@ func (s *Server) handleConnection(conn any) {
 		log.Debug("QUIC connection closed from", conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr())
 	}()
 
-	streamChan := make(chan quic.Stream, 16)
+	streamChan := make(chan *quic.Stream, 16)
 	packetBuffer := make(chan []byte, 16)
 	connCtx, connCancel := context.WithCancel(s.ctx)
 	defer connCancel()
@@ -91,8 +90,9 @@ func (s *Server) handleConnection(conn any) {
 				close(streamChan)
 				return
 			}
+			streamPtr := &stream
 			select {
-			case streamChan <- stream:
+			case streamChan <- streamPtr:
 			case <-connCtx.Done():
 				return
 			}
@@ -128,9 +128,8 @@ func (s *Server) handleConnection(conn any) {
 			if !ok {
 				return
 			}
-			streamCopy := stream
 			log.Debug("QUIC stream accepted from", conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr())
-			s.connChan <- &StreamConn{Stream: &streamCopy, conn: conn}
+			s.connChan <- &StreamConn{Stream: stream, conn: conn}
 
 		case _, ok := <-packetBuffer:
 			if !ok {

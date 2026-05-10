@@ -54,7 +54,7 @@ var (
 func init() {
 	bufPool = sync.Pool{
 		New: func() any {
-			return make([]byte, bufSize, bufSize)
+			return make([]byte, bufSize)
 		},
 	}
 }
