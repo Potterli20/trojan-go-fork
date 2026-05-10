@@ -48,9 +48,9 @@ func (p *Proxy) Close() error {
 }
 
 var (
-	bufPool sync.Pool
-	bufSize int = 8 * 1024
-	bufCount int32 = 0
+	bufPool     sync.Pool
+	bufSize     int   = 8 * 1024
+	bufCount    int32 = 0
 	maxBufCount int32 = 1024
 )
 
