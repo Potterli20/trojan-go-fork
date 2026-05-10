@@ -1,7 +1,7 @@
 package geodata
 
 import (
-	"io/ioutil"
+	"os"
 	"reflect"
 	"strings"
 
@@ -56,7 +56,7 @@ func (g geoipCache) Unmarshal(filename, code string) (*v2geodata.GeoIP, error) {
 	case ErrFailedToReadBytes, ErrFailedToReadExpectedLenBytes,
 		ErrInvalidGeodataFile, ErrInvalidGeodataVarintLength:
 		log.Warnf("failed to decode geoip file: %s, fallback to the original ReadFile method", filename)
-		geoipBytes, err = ioutil.ReadFile(asset)
+		geoipBytes, err = os.ReadFile(asset)
 		if err != nil {
 			return nil, err
 		}
@@ -142,7 +142,7 @@ func (g geositeCache) Unmarshal(filename, code string) (*v2geodata.GeoSite, erro
 	case ErrFailedToReadBytes, ErrFailedToReadExpectedLenBytes,
 		ErrInvalidGeodataFile, ErrInvalidGeodataVarintLength:
 		log.Warnf("failed to decode geoip file: %s, fallback to the original ReadFile method", filename)
-		geositeBytes, err = ioutil.ReadFile(asset)
+		geositeBytes, err = os.ReadFile(asset)
 		if err != nil {
 			return nil, err
 		}

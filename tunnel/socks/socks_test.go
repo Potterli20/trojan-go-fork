@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
+
 	"net"
 	"sync"
 	"testing"
@@ -115,7 +116,7 @@ func TestSocks(t *testing.T) {
 		t.Fail()
 	}
 
-	recvBuf, err = ioutil.ReadAll(r)
+	recvBuf, err = io.ReadAll(r)
 	common.Must(err)
 
 	if bytes.Equal(recvBuf, payload) {

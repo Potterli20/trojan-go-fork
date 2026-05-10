@@ -50,12 +50,10 @@ func TestWebsocket(t *testing.T) {
 	s, err := NewServer(ctx, tcpServer)
 	var conn2 tunnel.Conn
 	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
+	wg.Go(func() {
 		conn2, err = s.AcceptConn(nil)
 		common.Must(err)
-		wg.Done()
-	}()
+	})
 	time.Sleep(time.Second)
 	conn1, err := c.DialConn(nil, nil)
 	common.Must(err)

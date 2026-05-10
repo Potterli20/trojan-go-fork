@@ -1,5 +1,4 @@
 //go:build server || full || mini
-// +build server full mini
 
 package build
 

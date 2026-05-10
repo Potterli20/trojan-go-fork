@@ -96,8 +96,8 @@ func (u *url) Handle() error {
 	apiHost := "127.0.0.1"
 	apiPort := 10000
 
-	options := strings.Split(*u.option, ";")
-	for _, o := range options {
+	options := strings.SplitSeq(*u.option, ";")
+	for o := range options {
 		key := ""
 		val := ""
 		l := strings.Split(o, "=")

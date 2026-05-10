@@ -3,7 +3,7 @@ package common
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
+
 	"net"
 	"net/http"
 	"net/url"
@@ -35,7 +35,7 @@ func HumanFriendlyTraffic(bytes uint64) string {
 func PickPort(network string, host string) int {
 	switch network {
 	case "tcp":
-		for retry := 0; retry < 16; retry++ {
+		for range 16 {
 			l, err := net.Listen("tcp", host+":0")
 			if err != nil {
 				continue
@@ -48,7 +48,7 @@ func PickPort(network string, host string) int {
 			return int(p)
 		}
 	case "udp":
-		for retry := 0; retry < 16; retry++ {
+		for range 16 {
 			conn, err := net.ListenPacket("udp", host+":0")
 			if err != nil {
 				continue
@@ -114,7 +114,7 @@ func FetchHTTPContent(target string) ([]byte, error) {
 		return nil, fmt.Errorf("unexpected HTTP status code: %d", resp.StatusCode)
 	}
 
-	content, err := ioutil.ReadAll(resp.Body)
+	content, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read HTTP response")
 	}

@@ -63,10 +63,10 @@ func injectForwardedHeader(inbound net.Conn, outbound net.Conn, clientIP string)
 	}
 
 	headerBytes := headerBuf.Bytes()
-	idx := bytes.Index(headerBytes, []byte("\r\n\r\n"))
+	before, after, _ := bytes.Cut(headerBytes, []byte("\r\n\r\n"))
 
-	headers := headerBytes[:idx]
-	remaining := headerBytes[idx+4:]
+	headers := before
+	remaining := after
 
 	headerStr := string(headers)
 	lines := strings.Split(headerStr, "\r\n")
@@ -101,9 +101,7 @@ func (r *Redirector) worker() {
 	for {
 		select {
 		case redirection := <-r.redirectionChan:
-			r.wg.Add(1)
-			go func() {
-				defer r.wg.Done()
+			r.wg.Go(func() {
 				handle := func() {
 					if redirection.InboundConn == nil || reflect.ValueOf(redirection.InboundConn).IsNil() {
 						log.Error("nil inbound conn")
@@ -147,7 +145,7 @@ func (r *Redirector) worker() {
 					}
 				}
 				handle()
-			}()
+			})
 		case <-r.ctx.Done():
 			r.wg.Wait()
 			log.Debug("shutting down redirector")

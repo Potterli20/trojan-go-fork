@@ -142,7 +142,7 @@ func TestServerAPI(t *testing.T) {
 		}
 	}()
 	time.Sleep(time.Second * 3)
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		stream2.Send(&GetUsersRequest{
 			User: &User{
 				Hash: "newhash",

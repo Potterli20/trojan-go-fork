@@ -33,23 +33,19 @@ func (w *fakeHTTPResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 }
 
 type Server struct {
-	underlay   tunnel.Server
-	hostname   string
-	path       string
-	enabled    bool
-	redirAddr  net.Addr
-	redir      *redirector.Redirector
-	ctx        context.Context
-	cancel     context.CancelFunc
-	timeout    time.Duration
-	httpServer *http.Server
+	underlay  tunnel.Server
+	hostname  string
+	path      string
+	enabled   bool
+	redirAddr net.Addr
+	redir     *redirector.Redirector
+	ctx       context.Context
+	cancel    context.CancelFunc
+	timeout   time.Duration
 }
 
 func (s *Server) Close() error {
 	s.cancel()
-	if s.httpServer != nil {
-		s.httpServer.Close()
-	}
 	return s.underlay.Close()
 }
 

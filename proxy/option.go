@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"runtime"
 	"strings"
@@ -34,7 +34,7 @@ func detectAndReadConfig(file string) ([]byte, bool, error) {
 		log.Fatalf("unsupported config format: %s. use .yaml or .json instead.", file)
 	}
 
-	data, err := ioutil.ReadFile(file)
+	data, err := os.ReadFile(file)
 	if err != nil {
 		return nil, false, err
 	}
@@ -125,7 +125,7 @@ func (o *StdinOption) Handle() error {
 		}
 	}
 
-	data, e := ioutil.ReadAll(bufio.NewReader(os.Stdin))
+	data, e := io.ReadAll(bufio.NewReader(os.Stdin))
 	if e != nil {
 		log.Fatalf("Failed to read from stdin: %s", e.Error())
 	}

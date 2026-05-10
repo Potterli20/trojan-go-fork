@@ -4,7 +4,7 @@ import (
 	crand "crypto/rand"
 	"fmt"
 	"io"
-	"io/ioutil"
+
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,8 +44,8 @@ func TestNewShareInfoFromURL_Empty(t *testing.T) {
 }
 
 func TestNewShareInfoFromURL_RandomCrap(t *testing.T) {
-	for i := 0; i < 100; i++ {
-		randomCrap, _ := ioutil.ReadAll(io.LimitReader(crand.Reader, 10))
+	for range 100 {
+		randomCrap, _ := io.ReadAll(io.LimitReader(crand.Reader, 10))
 		_, e := NewShareInfoFromURL(string(randomCrap))
 		assert.Error(t, e, "random crap %v should lead to error", randomCrap)
 	}

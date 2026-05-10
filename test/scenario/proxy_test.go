@@ -107,7 +107,7 @@ func CheckClientServer(clientData, serverData string, socksPort int) (ok bool) {
 	const num = 100
 	wg := sync.WaitGroup{}
 	wg.Add(num)
-	for i := 0; i < num; i++ {
+	for range num {
 		go func() {
 			const payloadSize = 1024
 			payload := util.GeneratePayload(payloadSize)
@@ -485,7 +485,7 @@ func SingleThreadBenchmark(clientData, serverData string, socksPort int) {
 	const payloadSize = 1024 * 1024 * 1024
 	payload := util.GeneratePayload(payloadSize)
 
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		conn, err := dialer.Dial("tcp", util.BlackHoleAddr)
 		common.Must(err)
 

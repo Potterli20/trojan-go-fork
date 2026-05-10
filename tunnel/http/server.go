@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"strings"
@@ -83,7 +82,7 @@ func (s *Server) acceptLoop() {
 		}
 
 		go func(conn net.Conn) {
-			reqBufReader := bufio.NewReader(ioutil.NopCloser(conn))
+			reqBufReader := bufio.NewReader(io.NopCloser(conn))
 			req, err := http.ReadRequest(reqBufReader)
 			if err != nil {
 				log.Error(common.NewError("not a valid http request").Base(err))
@@ -140,7 +139,7 @@ func (s *Server) acceptLoop() {
 						return
 					}
 
-					respBufReader := bufio.NewReader(ioutil.NopCloser(respReader)) // read response from the remote
+					respBufReader := bufio.NewReader(io.NopCloser(respReader)) // read response from the remote
 					resp, err := http.ReadResponse(respBufReader, req)
 					if err != nil {
 						log.Error(common.NewError("http failed to read http response").Base(err))

@@ -7,7 +7,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
+
 	"strings"
 	"sync"
 	"time"
@@ -99,7 +100,7 @@ func connectDatabase(driverName, username, password, ip string, port int, dbName
 	if caPath != "" {
 		path += "&tls=custom"
 		rootCertPool := x509.NewCertPool()
-		pem, err := ioutil.ReadFile(caPath)
+		pem, err := os.ReadFile(caPath)
 		if err != nil {
 			return nil, err
 		}

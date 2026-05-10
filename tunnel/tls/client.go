@@ -6,7 +6,8 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"io"
-	"io/ioutil"
+	"os"
+
 	"net"
 	"strings"
 
@@ -149,7 +150,7 @@ func getHelloID(fingerprint string) (utls.ClientHelloID, error) {
 }
 
 func loadCert(client *Client, certPath string) error {
-	caCertByte, err := ioutil.ReadFile(certPath)
+	caCertByte, err := os.ReadFile(certPath)
 	if err != nil {
 		return common.NewError("failed to load cert file at path: " + certPath).Base(err)
 	}

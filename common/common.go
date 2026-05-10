@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -34,11 +35,11 @@ func SHA224String(password string) string {
 	hash := sha256.New224()
 	hash.Write([]byte(password))
 	val := hash.Sum(nil)
-	str := ""
+	var str strings.Builder
 	for _, v := range val {
-		str += fmt.Sprintf("%02x", v)
+		str.WriteString(fmt.Sprintf("%02x", v))
 	}
-	return str
+	return str.String()
 }
 
 func GetProgramDir() string {

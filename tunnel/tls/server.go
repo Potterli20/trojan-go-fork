@@ -9,7 +9,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -220,7 +219,7 @@ func (s *Server) checkKeyPairLoop(checkRate time.Duration, keyPath string, certP
 
 	for {
 		log.Debug("checking cert...")
-		keyBytes, err := ioutil.ReadFile(keyPath)
+		keyBytes, err := os.ReadFile(keyPath)
 		if err != nil {
 			log.Error(common.NewError("tls failed to check key").Base(err))
 			if !s.waitForNextTick(ticker) {
@@ -228,7 +227,7 @@ func (s *Server) checkKeyPairLoop(checkRate time.Duration, keyPath string, certP
 			}
 			continue
 		}
-		certBytes, err := ioutil.ReadFile(certPath)
+		certBytes, err := os.ReadFile(certPath)
 		if err != nil {
 			log.Error(common.NewError("tls failed to check cert").Base(err))
 			if !s.waitForNextTick(ticker) {
@@ -269,7 +268,7 @@ func (s *Server) waitForNextTick(ticker *time.Ticker) bool {
 
 func loadKeyPair(keyPath string, certPath string, password string) (*tls.Certificate, error) {
 	if password != "" {
-		keyFile, err := ioutil.ReadFile(keyPath)
+		keyFile, err := os.ReadFile(keyPath)
 		if err != nil {
 			return nil, common.NewError("failed to load key file").Base(err)
 		}
@@ -282,7 +281,7 @@ func loadKeyPair(keyPath string, certPath string, password string) (*tls.Certifi
 			return nil, common.NewError("failed to decrypt key").Base(err)
 		}
 
-		certFile, err := ioutil.ReadFile(certPath)
+		certFile, err := os.ReadFile(certPath)
 		certBlock, _ := pem.Decode(certFile)
 		if certBlock == nil {
 			return nil, common.NewError("failed to decode cert file").Base(err)
@@ -330,7 +329,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	} else {
 		log.Warn("empty tls fallback port")
 		if cfg.TLS.HTTPResponseFileName != "" {
-			httpRespBody, err := ioutil.ReadFile(cfg.TLS.HTTPResponseFileName)
+			httpRespBody, err := os.ReadFile(cfg.TLS.HTTPResponseFileName)
 			if err != nil {
 				return nil, common.NewError("invalid response file").Base(err)
 			}
