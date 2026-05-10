@@ -76,13 +76,17 @@ func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 			cmd.Env = append(cmd.Env, cfg.TransportPlugin.Env...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stdout
-			cmd.Start()
+			if err := cmd.Start(); err != nil {
+				return nil, common.NewError("failed to start transport plugin").Base(err)
+			}
 		case "other":
 			cmd = exec.Command(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg...)
 			cmd.Env = append(cmd.Env, cfg.TransportPlugin.Env...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stdout
-			cmd.Start()
+			if err := cmd.Start(); err != nil {
+				return nil, common.NewError("failed to start transport plugin").Base(err)
+			}
 		case "plaintext":
 			// do nothing
 		default:
