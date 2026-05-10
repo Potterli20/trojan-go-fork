@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net"
+	"sync"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -22,10 +23,13 @@ type PacketConn struct {
 	*Client
 	ctx    context.Context
 	cancel context.CancelFunc
+	wg     sync.WaitGroup
 }
 
 func (c *PacketConn) packetLoop() {
+	c.wg.Add(1)
 	go func() {
+		defer c.wg.Done()
 		for {
 			buf := make([]byte, MaxPacketSize)
 			n, addr, err := c.proxy.ReadWithMetadata(buf)
@@ -68,6 +72,7 @@ func (c *PacketConn) packetLoop() {
 
 func (c *PacketConn) Close() error {
 	c.cancel()
+	c.wg.Wait()
 	c.proxy.Close()
 	return c.PacketConn.Close()
 }
