@@ -89,9 +89,9 @@ func TestServerPlugin(t *testing.T) {
 		TransportPlugin: TransportPluginConfig{
 			Enabled: true,
 			Type:    "shadowsocks",
-			Command: "echo $SS_REMOTE_PORT",
+			Command: "sh",
 			Option:  "",
-			Arg:     nil,
+			Arg:     []string{"-c", "echo $SS_REMOTE_PORT"},
 			Env:     nil,
 		},
 	}

@@ -70,6 +70,7 @@ func (s *Server) handleConnection(tcpConn net.Conn) {
 		rewindConn.Rewind()
 		rewindConn.StopBuffering()
 		if err != nil {
+			log.Debug("failed to parse http request, treating as trojan connection:", err)
 			select {
 			case s.connChan <- &Conn{
 				Conn: rewindConn,
@@ -154,13 +155,17 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 			cmd.Env = append(cmd.Env, cfg.TransportPlugin.Env...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stdout
-			cmd.Start()
+			if err := cmd.Start(); err != nil {
+				return nil, common.NewError("failed to start transport plugin").Base(err)
+			}
 		case "other":
 			cmd = exec.Command(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg...)
 			cmd.Env = append(cmd.Env, cfg.TransportPlugin.Env...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stdout
-			cmd.Start()
+			if err := cmd.Start(); err != nil {
+				return nil, common.NewError("failed to start transport plugin").Base(err)
+			}
 		case "plaintext":
 			// do nothing
 		default:
@@ -169,6 +174,10 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 	}
 	tcpListener, err := tfo.Listen("tcp", listenAddress.String())
 	if err != nil {
+		if cmd != nil && cmd.Process != nil {
+			cmd.Process.Kill()
+			cmd.Wait()
+		}
 		return nil, err
 	}
 
