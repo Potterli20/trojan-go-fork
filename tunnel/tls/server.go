@@ -209,17 +209,20 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 func (s *Server) checkKeyPairLoop(checkRate time.Duration, keyPath string, certPath string, password string) {
 	var lastKeyBytes, lastCertBytes []byte
 	ticker := time.NewTicker(checkRate)
+	defer ticker.Stop()
 
 	for {
 		log.Debug("checking cert...")
 		keyBytes, err := ioutil.ReadFile(keyPath)
 		if err != nil {
 			log.Error(common.NewError("tls failed to check key").Base(err))
+			s.waitForNextTick(ticker)
 			continue
 		}
 		certBytes, err := ioutil.ReadFile(certPath)
 		if err != nil {
 			log.Error(common.NewError("tls failed to check cert").Base(err))
+			s.waitForNextTick(ticker)
 			continue
 		}
 		if !bytes.Equal(keyBytes, lastKeyBytes) || !bytes.Equal(lastCertBytes, certBytes) {
@@ -227,23 +230,23 @@ func (s *Server) checkKeyPairLoop(checkRate time.Duration, keyPath string, certP
 			keyPair, err := loadKeyPair(keyPath, certPath, password)
 			if err != nil {
 				log.Error(common.NewError("tls failed to load new key pair").Base(err))
+				s.waitForNextTick(ticker)
 				continue
 			}
 			s.keyPairLock.Lock()
-			s.keyPairLock.Unlock()
 			s.keyPair = []tls.Certificate{*keyPair}
 			lastKeyBytes = keyBytes
 			lastCertBytes = certBytes
+			s.keyPairLock.Unlock()
 		}
+		s.waitForNextTick(ticker)
+	}
+}
 
-		select {
-		case <-ticker.C:
-			continue
-		case <-s.ctx.Done():
-			log.Debug("exiting")
-			ticker.Stop()
-			return
-		}
+func (s *Server) waitForNextTick(ticker *time.Ticker) {
+	select {
+	case <-ticker.C:
+	case <-s.ctx.Done():
 	}
 }
 
@@ -258,7 +261,7 @@ func loadKeyPair(keyPath string, certPath string, password string) (*tls.Certifi
 			return nil, common.NewError("failed to decode key file").Base(err)
 		}
 		decryptedKey, err := x509.DecryptPEMBlock(keyBlock, []byte(password))
-		if err == nil {
+		if err != nil {
 			return nil, common.NewError("failed to decrypt key").Base(err)
 		}
 

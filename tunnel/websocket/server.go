@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"golang.org/x/net/http2"
@@ -45,7 +44,6 @@ type Server struct {
 	redir     *redirector.Redirector
 	ctx       context.Context
 	cancel    context.CancelFunc
-	wg        sync.WaitGroup
 	timeout   time.Duration
 }
 

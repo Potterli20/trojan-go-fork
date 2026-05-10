@@ -117,24 +117,48 @@ return nil, common.NewError("QUIC failed to open stream").Base(err)
 }
 
 log.Debug("QUIC stream created")
-return &StreamConn{Stream: stream, conn: conn}, nil
+return &StreamConn{Stream: &stream, conn: conn}, nil
 }
 
 type StreamConn struct {
-quic.Stream
-conn any
+	Stream *quic.Stream
+	conn   any
 }
 
 func (c *StreamConn) Metadata() *tunnel.Metadata {
-return &tunnel.Metadata{}
+	return &tunnel.Metadata{}
 }
 
 func (c *StreamConn) LocalAddr() net.Addr {
-return c.conn.(interface{ LocalAddr() net.Addr }).LocalAddr()
+	return c.conn.(interface{ LocalAddr() net.Addr }).LocalAddr()
 }
 
 func (c *StreamConn) RemoteAddr() net.Addr {
-return c.conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr()
+	return c.conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr()
+}
+
+func (c *StreamConn) Read(p []byte) (int, error) {
+	return (*c.Stream).Read(p)
+}
+
+func (c *StreamConn) Write(p []byte) (int, error) {
+	return (*c.Stream).Write(p)
+}
+
+func (c *StreamConn) Close() error {
+	return (*c.Stream).Close()
+}
+
+func (c *StreamConn) SetDeadline(t time.Time) error {
+	return (*c.Stream).SetDeadline(t)
+}
+
+func (c *StreamConn) SetReadDeadline(t time.Time) error {
+	return (*c.Stream).SetReadDeadline(t)
+}
+
+func (c *StreamConn) SetWriteDeadline(t time.Time) error {
+	return (*c.Stream).SetWriteDeadline(t)
 }
 
 type PacketConn struct {
