@@ -3,6 +3,11 @@ package trojan
 import (
 	"context"
 	"fmt"
+	"io"
+	"net"
+	"strings"
+	"sync/atomic"
+
 	"github.com/Potterli20/trojan-go-fork/api"
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -15,10 +20,6 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"github.com/Potterli20/trojan-go-fork/tunnel/mux"
 	"github.com/Potterli20/trojan-go-fork/tunnel/websocket"
-	"io"
-	"net"
-	"strings"
-	"sync/atomic"
 )
 
 var Auth statistic.Authenticator
@@ -182,6 +183,13 @@ func (s *Server) acceptLoop() {
 			continue
 		}
 		go func(conn tunnel.Conn) {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Error(common.NewError("panic in trojan handler: " + fmt.Sprintf("%v", r)))
+					conn.Close()
+				}
+			}()
+
 			rewindConn := common.NewRewindConn(conn)
 			rewindConn.SetBufferSize(128)
 			defer rewindConn.StopBuffering()
@@ -193,7 +201,6 @@ func (s *Server) acceptLoop() {
 
 			if err := inboundConn.Auth(); err != nil {
 				rewindConn.Rewind()
-				rewindConn.StopBuffering()
 				log.Warn(common.NewError("connection with invalid trojan header from " + rewindConn.RemoteAddr().String()).Base(err))
 				s.redir.Redirect(&redirector.Redirection{
 					RedirectTo:  s.redirAddr,
@@ -224,6 +231,7 @@ func (s *Server) acceptLoop() {
 				log.Debug("mux connection")
 			default:
 				log.Error(common.NewError(fmt.Sprintf("unknown trojan command %d", inboundConn.metadata.Command)))
+				inboundConn.Close()
 			}
 		}(conn)
 	}

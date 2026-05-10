@@ -61,7 +61,10 @@ func Subscribe(uid string, transport, targetPort string, includePayload bool) ch
 
 func Unsubscribe(uid string) {
 	log.Debug("Delete recorder subscriber", uid)
-	subscribers.Delete(uid)
+	if val, ok := subscribers.LoadAndDelete(uid); ok {
+		opt := val.(option)
+		close(opt.recordChan)
+	}
 }
 
 func broadcast(record Record) {

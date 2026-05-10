@@ -34,6 +34,7 @@ func (s *Server) Close() error {
 	s.cancel()
 	if s.cmd != nil && s.cmd.Process != nil {
 		s.cmd.Process.Kill()
+		s.cmd.Wait()
 	}
 	return s.tcpListener.Close()
 }

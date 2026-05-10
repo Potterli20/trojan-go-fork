@@ -65,12 +65,13 @@ func (r *RewindReader) Discard(n int) (int, error) {
 
 func (r *RewindReader) Rewind() {
 	r.mu.Lock()
+	defer r.mu.Unlock()
 	if r.bufferSize == 0 {
-		panic("no buffer")
+		log.Error(NewError("attempting to rewind without buffer"))
+		return
 	}
 	r.rewound = true
 	r.bufReadIdx = 0
-	r.mu.Unlock()
 }
 
 func (r *RewindReader) StopBuffering() {

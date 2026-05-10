@@ -67,12 +67,16 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	if c.forwardProxy {
 		socksClient, err := socks5.NewClient(c.proxyAddr.String(), c.username, c.password, 0, 0)
-		common.Must(err)
+		if err != nil {
+			return nil, common.NewError("freedom failed to create socks client").Base(err)
+		}
 		if err := socksClient.Negotiate(&net.TCPAddr{}); err != nil {
 			return nil, common.NewError("freedom failed to negotiate socks").Base(err)
 		}
-		a, addr, port, err := socks5.ParseAddress("1.1.1.1:53") // useless address
-		common.Must(err)
+		a, addr, port, err := socks5.ParseAddress("1.1.1.1:53")
+		if err != nil {
+			return nil, common.NewError("freedom failed to parse address").Base(err)
+		}
 		resp, err := socksClient.Request(socks5.NewRequest(socks5.CmdUDP, a, addr, port))
 		if err != nil {
 			return nil, common.NewError("freedom failed to dial udp to socks").Base(err)
