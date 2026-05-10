@@ -45,6 +45,14 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 	}, nil
 }
 
+// startPlugin starts the transport plugin command
+func startPlugin(cmd *exec.Cmd) error {
+	if err := cmd.Start(); err != nil {
+		return common.NewError("failed to start transport plugin").Base(err)
+	}
+	return nil
+}
+
 // NewClient creates a transport layer client
 func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
@@ -76,16 +84,16 @@ func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 			cmd.Env = append(cmd.Env, cfg.TransportPlugin.Env...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stdout
-			if err := cmd.Start(); err != nil {
-				return nil, common.NewError("failed to start transport plugin").Base(err)
+			if err := startPlugin(cmd); err != nil {
+				return nil, err
 			}
 		case "other":
 			cmd = exec.Command(cfg.TransportPlugin.Command, cfg.TransportPlugin.Arg...)
 			cmd.Env = append(cmd.Env, cfg.TransportPlugin.Env...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stdout
-			if err := cmd.Start(); err != nil {
-				return nil, common.NewError("failed to start transport plugin").Base(err)
+			if err := startPlugin(cmd); err != nil {
+				return nil, err
 			}
 		case "plaintext":
 			// do nothing
