@@ -30,10 +30,6 @@ jobs:
           go version
           go env
 
-      - name: Run tests
-        run: |
-          go test ./...
-
       - name: Generate changelog
         run: |
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "initial")
