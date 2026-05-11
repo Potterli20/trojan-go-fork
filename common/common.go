@@ -1,11 +1,8 @@
 package common
 
 import (
-	"crypto/sha256"
-	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -30,16 +27,13 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-// SHA224String is kept for backward compatibility
 func SHA224String(password string) string {
-	hash := sha256.New224()
-	hash.Write([]byte(password))
-	val := hash.Sum(nil)
-	var str strings.Builder
-	for _, v := range val {
-		str.WriteString(fmt.Sprintf("%02x", v))
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Error(err)
+		return ""
 	}
-	return str.String()
+	return string(hash)
 }
 
 func GetProgramDir() string {
