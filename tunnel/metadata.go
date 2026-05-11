@@ -236,6 +236,9 @@ func (a *Address) WriteTo(w io.Writer) (int64, error) {
 		}
 		n, err = w.Write([]byte(a.DomainName))
 		total += int64(n)
+		if err != nil {
+			return total, err
+		}
 	case IPv4:
 		n, err = w.Write(a.IP.To4())
 		total += int64(n)
