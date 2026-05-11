@@ -79,3 +79,4 @@ func TestDebugLogSanitization(t *testing.T) {
 		t.Errorf("Debug() log output = %q, should not contain forged log entry", logOutput)
 	}
 }
+
