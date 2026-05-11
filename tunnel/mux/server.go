@@ -3,6 +3,7 @@ package mux
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/xtaci/smux"
 
@@ -17,6 +18,7 @@ type Server struct {
 	connChan chan tunnel.Conn
 	ctx      context.Context
 	cancel   context.CancelFunc
+	wg       sync.WaitGroup
 }
 
 func (s *Server) acceptConnWorker() {
@@ -36,6 +38,8 @@ func (s *Server) acceptConnWorker() {
 }
 
 func (s *Server) handleConn(conn tunnel.Conn) {
+	s.wg.Add(1)
+	defer s.wg.Done()
 	defer func() {
 		if r := recover(); r != nil {
 			log.Error("panic in mux handler: ", fmt.Sprintf("%v", r))

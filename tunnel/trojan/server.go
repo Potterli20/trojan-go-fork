@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"strings"
+	"sync"
 	"sync/atomic"
 
 	"github.com/Potterli20/trojan-go-fork/api"
@@ -163,10 +164,12 @@ type Server struct {
 	packetChan chan tunnel.PacketConn
 	ctx        context.Context
 	cancel     context.CancelFunc
+	wg         sync.WaitGroup
 }
 
 func (s *Server) Close() error {
 	s.cancel()
+	s.wg.Wait()
 	return s.underlay.Close()
 }
 

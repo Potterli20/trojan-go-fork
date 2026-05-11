@@ -165,13 +165,16 @@ func (s *Server) packetDispatchLoop() {
 					case <-time.After(time.Second * 5):
 						log.Info("socks udp session timeout, closed")
 						s.mappingLock.Lock()
-						delete(s.mapping, src.String())
-						s.mappingLock.Unlock()
-						return
-					case <-conn.ctx.Done():
-						log.Info("socks udp session closed")
-						return
-					}
+				delete(s.mapping, src.String())
+				s.mappingLock.Unlock()
+				return
+			case <-conn.ctx.Done():
+				s.mappingLock.Lock()
+				delete(s.mapping, src.String())
+				s.mappingLock.Unlock()
+				log.Info("socks udp session closed")
+				return
+			}
 				}
 			}(conn)
 

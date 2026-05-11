@@ -189,10 +189,8 @@ func (u *User) speedUpdater() {
 			return
 		case <-ticker.C:
 			sent, recv := u.GetTraffic()
-			atomic.StoreUint64(&u.sendSpeed, sent-u.lastSent)
-			atomic.StoreUint64(&u.recvSpeed, recv-u.lastRecv)
-			atomic.StoreUint64(&u.lastSent, sent)
-			atomic.StoreUint64(&u.lastRecv, recv)
+			atomic.StoreUint64(&u.sendSpeed, sent-atomic.SwapUint64(&u.lastSent, sent))
+			atomic.StoreUint64(&u.recvSpeed, recv-atomic.SwapUint64(&u.lastRecv, recv))
 		}
 	}
 }

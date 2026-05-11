@@ -22,12 +22,13 @@ const (
 	MaxPacketSize = 1024 * 8
 )
 
-// Proxy relay connections and packets
 type Proxy struct {
 	sources []tunnel.Server
 	sink    tunnel.Client
 	ctx     context.Context
 	cancel  context.CancelFunc
+	bufSize int
+	bufPool sync.Pool
 }
 
 func (p *Proxy) Run() error {
@@ -46,23 +47,12 @@ func (p *Proxy) Close() error {
 	return nil
 }
 
-var (
-	bufPool sync.Pool
-	bufSize int = 8 * 1024
-)
-
-func init() {
-	bufPool = sync.Pool{
-		New: func() any {
-			return make([]byte, bufSize)
-		},
-	}
-}
+var defaultBufSize = 8 * 1024
 
 func (p *Proxy) relayConnLoop() {
 	copyConn := func(dst io.Writer, src io.Reader, errChan chan error) {
-		buffer := bufPool.Get().([]byte)
-		defer bufPool.Put(buffer)
+		buffer := p.bufPool.Get().([]byte)
+		defer p.bufPool.Put(buffer)
 
 		_, err := io.CopyBuffer(dst, src, buffer)
 		errChan <- err
@@ -116,20 +106,20 @@ func (p *Proxy) relayConnLoop() {
 func (p *Proxy) relayPacketLoop() {
 	copyPacket := func(a, b tunnel.PacketConn, errChan chan error) {
 		for {
-			buf := bufPool.Get().([]byte)
+			buf := p.bufPool.Get().([]byte)
 			n, metadata, err := a.ReadWithMetadata(buf)
 			if err != nil {
-				bufPool.Put(buf)
+				p.bufPool.Put(buf)
 				errChan <- err
 				return
 			}
 			if n == 0 {
-				bufPool.Put(buf)
+				p.bufPool.Put(buf)
 				errChan <- nil
 				return
 			}
 			_, err = b.WriteWithMetadata(buf[:n], metadata)
-			bufPool.Put(buf)
+			p.bufPool.Put(buf)
 			if err != nil {
 				errChan <- err
 				return
@@ -182,7 +172,7 @@ func (p *Proxy) relayPacketLoop() {
 }
 
 func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.Server, sink tunnel.Client) *Proxy {
-	// 从配置中读取buffer大小和数量限制
+	bufSize := defaultBufSize
 	if cfg, ok := config.FromContext(ctx, Name).(*Config); ok {
 		if cfg.RelayBufferSize > 0 {
 			bufSize = cfg.RelayBufferSize
@@ -193,6 +183,12 @@ func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.S
 		sink:    sink,
 		ctx:     ctx,
 		cancel:  cancel,
+		bufSize: bufSize,
+		bufPool: sync.Pool{
+			New: func() any {
+				return make([]byte, bufSize)
+			},
+		},
 	}
 }
 

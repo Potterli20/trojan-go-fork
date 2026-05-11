@@ -104,53 +104,48 @@ func (r *Redirector) worker() {
 			r.wg.Add(1)
 			go func() {
 				defer r.wg.Done()
-				handle := func() {
-					if redirection.InboundConn == nil || reflect.ValueOf(redirection.InboundConn).IsNil() {
-						log.Error("nil inbound conn")
-						return
-					}
-					defer redirection.InboundConn.Close()
-					if redirection.RedirectTo == nil || reflect.ValueOf(redirection.RedirectTo).IsNil() {
-						log.Error("nil redirection addr")
-						return
-					}
-					if redirection.Dial == nil {
-						redirection.Dial = defaultDial
-					}
-					log.Warn("redirecting connection from", redirection.InboundConn.RemoteAddr(), "to", redirection.RedirectTo.String())
-					outboundConn, err := redirection.Dial(redirection.RedirectTo)
-					if err != nil {
-						log.Error(common.NewError("failed to redirect to target address").Base(err))
-						return
-					}
-					defer outboundConn.Close()
-					if redirection.ClientIP != "" {
-						if err := injectForwardedHeader(redirection.InboundConn, outboundConn, redirection.ClientIP); err != nil {
-							log.Debug("failed to inject X-Forwarded-For header, using plain TCP forwarding:", err)
-						}
-					}
-					errChan := make(chan error, 2)
-					copyConn := func(a, b net.Conn) {
-						_, err := io.Copy(a, b)
-						errChan <- err
-					}
-					go copyConn(outboundConn, redirection.InboundConn)
-					go copyConn(redirection.InboundConn, outboundConn)
-					select {
-					case err := <-errChan:
-						if err != nil {
-							log.Error(common.NewError("failed to redirect").Base(err))
-						}
-						log.Info("redirection done")
-					case <-r.ctx.Done():
-						return
+				if redirection.InboundConn == nil || reflect.ValueOf(redirection.InboundConn).IsNil() {
+					log.Error("nil inbound conn")
+					return
+				}
+				defer redirection.InboundConn.Close()
+				if redirection.RedirectTo == nil || reflect.ValueOf(redirection.RedirectTo).IsNil() {
+					log.Error("nil redirection addr")
+					return
+				}
+				if redirection.Dial == nil {
+					redirection.Dial = defaultDial
+				}
+				log.Warn("redirecting connection from", redirection.InboundConn.RemoteAddr(), "to", redirection.RedirectTo.String())
+				outboundConn, err := redirection.Dial(redirection.RedirectTo)
+				if err != nil {
+					log.Error(common.NewError("failed to redirect to target address").Base(err))
+					return
+				}
+				defer outboundConn.Close()
+				if redirection.ClientIP != "" {
+					if err := injectForwardedHeader(redirection.InboundConn, outboundConn, redirection.ClientIP); err != nil {
+						log.Debug("failed to inject X-Forwarded-For header, using plain TCP forwarding:", err)
 					}
 				}
-				handle()
+				errChan := make(chan error, 2)
+				copyConn := func(a, b net.Conn) {
+					_, err := io.Copy(a, b)
+					errChan <- err
+				}
+				go copyConn(outboundConn, redirection.InboundConn)
+				go copyConn(redirection.InboundConn, outboundConn)
+				select {
+				case err := <-errChan:
+					if err != nil {
+						log.Error(common.NewError("failed to redirect").Base(err))
+					}
+					log.Info("redirection done")
+				case <-r.ctx.Done():
+					return
+				}
 			}()
 		case <-r.ctx.Done():
-			r.wg.Wait()
-			log.Debug("shutting down redirector")
 			return
 		}
 	}
