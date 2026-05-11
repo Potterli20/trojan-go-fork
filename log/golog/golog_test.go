@@ -67,7 +67,7 @@ func TestDebugLogSanitization(t *testing.T) {
 	logger.SetLogLevel(0)
 
 	logger.Debug("test\n[INFO] fake log entry")
-	
+
 	logOutput := buf.String()
 	if strings.Contains(logOutput, "\n[INFO]") {
 		t.Errorf("Debug() log output = %q, should not contain forged log entry", logOutput)
@@ -81,4 +81,3 @@ type bufferWriter struct {
 func (w *bufferWriter) Fd() uintptr {
 	return 1
 }
-

@@ -10,25 +10,25 @@ import (
 
 func TestSanitizeLogInput(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    []any
-		want     []any
-		contains []string
-		notContains []string
+		name         string
+		input        []any
+		want         []any
+		contains     []string
+		notContains  []string
 	}{
 		{
-			name:     "removes newlines from user input",
-			input:    []any{"user input with\nnewline"},
+			name:        "removes newlines from user input",
+			input:       []any{"user input with\nnewline"},
 			notContains: []string{"\n"},
 		},
 		{
-			name:     "removes carriage returns from user input",
-			input:    []any{"user input with\r carriage return"},
+			name:        "removes carriage returns from user input",
+			input:       []any{"user input with\r carriage return"},
 			notContains: []string{"\r"},
 		},
 		{
-			name:     "prevents log forging attack",
-			input:    []any{"[ERROR] fake error\n[INFO] fake info"},
+			name:        "prevents log forging attack",
+			input:       []any{"[ERROR] fake error\n[INFO] fake info"},
 			notContains: []string{"\n[INFO]", "\n[ERROR]"},
 		},
 		{
@@ -37,8 +37,8 @@ func TestSanitizeLogInput(t *testing.T) {
 			contains: []string{"&lt;"},
 		},
 		{
-			name:     "handles mixed data types",
-			input:    []any{"test", 123, "line1\nline2"},
+			name:        "handles mixed data types",
+			input:       []any{"test", 123, "line1\nline2"},
 			notContains: []string{"\n"},
 		},
 	}
@@ -73,10 +73,9 @@ func TestDebugLogSanitization(t *testing.T) {
 	logger.SetLogLevel(0)
 
 	logger.Debug("test\n[INFO] fake log entry")
-	
+
 	logOutput := buf.String()
 	if strings.Contains(logOutput, "\n[INFO]") {
 		t.Errorf("Debug() log output = %q, should not contain forged log entry", logOutput)
 	}
 }
-
