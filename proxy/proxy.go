@@ -107,17 +107,19 @@ func (p *Proxy) relayPacketLoop() {
 	copyPacket := func(a, b tunnel.PacketConn, errChan chan error) {
 		for {
 			buf := p.bufPool.Get().([]byte)
-			defer p.bufPool.Put(buf)
 			n, metadata, err := a.ReadWithMetadata(buf)
 			if err != nil {
+				p.bufPool.Put(buf)
 				errChan <- err
 				return
 			}
 			if n == 0 {
+				p.bufPool.Put(buf)
 				errChan <- nil
 				return
 			}
 			_, err = b.WriteWithMetadata(buf[:n], metadata)
+			p.bufPool.Put(buf)
 			if err != nil {
 				errChan <- err
 				return
