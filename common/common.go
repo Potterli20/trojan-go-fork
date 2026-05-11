@@ -30,8 +30,7 @@ func CheckPasswordHash(password, hash string) bool {
 func SHA224String(password string) string {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Error(err)
-		return ""
+		log.Fatal(err)
 	}
 	return string(hash)
 }
