@@ -27,9 +27,7 @@ type PacketConn struct {
 }
 
 func (c *PacketConn) packetLoop() {
-	c.wg.Add(1)
-	go func() {
-		defer c.wg.Done()
+	c.wg.Go(func() {
 		for {
 			buf := make([]byte, MaxPacketSize)
 			n, addr, err := c.proxy.ReadWithMetadata(buf)
@@ -47,7 +45,7 @@ func (c *PacketConn) packetLoop() {
 				payload: buf[:n],
 			}
 		}
-	}()
+	})
 	for {
 		buf := make([]byte, MaxPacketSize)
 		n, addr, err := c.PacketConn.ReadFrom(buf)

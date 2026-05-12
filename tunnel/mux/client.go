@@ -181,11 +181,9 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		cancel:      cancel,
 		clientPool:  make(map[muxID]*smuxClientInfo),
 	}
-	client.wg.Add(1)
-	go func() {
-		defer client.wg.Done()
+	client.wg.Go(func() {
 		client.cleanLoop()
-	}()
+	})
 	log.Debug("mux client created")
 	return client, nil
 }

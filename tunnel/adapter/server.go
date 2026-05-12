@@ -140,10 +140,8 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 		cancel:      cancel,
 	}
 	log.Info("adapter listening on tcp/udp:", addr)
-	server.wg.Add(1)
-	go func() {
-		defer server.wg.Done()
+	server.wg.Go(func() {
 		server.acceptConnLoop()
-	}()
+	})
 	return server, nil
 }

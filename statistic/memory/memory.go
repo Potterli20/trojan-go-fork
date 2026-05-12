@@ -64,11 +64,9 @@ func (u *User) AddIP(ip string) bool {
 
 	u.ipTable[ip] = time.Now()
 	atomic.AddInt32(&u.ipNum, 1)
-	u.wg.Add(1)
-	go func() {
-		defer u.wg.Done()
+	u.wg.Go(func() {
 		u.DelIP(ip)
-	}()
+	})
 	return true
 }
 
@@ -284,18 +282,14 @@ func (a *Authenticator) AddUser(hash string) error {
 		ctx:     ctx,
 		cancel:  cancel,
 	}
-	meter.wg.Add(1)
-	go func() {
-		defer meter.wg.Done()
+	meter.wg.Go(func() {
 		meter.speedUpdater()
-	}()
+	})
 	a.users.Store(hash, meter)
 	if a.pst != nil {
-		meter.wg.Add(1)
-		go func() {
-			defer meter.wg.Done()
+		meter.wg.Go(func() {
 			meter.trafficUpdater(a.pst)
-		}()
+		})
 		err := a.pst.SaveUser(meter)
 		if err != nil {
 			log.Errorf("Save user %s failed: %s", hash, err)
@@ -411,16 +405,12 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 			user.SetSpeedLimit(u.GetSpeedLimit())
 			user.setTraffic(u.GetTraffic())
 			user.setPassword(u.GetKeyShare())
-			user.wg.Add(1)
-			go func() {
-				defer user.wg.Done()
+			user.wg.Go(func() {
 				user.speedUpdater()
-			}()
-			user.wg.Add(1)
-			go func() {
-				defer user.wg.Done()
+			})
+			user.wg.Go(func() {
 				user.trafficUpdater(a.pst)
-			}()
+			})
 			a.users.Store(hash, user)
 			return true
 		})

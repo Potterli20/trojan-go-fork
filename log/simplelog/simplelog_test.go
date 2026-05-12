@@ -10,11 +10,11 @@ import (
 
 func TestSanitizeLogInput(t *testing.T) {
 	tests := []struct {
-		name         string
-		input        []any
-		want         []any
-		contains     []string
-		notContains  []string
+		name        string
+		input       []any
+		want        []any
+		contains    []string
+		notContains []string
 	}{
 		{
 			name:        "removes newlines from user input",

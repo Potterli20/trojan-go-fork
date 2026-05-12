@@ -101,9 +101,7 @@ func (r *Redirector) worker() {
 	for {
 		select {
 		case redirection := <-r.redirectionChan:
-			r.wg.Add(1)
-			go func() {
-				defer r.wg.Done()
+			r.wg.Go(func() {
 				if redirection.InboundConn == nil || reflect.ValueOf(redirection.InboundConn).IsNil() {
 					log.Error("nil inbound conn")
 					return
@@ -144,7 +142,7 @@ func (r *Redirector) worker() {
 				case <-r.ctx.Done():
 					return
 				}
-			}()
+			})
 		case <-r.ctx.Done():
 			return
 		}
