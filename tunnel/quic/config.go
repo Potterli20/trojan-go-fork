@@ -19,6 +19,7 @@ type QUICConfig struct {
 	InitialStreamWindow int    `json:"initial_stream_window" yaml:"initial-stream-window"`
 	InitialConnWindow   int    `json:"initial_conn_window" yaml:"initial-conn-window"`
 	ALPN                string `json:"alpn" yaml:"alpn"`
+	Insecure            bool   `json:"insecure" yaml:"insecure"`
 }
 
 func init() {
@@ -31,6 +32,7 @@ func init() {
 				InitialStreamWindow: 65535,
 				InitialConnWindow:   65535,
 				ALPN:                "hq-29",
+				Insecure:            false,
 			},
 		}
 	})

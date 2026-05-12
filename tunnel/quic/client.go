@@ -234,7 +234,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 
 	tlsConfig := &tls.Config{
 		ServerName:         cfg.RemoteHost,
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: cfg.QUIC.Insecure,
 		NextProtos:         []string{cfg.QUIC.ALPN},
 	}
 
