@@ -69,6 +69,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		if transportConn, ok := conn.(*transport.Conn); ok {
 			if rewindConn, ok := transportConn.Conn.(*common.RewindConn); ok {
 				rewindConn.Rewind()
+				rewindConn.StopBuffering()
 			}
 		}
 		s.redir.Redirect(&redirector.Redirection{
@@ -82,6 +83,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		if transportConn, ok := conn.(*transport.Conn); ok {
 			if rewindConn, ok := transportConn.Conn.(*common.RewindConn); ok {
 				rewindConn.Rewind()
+				rewindConn.StopBuffering()
 			}
 		}
 		s.redir.Redirect(&redirector.Redirection{
