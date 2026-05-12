@@ -386,10 +386,17 @@ func (l *Logger) Tracef(format string, v ...any) {
 func sanitizeLogInput(v []any) []any {
 	for i, val := range v {
 		if str, ok := val.(string); ok {
-			str = strings.ReplaceAll(strings.ReplaceAll(str, "\n", ""), "\r", "")
-			str = html.EscapeString(str)
+			str = sanitizeString(str)
 			v[i] = str
 		}
 	}
 	return v
+}
+
+func sanitizeString(s string) string {
+	s = strings.ReplaceAll(s, "\n", "")
+	s = strings.ReplaceAll(s, "\r", "")
+	s = strings.ReplaceAll(s, "\t", "")
+	s = html.EscapeString(s)
+	return s
 }

@@ -112,14 +112,19 @@ func sanitizeLogInput(v []any) []any {
 	v = obfuscateSensitiveData(v)
 	for i, val := range v {
 		if str, ok := val.(string); ok {
-			// Remove newline and carriage return characters
-			str = strings.ReplaceAll(strings.ReplaceAll(str, "\n", ""), "\r", "")
-			// Escape HTML special characters
-			str = html.EscapeString(str)
+			str = sanitizeString(str)
 			v[i] = str
 		}
 	}
 	return v
+}
+
+func sanitizeString(s string) string {
+	s = strings.ReplaceAll(s, "\n", "")
+	s = strings.ReplaceAll(s, "\r", "")
+	s = strings.ReplaceAll(s, "\t", "")
+	s = html.EscapeString(s)
+	return s
 }
 
 func (l *SimpleLogger) SetOutput(io.Writer) {

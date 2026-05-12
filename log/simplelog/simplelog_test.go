@@ -41,6 +41,11 @@ func TestSanitizeLogInput(t *testing.T) {
 			input:       []any{"test", 123, "line1\nline2"},
 			notContains: []string{"\n"},
 		},
+		{
+			name:        "removes tabs from user input",
+			input:       []any{"user input with\ttab"},
+			notContains: []string{"\t"},
+		},
 	}
 
 	for _, tt := range tests {
