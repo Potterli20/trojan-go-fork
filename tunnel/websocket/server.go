@@ -16,6 +16,7 @@ import (
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/redirector"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
+	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
 )
 
 // Fake response writer
@@ -61,27 +62,30 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		})
 		return nil, common.NewError("websocket is disabled. redirecting http request from " + conn.RemoteAddr().String())
 	}
-	rewindConn := common.NewRewindConn(conn)
-	rewindConn.SetBufferSize(512)
-	defer rewindConn.StopBuffering()
-	rw := bufio.NewReadWriter(bufio.NewReader(rewindConn), bufio.NewWriter(rewindConn))
+	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 	req, err := http.ReadRequest(rw.Reader)
 	if err != nil {
 		log.Debug("invalid http request")
-		rewindConn.Rewind()
-		rewindConn.StopBuffering()
+		if transportConn, ok := conn.(*transport.Conn); ok {
+			if rewindConn, ok := transportConn.Conn.(*common.RewindConn); ok {
+				rewindConn.Rewind()
+			}
+		}
 		s.redir.Redirect(&redirector.Redirection{
-			InboundConn: rewindConn,
+			InboundConn: conn,
 			RedirectTo:  s.redirAddr,
 		})
 		return nil, common.NewError("not a valid http request: " + conn.RemoteAddr().String()).Base(err)
 	}
 	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" || req.URL.Path != s.path {
 		log.Debug("invalid http websocket handshake request")
-		rewindConn.Rewind()
-		rewindConn.StopBuffering()
+		if transportConn, ok := conn.(*transport.Conn); ok {
+			if rewindConn, ok := transportConn.Conn.(*common.RewindConn); ok {
+				rewindConn.Rewind()
+			}
+		}
 		s.redir.Redirect(&redirector.Redirection{
-			InboundConn: rewindConn,
+			InboundConn: conn,
 			RedirectTo:  s.redirAddr,
 		})
 		return nil, common.NewError("not a valid websocket handshake request: " + conn.RemoteAddr().String()).Base(err)

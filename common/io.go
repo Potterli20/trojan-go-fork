@@ -20,22 +20,27 @@ type RewindReader struct {
 
 func (r *RewindReader) Read(p []byte) (int, error) {
 	r.mu.Lock()
-	defer r.mu.Unlock()
-
 	if r.rewound {
 		if len(r.buf) > r.bufReadIdx {
 			n := copy(p, r.buf[r.bufReadIdx:])
 			r.bufReadIdx += n
+			r.mu.Unlock()
 			return n, nil
 		}
-		r.rewound = false // all buffering content has been read
+		r.rewound = false
 	}
+	buffering := r.buffering
+	r.mu.Unlock()
+
 	n, err := r.rawReader.Read(p)
-	if r.buffering {
+
+	if buffering {
+		r.mu.Lock()
 		r.buf = append(r.buf, p[:n]...)
 		if len(r.buf) > r.bufferSize*2 {
 			log.Debug("read too many bytes!")
 		}
+		r.mu.Unlock()
 	}
 	return n, err
 }
@@ -77,8 +82,10 @@ func (r *RewindReader) Rewind() {
 func (r *RewindReader) StopBuffering() {
 	r.mu.Lock()
 	r.buffering = false
-	r.buf = nil
-	r.bufReadIdx = 0
+	if !r.rewound {
+		r.buf = nil
+		r.bufReadIdx = 0
+	}
 	r.mu.Unlock()
 }
 
