@@ -128,6 +128,9 @@ func NewAddressFromAddr(network, addr string) (*Address, error) {
 	if err != nil {
 		return nil, common.NewError("failed to parse port number")
 	}
+	if port < 0 || port > 65535 {
+		return nil, common.NewError("invalid port number")
+	}
 	return NewAddressFromHostPort(network, host, int(port)), nil
 }
 
