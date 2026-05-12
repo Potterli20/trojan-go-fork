@@ -18,38 +18,29 @@ jobs:
         run: |
           if [ -f "go.mod" ]; then
             go clean -modcache
-            go mod tidy -compat=1.26
             gofmt -w -r 'interface{} -> any' .
-            # 仅在有 go.mod 文件时执行 go get
-            if [ -f "go.mod" ]; then
-              go fix ./...
-              go mod tidy./...
-              go get -u ./...
-              go mod tidy -compat=1.26
-              go mod download
-            fi
+            go fix ./...
+            go mod tidy -compat=1.26
+            go mod download
           else
             echo "没有找到 go.mod 文件，跳过模块更新"
             exit 0
           fi
 
-      - name:  fix go-modules
+      - name: fix go-modules
         run: |
           bash ./gomod/gomod.sh
 
       - name: Git push
         run: |
-          git init
           git config --local user.name "github-actions[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git remote rm origin
-          git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUBTOKEN }}@github.com/${{ github.repository }}"
+          git remote set-url origin "https://${{ github.actor }}:${{ secrets.GITHUBTOKEN }}@github.com/${{ github.repository }}"
           git gc --aggressive
           git add --all
-          git commit -m "update go $(date +%Y.%m.%d.%H.%M)"
-          git push -f -u origin master
+          git commit -m "update go $(date +%Y.%m.%d.%H.%M)" || echo "No changes to commit"
+          git push -f -u origin master || true
 
-    # 删除无用 workflow runs;
       - name: Delete workflow runs
         uses: GitRML/delete-workflow-runs@main
         with:

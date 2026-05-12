@@ -1,67 +1,56 @@
+#!/bin/bash
+set -e
+
 # 更新所有依赖到最新版本
 go get -u ./...
 
 # 整理模块并确保与 Go 1.26 兼容
 go mod tidy -compat=1.26
 
-# 获取 tfo-go 最新的 commits
-tfo_commit_hash=$(curl -s https://api.github.com/repos/database64128/tfo-go/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 tfo-go
+# 获取最新 commit hash 的函数
+get_latest_commit() {
+    local repo=$1
+    curl -s "https://api.github.com/repos/$repo/commits" | grep -m 1 '"sha"' | cut -d '"' -f 4
+}
+
+# 获取 tfo-go 最新的 commit
+tfo_commit_hash=$(get_latest_commit "database64128/tfo-go")
 go get github.com/database64128/tfo-go/v2@$tfo_commit_hash
 
-# 获取 brotli 最新的 commits
-brotli_commit_hash=$(curl -s https://api.github.com/repos/andybalholm/brotli/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 tfo-go
+# 获取 brotli 最新的 commit
+brotli_commit_hash=$(get_latest_commit "andybalholm/brotli")
 go get github.com/andybalholm/brotli@$brotli_commit_hash
 
-# 获取 xray 最新的 commits
-xray_commit_hash=$(curl -s https://api.github.com/repos/XTLS/Xray-core/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 xray
+# 获取 xray 最新的 commit
+xray_commit_hash=$(get_latest_commit "XTLS/Xray-core")
 go get github.com/xtls/xray-core@$xray_commit_hash
 
-# 获取 gorm 最新的 commits
-gorm_commit_hash=$(curl -s https://api.github.com/repos/go-gorm/gorm/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 gorm
+# 获取 gorm 最新的 commit
+gorm_commit_hash=$(get_latest_commit "go-gorm/gorm")
 go get gorm.io/gorm@$gorm_commit_hash
 
-# 获取 utls 最新的 commits
-utls_commit_hash=$(curl -s https://api.github.com/repos/refraction-networking/utls/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 gorm
+# 获取 utls 最新的 commit
+utls_commit_hash=$(get_latest_commit "refraction-networking/utls")
 go get github.com/refraction-networking/utls@$utls_commit_hash
 
-# 获取 uuid 最新的 commits
-uuid_commit_hash=$(curl -s https://api.github.com/repos/google/uuid/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 gorm
+# 获取 uuid 最新的 commit
+uuid_commit_hash=$(get_latest_commit "google/uuid")
 go get github.com/google/uuid@$uuid_commit_hash
 
-# 获取 goconvey 最新的 commits
-goconvey_commit_hash=$(curl -s https://api.github.com/repos/smartystreets/goconvey/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 gorm
+# 获取 goconvey 最新的 commit
+goconvey_commit_hash=$(get_latest_commit "smartystreets/goconvey")
 go get github.com/smartystreets/goconvey@$goconvey_commit_hash
 
-# 获取 gopherjs 最新的 commits
-gopherjs_commit_hash=$(curl -s https://api.github.com/repos/gopherjs/gopherjs/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 gorm
+# 获取 gopherjs 最新的 commit
+gopherjs_commit_hash=$(get_latest_commit "gopherjs/gopherjs")
 go get github.com/gopherjs/gopherjs@$gopherjs_commit_hash
 
-# 获取 uuid 最新的 commits
-uuid_commit_hash=$(curl -s https://api.github.com/repos/google/uuid/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 gorm
-go get github.com/google/uuid@$uuid_commit_hash
-
-# 获取 socks5 最新的 commits
-socks5_commit_hash=$(curl -s https://api.github.com/repos/Potterli20/socks5-fork/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 gorm
+# 获取 socks5 最新的 commit
+socks5_commit_hash=$(get_latest_commit "Potterli20/socks5-fork")
 go get github.com/Potterli20/socks5-fork@$socks5_commit_hash
 
-# 获取 sing 最新的 commits
-sing_commit_hash=$(curl -s https://api.github.com/repos/sagernet/sing/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 gorm
-go get github.com/sagernet/sing@$sing_commit_hash
-
-# 获取 smux 最新的 commits
-smux_commit_hash=$(curl -s https://api.github.com/repos/xtaci/smux/commits | grep "sha" | head -n 1 | cut -d '"' -f 4)
-# 使用提取的 commit hash 通过 go get 获取 gorm
+# 获取 smux 最新的 commit
+smux_commit_hash=$(get_latest_commit "xtaci/smux")
 go get github.com/xtaci/smux@$smux_commit_hash
 
 # 最后再次整理模块，确保 go.sum 与 go.mod 一致
