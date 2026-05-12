@@ -103,8 +103,8 @@ func (s *Server) handleConnection(conn any) {
 		buf := make([]byte, 65536)
 		for {
 			n, err := conn.(interface {
-				ReceiveMessage(context.Context, []byte) (int, error)
-			}).ReceiveMessage(connCtx, buf)
+				ReceiveDatagram(context.Context, []byte) (int, error)
+			}).ReceiveDatagram(connCtx, buf)
 			if err != nil {
 				log.Debug("QUIC message receive error:", err)
 				close(packetBuffer)

@@ -85,7 +85,7 @@ func (c *Client) keepAliveLoop() {
 			conn := c.quicConn
 			c.quicConnMutex.RUnlock()
 			if conn != nil {
-				conn.(interface{ SendMessage([]byte) error }).SendMessage([]byte{})
+				conn.(interface{ SendDatagram([]byte) error }).SendDatagram([]byte{})
 			}
 		case <-c.ctx.Done():
 			return
@@ -109,7 +109,9 @@ func (c *Client) DialConn(address *tunnel.Address, tun tunnel.Tunnel) (tunnel.Co
 		return nil, err
 	}
 
-	stream, err := conn.(interface{ OpenStream() (quic.Stream, error) }).OpenStream()
+	stream, err := conn.(interface {
+		OpenStreamSync(context.Context) (quic.Stream, error)
+	}).OpenStreamSync(c.ctx)
 	if err != nil {
 		log.Error(common.NewError("QUIC failed to open stream").Base(err))
 		c.quicConnMutex.Lock()
@@ -168,13 +170,13 @@ type PacketConn struct {
 }
 
 func (c *PacketConn) WriteTo(p []byte, addr net.Addr) (int, error) {
-	return c.conn.(interface{ SendMessage([]byte) (int, error) }).SendMessage(p)
+	return c.conn.(interface{ SendDatagram([]byte) (int, error) }).SendDatagram(p)
 }
 
 func (c *PacketConn) ReadFrom(p []byte) (int, net.Addr, error) {
 	n, err := c.conn.(interface {
-		ReceiveMessage(context.Context, []byte) (int, error)
-	}).ReceiveMessage(context.Background(), p)
+		ReceiveDatagram(context.Context, []byte) (int, error)
+	}).ReceiveDatagram(context.Background(), p)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -182,13 +184,13 @@ func (c *PacketConn) ReadFrom(p []byte) (int, net.Addr, error) {
 }
 
 func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error) {
-	return c.conn.(interface{ SendMessage([]byte) (int, error) }).SendMessage(p)
+	return c.conn.(interface{ SendDatagram([]byte) (int, error) }).SendDatagram(p)
 }
 
 func (c *PacketConn) ReadWithMetadata(p []byte) (int, *tunnel.Metadata, error) {
 	n, err := c.conn.(interface {
-		ReceiveMessage(context.Context, []byte) (int, error)
-	}).ReceiveMessage(context.Background(), p)
+		ReceiveDatagram(context.Context, []byte) (int, error)
+	}).ReceiveDatagram(context.Background(), p)
 	if err != nil {
 		return 0, nil, err
 	}
