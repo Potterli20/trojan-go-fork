@@ -31,7 +31,7 @@ func (l *SimpleLogger) Fatal(v ...any) {
 
 func (l *SimpleLogger) Fatalf(format string, v ...any) {
 	if l.logLevel <= log.FatalLevel {
-		golog.Fatalf(format, sanitizeLogInput(v)...)
+		golog.Fatalf(sanitizeString(format), sanitizeLogInput(v)...)
 	}
 	os.Exit(1)
 }
@@ -44,7 +44,7 @@ func (l *SimpleLogger) Error(v ...any) {
 
 func (l *SimpleLogger) Errorf(format string, v ...any) {
 	if l.logLevel <= log.ErrorLevel {
-		golog.Printf(format, sanitizeLogInput(v)...)
+		golog.Printf(sanitizeString(format), sanitizeLogInput(v)...)
 	}
 }
 
@@ -56,7 +56,7 @@ func (l *SimpleLogger) Warn(v ...any) {
 
 func (l *SimpleLogger) Warnf(format string, v ...any) {
 	if l.logLevel <= log.WarnLevel {
-		golog.Printf(format, sanitizeLogInput(v)...)
+		golog.Printf(sanitizeString(format), sanitizeLogInput(v)...)
 	}
 }
 
@@ -68,7 +68,7 @@ func (l *SimpleLogger) Info(v ...any) {
 
 func (l *SimpleLogger) Infof(format string, v ...any) {
 	if l.logLevel <= log.InfoLevel {
-		golog.Printf(format, sanitizeLogInput(v)...)
+		golog.Printf(sanitizeString(format), sanitizeLogInput(v)...)
 	}
 }
 
@@ -80,7 +80,7 @@ func (l *SimpleLogger) Debug(v ...any) {
 
 func (l *SimpleLogger) Debugf(format string, v ...any) {
 	if l.logLevel <= log.AllLevel {
-		golog.Printf(format, sanitizeLogInput(v)...)
+		golog.Printf(sanitizeString(format), sanitizeLogInput(v)...)
 	}
 }
 
@@ -92,14 +92,13 @@ func (l *SimpleLogger) Trace(v ...any) {
 
 func (l *SimpleLogger) Tracef(format string, v ...any) {
 	if l.logLevel <= log.AllLevel {
-		golog.Printf(format, sanitizeLogInput(v)...)
+		golog.Printf(sanitizeString(format), sanitizeLogInput(v)...)
 	}
 }
 
 func obfuscateSensitiveData(v []any) []any {
 	for i, val := range v {
 		if str, ok := val.(string); ok {
-			// Example: Replace sensitive keywords like "password" with "[REDACTED]"
 			if strings.Contains(strings.ToLower(str), "password") {
 				v[i] = "[REDACTED]"
 			}
@@ -128,5 +127,4 @@ func sanitizeString(s string) string {
 }
 
 func (l *SimpleLogger) SetOutput(io.Writer) {
-	// do nothing
 }
