@@ -308,7 +308,7 @@ func (l *Logger) Fatal(v ...any) {
 // with status 1
 func (l *Logger) Fatalf(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 4 {
-		l.Output(1, FatalPrefix, fmt.Sprintf(format, sanitizeLogInput(v)...))
+		l.Output(1, FatalPrefix, fmt.Sprintf(sanitizeString(format), sanitizeLogInput(v)...))
 	}
 	os.Exit(1)
 }
@@ -323,7 +323,7 @@ func (l *Logger) Error(v ...any) {
 // Errorf print formatted error message to output
 func (l *Logger) Errorf(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 3 {
-		l.Output(1, ErrorPrefix, fmt.Sprintf(format, sanitizeLogInput(v)...))
+		l.Output(1, ErrorPrefix, fmt.Sprintf(sanitizeString(format), sanitizeLogInput(v)...))
 	}
 }
 
@@ -337,7 +337,7 @@ func (l *Logger) Warn(v ...any) {
 // Warnf print formatted warning message to output
 func (l *Logger) Warnf(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 2 {
-		l.Output(1, WarnPrefix, fmt.Sprintf(format, sanitizeLogInput(v)...))
+		l.Output(1, WarnPrefix, fmt.Sprintf(sanitizeString(format), sanitizeLogInput(v)...))
 	}
 }
 
@@ -351,7 +351,7 @@ func (l *Logger) Info(v ...any) {
 // Infof print formatted informational message to output
 func (l *Logger) Infof(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 1 {
-		l.Output(1, InfoPrefix, fmt.Sprintf(format, sanitizeLogInput(v)...))
+		l.Output(1, InfoPrefix, fmt.Sprintf(sanitizeString(format), sanitizeLogInput(v)...))
 	}
 }
 
@@ -365,7 +365,7 @@ func (l *Logger) Debug(v ...any) {
 // Debugf print formatted debug message to output if debug output enabled
 func (l *Logger) Debugf(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) == 0 {
-		l.Output(1, DebugPrefix, fmt.Sprintf(format, sanitizeLogInput(v)...))
+		l.Output(1, DebugPrefix, fmt.Sprintf(sanitizeString(format), sanitizeLogInput(v)...))
 	}
 }
 
@@ -379,7 +379,7 @@ func (l *Logger) Trace(v ...any) {
 // Tracef print formatted trace message to output if debug output enabled
 func (l *Logger) Tracef(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) == 0 {
-		l.Output(1, TracePrefix, fmt.Sprintf(format, sanitizeLogInput(v)...))
+		l.Output(1, TracePrefix, fmt.Sprintf(sanitizeString(format), sanitizeLogInput(v)...))
 	}
 }
 

@@ -1,8 +1,10 @@
 package log
 
 import (
+	"html"
 	"io"
 	"os"
+	"strings"
 )
 
 // LogLevel how much log to dump
@@ -68,51 +70,51 @@ func (l *EmptyLogger) Tracef(format string, v ...any) {}
 func (l *EmptyLogger) SetOutput(w io.Writer) {}
 
 func Error(v ...any) {
-	logger.Error(v...)
+	logger.Error(sanitizeLogInput(v)...)
 }
 
 func Errorf(format string, v ...any) {
-	logger.Errorf(format, v...)
+	logger.Errorf(sanitizeString(format), sanitizeLogInput(v)...)
 }
 
 func Warn(v ...any) {
-	logger.Warn(v...)
+	logger.Warn(sanitizeLogInput(v)...)
 }
 
 func Warnf(format string, v ...any) {
-	logger.Warnf(format, v...)
+	logger.Warnf(sanitizeString(format), sanitizeLogInput(v)...)
 }
 
 func Info(v ...any) {
-	logger.Info(v...)
+	logger.Info(sanitizeLogInput(v)...)
 }
 
 func Infof(format string, v ...any) {
-	logger.Infof(format, v...)
+	logger.Infof(sanitizeString(format), sanitizeLogInput(v)...)
 }
 
 func Debug(v ...any) {
-	logger.Debug(v...)
+	logger.Debug(sanitizeLogInput(v)...)
 }
 
 func Debugf(format string, v ...any) {
-	logger.Debugf(format, v...)
+	logger.Debugf(sanitizeString(format), sanitizeLogInput(v)...)
 }
 
 func Trace(v ...any) {
-	logger.Trace(v...)
+	logger.Trace(sanitizeLogInput(v)...)
 }
 
 func Tracef(format string, v ...any) {
-	logger.Tracef(format, v...)
+	logger.Tracef(sanitizeString(format), sanitizeLogInput(v)...)
 }
 
 func Fatal(v ...any) {
-	logger.Fatal(v...)
+	logger.Fatal(sanitizeLogInput(v)...)
 }
 
 func Fatalf(format string, v ...any) {
-	logger.Fatalf(format, v...)
+	logger.Fatalf(sanitizeString(format), sanitizeLogInput(v)...)
 }
 
 func SetLogLevel(level LogLevel) {
@@ -125,4 +127,21 @@ func SetOutput(w io.Writer) {
 
 func RegisterLogger(l Logger) {
 	logger = l
+}
+
+func sanitizeString(s string) string {
+	s = strings.ReplaceAll(s, "\n", "")
+	s = strings.ReplaceAll(s, "\r", "")
+	s = strings.ReplaceAll(s, "\t", "")
+	s = html.EscapeString(s)
+	return s
+}
+
+func sanitizeLogInput(v []any) []any {
+	for i, val := range v {
+		if str, ok := val.(string); ok {
+			v[i] = sanitizeString(str)
+		}
+	}
+	return v
 }
