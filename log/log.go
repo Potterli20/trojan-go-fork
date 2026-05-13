@@ -70,51 +70,51 @@ func (l *EmptyLogger) Tracef(format string, v ...any) {}
 func (l *EmptyLogger) SetOutput(w io.Writer) {}
 
 func Error(v ...any) {
-	logger.Error(sanitizeLogInput(v)...)
+	logger.Error(SanitizeLogInput(v)...)
 }
 
 func Errorf(format string, v ...any) {
-	logger.Errorf(sanitizeString(format), sanitizeLogInput(v)...)
+	logger.Errorf(SanitizeString(format), SanitizeLogInput(v)...)
 }
 
 func Warn(v ...any) {
-	logger.Warn(sanitizeLogInput(v)...)
+	logger.Warn(SanitizeLogInput(v)...)
 }
 
 func Warnf(format string, v ...any) {
-	logger.Warnf(sanitizeString(format), sanitizeLogInput(v)...)
+	logger.Warnf(SanitizeString(format), SanitizeLogInput(v)...)
 }
 
 func Info(v ...any) {
-	logger.Info(sanitizeLogInput(v)...)
+	logger.Info(SanitizeLogInput(v)...)
 }
 
 func Infof(format string, v ...any) {
-	logger.Infof(sanitizeString(format), sanitizeLogInput(v)...)
+	logger.Infof(SanitizeString(format), SanitizeLogInput(v)...)
 }
 
 func Debug(v ...any) {
-	logger.Debug(sanitizeLogInput(v)...)
+	logger.Debug(SanitizeLogInput(v)...)
 }
 
 func Debugf(format string, v ...any) {
-	logger.Debugf(sanitizeString(format), sanitizeLogInput(v)...)
+	logger.Debugf(SanitizeString(format), SanitizeLogInput(v)...)
 }
 
 func Trace(v ...any) {
-	logger.Trace(sanitizeLogInput(v)...)
+	logger.Trace(SanitizeLogInput(v)...)
 }
 
 func Tracef(format string, v ...any) {
-	logger.Tracef(sanitizeString(format), sanitizeLogInput(v)...)
+	logger.Tracef(SanitizeString(format), SanitizeLogInput(v)...)
 }
 
 func Fatal(v ...any) {
-	logger.Fatal(sanitizeLogInput(v)...)
+	logger.Fatal(SanitizeLogInput(v)...)
 }
 
 func Fatalf(format string, v ...any) {
-	logger.Fatalf(sanitizeString(format), sanitizeLogInput(v)...)
+	logger.Fatalf(SanitizeString(format), SanitizeLogInput(v)...)
 }
 
 func SetLogLevel(level LogLevel) {
@@ -129,7 +129,7 @@ func RegisterLogger(l Logger) {
 	logger = l
 }
 
-func sanitizeString(s string) string {
+func SanitizeString(s string) string {
 	s = strings.ReplaceAll(s, "\n", "")
 	s = strings.ReplaceAll(s, "\r", "")
 	s = strings.ReplaceAll(s, "\t", "")
@@ -137,10 +137,10 @@ func sanitizeString(s string) string {
 	return s
 }
 
-func sanitizeLogInput(v []any) []any {
+func SanitizeLogInput(v []any) []any {
 	for i, val := range v {
 		if str, ok := val.(string); ok {
-			v[i] = sanitizeString(str)
+			v[i] = SanitizeString(str)
 		}
 	}
 	return v

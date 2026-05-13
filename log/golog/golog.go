@@ -5,12 +5,10 @@ package golog
 
 import (
 	"fmt"
-	"html"
 	"io"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -299,7 +297,7 @@ func (l *Logger) Output(depth int, prefix Prefix, data string) error {
 // Fatal print fatal message to output and quit the application with status 1
 func (l *Logger) Fatal(v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 4 {
-		l.Output(1, FatalPrefix, fmt.Sprintln(sanitizeLogInput(v)...))
+		l.Output(1, FatalPrefix, fmt.Sprintln(log.SanitizeLogInput(v)...))
 	}
 	os.Exit(1)
 }
@@ -308,7 +306,7 @@ func (l *Logger) Fatal(v ...any) {
 // with status 1
 func (l *Logger) Fatalf(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 4 {
-		l.Output(1, FatalPrefix, fmt.Sprintf(sanitizeString(format), sanitizeLogInput(v)...))
+		l.Output(1, FatalPrefix, fmt.Sprintf(log.SanitizeString(format), log.SanitizeLogInput(v)...))
 	}
 	os.Exit(1)
 }
@@ -316,87 +314,69 @@ func (l *Logger) Fatalf(format string, v ...any) {
 // Error print error message to output
 func (l *Logger) Error(v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 3 {
-		l.Output(1, ErrorPrefix, fmt.Sprintln(sanitizeLogInput(v)...))
+		l.Output(1, ErrorPrefix, fmt.Sprintln(log.SanitizeLogInput(v)...))
 	}
 }
 
 // Errorf print formatted error message to output
 func (l *Logger) Errorf(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 3 {
-		l.Output(1, ErrorPrefix, fmt.Sprintf(sanitizeString(format), sanitizeLogInput(v)...))
+		l.Output(1, ErrorPrefix, fmt.Sprintf(log.SanitizeString(format), log.SanitizeLogInput(v)...))
 	}
 }
 
 // Warn print warning message to output
 func (l *Logger) Warn(v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 2 {
-		l.Output(1, WarnPrefix, fmt.Sprintln(sanitizeLogInput(v)...))
+		l.Output(1, WarnPrefix, fmt.Sprintln(log.SanitizeLogInput(v)...))
 	}
 }
 
 // Warnf print formatted warning message to output
 func (l *Logger) Warnf(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 2 {
-		l.Output(1, WarnPrefix, fmt.Sprintf(sanitizeString(format), sanitizeLogInput(v)...))
+		l.Output(1, WarnPrefix, fmt.Sprintf(log.SanitizeString(format), log.SanitizeLogInput(v)...))
 	}
 }
 
 // Info print informational message to output
 func (l *Logger) Info(v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 1 {
-		l.Output(1, InfoPrefix, fmt.Sprintln(sanitizeLogInput(v)...))
+		l.Output(1, InfoPrefix, fmt.Sprintln(log.SanitizeLogInput(v)...))
 	}
 }
 
 // Infof print formatted informational message to output
 func (l *Logger) Infof(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) <= 1 {
-		l.Output(1, InfoPrefix, fmt.Sprintf(sanitizeString(format), sanitizeLogInput(v)...))
+		l.Output(1, InfoPrefix, fmt.Sprintf(log.SanitizeString(format), log.SanitizeLogInput(v)...))
 	}
 }
 
 // Debug print debug message to output if debug output enabled
 func (l *Logger) Debug(v ...any) {
 	if atomic.LoadInt32(&l.logLevel) == 0 {
-		l.Output(1, DebugPrefix, fmt.Sprintln(sanitizeLogInput(v)...))
+		l.Output(1, DebugPrefix, fmt.Sprintln(log.SanitizeLogInput(v)...))
 	}
 }
 
 // Debugf print formatted debug message to output if debug output enabled
 func (l *Logger) Debugf(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) == 0 {
-		l.Output(1, DebugPrefix, fmt.Sprintf(sanitizeString(format), sanitizeLogInput(v)...))
+		l.Output(1, DebugPrefix, fmt.Sprintf(log.SanitizeString(format), log.SanitizeLogInput(v)...))
 	}
 }
 
 // Trace print trace message to output if debug output enabled
 func (l *Logger) Trace(v ...any) {
 	if atomic.LoadInt32(&l.logLevel) == 0 {
-		l.Output(1, TracePrefix, fmt.Sprintln(sanitizeLogInput(v)...))
+		l.Output(1, TracePrefix, fmt.Sprintln(log.SanitizeLogInput(v)...))
 	}
 }
 
 // Tracef print formatted trace message to output if debug output enabled
 func (l *Logger) Tracef(format string, v ...any) {
 	if atomic.LoadInt32(&l.logLevel) == 0 {
-		l.Output(1, TracePrefix, fmt.Sprintf(sanitizeString(format), sanitizeLogInput(v)...))
+		l.Output(1, TracePrefix, fmt.Sprintf(log.SanitizeString(format), log.SanitizeLogInput(v)...))
 	}
-}
-
-func sanitizeLogInput(v []any) []any {
-	for i, val := range v {
-		if str, ok := val.(string); ok {
-			str = sanitizeString(str)
-			v[i] = str
-		}
-	}
-	return v
-}
-
-func sanitizeString(s string) string {
-	s = strings.ReplaceAll(s, "\n", "")
-	s = strings.ReplaceAll(s, "\r", "")
-	s = strings.ReplaceAll(s, "\t", "")
-	s = html.EscapeString(s)
-	return s
 }
