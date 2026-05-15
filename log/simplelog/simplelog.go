@@ -5,6 +5,7 @@ import (
 	"io"
 	golog "log"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -145,11 +146,36 @@ func (l *SimpleLogger) Tracef(format string, v ...any) {
 	}
 }
 
+var sensitivePatterns = []*regexp.Regexp{
+	regexp.MustCompile(`(?i)password\s*[=:]\s*["']?[^"'\\\s]+["']?`),
+	regexp.MustCompile(`(?i)(api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token|bearer[_-]?token)\s*[=:]\s*["']?[^"'\\\s]+["']?`),
+	regexp.MustCompile(`(?i)(secret|token|credential|passwd)\s*[=:]\s*["']?[^"'\\\s]+["']?`),
+	regexp.MustCompile(`[a-f0-9]{40}`),
+	regexp.MustCompile(`eyJhbGciOiJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+`),
+	regexp.MustCompile(`[a-zA-Z0-9]{32,}`),
+}
+
+var sensitiveKeywords = []string{
+	"password", "passwd", "secret", "token", "api-key", "apikey",
+	"access-token", "accesstoken", "auth-token", "authtoken",
+	"credentials", "credential", "private-key", "privatekey",
+}
+
 func obfuscateSensitiveData(v []any) []any {
 	for i, val := range v {
 		if str, ok := val.(string); ok {
-			if strings.Contains(strings.ToLower(str), "password") {
-				v[i] = "[REDACTED]"
+			lowerStr := strings.ToLower(str)
+			for _, keyword := range sensitiveKeywords {
+				if strings.Contains(lowerStr, keyword) {
+					v[i] = "[REDACTED]"
+					break
+				}
+			}
+			for _, pattern := range sensitivePatterns {
+				if pattern.MatchString(str) {
+					v[i] = "[REDACTED]"
+					break
+				}
 			}
 		}
 	}
