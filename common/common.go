@@ -27,14 +27,6 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func SHA224String(password string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return string(hash)
-}
-
 func GetProgramDir() string {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
