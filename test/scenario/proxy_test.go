@@ -107,6 +107,13 @@ func CheckClientServer(clientData, serverData string, socksPort int) (ok bool) {
 	const num = 100
 	wg := sync.WaitGroup{}
 	wg.Add(num)
+
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
 	for range num {
 		go func() {
 			const payloadSize = 1024
@@ -114,10 +121,24 @@ func CheckClientServer(clientData, serverData string, socksPort int) (ok bool) {
 			buf := [payloadSize]byte{}
 
 			conn, err := dialer.Dial("tcp", util.EchoAddr)
-			common.Must(err)
+			if err != nil {
+				wg.Done()
+				return
+			}
 
-			common.Must2(conn.Write(payload))
-			common.Must2(conn.Read(buf[:]))
+			_, err = conn.Write(payload)
+			if err != nil {
+				conn.Close()
+				wg.Done()
+				return
+			}
+
+			_, err = conn.Read(buf[:])
+			if err != nil {
+				conn.Close()
+				wg.Done()
+				return
+			}
 
 			if !bytes.Equal(payload, buf[:]) {
 				ok = false
@@ -126,7 +147,13 @@ func CheckClientServer(clientData, serverData string, socksPort int) (ok bool) {
 			wg.Done()
 		}()
 	}
-	wg.Wait()
+
+	select {
+	case <-done:
+	case <-time.After(time.Second * 30):
+		ok = false
+	}
+
 	client.Close()
 	server.Close()
 	return
