@@ -148,23 +148,14 @@ func (l *SimpleLogger) Tracef(format string, v ...any) {
 func obfuscateSensitiveData(v []any) []any {
 	for i, val := range v {
 		if str, ok := val.(string); ok {
-			if log.ObfuscateSensitiveData(str) == "[REDACTED]" {
-				v[i] = "[REDACTED]"
-			}
+			v[i] = log.SanitizeString(str)
 		}
 	}
 	return v
 }
 
 func sanitizeLogInput(v []any) []any {
-	v = obfuscateSensitiveData(v)
-	for i, val := range v {
-		if str, ok := val.(string); ok {
-			str = sanitizeString(str)
-			v[i] = str
-		}
-	}
-	return v
+	return obfuscateSensitiveData(v)
 }
 
 func sanitizeString(s string) string {
