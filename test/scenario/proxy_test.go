@@ -445,8 +445,11 @@ shadowsocks:
 	common.Must2(conn.Read(buf[:]))
 
 	if !bytes.Equal(payload, buf[:]) {
+		conn.Close()
 		t.Fail()
+		return
 	}
+	conn.Close()
 
 	packet, err := net.ListenPacket("udp", "")
 	common.Must(err)
@@ -457,8 +460,11 @@ shadowsocks:
 	_, _, err = packet.ReadFrom(buf[:])
 	common.Must(err)
 	if !bytes.Equal(payload, buf[:]) {
+		packet.Close()
 		t.Fail()
+		return
 	}
+	packet.Close()
 }
 
 func TestLeak(t *testing.T) {
