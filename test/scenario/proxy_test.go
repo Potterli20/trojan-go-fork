@@ -142,6 +142,9 @@ func CheckClientServer(clientData, serverData string, socksPort int) (ok bool) {
 
 			if !bytes.Equal(payload, buf[:]) {
 				ok = false
+				conn.Close()
+				wg.Done()
+				return
 			}
 			conn.Close()
 			wg.Done()
