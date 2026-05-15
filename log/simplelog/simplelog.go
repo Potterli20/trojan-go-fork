@@ -159,6 +159,7 @@ func sanitizeLogInput(v []any) []any {
 }
 
 func sanitizeString(s string) string {
+	s = log.ObfuscateSensitiveData(s)
 	s = strings.ReplaceAll(s, "\n", "")
 	s = strings.ReplaceAll(s, "\r", "")
 	s = strings.ReplaceAll(s, "\t", "")
