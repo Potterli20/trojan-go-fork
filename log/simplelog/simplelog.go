@@ -1,7 +1,6 @@
 package simplelog
 
 import (
-	"fmt"
 	"io"
 	golog "log"
 	"os"
@@ -25,9 +24,9 @@ func (l *SimpleLogger) SetLogLevel(level log.LogLevel) {
 func (l *SimpleLogger) Fatal(v ...any) {
 	if l.logLevel <= log.FatalLevel {
 		if l.logger != nil {
-			l.logger.Fatalln(fmt.Sprint(sanitizeLogInput(v)...))
+			l.logger.Fatalln(sanitizeLogInput(v)...)
 		} else {
-			golog.Fatal(fmt.Sprint(sanitizeLogInput(v)...))
+			golog.Fatal(sanitizeLogInput(v)...)
 		}
 	}
 	os.Exit(1)
@@ -47,9 +46,9 @@ func (l *SimpleLogger) Fatalf(format string, v ...any) {
 func (l *SimpleLogger) Error(v ...any) {
 	if l.logLevel <= log.ErrorLevel {
 		if l.logger != nil {
-			l.logger.Println(fmt.Sprint(sanitizeLogInput(v)...))
+			l.logger.Println(sanitizeLogInput(v)...)
 		} else {
-			golog.Println(fmt.Sprint(sanitizeLogInput(v)...))
+			golog.Println(sanitizeLogInput(v)...)
 		}
 	}
 }
@@ -67,9 +66,9 @@ func (l *SimpleLogger) Errorf(format string, v ...any) {
 func (l *SimpleLogger) Warn(v ...any) {
 	if l.logLevel <= log.WarnLevel {
 		if l.logger != nil {
-			l.logger.Println(fmt.Sprint(sanitizeLogInput(v)...))
+			l.logger.Println(sanitizeLogInput(v)...)
 		} else {
-			golog.Println(fmt.Sprint(sanitizeLogInput(v)...))
+			golog.Println(sanitizeLogInput(v)...)
 		}
 	}
 }
@@ -87,9 +86,9 @@ func (l *SimpleLogger) Warnf(format string, v ...any) {
 func (l *SimpleLogger) Info(v ...any) {
 	if l.logLevel <= log.InfoLevel {
 		if l.logger != nil {
-			l.logger.Println(fmt.Sprint(sanitizeLogInput(v)...))
+			l.logger.Println(sanitizeLogInput(v)...)
 		} else {
-			golog.Println(fmt.Sprint(sanitizeLogInput(v)...))
+			golog.Println(sanitizeLogInput(v)...)
 		}
 	}
 }
@@ -107,9 +106,9 @@ func (l *SimpleLogger) Infof(format string, v ...any) {
 func (l *SimpleLogger) Debug(v ...any) {
 	if l.logLevel <= log.AllLevel {
 		if l.logger != nil {
-			l.logger.Println(fmt.Sprint(sanitizeLogInput(v)...))
+			l.logger.Println(sanitizeLogInput(v)...)
 		} else {
-			golog.Println(fmt.Sprint(sanitizeLogInput(v)...))
+			golog.Println(sanitizeLogInput(v)...)
 		}
 	}
 }
@@ -127,9 +126,9 @@ func (l *SimpleLogger) Debugf(format string, v ...any) {
 func (l *SimpleLogger) Trace(v ...any) {
 	if l.logLevel <= log.AllLevel {
 		if l.logger != nil {
-			l.logger.Println(fmt.Sprint(sanitizeLogInput(v)...))
+			l.logger.Println(sanitizeLogInput(v)...)
 		} else {
-			golog.Println(fmt.Sprint(sanitizeLogInput(v)...))
+			golog.Println(sanitizeLogInput(v)...)
 		}
 	}
 }
