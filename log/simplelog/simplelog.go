@@ -1,11 +1,10 @@
 package simplelog
 
 import (
-	"html"
+	"fmt"
 	"io"
 	golog "log"
 	"os"
-	"strings"
 
 	"github.com/Potterli20/trojan-go-fork/log"
 )
@@ -26,9 +25,9 @@ func (l *SimpleLogger) SetLogLevel(level log.LogLevel) {
 func (l *SimpleLogger) Fatal(v ...any) {
 	if l.logLevel <= log.FatalLevel {
 		if l.logger != nil {
-			l.logger.Fatalln(sanitizeLogInput(v)...)
+			l.logger.Fatalln(fmt.Sprint(sanitizeLogInput(v)...))
 		} else {
-			golog.Fatal(sanitizeLogInput(v)...)
+			golog.Fatal(fmt.Sprint(sanitizeLogInput(v)...))
 		}
 	}
 	os.Exit(1)
@@ -48,9 +47,9 @@ func (l *SimpleLogger) Fatalf(format string, v ...any) {
 func (l *SimpleLogger) Error(v ...any) {
 	if l.logLevel <= log.ErrorLevel {
 		if l.logger != nil {
-			l.logger.Println(sanitizeLogInput(v)...)
+			l.logger.Println(fmt.Sprint(sanitizeLogInput(v)...))
 		} else {
-			golog.Println(sanitizeLogInput(v)...)
+			golog.Println(fmt.Sprint(sanitizeLogInput(v)...))
 		}
 	}
 }
@@ -68,9 +67,9 @@ func (l *SimpleLogger) Errorf(format string, v ...any) {
 func (l *SimpleLogger) Warn(v ...any) {
 	if l.logLevel <= log.WarnLevel {
 		if l.logger != nil {
-			l.logger.Println(sanitizeLogInput(v)...)
+			l.logger.Println(fmt.Sprint(sanitizeLogInput(v)...))
 		} else {
-			golog.Println(sanitizeLogInput(v)...)
+			golog.Println(fmt.Sprint(sanitizeLogInput(v)...))
 		}
 	}
 }
@@ -88,9 +87,9 @@ func (l *SimpleLogger) Warnf(format string, v ...any) {
 func (l *SimpleLogger) Info(v ...any) {
 	if l.logLevel <= log.InfoLevel {
 		if l.logger != nil {
-			l.logger.Println(sanitizeLogInput(v)...)
+			l.logger.Println(fmt.Sprint(sanitizeLogInput(v)...))
 		} else {
-			golog.Println(sanitizeLogInput(v)...)
+			golog.Println(fmt.Sprint(sanitizeLogInput(v)...))
 		}
 	}
 }
@@ -108,9 +107,9 @@ func (l *SimpleLogger) Infof(format string, v ...any) {
 func (l *SimpleLogger) Debug(v ...any) {
 	if l.logLevel <= log.AllLevel {
 		if l.logger != nil {
-			l.logger.Println(sanitizeLogInput(v)...)
+			l.logger.Println(fmt.Sprint(sanitizeLogInput(v)...))
 		} else {
-			golog.Println(sanitizeLogInput(v)...)
+			golog.Println(fmt.Sprint(sanitizeLogInput(v)...))
 		}
 	}
 }
@@ -128,9 +127,9 @@ func (l *SimpleLogger) Debugf(format string, v ...any) {
 func (l *SimpleLogger) Trace(v ...any) {
 	if l.logLevel <= log.AllLevel {
 		if l.logger != nil {
-			l.logger.Println(sanitizeLogInput(v)...)
+			l.logger.Println(fmt.Sprint(sanitizeLogInput(v)...))
 		} else {
-			golog.Println(sanitizeLogInput(v)...)
+			golog.Println(fmt.Sprint(sanitizeLogInput(v)...))
 		}
 	}
 }
@@ -145,26 +144,12 @@ func (l *SimpleLogger) Tracef(format string, v ...any) {
 	}
 }
 
-func obfuscateSensitiveData(v []any) []any {
-	for i, val := range v {
-		if str, ok := val.(string); ok {
-			v[i] = log.SanitizeString(str)
-		}
-	}
-	return v
-}
-
 func sanitizeLogInput(v []any) []any {
-	return obfuscateSensitiveData(v)
+	return log.SanitizeLogInput(v)
 }
 
 func sanitizeString(s string) string {
-	s = log.ObfuscateSensitiveData(s)
-	s = strings.ReplaceAll(s, "\n", "")
-	s = strings.ReplaceAll(s, "\r", "")
-	s = strings.ReplaceAll(s, "\t", "")
-	s = html.EscapeString(s)
-	return s
+	return log.SanitizeString(s)
 }
 
 func (l *SimpleLogger) SetOutput(w io.Writer) {
