@@ -47,16 +47,27 @@ func (c *Client) DialPacket(tunnel tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel.Conn, error) {
-	if address == nil {
-		return nil, common.NewError("Address is nil")
+	var conn net.Conn
+	var err error
+
+	if c.underlay != nil {
+		// Use underlay tunnel if available
+		tConn, err := c.underlay.DialConn(address, &Tunnel{})
+		if err != nil {
+			return nil, common.NewError("failed to dial with underlay tunnel").Base(err)
+		}
+		conn = tConn // tunnel.Conn is a net.Conn
+	} else {
+		// Fallback to direct TCP dial if no underlay
+		if address == nil {
+			return nil, common.NewError("Address is nil")
+		}
+		conn, err = net.Dial("tcp", address.String())
+		if err != nil {
+			return nil, common.NewError("failed to dial TCP connection").Base(err)
+		}
 	}
 
-	conn, err := net.Dial("tcp", address.String())
-	if err != nil {
-		return nil, common.NewError("failed to dial TCP connection").Base(err)
-	}
-
-	var tlsConn *tls.Conn
 	if c.fingerprint != "" {
 		// Use utls for fingerprinting
 		uconn := utls.UClient(conn, &utls.Config{
@@ -69,17 +80,17 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 			return nil, common.NewError("TLS handshake failed").Base(err)
 		}
 		return &transport.Conn{Conn: uconn}, nil
-	} else {
-		// Use default Go TLS library
-		tlsConn = tls.Client(conn, &tls.Config{
-			InsecureSkipVerify:     !c.verify,
-			ServerName:             c.sni,
-			RootCAs:                c.ca,
-			KeyLogWriter:           c.keyLogger,
-			CipherSuites:           c.cipher,
-			SessionTicketsDisabled: !c.sessionTicket,
-		})
 	}
+
+	// Use default Go TLS library
+	tlsConn := tls.Client(conn, &tls.Config{
+		InsecureSkipVerify:     !c.verify,
+		ServerName:             c.sni,
+		RootCAs:                c.ca,
+		KeyLogWriter:           c.keyLogger,
+		CipherSuites:           c.cipher,
+		SessionTicketsDisabled: !c.sessionTicket,
+	})
 
 	if err := tlsConn.Handshake(); err != nil {
 		return nil, common.NewError("TLS handshake failed").Base(err)

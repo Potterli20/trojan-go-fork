@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	golog "log"
+
+	"github.com/Potterli20/trojan-go-fork/log"
 )
 
 func TestSanitizeLogInput(t *testing.T) {
@@ -50,17 +52,17 @@ func TestSanitizeLogInput(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := sanitizeLogInput(tt.input)
+			result := log.SanitizeLogInput(tt.input)
 			for _, item := range result {
 				if str, ok := item.(string); ok {
 					for _, s := range tt.notContains {
 						if strings.Contains(str, s) {
-							t.Errorf("sanitizeLogInput() = %v, should not contain %q", str, s)
+							t.Errorf("SanitizeLogInput() = %v, should not contain %q", str, s)
 						}
 					}
 					for _, s := range tt.contains {
 						if !strings.Contains(str, s) {
-							t.Errorf("sanitizeLogInput() = %v, should contain %q", str, s)
+							t.Errorf("SanitizeLogInput() = %v, should contain %q", str, s)
 						}
 					}
 				}
