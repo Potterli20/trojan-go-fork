@@ -54,11 +54,9 @@ func (s *Server) acceptLoop() {
 			continue
 		}
 
-		s.wg.Add(1)
-		go func() {
-			defer s.wg.Done()
+		s.wg.Go(func() {
 			s.handleConnection(tcpConn)
-		}()
+		})
 	}
 }
 
@@ -197,10 +195,8 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 		connChan:    make(chan tunnel.Conn, 32),
 		wsChan:      make(chan tunnel.Conn, 32),
 	}
-	server.wg.Add(1)
-	go func() {
-		defer server.wg.Done()
+	server.wg.Go(func() {
 		server.acceptLoop()
-	}()
+	})
 	return server, nil
 }
