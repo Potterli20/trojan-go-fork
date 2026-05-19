@@ -33,12 +33,13 @@ type Server struct {
 
 func (s *Server) Close() error {
 	s.cancel()
+	err := s.tcpListener.Close()
 	s.wg.Wait()
 	if s.cmd != nil && s.cmd.Process != nil {
 		s.cmd.Process.Kill()
 		s.cmd.Wait()
 	}
-	return s.tcpListener.Close()
+	return err
 }
 
 func (s *Server) acceptLoop() {

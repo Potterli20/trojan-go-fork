@@ -130,7 +130,9 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		Conn:       conn,
 		ReadWriter: rw,
 	}
-	go wsServer.ServeHTTP(respWriter, req)
+	go func() {
+		wsServer.ServeHTTP(respWriter, req)
+	}()
 
 	select {
 	case <-handshake:

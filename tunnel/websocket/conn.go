@@ -30,5 +30,9 @@ type InboundConn struct {
 
 func (c *InboundConn) Close() error {
 	c.cancel()
-	return c.Conn.Close()
+	err := c.Conn.Close()
+	if c.tcpConn != nil {
+		c.tcpConn.Close()
+	}
+	return err
 }
