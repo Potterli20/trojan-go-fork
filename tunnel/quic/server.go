@@ -64,11 +64,9 @@ func (s *Server) acceptLoop() {
 		s.activeConns.Store(conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr().String(), conn)
 		log.Debug("QUIC connection accepted from", conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr())
 
-		s.wg.Add(1)
-		go func() {
-			defer s.wg.Done()
+		s.wg.Go(func() {
 			s.handleConnection(conn)
-		}()
+		})
 	}
 }
 
@@ -86,9 +84,7 @@ func (s *Server) handleConnection(conn any) {
 	connCtx, connCancel := context.WithCancel(s.ctx)
 	defer connCancel()
 
-	s.wg.Add(1)
-	go func() {
-		defer s.wg.Done()
+	s.wg.Go(func() {
 		for {
 			stream, err := conn.(interface {
 				AcceptStream(context.Context) (quic.Stream, error)
@@ -105,11 +101,9 @@ func (s *Server) handleConnection(conn any) {
 				return
 			}
 		}
-	}()
+	})
 
-	s.wg.Add(1)
-	go func() {
-		defer s.wg.Done()
+	s.wg.Go(func() {
 		buf := make([]byte, 65536)
 		for {
 			n, err := conn.(interface {
@@ -128,7 +122,7 @@ func (s *Server) handleConnection(conn any) {
 				return
 			}
 		}
-	}()
+	})
 
 	hasPacketHandler := false
 
@@ -232,11 +226,9 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		tlsConfig:  tlsConfig,
 	}
 
-	server.wg.Add(1)
-	go func() {
-		defer server.wg.Done()
+	server.wg.Go(func() {
 		server.acceptLoop()
-	}()
+	})
 	log.Info("QUIC server listening on", localAddr.String())
 	return server, nil
 }
