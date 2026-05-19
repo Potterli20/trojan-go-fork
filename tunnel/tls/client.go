@@ -47,21 +47,20 @@ func (c *Client) DialPacket(tunnel tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel.Conn, error) {
+	if address == nil && c.underlay == nil {
+		return nil, common.NewError("Address is nil")
+	}
+
 	var conn net.Conn
 	var err error
 
 	if c.underlay != nil {
-		// Use underlay tunnel if available
 		tConn, err := c.underlay.DialConn(address, &Tunnel{})
 		if err != nil {
 			return nil, common.NewError("failed to dial with underlay tunnel").Base(err)
 		}
-		conn = tConn // tunnel.Conn is a net.Conn
+		conn = tConn
 	} else {
-		// Fallback to direct TCP dial if no underlay
-		if address == nil {
-			return nil, common.NewError("Address is nil")
-		}
 		conn, err = net.Dial("tcp", address.String())
 		if err != nil {
 			return nil, common.NewError("failed to dial TCP connection").Base(err)
