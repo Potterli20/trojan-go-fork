@@ -104,7 +104,11 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		cancel:   cancel,
 		connChan: make(chan tunnel.Conn, 32),
 	}
-	go server.acceptConnWorker()
+	server.wg.Add(1)
+	go func() {
+		defer server.wg.Done()
+		server.acceptConnWorker()
+	}()
 	log.Debug("mux server created")
 	return server, nil
 }

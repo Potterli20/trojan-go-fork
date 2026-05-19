@@ -28,10 +28,12 @@ type Server struct {
 	nextHTTP    bool
 	ctx         context.Context
 	cancel      context.CancelFunc
+	wg          sync.WaitGroup
 }
 
 func (s *Server) Close() error {
 	s.cancel()
+	s.wg.Wait()
 	if s.cmd != nil && s.cmd.Process != nil {
 		s.cmd.Process.Kill()
 		s.cmd.Wait()
@@ -51,7 +53,11 @@ func (s *Server) acceptLoop() {
 			continue
 		}
 
-		go s.handleConnection(tcpConn)
+		s.wg.Add(1)
+		go func() {
+			defer s.wg.Done()
+			s.handleConnection(tcpConn)
+		}()
 	}
 }
 
@@ -190,6 +196,10 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 		connChan:    make(chan tunnel.Conn, 32),
 		wsChan:      make(chan tunnel.Conn, 32),
 	}
-	go server.acceptLoop()
+	server.wg.Add(1)
+	go func() {
+		defer server.wg.Done()
+		server.acceptLoop()
+	}()
 	return server, nil
 }

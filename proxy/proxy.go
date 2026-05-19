@@ -29,6 +29,7 @@ type Proxy struct {
 	cancel  context.CancelFunc
 	bufSize int
 	bufPool sync.Pool
+	wg      sync.WaitGroup
 }
 
 func (p *Proxy) Run() error {
@@ -40,6 +41,7 @@ func (p *Proxy) Run() error {
 
 func (p *Proxy) Close() error {
 	p.cancel()
+	p.wg.Wait()
 	p.sink.Close()
 	for _, source := range p.sources {
 		source.Close()
@@ -59,7 +61,9 @@ func (p *Proxy) relayConnLoop() {
 	}
 
 	for _, source := range p.sources {
+		p.wg.Add(1)
 		go func(source tunnel.Server) {
+			defer p.wg.Done()
 			for {
 				select {
 				case <-p.ctx.Done():
@@ -128,7 +132,9 @@ func (p *Proxy) relayPacketLoop() {
 	}
 
 	for _, source := range p.sources {
+		p.wg.Add(1)
 		go func(source tunnel.Server) {
+			defer p.wg.Done()
 			for {
 				select {
 				case <-p.ctx.Done():

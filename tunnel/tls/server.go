@@ -49,10 +49,12 @@ type Server struct {
 	underlay           tunnel.Server
 	nextHTTP           int32
 	portOverrider      map[string]int
+	wg                 sync.WaitGroup
 }
 
 func (s *Server) Close() error {
 	s.cancel()
+	s.wg.Wait()
 	if s.keyLogger != nil {
 		s.keyLogger.Close()
 	}
@@ -79,7 +81,9 @@ func (s *Server) acceptLoop() {
 			}
 			return
 		}
+		s.wg.Add(1)
 		go func(conn net.Conn) {
+			defer s.wg.Done()
 			defer func() {
 				if r := recover(); r != nil {
 					log.Error(common.NewError("panic in tls handler: " + fmt.Sprintf("%v", r)))
@@ -379,14 +383,22 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		cancel:             cancel,
 	}
 
-	go server.acceptLoop()
+	server.wg.Add(1)
+	go func() {
+		defer server.wg.Done()
+		server.acceptLoop()
+	}()
 	if cfg.TLS.CertCheckRate > 0 {
-		go server.checkKeyPairLoop(
-			time.Second*time.Duration(cfg.TLS.CertCheckRate),
-			cfg.TLS.KeyPath,
-			cfg.TLS.CertPath,
-			cfg.TLS.KeyPassword,
-		)
+		server.wg.Add(1)
+		go func() {
+			defer server.wg.Done()
+			server.checkKeyPairLoop(
+				time.Second*time.Duration(cfg.TLS.CertCheckRate),
+				cfg.TLS.KeyPath,
+				cfg.TLS.CertPath,
+				cfg.TLS.KeyPassword,
+			)
+		}()
 	}
 
 	log.Debug("tls server created")

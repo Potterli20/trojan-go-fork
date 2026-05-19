@@ -330,7 +330,11 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		redirConn.Close()
 	}
 
-	go s.acceptLoop()
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		s.acceptLoop()
+	}()
 	log.Debug("trojan server created")
 	return s, nil
 }

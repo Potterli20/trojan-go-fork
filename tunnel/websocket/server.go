@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"golang.org/x/net/websocket"
@@ -43,10 +44,12 @@ type Server struct {
 	ctx       context.Context
 	cancel    context.CancelFunc
 	timeout   time.Duration
+	wg        sync.WaitGroup
 }
 
 func (s *Server) Close() error {
 	s.cancel()
+	s.wg.Wait()
 	return s.underlay.Close()
 }
 

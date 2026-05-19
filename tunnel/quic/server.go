@@ -26,10 +26,12 @@ type Server struct {
 	quicConfig  *quic.Config
 	tlsConfig   *tls.Config
 	activeConns sync.Map
+	wg          sync.WaitGroup
 }
 
 func (s *Server) Close() error {
 	s.cancel()
+	s.wg.Wait()
 	s.listener.(interface{ Close() error }).Close()
 	s.activeConns.Range(func(key, value any) bool {
 		value.(interface {
@@ -62,7 +64,11 @@ func (s *Server) acceptLoop() {
 		s.activeConns.Store(conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr().String(), conn)
 		log.Debug("QUIC connection accepted from", conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr())
 
-		go s.handleConnection(conn)
+		s.wg.Add(1)
+		go func() {
+			defer s.wg.Done()
+			s.handleConnection(conn)
+		}()
 	}
 }
 
@@ -80,7 +86,9 @@ func (s *Server) handleConnection(conn any) {
 	connCtx, connCancel := context.WithCancel(s.ctx)
 	defer connCancel()
 
+	s.wg.Add(1)
 	go func() {
+		defer s.wg.Done()
 		for {
 			stream, err := conn.(interface {
 				AcceptStream(context.Context) (quic.Stream, error)
@@ -99,7 +107,9 @@ func (s *Server) handleConnection(conn any) {
 		}
 	}()
 
+	s.wg.Add(1)
 	go func() {
+		defer s.wg.Done()
 		buf := make([]byte, 65536)
 		for {
 			n, err := conn.(interface {
@@ -222,7 +232,11 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		tlsConfig:  tlsConfig,
 	}
 
-	go server.acceptLoop()
+	server.wg.Add(1)
+	go func() {
+		defer server.wg.Done()
+		server.acceptLoop()
+	}()
 	log.Info("QUIC server listening on", localAddr.String())
 	return server, nil
 }
