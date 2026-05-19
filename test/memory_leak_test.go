@@ -39,7 +39,7 @@ func TestSimpleConnectionCycle(t *testing.T) {
 		}
 	}()
 
-	for cycle := 0; cycle < 100; cycle++ {
+	for cycle := range 100 {
 		conn, err := net.Dial("tcp", addr)
 		if err != nil {
 			t.Fatalf("Cycle %d: Failed to connect: %v", cycle, err)
@@ -98,9 +98,9 @@ func TestConcurrentConnectionPool(t *testing.T) {
 		}
 	}()
 
-	for cycle := 0; cycle < testCycles; cycle++ {
+	for cycle := range testCycles {
 		var conns []net.Conn
-		for i := 0; i < poolSize; i++ {
+		for i := range poolSize {
 			conn, err := net.Dial("tcp", addr)
 			if err != nil {
 				t.Fatalf("Cycle %d, conn %d: Failed to connect: %v", cycle, i, err)
@@ -169,7 +169,7 @@ func TestHighConcurrencyMemoryLeak(t *testing.T) {
 	t.Logf("Listener started on %s", addr)
 
 	var connections []net.Conn
-	for i := 0; i < numConnections; i++ {
+	for i := range numConnections {
 		conn, err := net.Dial("tcp", addr)
 		if err != nil {
 			t.Fatalf("Failed to connect (%d/%d): %v", i+1, numConnections, err)

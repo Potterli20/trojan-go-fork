@@ -383,22 +383,18 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		cancel:             cancel,
 	}
 
-	server.wg.Add(1)
-	go func() {
-		defer server.wg.Done()
+	server.wg.Go(func() {
 		server.acceptLoop()
-	}()
+	})
 	if cfg.TLS.CertCheckRate > 0 {
-		server.wg.Add(1)
-		go func() {
-			defer server.wg.Done()
+		server.wg.Go(func() {
 			server.checkKeyPairLoop(
 				time.Second*time.Duration(cfg.TLS.CertCheckRate),
 				cfg.TLS.KeyPath,
 				cfg.TLS.CertPath,
 				cfg.TLS.KeyPassword,
 			)
-		}()
+		})
 	}
 
 	log.Debug("tls server created")
