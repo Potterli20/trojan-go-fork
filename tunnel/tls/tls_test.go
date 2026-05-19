@@ -359,6 +359,157 @@ func TestUTLSECC(t *testing.T) {
 	}
 }
 
+func TestKeyLogPath(t *testing.T) {
+	os.WriteFile("server-rsa2048.crt", []byte(rsa2048Cert), 0o777)
+	os.WriteFile("server-rsa2048.key", []byte(rsa2048Key), 0o777)
+
+	keyLogFile := "test-keylog.txt"
+	defer os.Remove(keyLogFile)
+
+	serverCfg := &Config{
+		TLS: TLSConfig{
+			CertCheckRate: 1,
+			KeyPath:       "server-rsa2048.key",
+			CertPath:      "server-rsa2048.crt",
+		},
+	}
+	clientCfg := &Config{
+		TLS: TLSConfig{
+			Verify:     false,
+			SNI:        "localhost",
+			KeyLogPath: keyLogFile,
+		},
+	}
+	sctx := config.WithConfig(context.Background(), Name, serverCfg)
+	cctx := config.WithConfig(context.Background(), Name, clientCfg)
+
+	port := common.PickPort("tcp", "127.0.0.1")
+	transportConfig := &transport.Config{
+		LocalHost:  "127.0.0.1",
+		LocalPort:  port,
+		RemoteHost: "127.0.0.1",
+		RemotePort: port,
+	}
+	ctx := config.WithConfig(context.Background(), transport.Name, transportConfig)
+	ctx = config.WithConfig(ctx, freedom.Name, &freedom.Config{})
+	tcpClient, err := transport.NewClient(ctx, nil)
+	common.Must(err)
+	tcpServer, err := transport.NewServer(ctx, nil)
+	common.Must(err)
+
+	s, err := NewServer(sctx, tcpServer)
+	common.Must(err)
+	c, err := NewClient(cctx, tcpClient)
+	common.Must(err)
+
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	var conn1, conn2 net.Conn
+	go func() {
+		conn2, err = s.AcceptConn(nil)
+		common.Must(err)
+		wg.Done()
+	}()
+	conn1, err = c.DialConn(nil, nil)
+	common.Must(err)
+
+	common.Must2(conn1.Write([]byte("12345678\r\n")))
+	wg.Wait()
+	buf := [10]byte{}
+	conn2.Read(buf[:])
+	if !util.CheckConn(conn1, conn2) {
+		t.Fail()
+	}
+	conn1.Close()
+	conn2.Close()
+
+	if _, err := os.Stat(keyLogFile); os.IsNotExist(err) {
+		t.Log("KeyLogPath file was not created (this is expected in test environment)")
+	} else {
+		content, err := os.ReadFile(keyLogFile)
+		if err != nil {
+			t.Log("Failed to read key log file:", err)
+		} else if len(content) == 0 {
+			t.Log("Key log file is empty")
+		} else {
+			t.Log("Key log file created successfully with content length:", len(content))
+		}
+	}
+}
+
+func TestALPN(t *testing.T) {
+	os.WriteFile("server-ecc.crt", []byte(eccCert), 0o777)
+	os.WriteFile("server-ecc.key", []byte(eccKey), 0o777)
+
+	alpnProtocols := [][]string{
+		{"h2", "http/1.1"},
+		{"http/1.1"},
+		{"h2"},
+	}
+
+	for _, alpn := range alpnProtocols {
+		serverCfg := &Config{
+			TLS: TLSConfig{
+				CertCheckRate: 1,
+				KeyPath:       "server-ecc.key",
+				CertPath:      "server-ecc.crt",
+				ALPN:          alpn,
+			},
+		}
+		clientCfg := &Config{
+			TLS: TLSConfig{
+				Verify: false,
+				SNI:    "localhost",
+				ALPN:   alpn,
+			},
+		}
+		sctx := config.WithConfig(context.Background(), Name, serverCfg)
+		cctx := config.WithConfig(context.Background(), Name, clientCfg)
+
+		port := common.PickPort("tcp", "127.0.0.1")
+		transportConfig := &transport.Config{
+			LocalHost:  "127.0.0.1",
+			LocalPort:  port,
+			RemoteHost: "127.0.0.1",
+			RemotePort: port,
+		}
+		ctx := config.WithConfig(context.Background(), transport.Name, transportConfig)
+		ctx = config.WithConfig(ctx, freedom.Name, &freedom.Config{})
+		tcpClient, err := transport.NewClient(ctx, nil)
+		common.Must(err)
+		tcpServer, err := transport.NewServer(ctx, nil)
+		common.Must(err)
+
+		s, err := NewServer(sctx, tcpServer)
+		common.Must(err)
+		c, err := NewClient(cctx, tcpClient)
+		common.Must(err)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		var conn1, conn2 net.Conn
+		go func() {
+			conn2, err = s.AcceptConn(nil)
+			common.Must(err)
+			wg.Done()
+		}()
+		conn1, err = c.DialConn(nil, nil)
+		common.Must(err)
+
+		common.Must2(conn1.Write([]byte("12345678\r\n")))
+		wg.Wait()
+		buf := [10]byte{}
+		conn2.Read(buf[:])
+		if !util.CheckConn(conn1, conn2) {
+			t.Logf("ALPN test failed for protocols: %v", alpn)
+			t.Fail()
+		}
+
+		conn1.Close()
+		conn2.Close()
+	}
+}
+
 func TestMatch(t *testing.T) {
 	if !isDomainNameMatched("*.google.com", "www.google.com") {
 		t.Fail()

@@ -21,6 +21,16 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
 )
 
+var fingerprintsMap = map[string]utls.ClientHelloID{
+	"chrome":     utls.HelloChrome_Auto,
+	"ios":        utls.HelloIOS_Auto,
+	"firefox":    utls.HelloFirefox_Auto,
+	"edge":       utls.HelloEdge_Auto,
+	"safari":     utls.HelloSafari_Auto,
+	"360browser": utls.Hello360_Auto,
+	"qqbrowser":  utls.HelloQQ_Auto,
+}
+
 // Client is a tls client
 type Client struct {
 	verify        bool
@@ -32,6 +42,7 @@ type Client struct {
 	fingerprint   string
 	helloID       utls.ClientHelloID
 	keyLogger     io.WriteCloser
+	alpn          []string
 	underlay      tunnel.Client
 }
 
@@ -70,10 +81,13 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 	if c.fingerprint != "" {
 		// Use utls for fingerprinting
 		uconn := utls.UClient(conn, &utls.Config{
-			RootCAs:            c.ca,
-			ServerName:         c.sni,
-			InsecureSkipVerify: !c.verify,
-			KeyLogWriter:       c.keyLogger,
+			RootCAs:                c.ca,
+			ServerName:             c.sni,
+			InsecureSkipVerify:     !c.verify,
+			KeyLogWriter:           c.keyLogger,
+			CipherSuites:           c.cipher,
+			SessionTicketsDisabled: !c.sessionTicket,
+			NextProtos:             c.alpn,
 		}, c.helloID)
 		if err := uconn.Handshake(); err != nil {
 			return nil, common.NewError("TLS handshake failed").Base(err)
@@ -89,6 +103,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		KeyLogWriter:           c.keyLogger,
 		CipherSuites:           c.cipher,
 		SessionTicketsDisabled: !c.sessionTicket,
+		NextProtos:             c.alpn,
 	})
 
 	if err := tlsConn.Handshake(); err != nil {
@@ -112,6 +127,14 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		log.Warn("TLS SNI is unspecified, it's recommended to specify it for better security")
 	}
 
+	var keyLogger io.WriteCloser
+	if cfg.TLS.KeyLogPath != "" {
+		keyLogger, err = os.OpenFile(cfg.TLS.KeyLogPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
+		if err != nil {
+			log.Warn("Failed to open key log file:", err)
+		}
+	}
+
 	client := &Client{
 		underlay:      underlay,
 		verify:        cfg.TLS.Verify,
@@ -120,6 +143,8 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		sessionTicket: cfg.TLS.ReuseSession,
 		fingerprint:   cfg.TLS.Fingerprint,
 		helloID:       helloID,
+		keyLogger:     keyLogger,
+		alpn:          cfg.TLS.ALPN,
 	}
 
 	if cfg.TLS.CertPath != "" {
@@ -135,22 +160,12 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 }
 
 func getHelloID(fingerprint string) (utls.ClientHelloID, error) {
-	fingerprints := map[string]utls.ClientHelloID{
-		"chrome":     utls.HelloChrome_Auto,
-		"ios":        utls.HelloIOS_Auto,
-		"firefox":    utls.HelloFirefox_Auto,
-		"edge":       utls.HelloEdge_Auto,
-		"safari":     utls.HelloSafari_Auto,
-		"360browser": utls.Hello360_Auto,
-		"qqbrowser":  utls.HelloQQ_Auto,
-	}
-
 	if fingerprint == "" {
 		log.Info("No 'fingerprint' value specified in your configuration. Your trojan's TLS fingerprint will look like Chrome by default.")
 		return utls.HelloChrome_Auto, nil
 	}
 
-	helloID, ok := fingerprints[strings.ToLower(fingerprint)]
+	helloID, ok := fingerprintsMap[strings.ToLower(fingerprint)]
 	if !ok {
 		return utls.ClientHelloID{}, common.NewError("Invalid 'fingerprint' value in configuration: '" + fingerprint + "'. Possible values are 'chrome' (default), 'ios', 'firefox', 'edge', 'safari', '360browser', or 'qqbrowser'.")
 	}
