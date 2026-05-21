@@ -123,8 +123,7 @@ func TestTrojanConcurrentConnections(t *testing.T) {
 		RemoteHost: "127.0.0.1",
 		RemotePort: port,
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ctx = config.WithConfig(ctx, transport.Name, transportConfig)
 	ctx = config.WithConfig(ctx, freedom.Name, &freedom.Config{})
 
@@ -161,7 +160,7 @@ func TestTrojanConcurrentConnections(t *testing.T) {
 	var wg sync.WaitGroup
 	var successCount atomic.Int32
 
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
@@ -174,7 +173,7 @@ func TestTrojanConcurrentConnections(t *testing.T) {
 			}
 			defer conn.Close()
 
-			data := []byte(fmt.Sprintf("test-data-%d", id))
+			data := fmt.Appendf(nil, "test-data-%d", id)
 			if _, err := conn.Write(data); err != nil {
 				return
 			}
@@ -196,8 +195,7 @@ func TestTrojanQuickClose(t *testing.T) {
 		RemoteHost: "127.0.0.1",
 		RemotePort: port,
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ctx = config.WithConfig(ctx, transport.Name, transportConfig)
 	ctx = config.WithConfig(ctx, freedom.Name, &freedom.Config{})
 
@@ -253,8 +251,7 @@ func TestTrojanMultipleClose(t *testing.T) {
 		RemoteHost: "127.0.0.1",
 		RemotePort: port,
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ctx = config.WithConfig(ctx, transport.Name, transportConfig)
 	ctx = config.WithConfig(ctx, freedom.Name, &freedom.Config{})
 
@@ -276,7 +273,7 @@ func TestTrojanMultipleClose(t *testing.T) {
 	defer c.Close()
 
 	// Test multiple Close() calls don't panic
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		c.Close()
 	}
 	t.Log("Multiple close test passed")

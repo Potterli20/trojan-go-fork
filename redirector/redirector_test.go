@@ -85,8 +85,7 @@ func TestRedirectorClose(t *testing.T) {
 
 func TestRedirectorConcurrentRedirection(t *testing.T) {
 	const numGoroutines = 100
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	redir := NewRedirector(ctx)
 	var wg sync.WaitGroup
@@ -108,10 +107,8 @@ func TestRedirectorConcurrentRedirection(t *testing.T) {
 	redirAddr, err := net.ResolveTCPAddr("tcp", l.Addr().String())
 	common.Must(err)
 
-	for i := 0; i < numGoroutines; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range numGoroutines {
+		wg.Go(func() {
 			conn1, err := net.Dial("tcp", l.Addr().String())
 			if err != nil {
 				return
@@ -124,7 +121,7 @@ func TestRedirectorConcurrentRedirection(t *testing.T) {
 				RedirectTo:  redirAddr,
 				InboundConn: conn1,
 			})
-		}()
+		})
 	}
 
 	done := make(chan struct{})
@@ -186,8 +183,7 @@ func TestRedirectorBoundaryConditions(t *testing.T) {
 		},
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	redir := NewRedirector(ctx)
 
 	for _, tc := range testCases {
@@ -203,22 +199,19 @@ func TestRedirectorBoundaryConditions(t *testing.T) {
 }
 
 func TestRedirectorChannelFull(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	redir := NewRedirector(ctx)
 	var wg sync.WaitGroup
 
-	for i := 0; i < 200; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 200 {
+		wg.Go(func() {
 			redir.Redirect(&Redirection{
 				Dial:        nil,
 				RedirectTo:  nil,
 				InboundConn: nil,
 			})
-		}()
+		})
 	}
 
 	wg.Wait()

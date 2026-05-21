@@ -160,13 +160,13 @@ func TestMemoryAuthConcurrentUserOperations(t *testing.T) {
 	var wg sync.WaitGroup
 	var successCount atomic.Int32
 
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
 			userHash := "concurrent-user-" + strconv.Itoa(id)
 
-			for j := 0; j < numOpsPerGoroutine; j++ {
+			for range numOpsPerGoroutine {
 				if err := auth.AddUser(userHash); err == nil {
 					successCount.Add(1)
 					auth.DelUser(userHash)
@@ -198,17 +198,15 @@ func TestMemoryAuthConcurrentTrafficUpdates(t *testing.T) {
 	var wg sync.WaitGroup
 	var totalSent, totalRecv atomic.Uint64
 
-	for i := 0; i < numGoroutines; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for j := 0; j < numTrafficUpdates; j++ {
+	for range numGoroutines {
+		wg.Go(func() {
+			for range numTrafficUpdates {
 				user.AddSentTraffic(1)
 				totalSent.Add(1)
 				user.AddRecvTraffic(1)
 				totalRecv.Add(1)
 			}
-		}()
+		})
 	}
 
 	wg.Wait()
@@ -295,7 +293,7 @@ func TestMemoryAuthIPLimitConcurrency(t *testing.T) {
 	var wg sync.WaitGroup
 	var successCount atomic.Int32
 
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
