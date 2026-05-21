@@ -35,6 +35,9 @@ type Authenticator struct {
 }
 
 func (a *Authenticator) updater() {
+	ticker := time.NewTicker(a.updateDuration)
+	defer ticker.Stop()
+
 	for {
 		for _, user := range a.ListUsers() {
 			// swap upload and download for users
@@ -85,7 +88,7 @@ func (a *Authenticator) updater() {
 		}
 
 		select {
-		case <-time.After(a.updateDuration):
+		case <-ticker.C:
 		case <-a.ctx.Done():
 			log.Debug("MySQL daemon exiting...")
 			return

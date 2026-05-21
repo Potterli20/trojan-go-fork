@@ -65,7 +65,7 @@ func (u *User) AddIP(ip string) bool {
 	u.ipTable[ip] = time.Now()
 	atomic.AddInt32(&u.ipNum, 1)
 	u.wg.Go(func() {
-		u.DelIP(ip)
+		u.DelIPWithDelay(ip)
 	})
 	return true
 }
@@ -75,8 +75,29 @@ func (u *User) DelIP(ip string) bool {
 		return true
 	}
 
+	u.ipLock.Lock()
+	defer u.ipLock.Unlock()
+
+	if _, found := u.ipTable[ip]; !found {
+		return false
+	}
+
+	delete(u.ipTable, ip)
+	atomic.AddInt32(&u.ipNum, -1)
+
+	return true
+}
+
+func (u *User) DelIPWithDelay(ip string) bool {
+	if u.MaxIPNum <= 0 {
+		return true
+	}
+
+	timer := time.NewTimer(10 * time.Second)
+	defer timer.Stop()
+
 	select {
-	case <-time.After(10 * time.Second):
+	case <-timer.C:
 	case <-u.ctx.Done():
 		return false
 	}

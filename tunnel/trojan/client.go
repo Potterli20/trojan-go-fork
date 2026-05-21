@@ -40,6 +40,8 @@ type OutboundConn struct {
 	metadata          *tunnel.Metadata
 	user              statistic.User
 	headerWrittenOnce sync.Once
+	ctx               context.Context
+	cancel            context.CancelFunc
 	net.Conn
 }
 
@@ -91,6 +93,7 @@ func (c *OutboundConn) Read(p []byte) (int, error) {
 }
 
 func (c *OutboundConn) Close() error {
+	c.cancel()
 	log.Info("connection to", c.metadata, "closed", "sent:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.sent)), "recv:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.recv)))
 	return c.Conn.Close()
 }
@@ -112,9 +115,12 @@ func (c *Client) DialConn(addr *tunnel.Address, overlay tunnel.Tunnel) (tunnel.C
 	if err != nil {
 		return nil, err
 	}
+	ctx, cancel := context.WithCancel(c.ctx)
 	newConn := &OutboundConn{
-		Conn: conn,
-		user: c.user,
+		Conn:   conn,
+		user:   c.user,
+		ctx:    ctx,
+		cancel: cancel,
 		metadata: &tunnel.Metadata{
 			Command: Connect,
 			Address: addr,
@@ -127,8 +133,12 @@ func (c *Client) DialConn(addr *tunnel.Address, overlay tunnel.Tunnel) (tunnel.C
 	go func(newConn *OutboundConn) {
 		// if the trojan header is still buffered after 100 ms, the client may expect data from the server
 		// so we flush the trojan header
-		time.Sleep(time.Millisecond * 100)
-		newConn.WriteHeader(nil)
+		select {
+		case <-time.After(time.Millisecond * 100):
+			newConn.WriteHeader(nil)
+		case <-newConn.ctx.Done():
+			return
+		}
 	}(newConn)
 	return newConn, nil
 }

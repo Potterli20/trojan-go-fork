@@ -157,3 +157,9 @@ func NewRedirector(ctx context.Context) *Redirector {
 	go r.worker()
 	return r
 }
+
+func (r *Redirector) Close() error {
+	<-r.ctx.Done()
+	r.wg.Wait()
+	return nil
+}
