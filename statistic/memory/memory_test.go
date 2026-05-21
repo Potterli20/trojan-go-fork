@@ -4,6 +4,8 @@ import (
 	"context"
 	"runtime"
 	"strconv"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -143,4 +145,194 @@ func BenchmarkMemoryUsage(b *testing.B) {
 
 	b.ReportMetric(float64(m2.Alloc-m1.Alloc)/1024/1024, "MiB(Alloc)")
 	b.ReportMetric(float64(m2.TotalAlloc-m1.TotalAlloc)/1024/1024, "MiB(TotalAlloc)")
+}
+
+func TestMemoryAuthConcurrentUserOperations(t *testing.T) {
+	const numGoroutines = 100
+	const numOpsPerGoroutine = 100
+
+	cfg := &Config{Passwords: nil}
+	ctx := config.WithConfig(context.Background(), Name, cfg)
+	auth, err := NewAuthenticator(ctx)
+	common.Must(err)
+	defer auth.Close()
+
+	var wg sync.WaitGroup
+	var successCount atomic.Int32
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			userHash := "concurrent-user-" + strconv.Itoa(id)
+
+			for j := 0; j < numOpsPerGoroutine; j++ {
+				if err := auth.AddUser(userHash); err == nil {
+					successCount.Add(1)
+					auth.DelUser(userHash)
+				}
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	t.Logf("Concurrent user operations: %d successful", successCount.Load())
+}
+
+func TestMemoryAuthConcurrentTrafficUpdates(t *testing.T) {
+	const numGoroutines = 50
+	const numTrafficUpdates = 1000
+
+	cfg := &Config{Passwords: nil}
+	ctx := config.WithConfig(context.Background(), Name, cfg)
+	auth, err := NewAuthenticator(ctx)
+	common.Must(err)
+	defer auth.Close()
+
+	auth.AddUser("traffic-test-user")
+	valid, user := auth.AuthUser("traffic-test-user")
+	if !valid {
+		t.Fatal("failed to auth test user")
+	}
+
+	var wg sync.WaitGroup
+	var totalSent, totalRecv atomic.Uint64
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j < numTrafficUpdates; j++ {
+				user.AddSentTraffic(1)
+				totalSent.Add(1)
+				user.AddRecvTraffic(1)
+				totalRecv.Add(1)
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	sent, recv := user.GetTraffic()
+	expectedSent := totalSent.Load()
+	expectedRecv := totalRecv.Load()
+
+	if sent != expectedSent {
+		t.Errorf("sent traffic mismatch: got %d, expected %d", sent, expectedSent)
+	}
+	if recv != expectedRecv {
+		t.Errorf("recv traffic mismatch: got %d, expected %d", recv, expectedRecv)
+	}
+
+	t.Logf("Concurrent traffic updates passed: sent=%d, recv=%d", sent, recv)
+}
+
+func TestMemoryAuthBoundaryConditions(t *testing.T) {
+	cfg := &Config{Passwords: nil}
+	ctx := config.WithConfig(context.Background(), Name, cfg)
+	auth, err := NewAuthenticator(ctx)
+	common.Must(err)
+	defer auth.Close()
+
+	t.Run("Add duplicate user", func(t *testing.T) {
+		hash := "duplicate-test-user"
+		auth.AddUser(hash)
+		err := auth.AddUser(hash)
+		if err == nil {
+			t.Error("expected error when adding duplicate user")
+		}
+	})
+
+	t.Run("Delete non-existent user", func(t *testing.T) {
+		err := auth.DelUser("non-existent-user")
+		if err == nil {
+			t.Error("expected error when deleting non-existent user")
+		}
+	})
+
+	t.Run("Auth non-existent user", func(t *testing.T) {
+		valid, user := auth.AuthUser("non-existent-user")
+		if valid {
+			t.Error("expected invalid when authenticating non-existent user")
+		}
+		if user != nil {
+			t.Error("expected nil user for non-existent authentication")
+		}
+	})
+
+	t.Run("Zero IP limit", func(t *testing.T) {
+		hash := "zero-ip-limit-test"
+		auth.AddUser(hash)
+		valid, user := auth.AuthUser(hash)
+		if !valid {
+			t.Fatal("failed to auth test user")
+		}
+		auth.SetUserIPLimit(hash, 0)
+		if !user.AddIP("test-ip") {
+			t.Error("AddIP should succeed with zero limit")
+		}
+	})
+}
+
+func TestMemoryAuthIPLimitConcurrency(t *testing.T) {
+	const numGoroutines = 100
+	const maxIPLimit = 5
+
+	cfg := &Config{Passwords: nil}
+	ctx := config.WithConfig(context.Background(), Name, cfg)
+	auth, err := NewAuthenticator(ctx)
+	common.Must(err)
+	defer auth.Close()
+
+	userHash := "ip-limit-concurrent-test"
+	auth.AddUser(userHash)
+	auth.SetUserIPLimit(userHash, maxIPLimit)
+	valid, user := auth.AuthUser(userHash)
+	if !valid {
+		t.Fatal("failed to auth test user")
+	}
+
+	var wg sync.WaitGroup
+	var successCount atomic.Int32
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			ip := "concurrent-ip-" + strconv.Itoa(id)
+			if user.AddIP(ip) {
+				successCount.Add(1)
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	time.Sleep(200 * time.Millisecond)
+
+	currentIPs := user.GetIP()
+	t.Logf("IP limit test: added %d, current IPs %d", successCount.Load(), currentIPs)
+	if currentIPs > maxIPLimit {
+		t.Errorf("IP limit exceeded: %d > %d", currentIPs, maxIPLimit)
+	}
+}
+
+func TestMemoryAuthClose(t *testing.T) {
+	cfg := &Config{Passwords: nil}
+	ctx := config.WithConfig(context.Background(), Name, cfg)
+	auth, err := NewAuthenticator(ctx)
+	common.Must(err)
+
+	auth.AddUser("test-close-user")
+	valid, user := auth.AuthUser("test-close-user")
+	if !valid {
+		t.Fatal("failed to auth test user")
+	}
+
+	user.Close()
+	auth.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	cancel()
+	time.Sleep(100 * time.Millisecond)
 }
