@@ -24,6 +24,7 @@ type TLSConfig struct {
 	Cipher               string   `json:"cipher" yaml:"cipher"`
 	PreferServerCipher   bool     `json:"prefer_server_cipher" yaml:"prefer-server-cipher"`
 	SNI                  string   `json:"sni" yaml:"sni"`
+	ServerName           string   `json:"server_name" yaml:"server-name"`
 	HTTPResponseFileName string   `json:"plain_http_response" yaml:"plain-http-response"`
 	FallbackHost         string   `json:"fallback_addr" yaml:"fallback-addr"`
 	FallbackPort         int      `json:"fallback_port" yaml:"fallback-port"`

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/http"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -69,32 +70,38 @@ func (c *InboundConn) Close() error {
 	return c.Conn.Close()
 }
 
+func extractRealIPFromHeaders(header http.Header) string {
+	if cfIP := header.Get("CF-Connecting-IP"); cfIP != "" {
+		return cfIP
+	}
+	if xff := header.Get("X-Forwarded-For"); xff != "" {
+		ips := strings.Split(xff, ",")
+		if len(ips) > 0 {
+			return strings.TrimSpace(ips[0])
+		}
+	}
+	return ""
+}
+
 func GetRealIP(c *InboundConn) string {
+	var request *http.Request
+
 	switch conn := c.Conn.(type) {
 	case *websocket.InboundConn:
-		for name, value := range conn.OutboundConn.Request().Header {
-			if name == "X-Forwarded-For" {
-				ips := strings.Split(value[0], ",")
-				return ips[0]
-			}
-			if name == "CF-Connecting-IP" {
-				return value[0]
-			}
-		}
+		request = conn.OutboundConn.Request()
 	case *common.RewindConn:
 		if wsConn, ok := conn.Conn.(*websocket.InboundConn); ok {
-			for name, value := range wsConn.OutboundConn.Request().Header {
-				if name == "X-Forwarded-For" {
-					ips := strings.Split(value[0], ",")
-					return ips[0]
-				}
-				if name == "CF-Connecting-IP" {
-					return value[0]
-				}
-			}
+			request = wsConn.OutboundConn.Request()
 		}
 	default:
 		log.Debug("Failed to convert to WebSocket or RewindConn")
+		return c.ip
+	}
+
+	if request != nil {
+		if realIP := extractRealIPFromHeaders(request.Header); realIP != "" {
+			return realIP
+		}
 	}
 	return c.ip
 }

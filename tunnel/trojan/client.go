@@ -3,6 +3,7 @@ package trojan
 import (
 	"bytes"
 	"context"
+	"io"
 	"net"
 	"sync"
 	"sync/atomic"
@@ -29,11 +30,6 @@ const (
 )
 
 type OutboundConn struct {
-	// WARNING: do not change the order of these fields.
-	// 64-bit fields that use `sync/atomic` package functions
-	// must be 64-bit aligned on 32-bit systems.
-	// Reference: https://github.com/golang/go/issues/599
-	// Solution: https://github.com/golang/go/issues/11891#issuecomment-433623786
 	sent uint64
 	recv uint64
 
@@ -66,6 +62,9 @@ func (c *OutboundConn) WriteHeader(payload []byte) (bool, error) {
 		_, err = c.Conn.Write(buf.Bytes())
 		if err == nil {
 			written = true
+			log.Debug("trojan header written for", c.metadata.Address)
+		} else {
+			log.Error(common.NewError("failed to write trojan header").Base(err))
 		}
 	})
 	return written, err
@@ -87,6 +86,9 @@ func (c *OutboundConn) Write(p []byte) (int, error) {
 
 func (c *OutboundConn) Read(p []byte) (int, error) {
 	n, err := c.Conn.Read(p)
+	if err != nil && err != io.EOF {
+		log.Debug("trojan connection read error:", err)
+	}
 	c.user.AddRecvTraffic(n)
 	atomic.AddUint64(&c.recv, uint64(n))
 	return n, err
@@ -107,12 +109,15 @@ type Client struct {
 
 func (c *Client) Close() error {
 	c.cancel()
+	log.Debug("trojan client closing")
 	return c.underlay.Close()
 }
 
 func (c *Client) DialConn(addr *tunnel.Address, overlay tunnel.Tunnel) (tunnel.Conn, error) {
+	log.Debug("dialing trojan connection to", addr)
 	conn, err := c.underlay.DialConn(addr, &Tunnel{})
 	if err != nil {
+		log.Error(common.NewError("failed to dial underlying connection").Base(err))
 		return nil, err
 	}
 	ctx, cancel := context.WithCancel(c.ctx)
@@ -128,15 +133,15 @@ func (c *Client) DialConn(addr *tunnel.Address, overlay tunnel.Tunnel) (tunnel.C
 	}
 	if _, ok := overlay.(*mux.Tunnel); ok {
 		newConn.metadata.Command = Mux
+		log.Debug("mux connection requested")
 	}
 
 	go func(newConn *OutboundConn) {
-		// if the trojan header is still buffered after 100 ms, the client may expect data from the server
-		// so we flush the trojan header
 		select {
 		case <-time.After(time.Millisecond * 100):
 			newConn.WriteHeader(nil)
 		case <-newConn.ctx.Done():
+			log.Debug("connection closed before header flush")
 			return
 		}
 	}(newConn)
@@ -144,6 +149,7 @@ func (c *Client) DialConn(addr *tunnel.Address, overlay tunnel.Tunnel) (tunnel.C
 }
 
 func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
+	log.Debug("dialing trojan packet connection")
 	fakeAddr := &tunnel.Address{
 		DomainName:  "UDP_CONN",
 		AddressType: tunnel.DomainName,
@@ -151,6 +157,7 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 
 	conn, err := c.underlay.DialConn(fakeAddr, &Tunnel{})
 	if err != nil {
+		log.Error(common.NewError("failed to dial underlying connection for UDP").Base(err))
 		return nil, err
 	}
 	return &PacketConn{
@@ -170,11 +177,12 @@ func NewClient(ctx context.Context, client tunnel.Client) (*Client, error) {
 	auth, err := statistic.NewAuthenticator(ctx, memory.Name)
 	if err != nil {
 		cancel()
-		return nil, err
+		return nil, common.NewError("failed to create authenticator").Base(err)
 	}
 
 	cfg := config.FromContext(ctx, Name).(*Config)
 	if cfg.API.Enabled {
+		log.Info("starting API service for client")
 		go api.RunService(ctx, Name+"_CLIENT", auth)
 	}
 

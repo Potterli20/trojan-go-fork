@@ -31,10 +31,10 @@ var fingerprintsMap = map[string]utls.ClientHelloID{
 	"qqbrowser":  utls.HelloQQ_Auto,
 }
 
-// Client is a tls client
 type Client struct {
 	verify        bool
 	sni           string
+	serverName    string
 	ca            *x509.CertPool
 	cipher        []uint16
 	sessionTicket bool
@@ -78,11 +78,16 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		}
 	}
 
+	tlsServerName := c.serverName
+	if tlsServerName == "" {
+		tlsServerName = c.sni
+	}
+	log.Debug("TLS ServerName:", tlsServerName, "SNI:", c.sni)
+
 	if c.fingerprint != "" {
-		// Use utls for fingerprinting
 		uconn := utls.UClient(conn, &utls.Config{
 			RootCAs:                c.ca,
-			ServerName:             c.sni,
+			ServerName:             tlsServerName,
 			InsecureSkipVerify:     !c.verify,
 			KeyLogWriter:           c.keyLogger,
 			CipherSuites:           c.cipher,
@@ -95,10 +100,9 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		return &transport.Conn{Conn: uconn}, nil
 	}
 
-	// Use default Go TLS library
 	tlsConn := tls.Client(conn, &tls.Config{
 		InsecureSkipVerify:     !c.verify,
-		ServerName:             c.sni,
+		ServerName:             tlsServerName,
 		RootCAs:                c.ca,
 		KeyLogWriter:           c.keyLogger,
 		CipherSuites:           c.cipher,
@@ -113,7 +117,6 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 	return &transport.Conn{Conn: tlsConn}, nil
 }
 
-// NewClient creates a tls client
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
 
@@ -124,7 +127,12 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 
 	if cfg.TLS.SNI == "" {
 		cfg.TLS.SNI = cfg.RemoteHost
-		log.Warn("TLS SNI is unspecified, it's recommended to specify it for better security")
+		log.Warn("TLS SNI is unspecified, using remote_addr as default")
+	}
+
+	if cfg.TLS.ServerName == "" {
+		cfg.TLS.ServerName = cfg.TLS.SNI
+		log.Debug("TLS ServerName is unspecified, using SNI as default")
 	}
 
 	var keyLogger io.WriteCloser
@@ -139,6 +147,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		underlay:      underlay,
 		verify:        cfg.TLS.Verify,
 		sni:           cfg.TLS.SNI,
+		serverName:    cfg.TLS.ServerName,
 		cipher:        fingerprint.ParseCipher(strings.Split(cfg.TLS.Cipher, ":")),
 		sessionTicket: cfg.TLS.ReuseSession,
 		fingerprint:   cfg.TLS.Fingerprint,
@@ -185,7 +194,6 @@ func loadCert(client *Client, certPath string) error {
 	}
 	log.Info("Using custom cert")
 
-	// Print cert info
 	pemCerts := caCertByte
 	for len(pemCerts) > 0 {
 		var block *pem.Block

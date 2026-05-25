@@ -13,9 +13,10 @@ import (
 )
 
 type Client struct {
-	underlay tunnel.Client
-	hostname string
-	path     string
+	underlay  tunnel.Client
+	hostname  string
+	path      string
+	headers   map[string]string
 }
 
 func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
@@ -29,6 +30,12 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 	if err != nil {
 		return nil, common.NewError("invalid websocket config").Base(err)
 	}
+	
+	for key, value := range c.headers {
+		wsConfig.Header.Set(key, value)
+		log.Debug("websocket custom header:", key, "=", value)
+	}
+	
 	wsConn, err := websocket.NewClient(wsConfig, conn)
 	if err != nil {
 		return nil, common.NewError("websocket failed to handshake with server").Base(err)
@@ -58,8 +65,9 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	}
 	log.Debug("websocket client created")
 	return &Client{
-		hostname: cfg.Websocket.Host,
-		path:     cfg.Websocket.Path,
-		underlay: underlay,
+		hostname:  cfg.Websocket.Host,
+		path:      cfg.Websocket.Path,
+		headers:   cfg.Websocket.Headers,
+		underlay:  underlay,
 	}, nil
 }
