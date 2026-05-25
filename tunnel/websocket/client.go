@@ -64,7 +64,7 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 	}
 
 	log.Info("[WebSocket Client] WebSocket handshake succeeded in", handshakeDuration)
-	log.Debug("[WebSocket Client] WebSocket Request:", wsConfig.Request.Method, wsConfig.Request.URL.String())
+	log.Debug("[WebSocket Client] WebSocket Request:", "GET", wsConfig.Location.String())
 	log.Debug("[WebSocket Client] ========== WebSocket DialConn End ==========")
 
 	return &OutboundConn{
