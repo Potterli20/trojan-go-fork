@@ -25,11 +25,11 @@ func (s *Server) acceptConnWorker() {
 	for {
 		conn, err := s.underlay.AcceptConn(&Tunnel{})
 		if err != nil {
-			log.Debug(err)
 			select {
 			case <-s.ctx.Done():
 				return
 			default:
+				log.Debug(err)
 			}
 			continue
 		}

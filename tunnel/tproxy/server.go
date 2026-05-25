@@ -26,10 +26,12 @@ type Server struct {
 	mapping     map[string]*PacketConn
 	ctx         context.Context
 	cancel      context.CancelFunc
+	wg          sync.WaitGroup
 }
 
 func (s *Server) Close() error {
 	s.cancel()
+	s.wg.Wait()
 	s.tcpListener.Close()
 	return s.udpListener.Close()
 }
@@ -228,7 +230,11 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 		mapping:     make(map[string]*PacketConn),
 		packetChan:  make(chan tunnel.PacketConn, 32),
 	}
-	go server.packetDispatchLoop()
+	server.wg.Add(1)
+	go func() {
+		defer server.wg.Done()
+		server.packetDispatchLoop()
+	}()
 	log.Info("tproxy server listening on", tcpListener.Addr(), "(tcp)", udpListener.LocalAddr(), "(udp)")
 	log.Debug("tproxy server created")
 	return server, nil

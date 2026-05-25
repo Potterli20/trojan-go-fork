@@ -3,6 +3,7 @@ package simplesocks
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -19,14 +20,18 @@ type Server struct {
 	packetChan chan tunnel.PacketConn
 	ctx        context.Context
 	cancel     context.CancelFunc
+	wg         sync.WaitGroup
 }
 
 func (s *Server) Close() error {
 	s.cancel()
+	s.wg.Wait()
 	return s.underlay.Close()
 }
 
 func (s *Server) acceptLoop() {
+	s.wg.Add(1)
+	defer s.wg.Done()
 	for {
 		conn, err := s.underlay.AcceptConn(&Tunnel{})
 		if err != nil {
@@ -92,7 +97,9 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		packetChan: make(chan tunnel.PacketConn, 32),
 		cancel:     cancel,
 	}
-	go server.acceptLoop()
+	server.wg.Go(func() {
+		server.acceptLoop()
+	})
 	log.Debug("simplesocks server created")
 	return server, nil
 }

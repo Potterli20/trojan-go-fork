@@ -3,7 +3,6 @@ package trojan
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"net"
 	"sync"
