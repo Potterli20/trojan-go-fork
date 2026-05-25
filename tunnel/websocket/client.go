@@ -15,10 +15,10 @@ import (
 )
 
 type Client struct {
-	underlay  tunnel.Client
-	hostname  string
-	path      string
-	headers   map[string]string
+	underlay tunnel.Client
+	hostname string
+	path     string
+	headers  map[string]string
 }
 
 func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
@@ -48,20 +48,12 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 		log.Error("[WebSocket Client] Failed to create WebSocket config:", err)
 		return nil, common.NewError("invalid websocket config").Base(err)
 	}
-	log.Info("[WebSocket Client] WebSocket configuration created successfully")
 
-	log.Debug("[WebSocket Client] Step 3: Setting custom headers...")
-	if len(c.headers) > 0 {
-		for key, value := range c.headers {
-			wsConfig.Header.Set(key, value)
-			log.Debug("[WebSocket Client] Custom header set:", key, "=", value)
-		}
-	} else {
-		log.Debug("[WebSocket Client] No custom headers configured")
+	for key, value := range c.headers {
+		wsConfig.Header.Set(key, value)
+		log.Debug("websocket custom header:", key, "=", value)
 	}
 
-	log.Debug("[WebSocket Client] Step 4: Initiating WebSocket handshake...")
-	handshakeStart := time.Now()
 	wsConn, err := websocket.NewClient(wsConfig, conn)
 	handshakeDuration := time.Since(handshakeStart)
 	if err != nil {
@@ -69,11 +61,11 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 		conn.Close()
 		return nil, common.NewError("websocket failed to handshake with server").Base(err)
 	}
-	
+
 	log.Info("[WebSocket Client] WebSocket handshake succeeded in", handshakeDuration)
 	log.Debug("[WebSocket Client] WebSocket Request:", wsConfig.Request.Method, wsConfig.Request.URL.String())
 	log.Debug("[WebSocket Client] ========== WebSocket DialConn End ==========")
-	
+
 	return &OutboundConn{
 		Conn:    wsConn,
 		tcpConn: conn,
@@ -130,9 +122,9 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 
 	log.Info("[WebSocket Client] ========== WebSocket Client Created Successfully ==========")
 	return &Client{
-		hostname:  cfg.Websocket.Host,
-		path:      cfg.Websocket.Path,
-		headers:   cfg.Websocket.Headers,
-		underlay:  underlay,
+		hostname: cfg.Websocket.Host,
+		path:     cfg.Websocket.Path,
+		headers:  cfg.Websocket.Headers,
+		underlay: underlay,
 	}, nil
 }
