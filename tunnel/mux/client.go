@@ -62,9 +62,11 @@ func (c *Client) cleanLoop() {
 		checkDuration = c.timeout / 4
 	}
 	log.Debug("check duration:", checkDuration.Seconds(), "s")
+	ticker := time.NewTicker(checkDuration)
+	defer ticker.Stop()
 	for {
 		select {
-		case <-time.After(checkDuration):
+		case <-ticker.C:
 			c.clientPoolLock.Lock()
 			for id, info := range c.clientPool {
 				if info.client.IsClosed() {

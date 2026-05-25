@@ -123,6 +123,8 @@ func (s *Server) packetDispatchLoop() {
 			go func(conn *PacketConn) {
 				defer conn.Close()
 				log.Debug("udp packet daemon for", conn.src.String())
+				timer := time.NewTimer(s.timeout)
+				defer timer.Stop()
 				for {
 					select {
 					case info := <-conn.output:
@@ -150,10 +152,14 @@ func (s *Server) packetDispatchLoop() {
 						}
 						log.Debug("recv packet, send back to", conn.src, "payload", len(info.payload), "sent", n)
 						back.Close()
+						if !timer.Stop() {
+							<-timer.C
+						}
+						timer.Reset(s.timeout)
 					case <-s.ctx.Done():
 						log.Debug("exiting")
 						return
-					case <-time.After(s.timeout):
+					case <-timer.C:
 						s.mappingLock.Lock()
 						delete(s.mapping, conn.src.String())
 						s.mappingLock.Unlock()

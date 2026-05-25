@@ -70,6 +70,8 @@ func (s *Server) dispatchLoop() {
 		s.wg.Add(1)
 		go func(conn *PacketConn) {
 			defer s.wg.Done()
+			timer := time.NewTimer(s.timeout)
+			defer timer.Stop()
 			for {
 				select {
 				case payload := <-conn.output:
@@ -79,9 +81,13 @@ func (s *Server) dispatchLoop() {
 						log.Error(common.NewError("dokodemo udp write error").Base(err))
 						return
 					}
+					if !timer.Stop() {
+						<-timer.C
+					}
+					timer.Reset(s.timeout)
 				case <-s.ctx.Done():
 					return
-				case <-time.After(s.timeout):
+				case <-timer.C:
 					s.mappingLock.Lock()
 					delete(s.mapping, conn.src.String())
 					s.mappingLock.Unlock()

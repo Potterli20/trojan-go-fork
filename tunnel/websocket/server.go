@@ -96,7 +96,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		return nil, common.NewError("not a valid websocket handshake request: " + conn.RemoteAddr().String()).Base(err)
 	}
 
-	handshake := make(chan struct{})
+	handshake := make(chan struct{}, 1)
 
 	url := "wss://" + s.hostname + s.path
 	origin := "https://" + s.hostname
@@ -114,7 +114,10 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 			wsConn.PayloadType = websocket.BinaryFrame // treat it as a binary websocket
 
 			log.Debug("websocket obtained")
-			handshake <- struct{}{}
+			select {
+			case handshake <- struct{}{}:
+			default:
+			}
 			// this function SHOULD NOT return unless the connection is ended
 			// or the websocket will be closed by ServeHTTP method
 			<-ctx.Done()

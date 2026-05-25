@@ -18,8 +18,17 @@ func (c *OutboundConn) Metadata() *tunnel.Metadata {
 }
 
 func (c *OutboundConn) RemoteAddr() net.Addr {
-	// override RemoteAddr of websocket.Conn, or it will return some url from "Origin"
 	return c.tcpConn.RemoteAddr()
+}
+
+func (c *OutboundConn) Close() error {
+	if c.tcpConn != nil {
+		c.tcpConn.Close()
+	}
+	if c.Conn != nil {
+		return c.Conn.Close()
+	}
+	return nil
 }
 
 type InboundConn struct {
