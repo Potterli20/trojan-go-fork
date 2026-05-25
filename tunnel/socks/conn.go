@@ -45,8 +45,6 @@ func (c *PacketConn) Close() error {
 		for {
 			select {
 			case <-ch:
-			case <-c.ctx.Done():
-				return
 			default:
 				return
 			}
