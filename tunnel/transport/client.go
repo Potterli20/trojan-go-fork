@@ -32,6 +32,8 @@ func (c *Client) Close() error {
 			log.Error("[Transport Client] Failed to kill plugin process:", err)
 			return err
 		}
+		log.Debug("[Transport Client] Waiting for plugin process to exit")
+		c.cmd.Wait()
 		log.Info("[Transport Client] Transport plugin process killed")
 	}
 	log.Info("[Transport Client] Transport client closed successfully")
@@ -143,6 +145,11 @@ func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 	direct, err := freedom.NewClient(ctx, nil)
 	if err != nil {
 		log.Error("[Transport Client] Failed to create freedom client:", err)
+		if cmd != nil && cmd.Process != nil {
+			log.Debug("[Transport Client] Killing plugin process due to error")
+			cmd.Process.Kill()
+			cmd.Wait()
+		}
 		return nil, err
 	}
 	log.Info("[Transport Client] Freedom client created successfully")

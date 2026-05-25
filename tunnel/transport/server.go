@@ -32,13 +32,17 @@ type Server struct {
 }
 
 func (s *Server) Close() error {
+	log.Info("[Transport Server] Closing transport server")
 	s.cancel()
 	err := s.tcpListener.Close()
 	s.wg.Wait()
 	if s.cmd != nil && s.cmd.Process != nil {
+		log.Debug("[Transport Server] Killing transport plugin process")
 		s.cmd.Process.Kill()
 		s.cmd.Wait()
+		log.Info("[Transport Server] Transport plugin process killed")
 	}
+	log.Info("[Transport Server] Transport server closed successfully")
 	return err
 }
 
