@@ -30,8 +30,8 @@ func (s *Server) dispatchLoop() {
 	fixedMetadata := &tunnel.Metadata{
 		Address: s.targetAddr,
 	}
+	buf := make([]byte, MaxPacketSize)
 	for {
-		buf := make([]byte, MaxPacketSize)
 		n, addr, err := s.udpListener.ReadFrom(buf)
 		if err != nil {
 			select {
@@ -42,10 +42,10 @@ func (s *Server) dispatchLoop() {
 			return
 		}
 		log.Debug("udp packet from", addr)
+		toInput := make([]byte, n)
+		copy(toInput, buf[:n])
 		s.mappingLock.Lock()
 		if conn, found := s.mapping[addr.String()]; found {
-			toInput := make([]byte, n)
-			copy(toInput, buf)
 			conn.input <- toInput
 			s.mappingLock.Unlock()
 			continue
@@ -62,8 +62,6 @@ func (s *Server) dispatchLoop() {
 		}
 		s.mapping[addr.String()] = conn
 		s.mappingLock.Unlock()
-		toInput := make([]byte, n)
-		copy(toInput, buf)
 		conn.input <- toInput
 		s.packetChan <- conn
 
@@ -75,7 +73,6 @@ func (s *Server) dispatchLoop() {
 			for {
 				select {
 				case payload := <-conn.output:
-					// "Multiple goroutines may invoke methods on a Conn simultaneously."
 					_, err := s.udpListener.WriteTo(payload, conn.src)
 					if err != nil {
 						log.Error(common.NewError("dokodemo udp write error").Base(err))

@@ -33,8 +33,21 @@ type PacketConn struct {
 
 func (c *PacketConn) Close() error {
 	c.cancel()
-	// don't close the underlying udp socket
-	return nil
+	for {
+		select {
+		case <-c.input:
+		default:
+			goto output
+		}
+	}
+output:
+	for {
+		select {
+		case <-c.output:
+		default:
+			return nil
+		}
+	}
 }
 
 func (c *PacketConn) ReadFrom(p []byte) (int, net.Addr, error) {

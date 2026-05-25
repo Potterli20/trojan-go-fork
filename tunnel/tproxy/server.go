@@ -68,8 +68,8 @@ func (s *Server) packetDispatchLoop() {
 	packetQueue := make(chan *tproxyPacketInfo, 1024)
 
 	go func() {
+		buf := make([]byte, MaxPacketSize)
 		for {
-			buf := make([]byte, MaxPacketSize)
 			n, src, dst, err := ReadFromUDP(s.udpListener, buf)
 			if err != nil {
 				select {
@@ -81,10 +81,12 @@ func (s *Server) packetDispatchLoop() {
 				return
 			}
 			log.Debug("udp packet from", src, "metadata", dst, "size", n)
+			payload := make([]byte, n)
+			copy(payload, buf[:n])
 			packetQueue <- &tproxyPacketInfo{
 				src:     src,
 				dst:     dst,
-				payload: buf[:n],
+				payload: payload,
 			}
 		}
 	}()
@@ -170,20 +172,13 @@ func (s *Server) packetDispatchLoop() {
 			}(conn)
 		}
 
-		newInfo := &packetInfo{
+		conn.input <- &packetInfo{
 			metadata: &tunnel.Metadata{
 				Address: tunnel.NewAddressFromHostPort("udp", info.dst.IP.String(), info.dst.Port),
 			},
 			payload: info.payload,
 		}
-
-		select {
-		case conn.input <- newInfo:
-			log.Debug("tproxy packet sent with metadata", newInfo.metadata, "size", len(info.payload))
-		default:
-			// if we got too many packets, simply drop it
-			log.Warn("tproxy udp relay queue full!")
-		}
+		log.Debug("tproxy packet sent with metadata", info.dst, "size", len(info.payload))
 	}
 }
 
