@@ -54,6 +54,7 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 		log.Debug("websocket custom header:", key, "=", value)
 	}
 
+	handshakeStart := time.Now()
 	wsConn, err := websocket.NewClient(wsConfig, conn)
 	handshakeDuration := time.Since(handshakeStart)
 	if err != nil {
