@@ -54,7 +54,11 @@ func (s *Server) handleConn(conn tunnel.Conn) {
 		conn.Close()
 		return
 	}
-	go s.handleSession(smuxSession, conn)
+	s.wg.Add(1)
+	go func() {
+		defer s.wg.Done()
+		s.handleSession(smuxSession, conn)
+	}()
 }
 
 func (s *Server) handleSession(session *smux.Session, conn tunnel.Conn) {
@@ -93,6 +97,7 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 
 func (s *Server) Close() error {
 	s.cancel()
+	s.wg.Wait()
 	return s.underlay.Close()
 }
 

@@ -33,21 +33,20 @@ type PacketConn struct {
 
 func (c *PacketConn) Close() error {
 	c.cancel()
-	for {
-		select {
-		case <-c.input:
-		default:
-			goto output
+	drain := func(ch <-chan []byte) {
+		for {
+			select {
+			case <-ch:
+			case <-c.ctx.Done():
+				return
+			default:
+				return
+			}
 		}
 	}
-output:
-	for {
-		select {
-		case <-c.output:
-		default:
-			return nil
-		}
-	}
+	drain(c.input)
+	drain(c.output)
+	return nil
 }
 
 func (c *PacketConn) ReadFrom(p []byte) (int, net.Addr, error) {

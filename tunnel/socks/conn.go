@@ -41,21 +41,20 @@ func (c *PacketConn) WriteTo(p []byte, addr net.Addr) (n int, err error) {
 
 func (c *PacketConn) Close() error {
 	c.cancel()
-	for {
-		select {
-		case <-c.input:
-		default:
-			goto output
+	drain := func(ch <-chan *packetInfo) {
+		for {
+			select {
+			case <-ch:
+			case <-c.ctx.Done():
+				return
+			default:
+				return
+			}
 		}
 	}
-output:
-	for {
-		select {
-		case <-c.output:
-		default:
-			return nil
-		}
-	}
+	drain(c.input)
+	drain(c.output)
+	return nil
 }
 
 func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error) {
