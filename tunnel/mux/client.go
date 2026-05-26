@@ -92,9 +92,9 @@ func (c *Client) cleanLoop() {
 			for id, info := range c.clientPool {
 				info.client.Close()
 				info.underlayConn.Close()
-				delete(c.clientPool, id)
 				log.Debug("mux client", id, "closed")
 			}
+			clear(c.clientPool)
 			c.clientPoolLock.Unlock()
 			return
 		}
