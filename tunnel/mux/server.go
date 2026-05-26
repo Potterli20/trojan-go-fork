@@ -54,11 +54,9 @@ func (s *Server) handleConn(conn tunnel.Conn) {
 		conn.Close()
 		return
 	}
-	s.wg.Add(1)
-	go func() {
-		defer s.wg.Done()
+	s.wg.Go(func() {
 		s.handleSession(smuxSession, conn)
-	}()
+	})
 }
 
 func (s *Server) handleSession(session *smux.Session, conn tunnel.Conn) {

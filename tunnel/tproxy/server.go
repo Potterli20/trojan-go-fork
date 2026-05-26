@@ -230,11 +230,9 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 		mapping:     make(map[string]*PacketConn),
 		packetChan:  make(chan tunnel.PacketConn, 32),
 	}
-	server.wg.Add(1)
-	go func() {
-		defer server.wg.Done()
+	server.wg.Go(func() {
 		server.packetDispatchLoop()
-	}()
+	})
 	log.Info("tproxy server listening on", tcpListener.Addr(), "(tcp)", udpListener.LocalAddr(), "(udp)")
 	log.Debug("tproxy server created")
 	return server, nil

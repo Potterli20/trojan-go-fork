@@ -289,15 +289,11 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		cancel:           cancel,
 		listenPacketConn: listenPacketConn,
 	}
-	server.wg.Add(1)
-	go func() {
-		defer server.wg.Done()
+	server.wg.Go(func() {
 		server.acceptConnLoop()
-	}()
-	server.wg.Add(1)
-	go func() {
-		defer server.wg.Done()
+	})
+	server.wg.Go(func() {
 		server.packetDispatchLoop()
-	}()
+	})
 	return server, nil
 }

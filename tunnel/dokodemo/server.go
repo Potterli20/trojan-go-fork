@@ -152,10 +152,8 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 		ctx:         ctx,
 		cancel:      cancel,
 	}
-	server.wg.Add(1)
-	go func() {
-		defer server.wg.Done()
+	server.wg.Go(func() {
 		server.dispatchLoop()
-	}()
+	})
 	return server, nil
 }
