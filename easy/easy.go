@@ -22,13 +22,14 @@ type easy struct {
 	key      *string
 }
 
-type ClientConfig struct {
+type Config struct {
 	RunType    string   `json:"run_type"`
 	LocalAddr  string   `json:"local_addr"`
 	LocalPort  int      `json:"local_port"`
 	RemoteAddr string   `json:"remote_addr"`
 	RemotePort int      `json:"remote_port"`
 	Password   []string `json:"password"`
+	TLS        *TLS     `json:"ssl,omitempty"`
 }
 
 type TLS struct {
@@ -37,14 +38,20 @@ type TLS struct {
 	Key  string `json:"key"`
 }
 
-type ServerConfig struct {
-	RunType    string   `json:"run_type"`
-	LocalAddr  string   `json:"local_addr"`
-	LocalPort  int      `json:"local_port"`
-	RemoteAddr string   `json:"remote_addr"`
-	RemotePort int      `json:"remote_port"`
-	Password   []string `json:"password"`
-	TLS        `json:"ssl"`
+func parseAddr(addr, defaultAddr, name string) (host string, port int, err error) {
+	if addr == "" {
+		log.Warn(name, " addr is unspecified, using ", defaultAddr)
+		addr = defaultAddr
+	}
+	host, portStr, err := net.SplitHostPort(addr)
+	if err != nil {
+		return "", 0, common.NewError("invalid " + name + " addr format:" + addr).Base(err)
+	}
+	port, err = strconv.Atoi(portStr)
+	if err != nil {
+		return "", 0, err
+	}
+	return host, port, nil
 }
 
 func (o *easy) Name() string {
@@ -59,98 +66,58 @@ func (o *easy) Handle() error {
 		log.Fatal("empty password is not allowed")
 	}
 	log.Info("easy mode enabled, trojan-go will NOT use the config file")
+
+	var config Config
 	if *o.client {
-		if *o.local == "" {
-			log.Warn("client local addr is unspecified, using 127.0.0.1:1080")
-			*o.local = "127.0.0.1:1080"
-		}
-		localHost, localPortStr, err := net.SplitHostPort(*o.local)
-		if err != nil {
-			log.Fatal(common.NewError("invalid local addr format:" + *o.local).Base(err))
-		}
-		remoteHost, remotePortStr, err := net.SplitHostPort(*o.remote)
-		if err != nil {
-			log.Fatal(common.NewError("invalid remote addr format:" + *o.remote).Base(err))
-		}
-		localPort, err := strconv.Atoi(localPortStr)
+		localHost, localPort, err := parseAddr(*o.local, "127.0.0.1:1080", "client local")
 		if err != nil {
 			log.Fatal(err)
 		}
-		remotePort, err := strconv.Atoi(remotePortStr)
+		remoteHost, remotePort, err := parseAddr(*o.remote, "", "remote")
 		if err != nil {
 			log.Fatal(err)
 		}
-		clientConfig := ClientConfig{
+		config = Config{
 			RunType:    "client",
 			LocalAddr:  localHost,
 			LocalPort:  localPort,
 			RemoteAddr: remoteHost,
 			RemotePort: remotePort,
-			Password: []string{
-				*o.password,
-			},
+			Password:   []string{*o.password},
 		}
-		clientConfigJSON, err := json.Marshal(&clientConfig)
-		common.Must(err)
-		log.Info("generated config:")
-		log.Info(string(clientConfigJSON))
-		proxy, err := proxy.NewProxyFromConfigData(clientConfigJSON, true)
+	} else {
+		localHost, localPort, err := parseAddr(*o.local, "0.0.0.0:443", "server local")
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err := proxy.Run(); err != nil {
-			log.Fatal(err)
-		}
-	} else if *o.server {
-		if *o.remote == "" {
-			log.Warn("server remote addr is unspecified, using 127.0.0.1:80")
-			*o.remote = "127.0.0.1:80"
-		}
-		if *o.local == "" {
-			log.Warn("server local addr is unspecified, using 0.0.0.0:443")
-			*o.local = "0.0.0.0:443"
-		}
-		localHost, localPortStr, err := net.SplitHostPort(*o.local)
-		if err != nil {
-			log.Fatal(common.NewError("invalid local addr format:" + *o.local).Base(err))
-		}
-		remoteHost, remotePortStr, err := net.SplitHostPort(*o.remote)
-		if err != nil {
-			log.Fatal(common.NewError("invalid remote addr format:" + *o.remote).Base(err))
-		}
-		localPort, err := strconv.Atoi(localPortStr)
+		remoteHost, remotePort, err := parseAddr(*o.remote, "127.0.0.1:80", "remote")
 		if err != nil {
 			log.Fatal(err)
 		}
-		remotePort, err := strconv.Atoi(remotePortStr)
-		if err != nil {
-			log.Fatal(err)
-		}
-		serverConfig := ServerConfig{
+		config = Config{
 			RunType:    "server",
 			LocalAddr:  localHost,
 			LocalPort:  localPort,
 			RemoteAddr: remoteHost,
 			RemotePort: remotePort,
-			Password: []string{
-				*o.password,
-			},
-			TLS: TLS{
+			Password:   []string{*o.password},
+			TLS: &TLS{
 				Cert: *o.cert,
 				Key:  *o.key,
 			},
 		}
-		serverConfigJSON, err := json.Marshal(&serverConfig)
-		common.Must(err)
-		log.Info("generated json config:")
-		log.Info(string(serverConfigJSON))
-		proxy, err := proxy.NewProxyFromConfigData(serverConfigJSON, true)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if err := proxy.Run(); err != nil {
-			log.Fatal(err)
-		}
+	}
+
+	configJSON, err := json.Marshal(&config)
+	common.Must(err)
+	log.Info("generated config:")
+	log.Info(string(configJSON))
+	p, err := proxy.NewProxyFromConfigData(configJSON, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := p.Run(); err != nil {
+		log.Fatal(err)
 	}
 	return nil
 }
