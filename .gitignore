@@ -22,6 +22,7 @@ build/
 *.key
 *.dat
 trojan-go-*
+trojan-go*
 
 # Visual studio code workspace files
 .vscode
