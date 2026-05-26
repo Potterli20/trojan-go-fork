@@ -25,8 +25,10 @@ func init() {
 	tempPath := filepath.Join(wd, "..", "..", "test", "temp")
 	os.Setenv("TROJAN_GO_LOCATION_ASSET", tempPath)
 
-	geoipPath := common.GetAssetLocation("geoip.dat")
-	geositePath := common.GetAssetLocation("geosite.dat")
+	geoipPath, err := common.GetAssetLocation("geoip.dat")
+	common.Must(err)
+	geositePath, err := common.GetAssetLocation("geosite.dat")
+	common.Must(err)
 
 	if _, err := os.Stat(geoipPath); err != nil && errors.Is(err, fs.ErrNotExist) {
 		common.Must(os.MkdirAll(tempPath, 0o755))
@@ -43,7 +45,10 @@ func init() {
 }
 
 func TestDecodeGeoIP(t *testing.T) {
-	filename := common.GetAssetLocation("geoip.dat")
+	filename, err := common.GetAssetLocation("geoip.dat")
+	if err != nil {
+		t.Fatal(err)
+	}
 	result, err := geodata.Decode(filename, "test")
 	if err != nil {
 		t.Error(err)
@@ -56,7 +61,10 @@ func TestDecodeGeoIP(t *testing.T) {
 }
 
 func TestDecodeGeoSite(t *testing.T) {
-	filename := common.GetAssetLocation("geosite.dat")
+	filename, err := common.GetAssetLocation("geosite.dat")
+	if err != nil {
+		t.Fatal(err)
+	}
 	result, err := geodata.Decode(filename, "test")
 	if err != nil {
 		t.Error(err)

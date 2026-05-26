@@ -55,90 +55,106 @@ type UrlConfig struct {
 	API         `json:"api"`
 }
 
-type url struct {
-	url    *string
-	option *string
+type URLOption struct {
+	urlStr  *string
+	options *string
 }
 
-func (u *url) Name() string {
+func (u *URLOption) Name() string {
 	return Name
 }
 
-func (u *url) Handle() error {
-	if u.url == nil || *u.url == "" {
-		return common.NewError("")
+func parseOptions(optStr string) (map[string]string, error) {
+	result := make(map[string]string)
+	if optStr == "" {
+		return result, nil
 	}
-	info, err := NewShareInfoFromURL(*u.url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	wsEnabled := false
-	if info.Type == ShareInfoTypeWebSocket {
-		wsEnabled = true
-	}
-	ssEnabled := false
-	ssPassword := ""
-	ssMethod := ""
-	if strings.HasPrefix(info.Encryption, "ss;") {
-		ssEnabled = true
-		ssConfig := strings.Split(info.Encryption[3:], ":")
-		if len(ssConfig) != 2 {
-			log.Fatalf("invalid shadowsocks config: %s", info.Encryption)
+	pairs := strings.Split(optStr, ";")
+	for _, pair := range pairs {
+		kv := strings.SplitN(pair, "=", 2)
+		if len(kv) != 2 {
+			return nil, common.NewError("invalid option format: " + pair + ". expected key=value")
 		}
-		ssMethod = ssConfig[0]
-		ssPassword = ssConfig[1]
+		result[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
 	}
-	muxEnabled := false
+	return result, nil
+}
+
+func parseHostPort(hostPort string, defaultHost string, defaultPort int) (string, int, error) {
+	if hostPort == "" {
+		return defaultHost, defaultPort, nil
+	}
+	host, portStr, err := net.SplitHostPort(hostPort)
+	if err != nil {
+		return "", 0, common.NewError("invalid host:port: " + hostPort).Base(err)
+	}
+	port, err := strconv.Atoi(portStr)
+	if err != nil {
+		return "", 0, common.NewError("invalid port: " + portStr).Base(err)
+	}
+	if host == "" {
+		host = defaultHost
+	}
+	return host, port, nil
+}
+
+func (u *URLOption) Handle() error {
+	if u.urlStr == nil || *u.urlStr == "" {
+		return common.NewError("url is empty")
+	}
+
+	info, err := NewShareInfoFromURL(*u.urlStr)
+	if err != nil {
+		return common.NewError("failed to parse URL").Base(err)
+	}
+
+	opts, err := parseOptions(*u.options)
+	if err != nil {
+		return err
+	}
+
 	listenHost := "127.0.0.1"
 	listenPort := 1080
+	if listenVal, ok := opts["listen"]; ok {
+		listenHost, listenPort, err = parseHostPort(listenVal, listenHost, listenPort)
+		if err != nil {
+			return err
+		}
+	}
+
+	muxEnabled := true
+	if muxVal, ok := opts["mux"]; ok {
+		muxEnabled, err = strconv.ParseBool(muxVal)
+		if err != nil {
+			return common.NewError("invalid mux value: " + muxVal).Base(err)
+		}
+	}
 
 	apiEnabled := false
 	apiHost := "127.0.0.1"
 	apiPort := 10000
-
-	options := strings.SplitSeq(*u.option, ";")
-	for o := range options {
-		key := ""
-		val := ""
-		l := strings.Split(o, "=")
-		if len(l) != 2 {
-			log.Fatal("option format error, no \"key=value\" pair found:", o)
-		}
-		key = l[0]
-		val = l[1]
-		switch key {
-		case "mux":
-			muxEnabled, err = strconv.ParseBool(val)
-			if err != nil {
-				log.Fatal(err)
-			}
-		case "listen":
-			h, p, err := net.SplitHostPort(val)
-			if err != nil {
-				log.Fatal(err)
-			}
-			listenHost = h
-			lp, err := strconv.Atoi(p)
-			if err != nil {
-				log.Fatal(err)
-			}
-			listenPort = lp
-		case "api":
-			apiEnabled = true
-			h, p, err := net.SplitHostPort(val)
-			if err != nil {
-				log.Fatal(err)
-			}
-			apiHost = h
-			lp, err := strconv.Atoi(p)
-			if err != nil {
-				log.Fatal(err)
-			}
-			apiPort = lp
-		default:
-			log.Fatal("invalid option", o)
+	if apiVal, ok := opts["api"]; ok {
+		apiEnabled = true
+		apiHost, apiPort, err = parseHostPort(apiVal, apiHost, apiPort)
+		if err != nil {
+			return err
 		}
 	}
+
+	wsEnabled := info.Type == ShareInfoTypeWebSocket
+
+	var ssEnabled bool
+	var ssMethod, ssPassword string
+	if strings.HasPrefix(info.Encryption, "ss;") {
+		ssConfig := strings.SplitN(info.Encryption[3:], ":", 2)
+		if len(ssConfig) != 2 {
+			return common.NewError("invalid shadowsocks config: " + info.Encryption)
+		}
+		ssEnabled = true
+		ssMethod = ssConfig[0]
+		ssPassword = ssConfig[1]
+	}
+
 	config := UrlConfig{
 		RunType:    "client",
 		LocalAddr:  listenHost,
@@ -168,25 +184,27 @@ func (u *url) Handle() error {
 			APIPort: apiPort,
 		},
 	}
+
 	data, err := json.Marshal(&config)
 	if err != nil {
-		log.Fatal(err)
+		return common.NewError("failed to marshal config").Base(err)
 	}
 	log.Debug(string(data))
+
 	client, err := proxy.NewProxyFromConfigData(data, true)
 	if err != nil {
-		log.Fatal(err)
+		return common.NewError("failed to create proxy").Base(err)
 	}
 	return client.Run()
 }
 
-func (u *url) Priority() int {
+func (u *URLOption) Priority() int {
 	return 10
 }
 
 func init() {
-	option.RegisterHandler(&url{
-		url:    flag.String("url", "", "Setup trojan-go client with a url link"),
-		option: flag.String("url-option", "mux=true;listen=127.0.0.1:1080", "URL mode options"),
+	option.RegisterHandler(&URLOption{
+		urlStr:  flag.String("url", "", "Setup trojan-go client with a URL link"),
+		options: flag.String("url-option", "mux=true;listen=127.0.0.1:1080", "URL mode options (key=value pairs separated by semicolon)"),
 	})
 }

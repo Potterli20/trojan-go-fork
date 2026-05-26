@@ -24,21 +24,16 @@ func (o *Option) Name() string {
 }
 
 func detectAndReadConfig(file string) ([]byte, bool, error) {
-	isJSON := false
-	switch {
-	case strings.HasSuffix(file, ".json"):
-		isJSON = true
-	case strings.HasSuffix(file, ".yaml"), strings.HasSuffix(file, ".yml"):
-		isJSON = false
+	switch ext := strings.ToLower(file); {
+	case strings.HasSuffix(ext, ".json"):
+		data, err := os.ReadFile(file)
+		return data, true, err
+	case strings.HasSuffix(ext, ".yaml"), strings.HasSuffix(ext, ".yml"):
+		data, err := os.ReadFile(file)
+		return data, false, err
 	default:
-		log.Fatalf("unsupported config format: %s. use .yaml or .json instead.", file)
+		return nil, false, common.NewError("unsupported config format: " + file + ". use .yaml or .json instead")
 	}
-
-	data, err := os.ReadFile(file)
-	if err != nil {
-		return nil, false, err
-	}
-	return data, isJSON, nil
 }
 
 func (o *Option) Handle() error {
@@ -48,43 +43,43 @@ func (o *Option) Handle() error {
 		"config.yaml",
 	}
 
-	isJSON := false
-	var data []byte
-	var err error
+	var (
+		isJSON bool
+		data   []byte
+		err    error
+	)
 
-	switch *o.path {
+	switch p := *o.path; p {
 	case "":
-		log.Warn("no specified config file, use default path to detect config file")
+		log.Warn("no specified config file, searching for default config")
 		for _, file := range defaultConfigPath {
-			log.Warn("try to load config from default path:", file)
+			log.Debug("trying config:", file)
 			data, isJSON, err = detectAndReadConfig(file)
-			if err != nil {
-				log.Warn(err)
-				continue
+			if err == nil {
+				log.Info("loaded config from:", file)
+				break
 			}
-			break
+			if !os.IsNotExist(err) {
+				log.Warn("failed to read", file, ":", err)
+			}
 		}
 	default:
-		data, isJSON, err = detectAndReadConfig(*o.path)
+		data, isJSON, err = detectAndReadConfig(p)
 		if err != nil {
-			log.Fatal(err)
+			return common.NewError("failed to read config file: " + p).Base(err)
 		}
 	}
 
-	if data != nil {
-		log.Info("trojan-go", constant.Version, "initializing")
-		proxy, err := NewProxyFromConfigData(data, isJSON)
-		if err != nil {
-			log.Fatal(err)
-		}
-		err = proxy.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
+	if data == nil {
+		return common.NewError("no valid config found. tried: " + strings.Join(defaultConfigPath, ", "))
 	}
 
-	log.Fatal("no valid config")
-	return nil
+	log.Info("trojan-go", constant.Version, "initializing")
+	proxy, err := NewProxyFromConfigData(data, isJSON)
+	if err != nil {
+		return common.NewError("failed to create proxy").Base(err)
+	}
+	return proxy.Run()
 }
 
 func (o *Option) Priority() int {
@@ -111,9 +106,9 @@ func (o *StdinOption) Name() string {
 }
 
 func (o *StdinOption) Handle() error {
-	isJSON, e := o.isFormatJson()
-	if e != nil {
-		return e
+	isJSON, err := o.isFormatJson()
+	if err != nil {
+		return err
 	}
 
 	if o.suppressHint == nil || !*o.suppressHint {
@@ -125,33 +120,34 @@ func (o *StdinOption) Handle() error {
 		}
 	}
 
-	data, e := io.ReadAll(bufio.NewReader(os.Stdin))
-	if e != nil {
-		log.Fatalf("Failed to read from stdin: %s", e.Error())
+	data, err := io.ReadAll(bufio.NewReader(os.Stdin))
+	if err != nil {
+		return common.NewError("failed to read from stdin").Base(err)
 	}
 
 	proxy, err := NewProxyFromConfigData(data, isJSON)
 	if err != nil {
-		log.Fatal(err)
+		return common.NewError("failed to create proxy").Base(err)
 	}
-	err = proxy.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return nil
+	return proxy.Run()
 }
 
 func (o *StdinOption) Priority() int {
 	return 0
 }
 
-func (o *StdinOption) isFormatJson() (isJson bool, e error) {
+func (o *StdinOption) isFormatJson() (bool, error) {
 	if o.format == nil {
 		return false, common.NewError("format specifier is nil")
 	}
-	if *o.format == "disabled" {
+	switch strings.ToLower(*o.format) {
+	case "disabled":
 		return false, common.NewError("reading from stdin is disabled")
+	case "json":
+		return true, nil
+	case "yaml", "yml":
+		return false, nil
+	default:
+		return false, common.NewError("invalid stdin format: " + *o.format + ". use json or yaml")
 	}
-	return strings.ToLower(*o.format) == "json", nil
 }

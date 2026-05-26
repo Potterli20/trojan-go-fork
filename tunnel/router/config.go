@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
+	"github.com/Potterli20/trojan-go-fork/log"
 )
 
 type Config struct {
@@ -21,13 +22,21 @@ type RouterConfig struct {
 }
 
 func init() {
+	geoipPath, err := common.GetAssetLocation("geoip.dat")
+	if err != nil {
+		log.Fatal(err)
+	}
+	geositePath, err := common.GetAssetLocation("geosite.dat")
+	if err != nil {
+		log.Fatal(err)
+	}
 	config.RegisterConfigCreator(Name, func() any {
 		cfg := &Config{
 			Router: RouterConfig{
 				DefaultPolicy:   "proxy",
 				DomainStrategy:  "as_is",
-				GeoIPFilename:   common.GetAssetLocation("geoip.dat"),
-				GeoSiteFilename: common.GetAssetLocation("geosite.dat"),
+				GeoIPFilename:   geoipPath,
+				GeoSiteFilename: geositePath,
 			},
 		}
 		return cfg

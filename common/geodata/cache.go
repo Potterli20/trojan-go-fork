@@ -33,7 +33,10 @@ func (g geoipCache) Set(key string, value *v2geodata.GeoIP) {
 }
 
 func (g geoipCache) Unmarshal(filename, code string) (*v2geodata.GeoIP, error) {
-	asset := common.GetAssetLocation(filename)
+	asset, err := common.GetAssetLocation(filename)
+	if err != nil {
+		return nil, err
+	}
 	idx := strings.ToLower(asset + ":" + code)
 	if g.Has(idx) {
 		log.Debugf("geoip cache HIT: %s -> %s", code, idx)
@@ -119,7 +122,10 @@ func (g geositeCache) Set(key string, value *v2geodata.GeoSite) {
 }
 
 func (g geositeCache) Unmarshal(filename, code string) (*v2geodata.GeoSite, error) {
-	asset := common.GetAssetLocation(filename)
+	asset, err := common.GetAssetLocation(filename)
+	if err != nil {
+		return nil, err
+	}
 	idx := strings.ToLower(asset + ":" + code)
 	if g.Has(idx) {
 		log.Debugf("geosite cache HIT: %s -> %s", code, idx)

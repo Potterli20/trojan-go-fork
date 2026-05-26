@@ -5,8 +5,6 @@ import (
 	"path/filepath"
 
 	"golang.org/x/crypto/bcrypt"
-
-	"github.com/Potterli20/trojan-go-fork/log"
 )
 
 type Runnable interface {
@@ -27,25 +25,24 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func GetProgramDir() string {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return dir
+func GetProgramDir() (string, error) {
+	return filepath.Abs(filepath.Dir(os.Args[0]))
 }
 
-func GetAssetLocation(file string) string {
+func GetAssetLocation(file string) (string, error) {
 	if filepath.IsAbs(file) {
-		return file
+		return file, nil
 	}
 	if loc := os.Getenv("TROJAN_GO_LOCATION_ASSET"); loc != "" {
 		absPath, err := filepath.Abs(loc)
 		if err != nil {
-			log.Fatal(err)
+			return "", err
 		}
-		log.Debugf("env set: TROJAN_GO_LOCATION_ASSET=%s", absPath)
-		return filepath.Join(absPath, file)
+		return filepath.Join(absPath, file), nil
 	}
-	return filepath.Join(GetProgramDir(), file)
+	dir, err := GetProgramDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, file), nil
 }
