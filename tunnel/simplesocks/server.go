@@ -30,8 +30,6 @@ func (s *Server) Close() error {
 }
 
 func (s *Server) acceptLoop() {
-	s.wg.Add(1)
-	defer s.wg.Done()
 	for {
 		conn, err := s.underlay.AcceptConn(&Tunnel{})
 		if err != nil {
