@@ -303,10 +303,3 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		cancel:         cancel,
 	}, nil
 }
-
-func min(a, b uint64) uint64 {
-	if a < b {
-		return a
-	}
-	return b
-}

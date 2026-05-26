@@ -258,18 +258,18 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 
 	ctx, cancel := context.WithCancel(ctx)
 	server := &Server{
-		listener:    listener,
-		ctx:         ctx,
-		cancel:      cancel,
-		underlay:    underlay,
-		connChan:    make(chan tunnel.Conn, 32),
-		packetChan:  make(chan tunnel.PacketConn, 8),
-		localAddr:   localAddr,
-		quicConfig:  quicConfig,
-		tlsConfig:   tlsConfig,
-		congestion:  cfg.QUIC.Congestion,
-		brutalUp:    cfg.QUIC.BrutalUp,
-		brutalDown:  cfg.QUIC.BrutalDown,
+		listener:   listener,
+		ctx:        ctx,
+		cancel:     cancel,
+		underlay:   underlay,
+		connChan:   make(chan tunnel.Conn, 32),
+		packetChan: make(chan tunnel.PacketConn, 8),
+		localAddr:  localAddr,
+		quicConfig: quicConfig,
+		tlsConfig:  tlsConfig,
+		congestion: cfg.QUIC.Congestion,
+		brutalUp:   cfg.QUIC.BrutalUp,
+		brutalDown: cfg.QUIC.BrutalDown,
 	}
 
 	server.wg.Go(func() {

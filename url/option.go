@@ -69,8 +69,8 @@ func parseOptions(optStr string) (map[string]string, error) {
 	if optStr == "" {
 		return result, nil
 	}
-	pairs := strings.Split(optStr, ";")
-	for _, pair := range pairs {
+	pairs := strings.SplitSeq(optStr, ";")
+	for pair := range pairs {
 		kv := strings.SplitN(pair, "=", 2)
 		if len(kv) != 2 {
 			return nil, common.NewError("invalid option format: " + pair + ". expected key=value")
