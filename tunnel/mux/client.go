@@ -103,14 +103,19 @@ func (c *Client) cleanLoop() {
 
 func (c *Client) newMuxClient() (*smuxClientInfo, error) {
 	id := generateMuxID()
+
+	c.clientPoolLock.Lock()
 	if _, found := c.clientPool[id]; found {
+		c.clientPoolLock.Unlock()
 		return nil, common.NewError("duplicated id")
 	}
+	c.clientPoolLock.Unlock()
 
 	fakeAddr := &tunnel.Address{
 		DomainName:  "MUX_CONN",
 		AddressType: tunnel.DomainName,
 	}
+	// Dial the underlying connection OUTSIDE the lock to avoid deadlock
 	conn, err := c.underlay.DialConn(fakeAddr, &Tunnel{})
 	if err != nil {
 		return nil, common.NewError("mux failed to dial").Base(err)
@@ -129,7 +134,9 @@ func (c *Client) newMuxClient() (*smuxClientInfo, error) {
 		id:             id,
 		lastActiveTime: time.Now(),
 	}
+	c.clientPoolLock.Lock()
 	c.clientPool[id] = info
+	c.clientPoolLock.Unlock()
 	return info, nil
 }
 
@@ -140,7 +147,9 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 		if err != nil {
 			info.underlayConn.Close()
 			info.client.Close()
+			c.clientPoolLock.Lock()
 			delete(c.clientPool, info.id)
+			c.clientPoolLock.Unlock()
 			return nil, common.NewError("mux failed to open stream from client").Base(err)
 		}
 		return &Conn{
@@ -151,7 +160,7 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 	}
 
 	c.clientPoolLock.Lock()
-	defer c.clientPoolLock.Unlock()
+	// First pass: try existing clients under lock
 	for _, info := range c.clientPool {
 		if info.client.IsClosed() {
 			delete(c.clientPool, info.id)
@@ -159,10 +168,13 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 			continue
 		}
 		if info.client.NumStreams() < c.concurrency || c.concurrency <= 0 {
+			c.clientPoolLock.Unlock()
 			return createNewConn(info)
 		}
 	}
+	c.clientPoolLock.Unlock()
 
+	// No available client: dial a new one (outside the lock)
 	info, err := c.newMuxClient()
 	if err != nil {
 		return nil, common.NewError("no available mux client found").Base(err)

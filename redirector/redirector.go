@@ -129,21 +129,31 @@ func (r *Redirector) worker() {
 						log.Debug("failed to inject X-Forwarded-For header, using plain TCP forwarding:", err)
 					}
 				}
-				errChan := make(chan error, 2)
-				copyConn := func(a, b net.Conn) {
-					_, err := io.Copy(a, b)
-					errChan <- err
-				}
-				go copyConn(outboundConn, redirection.InboundConn)
-				go copyConn(redirection.InboundConn, outboundConn)
-				select {
-				case err := <-errChan:
+
+				done := make(chan struct{})
+				var once sync.Once
+				closeDone := func() { once.Do(func() { close(done) }) }
+
+				go func() {
+					_, err := io.Copy(outboundConn, redirection.InboundConn)
 					if err != nil {
-						log.Error(common.NewError("failed to redirect").Base(err))
+						log.Debug(err)
 					}
+					closeDone()
+				}()
+				go func() {
+					_, err := io.Copy(redirection.InboundConn, outboundConn)
+					if err != nil {
+						log.Debug(err)
+					}
+					closeDone()
+				}()
+
+				select {
+				case <-done:
 					log.Info("redirection done")
 				case <-r.ctx.Done():
-					return
+					log.Debug("redirector shutting down")
 				}
 			})
 		case <-r.ctx.Done():

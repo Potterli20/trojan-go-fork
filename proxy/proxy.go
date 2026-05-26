@@ -16,17 +16,6 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
-func drainChan(errChan chan error) {
-	deadline := time.After(time.Second)
-	for {
-		select {
-		case <-errChan:
-		case <-deadline:
-			return
-		}
-	}
-}
-
 const Name = "PROXY"
 
 const (
@@ -63,14 +52,6 @@ func (p *Proxy) Close() error {
 var defaultBufSize = 8 * 1024
 
 func (p *Proxy) relayConnLoop() {
-	copyConn := func(dst io.Writer, src io.Reader, errChan chan error) {
-		buffer := p.bufPool.Get().([]byte)
-		defer p.bufPool.Put(buffer)
-
-		_, err := io.CopyBuffer(dst, src, buffer)
-		errChan <- err
-	}
-
 	for _, source := range p.sources {
 		p.wg.Add(1)
 		go func(source tunnel.Server) {
@@ -87,7 +68,9 @@ func (p *Proxy) relayConnLoop() {
 					log.Error(common.NewError("failed to accept connection").Base(err))
 					continue
 				}
+				p.wg.Add(1)
 				go func(inbound tunnel.Conn) {
+					defer p.wg.Done()
 					defer inbound.Close()
 					outbound, err := p.sink.DialConn(inbound.Metadata().Address, nil)
 					if err != nil {
@@ -95,25 +78,39 @@ func (p *Proxy) relayConnLoop() {
 						return
 					}
 					defer outbound.Close()
-					errChan := make(chan error, 2)
 
-					go copyConn(inbound, outbound, errChan)
-					go copyConn(outbound, inbound, errChan)
-					select {
-					case err = <-errChan:
+					done := make(chan struct{})
+					var once sync.Once
+					closeDone := func() { once.Do(func() { close(done) }) }
+
+					go func() {
+						buffer := p.bufPool.Get().([]byte)
+						defer p.bufPool.Put(buffer)
+						_, err := io.CopyBuffer(inbound, outbound, buffer)
 						if err != nil {
-							log.Error(err)
+							log.Debug(err)
 						}
+						closeDone()
+					}()
+
+					go func() {
+						buffer := p.bufPool.Get().([]byte)
+						defer p.bufPool.Put(buffer)
+						_, err := io.CopyBuffer(outbound, inbound, buffer)
+						if err != nil {
+							log.Debug(err)
+						}
+						closeDone()
+					}()
+
+					select {
+					case <-done:
+						log.Debug("conn relay ends")
 					case <-p.ctx.Done():
 						log.Debug("shutting down conn relay")
-						go drainChan(errChan)
-						return
 					case <-time.After(time.Second * 30):
 						log.Debug("timeout conn relay")
-						go drainChan(errChan)
-						return
 					}
-					log.Debug("conn relay ends")
 				}(inbound)
 			}
 		}(source)
@@ -121,29 +118,6 @@ func (p *Proxy) relayConnLoop() {
 }
 
 func (p *Proxy) relayPacketLoop() {
-	copyPacket := func(a, b tunnel.PacketConn, errChan chan error) {
-		for {
-			buf := p.bufPool.Get().([]byte)
-			n, metadata, err := a.ReadWithMetadata(buf)
-			if err != nil {
-				p.bufPool.Put(buf)
-				errChan <- err
-				return
-			}
-			if n == 0 {
-				p.bufPool.Put(buf)
-				errChan <- nil
-				return
-			}
-			_, err = b.WriteWithMetadata(buf[:n], metadata)
-			p.bufPool.Put(buf)
-			if err != nil {
-				errChan <- err
-				return
-			}
-		}
-	}
-
 	for _, source := range p.sources {
 		p.wg.Add(1)
 		go func(source tunnel.Server) {
@@ -160,7 +134,9 @@ func (p *Proxy) relayPacketLoop() {
 					log.Error(common.NewError("failed to accept packet").Base(err))
 					continue
 				}
+				p.wg.Add(1)
 				go func(inbound tunnel.PacketConn) {
+					defer p.wg.Done()
 					defer inbound.Close()
 					outbound, err := p.sink.DialPacket(nil)
 					if err != nil {
@@ -168,25 +144,69 @@ func (p *Proxy) relayPacketLoop() {
 						return
 					}
 					defer outbound.Close()
-					errChan := make(chan error, 2)
 
-					go copyPacket(inbound, outbound, errChan)
-					go copyPacket(outbound, inbound, errChan)
-					select {
-					case err = <-errChan:
-						if err != nil {
-							log.Error(err)
+					done := make(chan struct{})
+					var once sync.Once
+					closeDone := func() { once.Do(func() { close(done) }) }
+
+					go func() {
+						for {
+							buf := p.bufPool.Get().([]byte)
+							n, metadata, err := inbound.ReadWithMetadata(buf)
+							if err != nil {
+								p.bufPool.Put(buf)
+								log.Debug(err)
+								closeDone()
+								return
+							}
+							if n == 0 {
+								p.bufPool.Put(buf)
+								closeDone()
+								return
+							}
+							_, err = outbound.WriteWithMetadata(buf[:n], metadata)
+							p.bufPool.Put(buf)
+							if err != nil {
+								log.Debug(err)
+								closeDone()
+								return
+							}
 						}
+					}()
+
+					go func() {
+						for {
+							buf := p.bufPool.Get().([]byte)
+							n, metadata, err := outbound.ReadWithMetadata(buf)
+							if err != nil {
+								p.bufPool.Put(buf)
+								log.Debug(err)
+								closeDone()
+								return
+							}
+							if n == 0 {
+								p.bufPool.Put(buf)
+								closeDone()
+								return
+							}
+							_, err = inbound.WriteWithMetadata(buf[:n], metadata)
+							p.bufPool.Put(buf)
+							if err != nil {
+								log.Debug(err)
+								closeDone()
+								return
+							}
+						}
+					}()
+
+					select {
+					case <-done:
+						log.Debug("packet relay ends")
 					case <-p.ctx.Done():
 						log.Debug("shutting down packet relay")
-						go drainChan(errChan)
-						return
 					case <-time.After(time.Second * 30):
 						log.Debug("timeout packet relay")
-						go drainChan(errChan)
-						return
 					}
-					log.Debug("packet relay ends")
 				}(inbound)
 			}
 		}(source)

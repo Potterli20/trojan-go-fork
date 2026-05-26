@@ -64,8 +64,32 @@ func (u *User) AddIP(ip string) bool {
 
 	u.ipTable[ip] = time.Now()
 	atomic.AddInt32(&u.ipNum, 1)
-	u.wg.Go(func() {
-		u.DelIPWithDelay(ip)
+
+	// Use time.AfterFunc instead of spawning a goroutine per IP.
+	// The callback checks the timestamp to avoid deleting a refreshed IP.
+	u.wg.Add(1)
+	time.AfterFunc(10*time.Second, func() {
+		defer u.wg.Done()
+		// Bail out early if user context is cancelled (user removed)
+		select {
+		case <-u.ctx.Done():
+			return
+		default:
+		}
+
+		u.ipLock.Lock()
+		defer u.ipLock.Unlock()
+
+		t, found := u.ipTable[ip]
+		if !found {
+			return
+		}
+		// Only delete if the IP hasn't been refreshed recently
+		if time.Since(t) < 10*time.Second {
+			return
+		}
+		delete(u.ipTable, ip)
+		atomic.AddInt32(&u.ipNum, -1)
 	})
 	return true
 }
@@ -73,33 +97,6 @@ func (u *User) AddIP(ip string) bool {
 func (u *User) DelIP(ip string) bool {
 	if u.MaxIPNum <= 0 {
 		return true
-	}
-
-	u.ipLock.Lock()
-	defer u.ipLock.Unlock()
-
-	if _, found := u.ipTable[ip]; !found {
-		return false
-	}
-
-	delete(u.ipTable, ip)
-	atomic.AddInt32(&u.ipNum, -1)
-
-	return true
-}
-
-func (u *User) DelIPWithDelay(ip string) bool {
-	if u.MaxIPNum <= 0 {
-		return true
-	}
-
-	timer := time.NewTimer(10 * time.Second)
-	defer timer.Stop()
-
-	select {
-	case <-timer.C:
-	case <-u.ctx.Done():
-		return false
 	}
 
 	u.ipLock.Lock()
