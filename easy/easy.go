@@ -40,6 +40,9 @@ type TLS struct {
 
 func parseAddr(addr, defaultAddr, name string) (host string, port int, err error) {
 	if addr == "" {
+		if defaultAddr == "" {
+			return "", 0, common.NewError("invalid " + name + " addr: empty address")
+		}
 		log.Warn(name, " addr is unspecified, using ", defaultAddr)
 		addr = defaultAddr
 	}
