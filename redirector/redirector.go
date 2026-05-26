@@ -100,7 +100,10 @@ func injectForwardedHeader(inbound net.Conn, outbound net.Conn, clientIP string)
 func (r *Redirector) worker() {
 	for {
 		select {
-		case redirection := <-r.redirectionChan:
+		case redirection, ok := <-r.redirectionChan:
+			if !ok {
+				return
+			}
 			r.wg.Go(func() {
 				if redirection.InboundConn == nil || reflect.ValueOf(redirection.InboundConn).IsNil() {
 					log.Error("nil inbound conn")
@@ -159,7 +162,7 @@ func NewRedirector(ctx context.Context) *Redirector {
 }
 
 func (r *Redirector) Close() error {
-	<-r.ctx.Done()
+	close(r.redirectionChan)
 	r.wg.Wait()
 	return nil
 }

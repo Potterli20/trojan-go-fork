@@ -144,6 +144,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 
 	if wsConn == nil {
 		cancel()
+		conn.Close()
 		return nil, common.NewError("websocket failed to handshake")
 	}
 

@@ -200,11 +200,15 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	}
 	log.Info("[Trojan Client] UDP underlying connection established in", dialDuration)
 
+	ctx, cancel := context.WithCancel(c.ctx)
+
 	log.Debug("[Trojan Client] ========== Trojan DialPacket End ==========")
 	return &PacketConn{
 		Conn: &OutboundConn{
-			Conn: conn,
-			user: c.user,
+			Conn:   conn,
+			user:   c.user,
+			ctx:    ctx,
+			cancel: cancel,
 			metadata: &tunnel.Metadata{
 				Command: Associate,
 				Address: fakeAddr,

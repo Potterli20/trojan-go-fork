@@ -102,7 +102,6 @@ func (c *Client) cleanLoop() {
 }
 
 func (c *Client) newMuxClient() (*smuxClientInfo, error) {
-	// The mutex should be locked when this function is called
 	id := generateMuxID()
 	if _, found := c.clientPool[id]; found {
 		return nil, common.NewError("duplicated id")
@@ -119,8 +118,11 @@ func (c *Client) newMuxClient() (*smuxClientInfo, error) {
 	conn = newStickyConn(conn)
 
 	smuxConfig := smux.DefaultConfig()
-	// smuxConfig.KeepAliveDisabled = true
-	client, _ := smux.Client(conn, smuxConfig)
+	client, err := smux.Client(conn, smuxConfig)
+	if err != nil {
+		conn.Close()
+		return nil, common.NewError("mux failed to create client").Base(err)
+	}
 	info := &smuxClientInfo{
 		client:         client,
 		underlayConn:   conn,

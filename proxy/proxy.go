@@ -16,6 +16,17 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
+func drainChan(errChan chan error) {
+	deadline := time.After(time.Second)
+	for {
+		select {
+		case <-errChan:
+		case <-deadline:
+			return
+		}
+	}
+}
+
 const Name = "PROXY"
 
 const (
@@ -95,9 +106,11 @@ func (p *Proxy) relayConnLoop() {
 						}
 					case <-p.ctx.Done():
 						log.Debug("shutting down conn relay")
+						go drainChan(errChan)
 						return
 					case <-time.After(time.Second * 30):
 						log.Debug("timeout conn relay")
+						go drainChan(errChan)
 						return
 					}
 					log.Debug("conn relay ends")
@@ -166,8 +179,11 @@ func (p *Proxy) relayPacketLoop() {
 						}
 					case <-p.ctx.Done():
 						log.Debug("shutting down packet relay")
+						go drainChan(errChan)
+						return
 					case <-time.After(time.Second * 30):
 						log.Debug("timeout packet relay")
+						go drainChan(errChan)
 						return
 					}
 					log.Debug("packet relay ends")
