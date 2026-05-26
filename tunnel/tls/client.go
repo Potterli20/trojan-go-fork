@@ -125,7 +125,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 			SessionTicketsDisabled: !c.sessionTicket,
 			NextProtos:             c.alpn,
 		}, c.helloID)
-		
+
 		startTime := time.Now()
 		if err := uconn.Handshake(); err != nil {
 			log.Error("[TLS Client] uTLS handshake failed after", time.Since(startTime), ":", err)
@@ -134,10 +134,11 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		}
 		handshakeDuration := time.Since(startTime)
 		log.Info("[TLS Client] uTLS handshake succeeded in", handshakeDuration)
-		log.Debug("[TLS Client] Negotiated protocol:", uconn.NegotiatedProtocol)
-		log.Debug("[TLS Client] TLS Version:", uconn.GetVersion())
-		log.Debug("[TLS Client] Cipher Suite:", uconn.GetCipherSuite())
-		
+		state := uconn.ConnectionState()
+		log.Debug("[TLS Client] Negotiated protocol:", state.NegotiatedProtocol)
+		log.Debug("[TLS Client] TLS Version:", state.Version)
+		log.Debug("[TLS Client] Cipher Suite:", state.CipherSuite)
+
 		return &transport.Conn{Conn: uconn}, nil
 	}
 
