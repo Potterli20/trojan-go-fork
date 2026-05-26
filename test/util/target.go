@@ -4,14 +4,14 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"sync"
 	"time"
 
-	"golang.org/x/net/websocket"
 	"strings"
+
+	"golang.org/x/net/websocket"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -134,7 +134,7 @@ func runTCPBlackHoleServer() {
 				return
 			}
 			go func(conn net.Conn) {
-				io.Copy(ioutil.Discard, conn)
+				io.Copy(io.Discard, conn)
 				conn.Close()
 			}(conn)
 		}

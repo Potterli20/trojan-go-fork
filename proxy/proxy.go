@@ -3,7 +3,7 @@ package proxy
 import (
 	"context"
 	"io"
-	"math/rand"
+	"math/rand/v2"
 	"time"
 
 	"os"

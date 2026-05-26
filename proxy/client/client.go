@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"slices"
 
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/proxy"
@@ -22,24 +23,25 @@ const Name = "CLIENT"
 
 // GenerateClientTree generate general outbound protocol stack
 func GenerateClientTree(transportPlugin bool, muxEnabled bool, wsEnabled bool, ssEnabled bool, routerEnabled bool) []string {
-	clientStack := []string{transport.Name}
+	var parts [][]string
+	parts = append(parts, []string{transport.Name})
 	if !transportPlugin {
-		clientStack = append(clientStack, tls.Name)
+		parts = append(parts, []string{tls.Name})
 	}
 	if wsEnabled {
-		clientStack = append(clientStack, websocket.Name)
+		parts = append(parts, []string{websocket.Name})
 	}
 	if ssEnabled {
-		clientStack = append(clientStack, shadowsocks.Name)
+		parts = append(parts, []string{shadowsocks.Name})
 	}
-	clientStack = append(clientStack, trojan.Name)
+	parts = append(parts, []string{trojan.Name})
 	if muxEnabled {
-		clientStack = append(clientStack, []string{mux.Name, simplesocks.Name}...)
+		parts = append(parts, []string{mux.Name, simplesocks.Name})
 	}
 	if routerEnabled {
-		clientStack = append(clientStack, router.Name)
+		parts = append(parts, []string{router.Name})
 	}
-	return clientStack
+	return slices.Concat(parts...)
 }
 
 func init() {

@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"sync"
 	"time"
@@ -124,7 +123,7 @@ func (s *Server) handshake(conn net.Conn) (*Conn, error) {
 	if _, err := conn.Read(nmethods[:]); err != nil {
 		return nil, common.NewError("failed to read NMETHODS")
 	}
-	if _, err := io.CopyN(ioutil.Discard, conn, int64(nmethods[0])); err != nil {
+	if _, err := io.CopyN(io.Discard, conn, int64(nmethods[0])); err != nil {
 		return nil, common.NewError("socks failed to read methods").Base(err)
 	}
 	if _, err := conn.Write([]byte{0x5, 0x0}); err != nil {

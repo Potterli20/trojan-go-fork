@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"slices"
 
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
@@ -56,14 +57,14 @@ func (n *Node) LinkNextNode(next *Node) *Node {
 }
 
 func FindAllEndpoints(root *Node) []tunnel.Server {
-	list := make([]tunnel.Server, 0)
 	if root.IsEndpoint || len(root.Next) == 0 {
-		list = append(list, root.Server)
+		return []tunnel.Server{root.Server}
 	}
+	var lists [][]tunnel.Server
 	for _, next := range root.Next {
-		list = append(list, FindAllEndpoints(next)...)
+		lists = append(lists, FindAllEndpoints(next))
 	}
-	return list
+	return slices.Concat(lists...)
 }
 
 // CreateClientStack create client tunnel stacks from lists

@@ -3,7 +3,7 @@ package websocket
 import (
 	"bufio"
 	"context"
-	"math/rand"
+	"math/rand/v2"
 	"net"
 	"net/http"
 	"strings"
@@ -186,7 +186,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		ctx:       ctx,
 		cancel:    cancel,
 		underlay:  underlay,
-		timeout:   time.Second * time.Duration(rand.Intn(10)+5),
+		timeout:   time.Second * time.Duration(rand.IntN(10)+5),
 		redir:     redirector.NewRedirector(ctx),
 		redirAddr: tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort),
 	}, nil

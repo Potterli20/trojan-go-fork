@@ -242,16 +242,14 @@ func NewClient(ctx context.Context, client tunnel.Client) (*Client, error) {
 
 	for i, u := range userList {
 		log.Debug("[Trojan Client] User", i+1, "hash:", u.GetHash())
-		if user == nil {
-			user = u
-		}
 	}
 
-	if user == nil {
+	if len(userList) == 0 {
 		cancel()
 		log.Error("[Trojan Client] No valid user found in configuration")
 		return nil, common.NewError("no valid user found")
 	}
+	user = userList[0]
 
 	log.Info("[Trojan Client] Using user hash:", user.GetHash())
 	log.Info("[Trojan Client] ========== Trojan Client Created Successfully ==========")

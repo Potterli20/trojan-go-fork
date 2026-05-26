@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"io"
-	"io/ioutil"
 	"net"
 
 	"github.com/Potterli20/trojan-go-fork/common"
@@ -76,7 +75,7 @@ func (c *PacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadata, er
 	}
 
 	if len(payload) < length || length > MaxPacketSize {
-		io.CopyN(ioutil.Discard, c.Conn, int64(length)) // drain the rest of the packet
+		io.CopyN(io.Discard, c.Conn, int64(length)) // drain the rest of the packet
 		return 0, nil, common.NewError("incoming packet size is too large")
 	}
 

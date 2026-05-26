@@ -5,6 +5,7 @@ package colorful
 
 import (
 	"runtime"
+	"slices"
 
 	"github.com/Potterli20/trojan-go-fork/log/golog/buffer"
 )
@@ -81,8 +82,7 @@ func (cb *ColorBuffer) Gray() {
 
 // mixer mix the color on and off byte with the actual data
 func mixer(data []byte, color []byte) []byte {
-	var result []byte
-	return append(append(append(result, color...), data...), colorOff...)
+	return slices.Concat(color, data, colorOff)
 }
 
 // Red apply red color to the data
