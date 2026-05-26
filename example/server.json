@@ -5,19 +5,79 @@
     "remote_addr": "127.0.0.1",
     "remote_port": 80,
     "password": [
-        "your_password"
+        "your_secure_password_here"
     ],
     "ssl": {
-        "cert": "your_cert.crt",
-        "key": "your_key.key",
-        "sni": "your-domain-name.com"
+        "cert": "fullchain.pem",
+        "key": "privkey.pem",
+        "key_password": "",
+        "sni": "your-domain.com",
+        "server_name": "",
+        "verify": false,
+        "verify_hostname": true,
+        "cipher": "",
+        "prefer_server_cipher": true,
+        "reuse_session": true,
+        "alpn": [
+            "http/1.1"
+        ],
+        "curves": "",
+        "fingerprint": "",
+        "key_log": "",
+        "cert_check_rate": 60,
+        "plain_http_response": "",
+        "fallback_addr": "",
+        "fallback_port": 0
+    },
+    "tcp": {
+        "fast_open": true
+    },
+    "websocket": {
+        "enabled": false,
+        "path": "/ws",
+        "host": "your-domain.com",
+        "headers": {}
+    },
+    "quic": {
+        "enabled": false,
+        "max_idle_timeout": 30,
+        "max_incoming_streams": 100,
+        "initial_stream_window": 65535,
+        "initial_conn_window": 65535,
+        "alpn": "hq-29",
+        "insecure": false,
+        "congestion": "bbr",
+        "brutal_up": 0,
+        "brutal_down": 0
+    },
+    "shadowsocks": {
+        "enabled": false,
+        "method": "AES-128-GCM",
+        "password": ""
+    },
+    "transport_plugin": {
+        "enabled": false,
+        "type": "",
+        "command": "",
+        "option": "",
+        "arg": [],
+        "env": []
     },
     "router": {
         "enabled": true,
+        "bypass": [],
+        "proxy": [],
         "block": [
             "geoip:private"
         ],
+        "domain_strategy": "as_is",
+        "default_policy": "proxy",
         "geoip": "/usr/share/trojan-go-fork/geoip.dat",
         "geosite": "/usr/share/trojan-go-fork/geosite.dat"
+    },
+    "mux": {
+        "enabled": false,
+        "idle_timeout": 30,
+        "concurrency": 8
     }
 }

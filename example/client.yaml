@@ -1,31 +1,71 @@
 run-type: client
 local-addr: 127.0.0.1
 local-port: 1080
-remote-addr: your_server
+remote-addr: your-server-ip-or-domain.com
 remote-port: 443
 password:
-    - your_password
+  - your_secure_password_here
 ssl:
-    sni: your-domain-name.com
-    server-name: ""
-    verify: true
-    fingerprint: chrome
-    alpn:
-        - http/1.1
+  cert: ""
+  key: ""
+  key-password: ""
+  sni: your-domain.com
+  server-name: ""
+  verify: true
+  verify-hostname: true
+  cipher: ""
+  prefer-server-cipher: true
+  reuse-session: true
+  alpn:
+    - http/1.1
+  curves: ""
+  fingerprint: chrome
+  key-log: ""
+  cert-check-rate: 60
+  plain-http-response: ""
+  fallback-addr: ""
+  fallback-port: 0
+tcp:
+  fast-open: true
 websocket:
-    enabled: true
-    path: /your-websocket-path
-    host: your-domain-name.com
-    headers:
-        User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
-        Accept-Language: zh-CN,zh;q=0.9,en;q=0.8
-mux:
-    enabled: true
+  enabled: true
+  path: /ws
+  host: your-domain.com
+  headers:
+    User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+    Accept-Language: zh-CN,zh;q=0.9,en;q=0.8
+quic:
+  enabled: false
+  max-idle-timeout: 30
+  max-incoming-streams: 100
+  initial-stream-window: 65535
+  initial-conn-window: 65535
+  alpn: hq-29
+  insecure: false
+  congestion: bbr
+  brutal-up: 0
+  brutal-down: 0
+shadowsocks:
+  enabled: false
+  method: AES-128-GCM
+  password: ""
+transport-plugin:
+  enabled: false
+  type: ""
+  command: ""
+  option: ""
+  arg: []
+  env: []
 router:
-    enabled: true
-    bypass: ['geoip:cn', 'geoip:private', 'geosite:cn', 'geosite:private']
-    block: ['geosite:category-ads']
-    proxy: ['geosite:geolocation-!cn']
-    default_policy: proxy
-    geoip: /usr/share/trojan-go-fork/geoip.dat
-    geosite: /usr/share/trojan-go-fork/geosite.dat
+  enabled: true
+  bypass: ['geoip:cn', 'geoip:private', 'geosite:cn', 'geosite:private']
+  proxy: ['geosite:geolocation-!cn']
+  block: ['geosite:category-ads']
+  domain-strategy: as_is
+  default-policy: proxy
+  geoip: /usr/share/trojan-go-fork/geoip.dat
+  geosite: /usr/share/trojan-go-fork/geosite.dat
+mux:
+  enabled: true
+  idle-timeout: 30
+  concurrency: 8

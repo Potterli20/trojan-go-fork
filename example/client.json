@@ -2,31 +2,69 @@
     "run_type": "client",
     "local_addr": "127.0.0.1",
     "local_port": 1080,
-    "remote_addr": "your_server",
+    "remote_addr": "your-server-ip-or-domain.com",
     "remote_port": 443,
     "password": [
-        "your_password"
+        "your_secure_password_here"
     ],
     "ssl": {
-        "sni": "your-domain-name.com",
+        "cert": "",
+        "key": "",
+        "key_password": "",
+        "sni": "your-domain.com",
         "server_name": "",
         "verify": true,
-        "fingerprint": "chrome",
+        "verify_hostname": true,
+        "cipher": "",
+        "prefer_server_cipher": true,
+        "reuse_session": true,
         "alpn": [
             "http/1.1"
-        ]
+        ],
+        "curves": "",
+        "fingerprint": "chrome",
+        "key_log": "",
+        "cert_check_rate": 60,
+        "plain_http_response": "",
+        "fallback_addr": "",
+        "fallback_port": 0
+    },
+    "tcp": {
+        "fast_open": true
     },
     "websocket": {
         "enabled": true,
-        "path": "/your-websocket-path",
-        "host": "your-domain-name.com",
+        "path": "/ws",
+        "host": "your-domain.com",
         "headers": {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8"
         }
     },
-    "mux": {
-        "enabled": true
+    "quic": {
+        "enabled": false,
+        "max_idle_timeout": 30,
+        "max_incoming_streams": 100,
+        "initial_stream_window": 65535,
+        "initial_conn_window": 65535,
+        "alpn": "hq-29",
+        "insecure": false,
+        "congestion": "bbr",
+        "brutal_up": 0,
+        "brutal_down": 0
+    },
+    "shadowsocks": {
+        "enabled": false,
+        "method": "AES-128-GCM",
+        "password": ""
+    },
+    "transport_plugin": {
+        "enabled": false,
+        "type": "",
+        "command": "",
+        "option": "",
+        "arg": [],
+        "env": []
     },
     "router": {
         "enabled": true,
@@ -36,14 +74,20 @@
             "geosite:cn",
             "geosite:private"
         ],
-        "block": [
-            "geosite:category-ads"
-        ],
         "proxy": [
             "geosite:geolocation-!cn"
         ],
+        "block": [
+            "geosite:category-ads"
+        ],
+        "domain_strategy": "as_is",
         "default_policy": "proxy",
         "geoip": "/usr/share/trojan-go-fork/geoip.dat",
         "geosite": "/usr/share/trojan-go-fork/geosite.dat"
+    },
+    "mux": {
+        "enabled": true,
+        "idle_timeout": 30,
+        "concurrency": 8
     }
 }

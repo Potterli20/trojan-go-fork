@@ -4,14 +4,67 @@ local-port: 443
 remote-addr: 127.0.0.1
 remote-port: 80
 password:
-  - your_password
+  - your_secure_password_here
 ssl:
-  cert: your_cert.crt
-  key: your_key.key
-  sni: your-domain-name.com
+  cert: fullchain.pem
+  key: privkey.pem
+  key-password: ""
+  sni: your-domain.com
+  server-name: ""
+  verify: false
+  verify-hostname: true
+  cipher: ""
+  prefer-server-cipher: true
+  reuse-session: true
+  alpn:
+    - http/1.1
+  curves: ""
+  fingerprint: ""
+  key-log: ""
+  cert-check-rate: 60
+  plain-http-response: ""
+  fallback-addr: ""
+  fallback-port: 0
+tcp:
+  fast-open: true
+websocket:
+  enabled: false
+  path: /ws
+  host: your-domain.com
+  headers: {}
+quic:
+  enabled: false
+  max-idle-timeout: 30
+  max-incoming-streams: 100
+  initial-stream-window: 65535
+  initial-conn-window: 65535
+  alpn: hq-29
+  insecure: false
+  congestion: bbr
+  brutal-up: 0
+  brutal-down: 0
+shadowsocks:
+  enabled: false
+  method: AES-128-GCM
+  password: ""
+transport-plugin:
+  enabled: false
+  type: ""
+  command: ""
+  option: ""
+  arg: []
+  env: []
 router:
   enabled: true
+  bypass: []
+  proxy: []
   block:
     - 'geoip:private'
+  domain-strategy: as_is
+  default-policy: proxy
   geoip: /usr/share/trojan-go-fork/geoip.dat
   geosite: /usr/share/trojan-go-fork/geosite.dat
+mux:
+  enabled: false
+  idle-timeout: 30
+  concurrency: 8
