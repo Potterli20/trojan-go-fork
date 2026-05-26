@@ -12,6 +12,7 @@ import (
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"github.com/apernet/quic-go"
+	xrayCongestion "github.com/xtls/xray-core/transport/internet/hysteria/congestion"
 )
 
 type Client struct {
@@ -21,6 +22,9 @@ type Client struct {
 	quicConfig     *quic.Config
 	tlsConfig      *tls.Config
 	maxIdleTimeout time.Duration
+	congestion     string
+	brutalUp       uint64
+	brutalDown     uint64
 	quicConn       any
 	quicConnMutex  sync.RWMutex
 	ctx            context.Context
@@ -43,6 +47,36 @@ func (c *Client) Close() error {
 	return nil
 }
 
+func (c *Client) applyCongestionControl(conn *quic.Conn) {
+	if c.congestion == "" {
+		c.congestion = "bbr"
+	}
+
+	switch c.congestion {
+	case "brutal":
+		if c.brutalUp > 0 && c.brutalDown > 0 {
+			xrayCongestion.UseBrutal(conn, min(c.brutalUp, c.brutalDown))
+			log.Debug("QUIC brutal congestion control enabled with speed:", min(c.brutalUp, c.brutalDown), "bps")
+		} else {
+			log.Warn("Brutal congestion control requires both brutal_up and brutal_down to be set")
+		}
+	case "force-brutal":
+		if c.brutalUp > 0 {
+			xrayCongestion.UseBrutal(conn, c.brutalUp)
+			log.Debug("QUIC force-brutal congestion control enabled with speed:", c.brutalUp, "bps")
+		} else {
+			log.Warn("Force-brutal congestion control requires brutal_up to be set")
+		}
+	case "bbr":
+		xrayCongestion.UseBBR(conn, "standard")
+		log.Debug("QUIC BBR congestion control enabled")
+	case "reno":
+		log.Debug("QUIC Reno congestion control enabled")
+	default:
+		log.Warn("Unknown congestion control:", c.congestion, ", using default")
+	}
+}
+
 func (c *Client) getOrCreateConnection() (any, error) {
 	c.quicConnMutex.RLock()
 	conn := c.quicConn
@@ -62,16 +96,18 @@ func (c *Client) getOrCreateConnection() (any, error) {
 	addrStr := c.remoteAddr.String()
 	log.Debug("QUIC dialing to", addrStr)
 
-	conn, err := quic.DialAddr(context.Background(), addrStr, c.tlsConfig, c.quicConfig)
+	quicConn, err := quic.DialAddr(context.Background(), addrStr, c.tlsConfig, c.quicConfig)
 	if err != nil {
 		return nil, common.NewError("QUIC failed to dial").Base(err)
 	}
 
-	c.quicConn = conn
+	c.applyCongestionControl(quicConn)
+
+	c.quicConn = quicConn
 
 	go c.keepAliveLoop()
 
-	return conn, nil
+	return quicConn, nil
 }
 
 func (c *Client) keepAliveLoop() {
@@ -246,6 +282,12 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	}
 
 	log.Debug("QUIC client created with ALPN:", cfg.QUIC.ALPN)
+	log.Debug("QUIC congestion control:", cfg.QUIC.Congestion)
+	if cfg.QUIC.Congestion == "brutal" || cfg.QUIC.Congestion == "force-brutal" {
+		log.Debug("QUIC brutal_up:", cfg.QUIC.BrutalUp, "bps")
+		log.Debug("QUIC brutal_down:", cfg.QUIC.BrutalDown, "bps")
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	return &Client{
 		underlay:       underlay,
@@ -254,7 +296,17 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		tlsConfig:      tlsConfig,
 		quicConfig:     quicConfig,
 		maxIdleTimeout: time.Second * time.Duration(cfg.QUIC.MaxIdleTimeout),
+		congestion:     cfg.QUIC.Congestion,
+		brutalUp:       cfg.QUIC.BrutalUp,
+		brutalDown:     cfg.QUIC.BrutalDown,
 		ctx:            ctx,
 		cancel:         cancel,
 	}, nil
+}
+
+func min(a, b uint64) uint64 {
+	if a < b {
+		return a
+	}
+	return b
 }

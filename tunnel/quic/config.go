@@ -20,6 +20,9 @@ type QUICConfig struct {
 	InitialConnWindow   int    `json:"initial_conn_window" yaml:"initial-conn-window"`
 	ALPN                string `json:"alpn" yaml:"alpn"`
 	Insecure            bool   `json:"insecure" yaml:"insecure"`
+	Congestion          string `json:"congestion" yaml:"congestion"`
+	BrutalUp            uint64 `json:"brutal_up" yaml:"brutal-up"`
+	BrutalDown          uint64 `json:"brutal_down" yaml:"brutal-down"`
 }
 
 func init() {
@@ -33,6 +36,9 @@ func init() {
 				InitialConnWindow:   65535,
 				ALPN:                "hq-29",
 				Insecure:            false,
+				Congestion:          "bbr",
+				BrutalUp:            0,
+				BrutalDown:          0,
 			},
 		}
 	})

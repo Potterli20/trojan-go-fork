@@ -13,6 +13,7 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	tlstunnel "github.com/Potterli20/trojan-go-fork/tunnel/tls"
 	"github.com/apernet/quic-go"
+	xrayCongestion "github.com/xtls/xray-core/transport/internet/hysteria/congestion"
 )
 
 type Server struct {
@@ -25,8 +26,41 @@ type Server struct {
 	localAddr   *tunnel.Address
 	quicConfig  *quic.Config
 	tlsConfig   *tls.Config
+	congestion  string
+	brutalUp    uint64
+	brutalDown  uint64
 	activeConns sync.Map
 	wg          sync.WaitGroup
+}
+
+func (s *Server) applyCongestionControl(conn *quic.Conn) {
+	if s.congestion == "" {
+		s.congestion = "bbr"
+	}
+
+	switch s.congestion {
+	case "brutal":
+		if s.brutalUp > 0 && s.brutalDown > 0 {
+			xrayCongestion.UseBrutal(conn, min(s.brutalUp, s.brutalDown))
+			log.Debug("QUIC brutal congestion control enabled on server with speed:", min(s.brutalUp, s.brutalDown), "bps")
+		} else {
+			log.Warn("Brutal congestion control requires both brutal_up and brutal_down to be set")
+		}
+	case "force-brutal":
+		if s.brutalUp > 0 {
+			xrayCongestion.UseBrutal(conn, s.brutalUp)
+			log.Debug("QUIC force-brutal congestion control enabled on server with speed:", s.brutalUp, "bps")
+		} else {
+			log.Warn("Force-brutal congestion control requires brutal_up to be set")
+		}
+	case "bbr":
+		xrayCongestion.UseBBR(conn, "standard")
+		log.Debug("QUIC BBR congestion control enabled on server")
+	case "reno":
+		log.Debug("QUIC Reno congestion control enabled on server")
+	default:
+		log.Warn("Unknown congestion control:", s.congestion, ", using default")
+	}
 }
 
 func (s *Server) Close() error {
@@ -61,8 +95,11 @@ func (s *Server) acceptLoop() {
 			}
 		}
 
-		s.activeConns.Store(conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr().String(), conn)
-		log.Debug("QUIC connection accepted from", conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr())
+		quicConn := conn.(*quic.Conn)
+		s.applyCongestionControl(quicConn)
+
+		s.activeConns.Store(quicConn.RemoteAddr().String(), conn)
+		log.Debug("QUIC connection accepted from", quicConn.RemoteAddr())
 
 		s.wg.Go(func() {
 			s.handleConnection(conn)
@@ -213,17 +250,26 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		return nil, common.NewError("QUIC failed to listen").Base(err)
 	}
 
+	log.Debug("QUIC server congestion control:", cfg.QUIC.Congestion)
+	if cfg.QUIC.Congestion == "brutal" || cfg.QUIC.Congestion == "force-brutal" {
+		log.Debug("QUIC server brutal_up:", cfg.QUIC.BrutalUp, "bps")
+		log.Debug("QUIC server brutal_down:", cfg.QUIC.BrutalDown, "bps")
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	server := &Server{
-		listener:   listener,
-		ctx:        ctx,
-		cancel:     cancel,
-		underlay:   underlay,
-		connChan:   make(chan tunnel.Conn, 32),
-		packetChan: make(chan tunnel.PacketConn, 8),
-		localAddr:  localAddr,
-		quicConfig: quicConfig,
-		tlsConfig:  tlsConfig,
+		listener:    listener,
+		ctx:         ctx,
+		cancel:      cancel,
+		underlay:    underlay,
+		connChan:    make(chan tunnel.Conn, 32),
+		packetChan:  make(chan tunnel.PacketConn, 8),
+		localAddr:   localAddr,
+		quicConfig:  quicConfig,
+		tlsConfig:   tlsConfig,
+		congestion:  cfg.QUIC.Congestion,
+		brutalUp:    cfg.QUIC.BrutalUp,
+		brutalDown:  cfg.QUIC.BrutalDown,
 	}
 
 	server.wg.Go(func() {
