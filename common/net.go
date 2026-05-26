@@ -1,9 +1,9 @@
 package common
 
 import (
+	"context"
 	"fmt"
 	"io"
-
 	"net"
 	"net/http"
 	"net/url"
@@ -11,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/database64128/tfo-go/v2"
 )
 
 const (
@@ -120,4 +122,79 @@ func FetchHTTPContent(target string) ([]byte, error) {
 	}
 
 	return content, nil
+}
+
+type DialConfig struct {
+	Network       string
+	Address       string
+	EnableTFO     bool
+	Timeout       time.Duration
+	KeepAlive     bool
+	NoDelay       bool
+	PreferIPv4    bool
+	RetryCount    int
+	RetryInterval time.Duration
+}
+
+func Dial(ctx context.Context, cfg DialConfig) (net.Conn, error) {
+	network := cfg.Network
+	if cfg.PreferIPv4 && network == "tcp" {
+		network = "tcp4"
+	}
+
+	var conn net.Conn
+	var err error
+
+	for attempt := 0; attempt <= cfg.RetryCount; attempt++ {
+		if attempt > 0 {
+			time.Sleep(cfg.RetryInterval)
+		}
+
+		if cfg.EnableTFO {
+			dialer := &tfo.Dialer{
+				Dialer: net.Dialer{
+					Timeout: cfg.Timeout,
+				},
+				Fallback: true,
+			}
+			conn, err = dialer.DialContext(ctx, network, cfg.Address, nil)
+			if err == nil {
+				break
+			}
+		}
+
+		dialer := &net.Dialer{
+			Timeout: cfg.Timeout,
+		}
+		conn, err = dialer.DialContext(ctx, network, cfg.Address)
+		if err == nil {
+			break
+		}
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("dial failed after %d attempts: %w", cfg.RetryCount+1, err)
+	}
+
+	if tcpConn, ok := conn.(*net.TCPConn); ok {
+		tcpConn.SetKeepAlive(cfg.KeepAlive)
+		tcpConn.SetNoDelay(cfg.NoDelay)
+	}
+
+	return conn, nil
+}
+
+type ListenConfig struct {
+	EnableTFO bool
+}
+
+func Listen(ctx context.Context, cfg ListenConfig, network, address string) (net.Listener, error) {
+	if cfg.EnableTFO {
+		listener, err := tfo.ListenContext(ctx, network, address)
+		if err == nil {
+			return listener, nil
+		}
+	}
+
+	return net.Listen(network, address)
 }

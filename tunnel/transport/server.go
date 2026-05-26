@@ -15,7 +15,6 @@ import (
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
-	"github.com/database64128/tfo-go/v2"
 )
 
 // Server is a server of transport layer
@@ -181,13 +180,16 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 			return nil, common.NewError("invalid plugin type: " + cfg.TransportPlugin.Type)
 		}
 	}
-	tcpListener, err := tfo.Listen("tcp", listenAddress.String())
+	listenCfg := common.ListenConfig{
+		EnableTFO: cfg.TCP.FastOpen,
+	}
+	tcpListener, err := common.Listen(ctx, listenCfg, "tcp", listenAddress.String())
 	if err != nil {
 		if cmd != nil && cmd.Process != nil {
 			cmd.Process.Kill()
 			cmd.Wait()
 		}
-		return nil, err
+		return nil, common.NewError("transport failed to listen").Base(err)
 	}
 
 	ctx, cancel := context.WithCancel(ctx)

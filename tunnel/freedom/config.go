@@ -13,6 +13,7 @@ type TCPConfig struct {
 	PreferIPV4 bool `json:"prefer_ipv4" yaml:"prefer-ipv4"`
 	KeepAlive  bool `json:"keep_alive" yaml:"keep-alive"`
 	NoDelay    bool `json:"no_delay" yaml:"no-delay"`
+	FastOpen   bool `json:"fast_open" yaml:"fast-open"`
 }
 
 type ForwardProxyConfig struct {
@@ -30,6 +31,7 @@ func init() {
 				PreferIPV4: false,
 				NoDelay:    true,
 				KeepAlive:  true,
+				FastOpen:   true,
 			},
 		}
 	})

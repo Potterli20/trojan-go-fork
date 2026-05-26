@@ -9,7 +9,12 @@ type Config struct {
 	LocalPort       int                   `json:"local_port" yaml:"local-port"`
 	RemoteHost      string                `json:"remote_addr" yaml:"remote-addr"`
 	RemotePort      int                   `json:"remote_port" yaml:"remote-port"`
+	TCP             TCPConfig             `json:"tcp" yaml:"tcp"`
 	TransportPlugin TransportPluginConfig `json:"transport_plugin" yaml:"transport-plugin"`
+}
+
+type TCPConfig struct {
+	FastOpen bool `json:"fast_open" yaml:"fast-open"`
 }
 
 type TransportPluginConfig struct {
@@ -23,6 +28,10 @@ type TransportPluginConfig struct {
 
 func init() {
 	config.RegisterConfigCreator(Name, func() any {
-		return new(Config)
+		return &Config{
+			TCP: TCPConfig{
+				FastOpen: true,
+			},
+		}
 	})
 }

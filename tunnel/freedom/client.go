@@ -3,6 +3,7 @@ package freedom
 import (
 	"context"
 	"net"
+	"time"
 
 	"github.com/Potterli20/socks5-fork"
 	"golang.org/x/net/proxy"
@@ -10,13 +11,13 @@ import (
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
-	tfo "github.com/database64128/tfo-go/v2"
 )
 
 type Client struct {
 	preferIPv4   bool
 	noDelay      bool
 	keepAlive    bool
+	fastOpen     bool
 	ctx          context.Context
 	cancel       context.CancelFunc
 	forwardProxy bool
@@ -48,17 +49,21 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 			Conn: conn,
 		}, nil
 	}
-	network := "tcp"
-	if c.preferIPv4 {
-		network = "tcp4"
+	dialCfg := common.DialConfig{
+		Network:       "tcp",
+		Address:       addr.String(),
+		EnableTFO:     c.fastOpen,
+		Timeout:       30 * time.Second,
+		KeepAlive:     c.keepAlive,
+		NoDelay:       c.noDelay,
+		PreferIPv4:    c.preferIPv4,
+		RetryCount:    1,
+		RetryInterval: 500 * time.Millisecond,
 	}
-	tcpConn, err := tfo.Dial(network, addr.String(), nil)
+	tcpConn, err := common.Dial(c.ctx, dialCfg)
 	if err != nil {
 		return nil, common.NewError("freedom failed to dial " + addr.String()).Base(err)
 	}
-
-	tcpConn.(*net.TCPConn).SetKeepAlive(c.keepAlive)
-	tcpConn.(*net.TCPConn).SetNoDelay(c.noDelay)
 	return &Conn{
 		Conn: tcpConn,
 	}, nil
@@ -131,6 +136,7 @@ func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 		noDelay:      cfg.TCP.NoDelay,
 		keepAlive:    cfg.TCP.KeepAlive,
 		preferIPv4:   cfg.TCP.PreferIPV4,
+		fastOpen:     cfg.TCP.FastOpen,
 		forwardProxy: cfg.ForwardProxy.Enabled,
 		proxyAddr:    addr,
 		username:     cfg.ForwardProxy.Username,
