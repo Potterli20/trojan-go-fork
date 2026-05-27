@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net"
+	"sync"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 )
@@ -74,14 +75,21 @@ type Tunnel interface {
 	NewServer(context.Context, Server) (Server, error)
 }
 
-var tunnels = make(map[string]Tunnel)
+var (
+	tunnels   = make(map[string]Tunnel)
+	tunnelsMu sync.RWMutex
+)
 
 // RegisterTunnel register a tunnel by tunnel name
 func RegisterTunnel(name string, tunnel Tunnel) {
+	tunnelsMu.Lock()
 	tunnels[name] = tunnel
+	tunnelsMu.Unlock()
 }
 
 func GetTunnel(name string) (Tunnel, error) {
+	tunnelsMu.RLock()
+	defer tunnelsMu.RUnlock()
 	if t, ok := tunnels[name]; ok {
 		return t, nil
 	}
