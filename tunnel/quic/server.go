@@ -13,7 +13,6 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	tlstunnel "github.com/Potterli20/trojan-go-fork/tunnel/tls"
 	"github.com/apernet/quic-go"
-	xrayCongestion "github.com/xtls/xray-core/transport/internet/hysteria/congestion"
 )
 
 type Server struct {
@@ -34,33 +33,11 @@ type Server struct {
 }
 
 func (s *Server) applyCongestionControl(conn *quic.Conn) {
-	if s.congestion == "" {
-		s.congestion = "bbr"
-	}
-
-	switch s.congestion {
-	case "brutal":
-		if s.brutalUp > 0 && s.brutalDown > 0 {
-			xrayCongestion.UseBrutal(conn, min(s.brutalUp, s.brutalDown))
-			log.Debug("QUIC brutal congestion control enabled on server with speed:", min(s.brutalUp, s.brutalDown), "bps")
-		} else {
-			log.Warn("Brutal congestion control requires both brutal_up and brutal_down to be set")
-		}
-	case "force-brutal":
-		if s.brutalUp > 0 {
-			xrayCongestion.UseBrutal(conn, s.brutalUp)
-			log.Debug("QUIC force-brutal congestion control enabled on server with speed:", s.brutalUp, "bps")
-		} else {
-			log.Warn("Force-brutal congestion control requires brutal_up to be set")
-		}
-	case "bbr":
-		xrayCongestion.UseBBR(conn, "standard")
-		log.Debug("QUIC BBR congestion control enabled on server")
-	case "reno":
-		log.Debug("QUIC Reno congestion control enabled on server")
-	default:
-		log.Warn("Unknown congestion control:", s.congestion, ", using default")
-	}
+	ApplyCongestionControl(conn, CongestionConfig{
+		Algorithm:  s.congestion,
+		BrutalUp:   s.brutalUp,
+		BrutalDown: s.brutalDown,
+	}, "server")
 }
 
 func (s *Server) Close() error {
