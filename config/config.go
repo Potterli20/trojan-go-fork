@@ -3,42 +3,54 @@ package config
 import (
 	"context"
 	"encoding/json"
+	"sync"
 
 	"gopkg.in/yaml.v3"
 )
 
-var creators = make(map[string]Creator)
+var (
+	creators = make(map[string]Creator)
+	mu       sync.RWMutex
+)
 
 // Creator creates default config struct for a module
 type Creator func() any
 
 // RegisterConfigCreator registers a config struct for parsing
 func RegisterConfigCreator(name string, creator Creator) {
+	mu.Lock()
+	defer mu.Unlock()
 	name += "_CONFIG"
 	creators[name] = creator
 }
 
 func parseJSON(data []byte) (map[string]any, error) {
 	result := make(map[string]any)
+	mu.RLock()
 	for name, creator := range creators {
 		config := creator()
 		if err := json.Unmarshal(data, config); err != nil {
+			mu.RUnlock()
 			return nil, err
 		}
 		result[name] = config
 	}
+	mu.RUnlock()
 	return result, nil
 }
 
 func parseYAML(data []byte) (map[string]any, error) {
 	result := make(map[string]any)
+	mu.RLock()
 	for name, creator := range creators {
 		config := creator()
 		if err := yaml.Unmarshal(data, config); err != nil {
+			mu.RUnlock()
 			return nil, err
 		}
 		result[name] = config
 	}
+	mu.RUnlock()
 	return result, nil
 }
 

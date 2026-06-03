@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"sync"
 
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/statistic"
@@ -9,14 +10,22 @@ import (
 
 type Handler func(ctx context.Context, auth statistic.Authenticator) error
 
-var handlers = make(map[string]Handler)
+var (
+	handlers = make(map[string]Handler)
+	mu       sync.RWMutex
+)
 
 func RegisterHandler(name string, handler Handler) {
+	mu.Lock()
+	defer mu.Unlock()
 	handlers[name] = handler
 }
 
 func RunService(ctx context.Context, name string, auth statistic.Authenticator) error {
-	if h, ok := handlers[name]; ok {
+	mu.RLock()
+	h, ok := handlers[name]
+	mu.RUnlock()
+	if ok {
 		log.Debug("api handler found", name)
 		return h(ctx, auth)
 	}

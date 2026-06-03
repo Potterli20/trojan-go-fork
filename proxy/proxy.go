@@ -238,9 +238,14 @@ func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.S
 
 type Creator func(ctx context.Context) (*Proxy, error)
 
-var creators = make(map[string]Creator)
+var (
+	creators = make(map[string]Creator)
+	mu       sync.RWMutex
+)
 
 func RegisterProxyCreator(name string, creator Creator) {
+	mu.Lock()
+	defer mu.Unlock()
 	creators[name] = creator
 }
 
@@ -259,7 +264,9 @@ func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 		}
 	}
 	cfg := config.FromContext(ctx, Name).(*Config)
+	mu.RLock()
 	create, ok := creators[strings.ToUpper(cfg.RunType)]
+	mu.RUnlock()
 	if !ok {
 		return nil, common.NewError("unknown proxy type: " + cfg.RunType)
 	}
@@ -273,14 +280,3 @@ func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 	}
 	return create(ctx)
 }
-
-// Stats returns proxy statistics for monitoring
-type Stats struct {
-	ActiveConnections int64
-	ActivePackets     int64
-	PoolHits          int64
-	PoolMisses        int64
-	TotalRelays       int64
-}
-
-var stats Stats
