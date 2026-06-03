@@ -64,13 +64,20 @@ func ApplyCongestionControl(conn *quic.Conn, config CongestionConfig, role strin
 		status.Algorithm = "bbr"
 	}
 
+	if conn == nil {
+		status.Success = false
+		status.ErrorMessage = "conn is nil"
+		log.Warn(fmt.Sprintf("[%s] [ApplyCongestionControl] Failed: %s",
+			time.Now().Format("2006-01-02 15:04:05.000"),
+			status.ErrorMessage))
+		return status
+	}
+
 	switch algorithm {
 	case "brutal":
 		if config.BrutalUp > 0 && config.BrutalDown > 0 {
 			speed := minUint64(config.BrutalUp, config.BrutalDown)
-			if conn != nil {
-				xrayCongestion.UseBrutal(conn, speed)
-			}
+			xrayCongestion.UseBrutal(conn, speed)
 			status.EffectiveSpeed = speed
 			log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] [BRUTAL] Applied brutal congestion control with speed=%d bps, Conn=%p",
 				time.Now().Format("2006-01-02 15:04:05.000"),
@@ -85,9 +92,7 @@ func ApplyCongestionControl(conn *quic.Conn, config CongestionConfig, role strin
 		}
 	case "force-brutal":
 		if config.BrutalUp > 0 {
-			if conn != nil {
-				xrayCongestion.UseBrutal(conn, config.BrutalUp)
-			}
+			xrayCongestion.UseBrutal(conn, config.BrutalUp)
 			status.EffectiveSpeed = config.BrutalUp
 			log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] [FORCE-BRUTAL] Applied force-brutal congestion control with speed=%d bps, Conn=%p",
 				time.Now().Format("2006-01-02 15:04:05.000"),
@@ -101,9 +106,7 @@ func ApplyCongestionControl(conn *quic.Conn, config CongestionConfig, role strin
 				status.ErrorMessage))
 		}
 	case "bbr":
-		if conn != nil {
-			xrayCongestion.UseBBR(conn, "standard")
-		}
+		xrayCongestion.UseBBR(conn, "standard")
 		log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] [BBR] Applied BBR congestion control, Conn=%p",
 			time.Now().Format("2006-01-02 15:04:05.000"),
 			conn))
@@ -113,10 +116,15 @@ func ApplyCongestionControl(conn *quic.Conn, config CongestionConfig, role strin
 			conn))
 	default:
 		status.Success = false
-		status.ErrorMessage = fmt.Sprintf("Unknown congestion control: %s", algorithm)
-		log.Warn(fmt.Sprintf("[%s] [ApplyCongestionControl] [UNKNOWN] %s, using default",
+		status.ErrorMessage = fmt.Sprintf("Unknown congestion control: %s, falling back to BBR", algorithm)
+		log.Warn(fmt.Sprintf("[%s] [ApplyCongestionControl] [UNKNOWN] %s",
 			time.Now().Format("2006-01-02 15:04:05.000"),
 			status.ErrorMessage))
+		xrayCongestion.UseBBR(conn, "standard")
+		status.Algorithm = "bbr"
+		log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] [BBR] Applied BBR congestion control as fallback, Conn=%p",
+			time.Now().Format("2006-01-02 15:04:05.000"),
+			conn))
 	}
 
 	duration := time.Since(startTime)
