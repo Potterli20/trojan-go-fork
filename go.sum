@@ -4,8 +4,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20260522064201-baaf43030f51 h1:ErVh
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260522064201-baaf43030f51/go.mod h1:OXFhWUNwoCEqYBasuSYcPg11Gdo1pMLE33PuefgT4q4=
 github.com/Potterli20/golem v0.0.0-20260603161425-9fb236bf226d h1:sdT5BdvybNKFRlZPbLm5tOL6z0J2kE88wPPiUO5VawY=
 github.com/Potterli20/golem v0.0.0-20260603161425-9fb236bf226d/go.mod h1:RrSHqHkAxZyaYou+Q4CdYXETTijy6ePH0RTOBMNNn48=
-github.com/Potterli20/socks5-fork v0.0.0-20260603111135-9695ffb187f2 h1:I8Im5SVrj3eTCBh5mTaTjsr5IlaOPtHsklGUMkiOkRg=
-github.com/Potterli20/socks5-fork v0.0.0-20260603111135-9695ffb187f2/go.mod h1:zN0HW6FPLSGQKIZSNC+Za9apzLyY95PAv4NWfb0/7a8=
+github.com/Potterli20/socks5-fork v0.0.0-20260603170146-c8a7e568b092 h1:z4u/06mJgs6xxsuXC1bz01ULpLTHYP22UzDdzr2qJos=
+github.com/Potterli20/socks5-fork v0.0.0-20260603170146-c8a7e568b092/go.mod h1:BW782MoRJ72w3ZHvT1ZhRHbnZdzDkN2hILPeqyvU4b0=
 github.com/Potterli20/sqlite v0.0.0-20260528175352-78165ece5675 h1:AXYomAWQnLXkJSS2FogWwbqOGyviYoSUdddAHLqk3UA=
 github.com/Potterli20/sqlite v0.0.0-20260528175352-78165ece5675/go.mod h1:DXwq8eTx5ijhyjEImMNfQFywhJhWFjir6rQXdG4pGRg=
 github.com/alicebob/miniredis/v2 v2.38.0 h1:nZAzCR+Lj+Vxk4ZXzm2NuKq2O33RXj1XxJ2e2uP9jiw=
@@ -204,8 +204,8 @@ go4.org/netipx v0.0.0-20231129151722-fdeea329fbba h1:0b9z3AuHCjxk0x/opv64kcgZLBs
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba/go.mod h1:PLyyIXexvUFg3Owu6p/WfdlivPbZJsZdgWZlrGope/Y=
 golang.org/x/crypto v0.52.0 h1:RMs7fP2rXdep0CftQlK8Uf+kibLm7qkCcradZWYz988=
 golang.org/x/crypto v0.52.0/go.mod h1:1QgfPxDqh0T2M/elOJtp9RvuR95kVjir0e6/BvEmGbc=
-golang.org/x/exp v0.0.0-20260529124908-c761662dc8c9 h1:4d4PbuBNwaxMXkXI8yiIYjydtMU+04RHeuSxJdgKftM=
-golang.org/x/exp v0.0.0-20260529124908-c761662dc8c9/go.mod h1:d2fgXJLVs4dYDHUk5lwMIfzRzSrWCfGZb0ZqeLa/Vcw=
+golang.org/x/exp v0.0.0-20260603202125-055de637280b h1:v1uXiEBHo8QA0LiGCo7UgHMzHT4Kdfpl2zmtH5vaP1Q=
+golang.org/x/exp v0.0.0-20260603202125-055de637280b/go.mod h1:d2fgXJLVs4dYDHUk5lwMIfzRzSrWCfGZb0ZqeLa/Vcw=
 golang.org/x/mod v0.36.0 h1:JJjpVx6myfUsUdAzZuOSTTmRE0PfZeNWzzvKrP7amb4=
 golang.org/x/mod v0.36.0/go.mod h1:moc6ELqsWcOw5Ef3xVprK5ul/MvtVvkIXLziUOICjUQ=
 golang.org/x/net v0.55.0 h1:bcvxaJn3e1U6InsFWt1JUq1aSjnRxLzT2rtD2KfkDF8=
