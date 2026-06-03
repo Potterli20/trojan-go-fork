@@ -32,6 +32,7 @@ type Proxy struct {
 	wg      sync.WaitGroup
 }
 
+// Run starts the proxy relay loops and waits for context cancellation
 func (p *Proxy) Run() error {
 	p.relayConnLoop()
 	p.relayPacketLoop()
@@ -39,6 +40,7 @@ func (p *Proxy) Run() error {
 	return nil
 }
 
+// Close shuts down the proxy gracefully
 func (p *Proxy) Close() error {
 	p.cancel()
 	p.wg.Wait()
@@ -271,3 +273,14 @@ func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 	}
 	return create(ctx)
 }
+
+// Stats returns proxy statistics for monitoring
+type Stats struct {
+	ActiveConnections int64
+	ActivePackets     int64
+	PoolHits          int64
+	PoolMisses        int64
+	TotalRelays       int64
+}
+
+var stats Stats
