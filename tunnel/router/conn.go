@@ -2,9 +2,11 @@ package router
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -37,11 +39,15 @@ func (c *PacketConn) packetLoop() {
 			buf := make([]byte, MaxPacketSize)
 			n, addr, err := c.proxy.ReadWithMetadata(buf)
 			if err != nil {
+				if err == io.EOF || errors.Is(err, io.EOF) {
+					return
+				}
 				select {
 				case <-c.ctx.Done():
 					return
 				default:
 					log.Error("router packetConn error", err)
+					time.Sleep(time.Millisecond * 100) // 避免 busy loop
 					continue
 				}
 			}
@@ -65,11 +71,15 @@ func (c *PacketConn) packetLoop() {
 			buf := make([]byte, MaxPacketSize)
 			n, addr, err := c.PacketConn.ReadFrom(buf)
 			if err != nil {
+				if err == io.EOF || errors.Is(err, io.EOF) {
+					return
+				}
 				select {
 				case <-c.ctx.Done():
 					return
 				default:
 					log.Error("router packetConn error", err)
+					time.Sleep(time.Millisecond * 100) // 避免 busy loop
 					continue
 				}
 			}

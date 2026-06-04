@@ -73,34 +73,35 @@ func (s *Server) acceptConnLoop() {
 		s.wg.Add(1)
 		go func(conn tunnel.Conn) {
 			defer s.wg.Done()
-			defer conn.Close()
-			conn, err := s.handshake(conn)
+			handledConn, err := s.handshake(conn)
 			if err != nil {
 				log.Error(common.NewError("socks failed to handshake").Base(err))
+				conn.Close() // handshake 失败时确保关闭原始连接
 				return
 			}
-			switch conn.Metadata().Command {
+			defer handledConn.Close()
+			switch handledConn.Metadata().Command {
 			case Connect:
-				log.Info("socks connect request from", conn.RemoteAddr(), "metadata", conn.Metadata())
-				err = s.connect(conn)
+				log.Info("socks connect request from", handledConn.RemoteAddr(), "metadata", handledConn.Metadata())
+				err = s.connect(handledConn)
 				if err != nil {
 					log.Error(common.NewError("socks failed to respond connect").Base(err))
 					return
 				}
 				select {
-				case s.connChan <- conn:
+				case s.connChan <- handledConn:
 				case <-s.ctx.Done():
 					log.Debug("exiting")
 				}
 			case Associate:
-				log.Info("socks associate request from", conn.RemoteAddr(), "metadata", conn.Metadata())
-				err = s.associate(conn, conn.Metadata().Address)
+				log.Info("socks associate request from", handledConn.RemoteAddr(), "metadata", handledConn.Metadata())
+				err = s.associate(handledConn, handledConn.Metadata().Address)
 				if err != nil {
 					log.Error(common.NewError("socks failed to respond associate").Base(err))
 					return
 				}
 			default:
-				log.Error("socks unknown command", conn.Metadata().Command)
+				log.Error("socks unknown command", handledConn.Metadata().Command)
 			}
 		}(conn)
 	}
