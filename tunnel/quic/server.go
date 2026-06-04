@@ -147,15 +147,23 @@ func (s *Server) handleConnection(conn any) {
 				return
 			}
 			log.Debug("QUIC stream accepted from", conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr())
-			s.connChan <- &StreamConn{Stream: stream, conn: conn}
+			select {
+			case s.connChan <- &StreamConn{Stream: stream, conn: conn}:
+			case <-s.ctx.Done():
+				return
+			}
 
 		case _, ok := <-packetBuffer:
 			if !ok {
 				return
 			}
 			if !hasPacketHandler {
-				s.packetChan <- &PacketConn{conn: conn}
-				hasPacketHandler = true
+				select {
+				case s.packetChan <- &PacketConn{conn: conn}:
+					hasPacketHandler = true
+				case <-s.ctx.Done():
+					return
+				}
 			}
 
 		case <-s.ctx.Done():

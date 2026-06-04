@@ -133,7 +133,9 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		Conn:       conn,
 		ReadWriter: rw,
 	}
+	s.wg.Add(1)
 	go func() {
+		defer s.wg.Done()
 		wsServer.ServeHTTP(respWriter, req)
 	}()
 

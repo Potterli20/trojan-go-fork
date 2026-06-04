@@ -70,7 +70,9 @@ func (s *Server) acceptConnLoop() {
 				continue
 			}
 		}
+		s.wg.Add(1)
 		go func(conn tunnel.Conn) {
+			defer s.wg.Done()
 			defer conn.Close()
 			conn, err := s.handshake(conn)
 			if err != nil {

@@ -29,6 +29,11 @@ type PacketConn struct {
 func (c *PacketConn) packetLoop() {
 	c.wg.Go(func() {
 		for {
+			select {
+			case <-c.ctx.Done():
+				return
+			default:
+			}
 			buf := make([]byte, MaxPacketSize)
 			n, addr, err := c.proxy.ReadWithMetadata(buf)
 			if err != nil {
@@ -40,32 +45,47 @@ func (c *PacketConn) packetLoop() {
 					continue
 				}
 			}
-			c.packetChan <- &packetInfo{
+			select {
+			case c.packetChan <- &packetInfo{
 				src:     addr,
 				payload: buf[:n],
+			}:
+			case <-c.ctx.Done():
+				return
 			}
 		}
 	})
-	for {
-		buf := make([]byte, MaxPacketSize)
-		n, addr, err := c.PacketConn.ReadFrom(buf)
-		if err != nil {
+	c.wg.Go(func() {
+		for {
 			select {
 			case <-c.ctx.Done():
 				return
 			default:
-				log.Error("router packetConn error", err)
-				continue
+			}
+			buf := make([]byte, MaxPacketSize)
+			n, addr, err := c.PacketConn.ReadFrom(buf)
+			if err != nil {
+				select {
+				case <-c.ctx.Done():
+					return
+				default:
+					log.Error("router packetConn error", err)
+					continue
+				}
+			}
+			address, _ := tunnel.NewAddressFromAddr("udp", addr.String())
+			select {
+			case c.packetChan <- &packetInfo{
+				src: &tunnel.Metadata{
+					Address: address,
+				},
+				payload: buf[:n],
+			}:
+			case <-c.ctx.Done():
+				return
 			}
 		}
-		address, _ := tunnel.NewAddressFromAddr("udp", addr.String())
-		c.packetChan <- &packetInfo{
-			src: &tunnel.Metadata{
-				Address: address,
-			},
-			payload: buf[:n],
-		}
-	}
+	})
 }
 
 func (c *PacketConn) Close() error {
