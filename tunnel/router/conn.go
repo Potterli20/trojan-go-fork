@@ -39,7 +39,7 @@ func (c *PacketConn) packetLoop() {
 			buf := make([]byte, MaxPacketSize)
 			n, addr, err := c.proxy.ReadWithMetadata(buf)
 			if err != nil {
-				if err == io.EOF || errors.Is(err, io.EOF) {
+				if errors.Is(err, io.EOF) {
 					return
 				}
 				select {
@@ -71,7 +71,7 @@ func (c *PacketConn) packetLoop() {
 			buf := make([]byte, MaxPacketSize)
 			n, addr, err := c.PacketConn.ReadFrom(buf)
 			if err != nil {
-				if err == io.EOF || errors.Is(err, io.EOF) {
+				if errors.Is(err, io.EOF) {
 					return
 				}
 				select {
