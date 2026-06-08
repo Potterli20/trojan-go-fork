@@ -5,19 +5,19 @@ go 1.26.0
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260608125914-3007a6e14e6a
-	github.com/Potterli20/socks5-fork v0.0.0-20260603212259-9f88b15f039e
-	github.com/Potterli20/sqlite v0.0.0-20260608125443-31e2b47101eb
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260608200341-99cbd1f518ff
+	github.com/Potterli20/socks5-fork v0.0.0-20260608202559-456fbd709140
+	github.com/Potterli20/sqlite v0.0.0-20260608195737-cf3247e6de78
 	github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716
-	github.com/database64128/tfo-go/v2 v2.3.4-0.20260521214948-ee5f8468987d
+	github.com/database64128/tfo-go/v2 v2.3.4-0.20260608135903-86d412ffc036
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
 	github.com/refraction-networking/utls v1.8.3-0.20260301010127-aa6edf4b11af
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b
-	github.com/xtls/xray-core v1.260327.1-0.20260602235856-fdb9b616fc0e
-	golang.org/x/crypto v0.52.0
+	github.com/xtls/xray-core v1.260327.1-0.20260608195506-83cf229909df
+	golang.org/x/crypto v0.53.0
 	golang.org/x/net v0.55.0
 	golang.org/x/term v0.44.0
 	golang.org/x/time v0.15.0
@@ -29,7 +29,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20260608152546-9dbeb148317d // indirect
+	github.com/Potterli20/golem v0.0.0-20260608195927-1da3572fba06 // indirect
 	github.com/andybalholm/brotli v1.2.2-0.20260411142453-785aba538b21 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
