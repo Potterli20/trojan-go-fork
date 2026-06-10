@@ -145,10 +145,10 @@ func (c *Client) DialConn(addr *tunnel.Address, overlay tunnel.Tunnel) (tunnel.C
 
 	conn, err := c.underlay.DialConn(addr, &Tunnel{})
 	if err != nil {
-		tracker.Error(err)
+		_ = tracker.Error(err)
 		return nil, common.NewError("failed to dial underlying connection").Base(err)
 	}
-	tracker.Success()
+	_ = tracker.Success()
 
 	ctx, cancel := context.WithCancel(c.ctx)
 	newConn := &OutboundConn{
@@ -194,10 +194,10 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 
 	conn, err := c.underlay.DialConn(fakeAddr, &Tunnel{})
 	if err != nil {
-		tracker.Error(err)
+		_ = tracker.Error(err)
 		return nil, common.NewError("failed to dial underlying connection for UDP").Base(err)
 	}
-	tracker.Success()
+	_ = tracker.Success()
 
 	ctx, cancel := context.WithCancel(c.ctx)
 

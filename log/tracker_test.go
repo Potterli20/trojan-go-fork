@@ -84,9 +84,13 @@ func TestConnectionTrackerConcurrent(t *testing.T) {
 				WithField("goroutine", id)
 			time.Sleep(time.Millisecond * time.Duration(id%10))
 			if id%2 == 0 {
-				tracker.Success()
+				if err := tracker.Success(); err != nil {
+					errChan <- err
+				}
 			} else {
-				tracker.Error(errors.New("test error"))
+				if err := tracker.Error(errors.New("test error")); err != nil {
+					errChan <- err
+				}
 			}
 		}(i)
 	}
@@ -99,8 +103,9 @@ func TestConnectionTrackerConcurrent(t *testing.T) {
 		errorCount++
 	}
 
-	if errorCount != 0 {
-		t.Errorf("Expected 0 errors, got %d", errorCount)
+	expectedErrors := numGoroutines / 2
+	if errorCount != expectedErrors {
+		t.Errorf("Expected %d errors, got %d", expectedErrors, errorCount)
 	}
 }
 
@@ -124,7 +129,7 @@ func TestConnectionTrackerDurationCalculation(t *testing.T) {
 	startTime := tracker.startTime
 
 	time.Sleep(time.Millisecond * 50)
-	tracker.Success()
+	_ = tracker.Success()
 
 	duration := tracker.endTime.Sub(startTime)
 	if duration < time.Millisecond*50 {

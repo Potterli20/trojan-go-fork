@@ -20,7 +20,7 @@ func BenchmarkConnectionTrackerHighConcurrency(b *testing.B) {
 				WithField("host", "10.0.0.1").
 				WithField("port", 8080)
 			time.Sleep(time.Microsecond * 10)
-			tracker.Success()
+			_ = tracker.Success()
 		}
 	})
 }
@@ -35,7 +35,7 @@ func BenchmarkConnectionTrackerDisabledLog(b *testing.B) {
 				WithField("host", "10.0.0.1").
 				WithField("port", 8080)
 			time.Sleep(time.Microsecond * 10)
-			tracker.Success()
+			_ = tracker.Success()
 		}
 	})
 }
@@ -66,9 +66,9 @@ func TestHighConcurrencyConnections(t *testing.T) {
 			time.Sleep(time.Millisecond * time.Duration(rand.Intn(91)+10))
 
 			if connID%100 == 0 {
-				tracker.Error(fmt.Errorf("simulated error for conn %d", connID))
+				_ = tracker.Error(fmt.Errorf("simulated error for conn %d", connID))
 			} else {
-				tracker.Success()
+				_ = tracker.Success()
 			}
 
 			time.Sleep(time.Millisecond * time.Duration(rand.Intn(151)+50))
@@ -99,7 +99,7 @@ func TestConnectionLifecycleWithStats(t *testing.T) {
 	t.Logf("Start Time: %s", tracker.StartTime().Format(time.RFC3339))
 
 	time.Sleep(time.Millisecond * 50)
-	tracker.Success()
+	_ = tracker.Success()
 
 	time.Sleep(time.Millisecond * 100)
 	tracker.Destroy("test complete", 1500, 2500)
@@ -129,7 +129,7 @@ func TestPerformanceComparison(t *testing.T) {
 				tracker := NewConnectionTracker("PerfTest", "Connect").
 					WithField("id", i)
 				time.Sleep(time.Nanosecond * 100)
-				tracker.Success()
+				_ = tracker.Success()
 			}
 
 			elapsed := time.Since(start)
@@ -161,7 +161,7 @@ func TestStressTestWithTimestamps(t *testing.T) {
 			defer wg.Done()
 			for j := 0; j < iterationsPerGoroutine; j++ {
 				tracker := NewConnectionTracker("Stress", fmt.Sprintf("conn-%d-%d", goroutineID, j))
-				tracker.Success()
+				_ = tracker.Success()
 			}
 		}(i)
 	}

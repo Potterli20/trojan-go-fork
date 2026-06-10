@@ -62,10 +62,10 @@ func (t *ConnectionTracker) WithFields(fields map[string]interface{}) *Connectio
 	return t
 }
 
-func (t *ConnectionTracker) Success() {
+func (t *ConnectionTracker) Success() error {
 	t.endTime = time.Now()
 	if !ShouldLog(InfoLevel) {
-		return
+		return nil
 	}
 	duration := t.endTime.Sub(t.startTime)
 	durationMs := float64(duration.Nanoseconds()) / 1e6
@@ -75,12 +75,13 @@ func (t *ConnectionTracker) Success() {
 		t.startTime.Format("2006-01-02 15:04:05.000"),
 		t.endTime.Format("2006-01-02 15:04:05.000"),
 		durationMs, t.fields)
+	return nil
 }
 
-func (t *ConnectionTracker) Error(err error) {
+func (t *ConnectionTracker) Error(err error) error {
 	t.endTime = time.Now()
 	if !ShouldLog(ErrorLevel) {
-		return
+		return err
 	}
 	duration := t.endTime.Sub(t.startTime)
 	durationMs := float64(duration.Nanoseconds()) / 1e6
@@ -90,6 +91,7 @@ func (t *ConnectionTracker) Error(err error) {
 		t.startTime.Format("2006-01-02 15:04:05.000"),
 		t.endTime.Format("2006-01-02 15:04:05.000"),
 		durationMs, err, t.fields)
+	return err
 }
 
 func (t *ConnectionTracker) Destroy(reason string, sentBytes, recvBytes uint64) {

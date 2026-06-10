@@ -31,7 +31,7 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 
 	conn, err := c.underlay.DialConn(nil, &Tunnel{})
 	if err != nil {
-		tracker.Error(err)
+		_ = tracker.Error(err)
 		return nil, common.NewError("websocket cannot dial with underlying client").Base(err)
 	}
 
@@ -60,7 +60,7 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 		return nil, common.NewError("websocket failed to handshake with server").Base(err)
 	}
 
-	tracker.Success()
+	_ = tracker.Success()
 	return &OutboundConn{
 		Conn:    wsConn,
 		tcpConn: conn,

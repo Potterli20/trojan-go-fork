@@ -59,10 +59,10 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 
 	conn, err := c.direct.DialConn(c.serverAddress, nil)
 	if err != nil {
-		tracker.Error(err)
+		_ = tracker.Error(err)
 		return nil, common.NewError("transport failed to connect to remote server").Base(err)
 	}
-	tracker.Success()
+	_ = tracker.Success()
 
 	return &Conn{
 		Conn: conn,

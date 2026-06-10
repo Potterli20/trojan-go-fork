@@ -90,7 +90,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		}
 		tConn, err := c.underlay.DialConn(address, &Tunnel{})
 		if err != nil {
-			tracker.Error(err)
+			_ = tracker.Error(err)
 			return nil, common.NewError("failed to dial with underlay tunnel").Base(err)
 		}
 		conn = tConn
@@ -100,7 +100,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		}
 		conn, err = net.Dial("tcp", address.String())
 		if err != nil {
-			tracker.Error(err)
+			_ = tracker.Error(err)
 			return nil, common.NewError("failed to dial TCP connection").Base(err)
 		}
 	}
@@ -133,7 +133,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 			conn.Close()
 			return nil, common.NewError("TLS handshake failed").Base(err)
 		}
-		tracker.Success()
+		_ = tracker.Success()
 		if log.ShouldLog(log.DebugLevel) {
 			state := uconn.ConnectionState()
 			log.Debug("[TLS] Negotiated protocol:", state.NegotiatedProtocol)
@@ -162,7 +162,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		conn.Close()
 		return nil, common.NewError("TLS handshake failed").Base(err)
 	}
-	tracker.Success()
+	_ = tracker.Success()
 	if log.ShouldLog(log.DebugLevel) {
 		log.Debug("[TLS] Negotiated protocol:", tlsConn.ConnectionState().NegotiatedProtocol)
 		log.Debug("[TLS] TLS Version:", tlsConn.ConnectionState().Version)
