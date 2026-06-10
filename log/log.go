@@ -13,6 +13,8 @@ import (
 type LogLevel int
 
 const (
+	TraceLevel LogLevel = -1
+	DebugLevel LogLevel = 0
 	AllLevel   LogLevel = 0
 	InfoLevel  LogLevel = 1
 	WarnLevel  LogLevel = 2
@@ -128,6 +130,36 @@ func SetOutput(w io.Writer) {
 
 func RegisterLogger(l Logger) {
 	logger = l
+}
+
+var currentLogLevel LogLevel = AllLevel
+
+func SetLogLevelInternal(level LogLevel) {
+	currentLogLevel = level
+}
+
+func ShouldLog(level LogLevel) bool {
+	return level >= currentLogLevel
+}
+
+func Logf(level LogLevel, format string, v ...any) {
+	if !ShouldLog(level) {
+		return
+	}
+	switch level {
+	case TraceLevel:
+		logger.Tracef(format, v...)
+	case DebugLevel:
+		logger.Debugf(format, v...)
+	case InfoLevel:
+		logger.Infof(format, v...)
+	case WarnLevel:
+		logger.Warnf(format, v...)
+	case ErrorLevel:
+		logger.Errorf(format, v...)
+	case FatalLevel:
+		logger.Fatalf(format, v...)
+	}
 }
 
 var SensitivePatterns = []*regexp.Regexp{

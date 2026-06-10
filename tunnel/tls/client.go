@@ -11,7 +11,6 @@ import (
 
 	"net"
 	"strings"
-	"time"
 
 	utls "github.com/refraction-networking/utls"
 
@@ -49,73 +48,76 @@ type Client struct {
 }
 
 func (c *Client) Close() error {
-	log.Info("[TLS Client] Closing TLS client connection")
+	log.Info("[TLS] Closing client")
 	if c.keyLogger != nil {
 		if err := c.keyLogger.Close(); err != nil {
-			log.Error("[TLS Client] Failed to close key logger:", err)
+			log.Error("[TLS] Failed to close key logger:", err)
 		}
 	}
 	if err := c.underlay.Close(); err != nil {
-		log.Error("[TLS Client] Failed to close underlay:", err)
+		log.Error("[TLS] Failed to close underlay:", err)
 		return err
 	}
-	log.Info("[TLS Client] TLS client closed successfully")
+	log.Info("[TLS] Client closed successfully")
 	return nil
 }
 
 func (c *Client) DialPacket(tunnel tunnel.Tunnel) (tunnel.PacketConn, error) {
-	log.Warn("[TLS Client] DialPacket is not supported")
+	log.Warn("[TLS] DialPacket is not supported")
 	return nil, common.NewError("DialPacket is not supported")
 }
 
 func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel.Conn, error) {
-	log.Debug("[TLS Client] ========== TLS DialConn Start ==========")
-	log.Debug("[TLS Client] Target address:", address)
-	log.Debug("[TLS Client] TLS SNI:", c.sni)
-	log.Debug("[TLS Client] TLS ServerName:", c.serverName)
-	log.Debug("[TLS Client] TLS Fingerprint:", c.fingerprint)
-	log.Debug("[TLS Client] TLS ALPN:", c.alpn)
+	if log.ShouldLog(log.DebugLevel) {
+		log.Debug("[TLS] DialConn start - target:", address, "sni:", c.sni, "serverName:", c.serverName, "fingerprint:", c.fingerprint, "alpn:", c.alpn)
+	}
 
 	if address == nil && c.underlay == nil {
-		log.Error("[TLS Client] Both address and underlay are nil")
+		log.Error("[TLS] Both address and underlay are nil")
 		return nil, common.NewError("Address is nil and underlay is nil")
 	}
 
 	var conn net.Conn
 	var err error
+	tracker := log.NewConnectionTracker("TLS", "DialConn").
+		WithField("target", address.String()).
+		WithField("sni", c.sni).
+		WithField("fingerprint", c.fingerprint)
 
 	if c.underlay != nil {
-		log.Debug("[TLS Client] Dialing with underlay tunnel...")
-		startTime := time.Now()
+		if log.ShouldLog(log.DebugLevel) {
+			log.Debug("[TLS] Dialing with underlay tunnel...")
+		}
 		tConn, err := c.underlay.DialConn(address, &Tunnel{})
-		dialDuration := time.Since(startTime)
 		if err != nil {
-			log.Error("[TLS Client] Failed to dial with underlay tunnel after", dialDuration, ":", err)
+			tracker.Error(err)
 			return nil, common.NewError("failed to dial with underlay tunnel").Base(err)
 		}
 		conn = tConn
-		log.Info("[TLS Client] Underlay connection established in", dialDuration)
 	} else {
-		log.Debug("[TLS Client] Dialing TCP directly to:", address.String())
-		startTime := time.Now()
+		if log.ShouldLog(log.DebugLevel) {
+			log.Debug("[TLS] Dialing TCP directly to:", address.String())
+		}
 		conn, err = net.Dial("tcp", address.String())
-		dialDuration := time.Since(startTime)
 		if err != nil {
-			log.Error("[TLS Client] Failed to dial TCP connection after", dialDuration, ":", err)
+			tracker.Error(err)
 			return nil, common.NewError("failed to dial TCP connection").Base(err)
 		}
-		log.Info("[TLS Client] TCP connection established in", dialDuration, "to", address.String())
 	}
 
 	tlsServerName := c.serverName
 	if tlsServerName == "" {
 		tlsServerName = c.sni
-		log.Debug("[TLS Client] ServerName is empty, using SNI:", tlsServerName)
+		if log.ShouldLog(log.DebugLevel) {
+			log.Debug("[TLS] ServerName is empty, using SNI:", tlsServerName)
+		}
 	}
-	log.Info("[TLS Client] Starting TLS handshake with ServerName:", tlsServerName)
+	log.Info("[TLS] Starting handshake with ServerName:", tlsServerName)
 
 	if c.fingerprint != "" {
-		log.Debug("[TLS Client] Using uTLS fingerprint:", c.helloID)
+		if log.ShouldLog(log.DebugLevel) {
+			log.Debug("[TLS] Using uTLS fingerprint:", c.helloID)
+		}
 		uconn := utls.UClient(conn, &utls.Config{
 			RootCAs:                c.ca,
 			ServerName:             tlsServerName,
@@ -126,23 +128,25 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 			NextProtos:             c.alpn,
 		}, c.helloID)
 
-		startTime := time.Now()
 		if err := uconn.Handshake(); err != nil {
-			log.Error("[TLS Client] uTLS handshake failed after", time.Since(startTime), ":", err)
+			log.Error("[TLS] uTLS handshake failed:", err)
 			conn.Close()
 			return nil, common.NewError("TLS handshake failed").Base(err)
 		}
-		handshakeDuration := time.Since(startTime)
-		log.Info("[TLS Client] uTLS handshake succeeded in", handshakeDuration)
-		state := uconn.ConnectionState()
-		log.Debug("[TLS Client] Negotiated protocol:", state.NegotiatedProtocol)
-		log.Debug("[TLS Client] TLS Version:", state.Version)
-		log.Debug("[TLS Client] Cipher Suite:", state.CipherSuite)
+		tracker.Success()
+		if log.ShouldLog(log.DebugLevel) {
+			state := uconn.ConnectionState()
+			log.Debug("[TLS] Negotiated protocol:", state.NegotiatedProtocol)
+			log.Debug("[TLS] TLS Version:", state.Version)
+			log.Debug("[TLS] Cipher Suite:", state.CipherSuite)
+		}
 
 		return &transport.Conn{Conn: uconn}, nil
 	}
 
-	log.Debug("[TLS Client] Using standard Go TLS library")
+	if log.ShouldLog(log.DebugLevel) {
+		log.Debug("[TLS] Using standard Go TLS library")
+	}
 	tlsConn := tls.Client(conn, &tls.Config{
 		InsecureSkipVerify:     !c.verify,
 		ServerName:             tlsServerName,
@@ -153,59 +157,62 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		NextProtos:             c.alpn,
 	})
 
-	startTime := time.Now()
 	if err := tlsConn.Handshake(); err != nil {
-		log.Error("[TLS Client] TLS handshake failed after", time.Since(startTime), ":", err)
+		log.Error("[TLS] Handshake failed:", err)
 		conn.Close()
 		return nil, common.NewError("TLS handshake failed").Base(err)
 	}
-	handshakeDuration := time.Since(startTime)
-	log.Info("[TLS Client] TLS handshake succeeded in", handshakeDuration)
-	log.Debug("[TLS Client] Negotiated protocol:", tlsConn.ConnectionState().NegotiatedProtocol)
-	log.Debug("[TLS Client] TLS Version:", tlsConn.ConnectionState().Version)
-	log.Debug("[TLS Client] Cipher Suite:", tlsConn.ConnectionState().CipherSuite)
+	tracker.Success()
+	if log.ShouldLog(log.DebugLevel) {
+		log.Debug("[TLS] Negotiated protocol:", tlsConn.ConnectionState().NegotiatedProtocol)
+		log.Debug("[TLS] TLS Version:", tlsConn.ConnectionState().Version)
+		log.Debug("[TLS] Cipher Suite:", tlsConn.ConnectionState().CipherSuite)
+	}
 
-	log.Debug("[TLS Client] ========== TLS DialConn End ==========")
 	return &transport.Conn{Conn: tlsConn}, nil
 }
 
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
 
-	log.Info("[TLS Client] ========== Creating TLS Client ==========")
-	log.Debug("[TLS Client] RemoteHost:", cfg.RemoteHost)
-	log.Debug("[TLS Client] RemotePort:", cfg.RemotePort)
-	log.Debug("[TLS Client] TLS SNI:", cfg.TLS.SNI)
-	log.Debug("[TLS Client] TLS ServerName:", cfg.TLS.ServerName)
-	log.Debug("[TLS Client] TLS Fingerprint:", cfg.TLS.Fingerprint)
-	log.Debug("[TLS Client] TLS ALPN:", cfg.TLS.ALPN)
-	log.Debug("[TLS Client] TLS Verify:", cfg.TLS.Verify)
-	log.Debug("[TLS Client] TLS ReuseSession:", cfg.TLS.ReuseSession)
-	log.Debug("[TLS Client] TLS Cipher:", cfg.TLS.Cipher)
+	log.Info("[TLS] Creating client")
+	if log.ShouldLog(log.DebugLevel) {
+		log.Debug("[TLS] RemoteHost:", cfg.RemoteHost)
+		log.Debug("[TLS] RemotePort:", cfg.RemotePort)
+		log.Debug("[TLS] TLS SNI:", cfg.TLS.SNI)
+		log.Debug("[TLS] TLS ServerName:", cfg.TLS.ServerName)
+		log.Debug("[TLS] TLS Fingerprint:", cfg.TLS.Fingerprint)
+		log.Debug("[TLS] TLS ALPN:", cfg.TLS.ALPN)
+		log.Debug("[TLS] TLS Verify:", cfg.TLS.Verify)
+		log.Debug("[TLS] TLS ReuseSession:", cfg.TLS.ReuseSession)
+		log.Debug("[TLS] TLS Cipher:", cfg.TLS.Cipher)
+	}
 
 	helloID, err := getHelloID(cfg.TLS.Fingerprint)
 	if err != nil {
-		log.Error("[TLS Client] Failed to get HelloID:", err)
+		log.Error("[TLS] Failed to get HelloID:", err)
 		return nil, err
 	}
 
 	if cfg.TLS.SNI == "" {
 		cfg.TLS.SNI = cfg.RemoteHost
-		log.Warn("[TLS Client] TLS SNI is unspecified, using remote_addr as default:", cfg.TLS.SNI)
+		log.Warn("[TLS] TLS SNI is unspecified, using remote_addr:", cfg.TLS.SNI)
 	}
 
 	if cfg.TLS.ServerName == "" {
 		cfg.TLS.ServerName = cfg.TLS.SNI
-		log.Debug("[TLS Client] TLS ServerName is unspecified, using SNI as default:", cfg.TLS.ServerName)
+		if log.ShouldLog(log.DebugLevel) {
+			log.Debug("[TLS] TLS ServerName is unspecified, using SNI:", cfg.TLS.ServerName)
+		}
 	}
 
 	var keyLogger io.WriteCloser
 	if cfg.TLS.KeyLogPath != "" {
 		keyLogger, err = os.OpenFile(cfg.TLS.KeyLogPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 		if err != nil {
-			log.Warn("[TLS Client] Failed to open key log file:", err)
+			log.Warn("[TLS] Failed to open key log file:", err)
 		} else {
-			log.Info("[TLS Client] TLS key logging enabled to:", cfg.TLS.KeyLogPath)
+			log.Info("[TLS] TLS key logging enabled to:", cfg.TLS.KeyLogPath)
 		}
 	}
 
@@ -223,33 +230,35 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	}
 
 	if cfg.TLS.CertPath != "" {
-		log.Debug("[TLS Client] Loading custom certificate from:", cfg.TLS.CertPath)
+		if log.ShouldLog(log.DebugLevel) {
+			log.Debug("[TLS] Loading custom certificate from:", cfg.TLS.CertPath)
+		}
 		if err := loadCert(client, cfg.TLS.CertPath); err != nil {
-			log.Error("[TLS Client] Failed to load certificate:", err)
+			log.Error("[TLS] Failed to load certificate:", err)
 			return nil, err
 		}
 	} else {
-		log.Info("[TLS Client] Using default CA list for certificate verification")
+		log.Info("[TLS] Using default CA list for certificate verification")
 	}
 
-	log.Info("[TLS Client] ========== TLS Client Created Successfully ==========")
+	log.Info("[TLS] Client created successfully")
 	return client, nil
 }
 
 func getHelloID(fingerprint string) (utls.ClientHelloID, error) {
 	if fingerprint == "" {
-		log.Info("[TLS Client] No fingerprint specified, using Chrome as default")
+		log.Info("[TLS] No fingerprint specified, using Chrome as default")
 		return utls.HelloChrome_Auto, nil
 	}
 
 	helloID, ok := fingerprintsMap[strings.ToLower(fingerprint)]
 	if !ok {
 		errMsg := fmt.Sprintf("Invalid fingerprint '%s'. Valid values: chrome, ios, firefox, edge, safari, 360browser, qqbrowser", fingerprint)
-		log.Error("[TLS Client]", errMsg)
+		log.Error("[TLS]", errMsg)
 		return utls.ClientHelloID{}, common.NewError(errMsg)
 	}
 
-	log.Info("[TLS Client] Using TLS fingerprint:", fingerprint)
+	log.Info("[TLS] Using TLS fingerprint:", fingerprint)
 	return helloID, nil
 }
 
@@ -260,9 +269,9 @@ func loadCert(client *Client, certPath string) error {
 	}
 	client.ca = x509.NewCertPool()
 	if ok := client.ca.AppendCertsFromPEM(caCertByte); !ok {
-		log.Warn("[TLS Client] Failed to append certificates from", certPath)
+		log.Warn("[TLS] Failed to append certificates from", certPath)
 	}
-	log.Info("[TLS Client] Custom certificate loaded successfully")
+	log.Info("[TLS] Custom certificate loaded successfully")
 
 	pemCerts := caCertByte
 	certCount := 0
@@ -280,9 +289,11 @@ func loadCert(client *Client, certPath string) error {
 			continue
 		}
 		certCount++
-		log.Debug("[TLS Client] Certificate #", certCount, "- Issuer:", cert.Issuer, "Subject:", cert.Subject)
+		if log.ShouldLog(log.DebugLevel) {
+			log.Debug("[TLS] Certificate #", certCount, "- Issuer:", cert.Issuer, "Subject:", cert.Subject)
+		}
 	}
-	log.Info("[TLS Client] Total certificates loaded:", certCount)
+	log.Info("[TLS] Total certificates loaded:", certCount)
 
 	return nil
 }
