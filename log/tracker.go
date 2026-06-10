@@ -2,6 +2,7 @@ package log
 
 import (
 	"fmt"
+	"maps"
 	"sync/atomic"
 	"time"
 )
@@ -19,7 +20,7 @@ type ConnectionTracker struct {
 	action    string
 	startTime time.Time
 	endTime   time.Time
-	fields    map[string]interface{}
+	fields    map[string]any
 }
 
 func NewConnectionTracker(module, action string) *ConnectionTracker {
@@ -28,7 +29,7 @@ func NewConnectionTracker(module, action string) *ConnectionTracker {
 		module:    module,
 		action:    action,
 		startTime: time.Now(),
-		fields:    make(map[string]interface{}),
+		fields:    make(map[string]any),
 	}
 }
 
@@ -38,7 +39,7 @@ func NewConnectionTrackerWithID(connID, module, action string) *ConnectionTracke
 		module:    module,
 		action:    action,
 		startTime: time.Now(),
-		fields:    make(map[string]interface{}),
+		fields:    make(map[string]any),
 	}
 }
 
@@ -50,15 +51,13 @@ func (t *ConnectionTracker) StartTime() time.Time {
 	return t.startTime
 }
 
-func (t *ConnectionTracker) WithField(key string, value interface{}) *ConnectionTracker {
+func (t *ConnectionTracker) WithField(key string, value any) *ConnectionTracker {
 	t.fields[key] = value
 	return t
 }
 
-func (t *ConnectionTracker) WithFields(fields map[string]interface{}) *ConnectionTracker {
-	for k, v := range fields {
-		t.fields[k] = v
-	}
+func (t *ConnectionTracker) WithFields(fields map[string]any) *ConnectionTracker {
+	maps.Copy(t.fields, fields)
 	return t
 }
 

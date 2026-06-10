@@ -55,7 +55,7 @@ func TestHighConcurrencyConnections(t *testing.T) {
 	t.Logf("Starting high concurrency test with %d connections", numConnections)
 
 	wg.Add(numConnections)
-	for i := 0; i < numConnections; i++ {
+	for i := range numConnections {
 		go func(connID int) {
 			defer wg.Done()
 
@@ -125,7 +125,7 @@ func TestPerformanceComparison(t *testing.T) {
 			const iterations = 10000
 			start := time.Now()
 
-			for i := 0; i < iterations; i++ {
+			for i := range iterations {
 				tracker := NewConnectionTracker("PerfTest", "Connect").
 					WithField("id", i)
 				time.Sleep(time.Nanosecond * 100)
@@ -156,10 +156,10 @@ func TestStressTestWithTimestamps(t *testing.T) {
 
 	start := time.Now()
 
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		go func(goroutineID int) {
 			defer wg.Done()
-			for j := 0; j < iterationsPerGoroutine; j++ {
+			for j := range iterationsPerGoroutine {
 				tracker := NewConnectionTracker("Stress", fmt.Sprintf("conn-%d-%d", goroutineID, j))
 				_ = tracker.Success()
 			}

@@ -46,7 +46,7 @@ func TestConnectionTrackerWithField(t *testing.T) {
 }
 
 func TestConnectionTrackerWithFields(t *testing.T) {
-	fields := map[string]interface{}{
+	fields := map[string]any{
 		"host": "localhost",
 		"port": 8080,
 	}
@@ -77,7 +77,7 @@ func TestConnectionTrackerConcurrent(t *testing.T) {
 	errChan := make(chan error, numGoroutines)
 
 	wg.Add(numGoroutines)
-	for i := 0; i < numGoroutines; i++ {
+	for i := range numGoroutines {
 		go func(id int) {
 			defer wg.Done()
 			tracker := NewConnectionTracker("Test", "Connect").
@@ -113,7 +113,7 @@ func TestGenerateConnIDUniqueness(t *testing.T) {
 	idSet := make(map[string]bool)
 	numIDs := 10000
 
-	for i := 0; i < numIDs; i++ {
+	for range numIDs {
 		id := generateConnID()
 		if idSet[id] {
 			t.Errorf("Duplicate connection ID found: %s", id)
