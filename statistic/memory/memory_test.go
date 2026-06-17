@@ -161,6 +161,7 @@ func TestMemoryAuthConcurrentUserOperations(t *testing.T) {
 	var successCount atomic.Int32
 
 	for i := range numGoroutines {
+		i := i
 		wg.Go(func() {
 			userHash := "concurrent-user-" + strconv.Itoa(i)
 
@@ -292,6 +293,7 @@ func TestMemoryAuthIPLimitConcurrency(t *testing.T) {
 	var successCount atomic.Int32
 
 	for i := range numGoroutines {
+		i := i
 		wg.Go(func() {
 			ip := "concurrent-ip-" + strconv.Itoa(i)
 			if user.AddIP(ip) {
