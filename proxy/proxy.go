@@ -90,9 +90,7 @@ func (p *Proxy) relayConnLoop() {
 					var once sync.Once
 					closeDone := func() { once.Do(func() { close(done) }) }
 
-					p.wg.Add(1)
-					go func() {
-						defer p.wg.Done()
+					p.wg.Go(func() {
 						buffer := p.bufPool.Get().([]byte)
 						defer p.bufPool.Put(buffer)
 						_, err := io.CopyBuffer(inbound, outbound, buffer)
@@ -100,11 +98,9 @@ func (p *Proxy) relayConnLoop() {
 							log.Debug(err)
 						}
 						closeDone()
-					}()
+					})
 
-					p.wg.Add(1)
-					go func() {
-						defer p.wg.Done()
+					p.wg.Go(func() {
 						buffer := p.bufPool.Get().([]byte)
 						defer p.bufPool.Put(buffer)
 						_, err := io.CopyBuffer(outbound, inbound, buffer)
@@ -112,7 +108,7 @@ func (p *Proxy) relayConnLoop() {
 							log.Debug(err)
 						}
 						closeDone()
-					}()
+					})
 
 					select {
 					case <-done:
@@ -165,9 +161,7 @@ func (p *Proxy) relayPacketLoop() {
 					var once sync.Once
 					closeDone := func() { once.Do(func() { close(done) }) }
 
-					p.wg.Add(1)
-					go func() {
-						defer p.wg.Done()
+					p.wg.Go(func() {
 						for {
 							buf := p.bufPool.Get().([]byte)
 							n, metadata, err := inbound.ReadWithMetadata(buf)
@@ -190,11 +184,9 @@ func (p *Proxy) relayPacketLoop() {
 								return
 							}
 						}
-					}()
+					})
 
-					p.wg.Add(1)
-					go func() {
-						defer p.wg.Done()
+					p.wg.Go(func() {
 						for {
 							buf := p.bufPool.Get().([]byte)
 							n, metadata, err := outbound.ReadWithMetadata(buf)
@@ -217,7 +209,7 @@ func (p *Proxy) relayPacketLoop() {
 								return
 							}
 						}
-					}()
+					})
 
 					select {
 					case <-done:

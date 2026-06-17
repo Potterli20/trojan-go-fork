@@ -19,12 +19,10 @@ func TestMuxServerGoroutineLeak(t *testing.T) {
 	var wg sync.WaitGroup
 	startGoroutines := runtime.NumGoroutine()
 
-	for i := 0; i < 100; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range 100 {
+		wg.Go(func() {
 			time.Sleep(10 * time.Millisecond)
-		}()
+		})
 	}
 
 	wg.Wait()
@@ -40,8 +38,7 @@ func TestMuxServerGoroutineLeak(t *testing.T) {
 }
 
 func TestMemoryAuthenticatorGoroutineLeak(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ctx = config.WithConfig(ctx, memory.Name, &memory.Config{})
 
@@ -57,7 +54,7 @@ func TestMemoryAuthenticatorGoroutineLeak(t *testing.T) {
 		t.Fatalf("Failed to add user: %v", err)
 	}
 
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		_, user := auth.AuthUser(hash)
 		if user == nil {
 			t.Fatal("User not found")
@@ -92,8 +89,7 @@ func TestMemoryAuthenticatorGoroutineLeak(t *testing.T) {
 }
 
 func TestMemoryAuthenticatorIPCLeak(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ctx = config.WithConfig(ctx, memory.Name, &memory.Config{})
 
@@ -115,7 +111,7 @@ func TestMemoryAuthenticatorIPCLeak(t *testing.T) {
 		t.Fatal("User not found")
 	}
 
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		user.AddIP(fmt.Sprintf("10.0.0.%d", i%10))
 	}
 
@@ -145,8 +141,7 @@ func TestHighConcurrencyAuthenticator(t *testing.T) {
 		t.Skip("Skipping long-running high concurrency test in short mode")
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ctx = config.WithConfig(ctx, memory.Name, &memory.Config{})
 
@@ -164,7 +159,7 @@ func TestHighConcurrencyAuthenticator(t *testing.T) {
 	}
 
 	var wg sync.WaitGroup
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		wg.Add(1)
 		go func(idx int) {
 			defer wg.Done()
@@ -196,8 +191,7 @@ func TestHighConcurrencyAuthenticator(t *testing.T) {
 }
 
 func TestConcurrentUserOperations(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ctx = config.WithConfig(ctx, memory.Name, &memory.Config{})
 
@@ -211,7 +205,7 @@ func TestConcurrentUserOperations(t *testing.T) {
 
 	var wg sync.WaitGroup
 
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		wg.Add(1)
 		go func(userIdx int) {
 			defer wg.Done()
@@ -221,7 +215,7 @@ func TestConcurrentUserOperations(t *testing.T) {
 				return
 			}
 
-			for j := 0; j < 50; j++ {
+			for j := range 50 {
 				_, user := auth.AuthUser(hash)
 				if user != nil {
 					user.AddIP(fmt.Sprintf("10.0.%d.%d", userIdx, j%10))
