@@ -68,6 +68,11 @@ func (p *Proxy) relayConnLoop() {
 				inbound, err := source.AcceptConn(nil)
 				if err != nil {
 					log.Error(common.NewError("failed to accept connection").Base(err))
+					select {
+					case <-p.ctx.Done():
+						return
+					default:
+					}
 					continue
 				}
 				p.wg.Add(1)
@@ -85,7 +90,9 @@ func (p *Proxy) relayConnLoop() {
 					var once sync.Once
 					closeDone := func() { once.Do(func() { close(done) }) }
 
+					p.wg.Add(1)
 					go func() {
+						defer p.wg.Done()
 						buffer := p.bufPool.Get().([]byte)
 						defer p.bufPool.Put(buffer)
 						_, err := io.CopyBuffer(inbound, outbound, buffer)
@@ -95,7 +102,9 @@ func (p *Proxy) relayConnLoop() {
 						closeDone()
 					}()
 
+					p.wg.Add(1)
 					go func() {
+						defer p.wg.Done()
 						buffer := p.bufPool.Get().([]byte)
 						defer p.bufPool.Put(buffer)
 						_, err := io.CopyBuffer(outbound, inbound, buffer)
@@ -134,6 +143,11 @@ func (p *Proxy) relayPacketLoop() {
 				inbound, err := source.AcceptPacket(nil)
 				if err != nil {
 					log.Error(common.NewError("failed to accept packet").Base(err))
+					select {
+					case <-p.ctx.Done():
+						return
+					default:
+					}
 					continue
 				}
 				p.wg.Add(1)
@@ -151,7 +165,9 @@ func (p *Proxy) relayPacketLoop() {
 					var once sync.Once
 					closeDone := func() { once.Do(func() { close(done) }) }
 
+					p.wg.Add(1)
 					go func() {
+						defer p.wg.Done()
 						for {
 							buf := p.bufPool.Get().([]byte)
 							n, metadata, err := inbound.ReadWithMetadata(buf)
@@ -176,7 +192,9 @@ func (p *Proxy) relayPacketLoop() {
 						}
 					}()
 
+					p.wg.Add(1)
 					go func() {
+						defer p.wg.Done()
 						for {
 							buf := p.bufPool.Get().([]byte)
 							n, metadata, err := outbound.ReadWithMetadata(buf)

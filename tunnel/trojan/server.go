@@ -192,7 +192,9 @@ func (s *Server) acceptLoop() {
 			}
 			continue
 		}
+		s.wg.Add(1)
 		go func(conn tunnel.Conn) {
+			defer s.wg.Done()
 			defer func() {
 				if r := recover(); r != nil {
 					log.Error(common.NewError("panic in trojan handler: " + fmt.Sprintf("%v", r)))

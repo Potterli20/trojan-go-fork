@@ -130,30 +130,26 @@ func (r *Redirector) worker() {
 					}
 				}
 
-				done := make(chan struct{})
-				var once sync.Once
-				closeDone := func() { once.Do(func() { close(done) }) }
+				var copyWg sync.WaitGroup
 
-				go func() {
-					_, err := io.Copy(outboundConn, redirection.InboundConn)
-					if err != nil {
+				copyWg.Go(func() {
+					if _, err := io.Copy(outboundConn, redirection.InboundConn); err != nil {
 						log.Debug(err)
 					}
-					closeDone()
-				}()
-				go func() {
-					_, err := io.Copy(redirection.InboundConn, outboundConn)
-					if err != nil {
+				})
+
+				copyWg.Go(func() {
+					if _, err := io.Copy(redirection.InboundConn, outboundConn); err != nil {
 						log.Debug(err)
 					}
-					closeDone()
-				}()
+				})
 
 				select {
-				case <-done:
-					log.Info("redirection done")
 				case <-r.ctx.Done():
 					log.Debug("redirector shutting down")
+				default:
+					copyWg.Wait()
+					log.Info("redirection done")
 				}
 			})
 		case <-r.ctx.Done():
@@ -167,7 +163,9 @@ func NewRedirector(ctx context.Context) *Redirector {
 		ctx:             ctx,
 		redirectionChan: make(chan *Redirection, 64),
 	}
-	go r.worker()
+	r.wg.Go(func() {
+		r.worker()
+	})
 	return r
 }
 
