@@ -1,7 +1,6 @@
 package test
 
 import (
-	"context"
 	"net"
 	"runtime"
 	"testing"
@@ -9,8 +8,7 @@ import (
 )
 
 func TestSimpleConnectionCycle(t *testing.T) {
-	_, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	_ = t.Context() // Ensure test context is valid
 
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -68,8 +66,7 @@ func TestConcurrentConnectionPool(t *testing.T) {
 	const poolSize = 100
 	const testCycles = 5
 
-	_, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	_ = t.Context() // Ensure test context is valid
 
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {

@@ -161,10 +161,8 @@ func TestMemoryAuthConcurrentUserOperations(t *testing.T) {
 	var successCount atomic.Int32
 
 	for i := range numGoroutines {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
-			userHash := "concurrent-user-" + strconv.Itoa(id)
+		wg.Go(func() {
+			userHash := "concurrent-user-" + strconv.Itoa(i)
 
 			for range numOpsPerGoroutine {
 				if err := auth.AddUser(userHash); err == nil {
@@ -172,7 +170,7 @@ func TestMemoryAuthConcurrentUserOperations(t *testing.T) {
 					auth.DelUser(userHash)
 				}
 			}
-		}(i)
+		})
 	}
 
 	wg.Wait()
@@ -294,14 +292,12 @@ func TestMemoryAuthIPLimitConcurrency(t *testing.T) {
 	var successCount atomic.Int32
 
 	for i := range numGoroutines {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
-			ip := "concurrent-ip-" + strconv.Itoa(id)
+		wg.Go(func() {
+			ip := "concurrent-ip-" + strconv.Itoa(i)
 			if user.AddIP(ip) {
 				successCount.Add(1)
 			}
-		}(i)
+		})
 	}
 
 	wg.Wait()
@@ -329,8 +325,7 @@ func TestMemoryAuthClose(t *testing.T) {
 	user.Close()
 	auth.Close()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	cancel()
+	// Ensure test context is valid
+	_ = t.Context()
 	time.Sleep(100 * time.Millisecond)
 }

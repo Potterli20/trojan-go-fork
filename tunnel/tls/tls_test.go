@@ -136,13 +136,11 @@ func TestDefaultTLSRSA2048(t *testing.T) {
 	common.Must(err)
 
 	wg := sync.WaitGroup{}
-	wg.Add(1)
 	var conn1, conn2 net.Conn
-	go func() {
+	wg.Go(func() {
 		conn2, err = s.AcceptConn(nil)
 		common.Must(err)
-		wg.Done()
-	}()
+	})
 	conn1, err = c.DialConn(nil, nil)
 	common.Must(err)
 
@@ -198,13 +196,11 @@ func TestDefaultTLSECC(t *testing.T) {
 	common.Must(err)
 
 	wg := sync.WaitGroup{}
-	wg.Add(1)
 	var conn1, conn2 net.Conn
-	go func() {
+	wg.Go(func() {
 		conn2, err = s.AcceptConn(nil)
 		common.Must(err)
-		wg.Done()
-	}()
+	})
 	conn1, err = c.DialConn(nil, nil)
 	common.Must(err)
 
@@ -265,13 +261,11 @@ func TestUTLSRSA2048(t *testing.T) {
 		common.Must(err)
 
 		wg := sync.WaitGroup{}
-		wg.Add(1)
 		var conn1, conn2 net.Conn
-		go func() {
+		wg.Go(func() {
 			conn2, err = s.AcceptConn(nil)
 			common.Must(err)
-			wg.Done()
-		}()
+		})
 		conn1, err = c.DialConn(nil, nil)
 		common.Must(err)
 
@@ -335,13 +329,11 @@ func TestUTLSECC(t *testing.T) {
 		common.Must(err)
 
 		wg := sync.WaitGroup{}
-		wg.Add(1)
 		var conn1, conn2 net.Conn
-		go func() {
+		wg.Go(func() {
 			conn2, err = s.AcceptConn(nil)
 			common.Must(err)
-			wg.Done()
-		}()
+		})
 		conn1, err = c.DialConn(nil, nil)
 		common.Must(err)
 
@@ -403,13 +395,11 @@ func TestKeyLogPath(t *testing.T) {
 	common.Must(err)
 
 	wg := sync.WaitGroup{}
-	wg.Add(1)
 	var conn1, conn2 net.Conn
-	go func() {
+	wg.Go(func() {
 		conn2, err = s.AcceptConn(nil)
 		common.Must(err)
-		wg.Done()
-	}()
+	})
 	conn1, err = c.DialConn(nil, nil)
 	common.Must(err)
 
@@ -486,13 +476,11 @@ func TestALPN(t *testing.T) {
 		common.Must(err)
 
 		wg := sync.WaitGroup{}
-		wg.Add(1)
 		var conn1, conn2 net.Conn
-		go func() {
+		wg.Go(func() {
 			conn2, err = s.AcceptConn(nil)
 			common.Must(err)
-			wg.Done()
-		}()
+		})
 		conn1, err = c.DialConn(nil, nil)
 		common.Must(err)
 

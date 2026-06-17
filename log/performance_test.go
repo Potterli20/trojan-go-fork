@@ -2,7 +2,7 @@ package log
 
 import (
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"os"
 	"runtime"
 	"sync"
@@ -54,27 +54,24 @@ func TestHighConcurrencyConnections(t *testing.T) {
 
 	t.Logf("Starting high concurrency test with %d connections", numConnections)
 
-	wg.Add(numConnections)
 	for i := range numConnections {
-		go func(connID int) {
-			defer wg.Done()
-
+		wg.Go(func() {
 			tracker := NewConnectionTracker("Test", "Connect").
-				WithField("conn_idx", connID).
+				WithField("conn_idx", i).
 				WithField("target", "10.0.0.1:8080")
 
-			time.Sleep(time.Millisecond * time.Duration(rand.Intn(91)+10))
+			time.Sleep(time.Millisecond * time.Duration(rand.IntN(91)+10))
 
-			if connID%100 == 0 {
-				_ = tracker.Error(fmt.Errorf("simulated error for conn %d", connID))
+			if i%100 == 0 {
+				_ = tracker.Error(fmt.Errorf("simulated error for conn %d", i))
 			} else {
 				_ = tracker.Success()
 			}
 
-			time.Sleep(time.Millisecond * time.Duration(rand.Intn(151)+50))
+			time.Sleep(time.Millisecond * time.Duration(rand.IntN(151)+50))
 
-			tracker.Destroy("normal close", uint64(rand.Intn(9901)+100), uint64(rand.Intn(9901)+100))
-		}(i)
+			tracker.Destroy("normal close", uint64(rand.IntN(9901)+100), uint64(rand.IntN(9901)+100))
+		})
 	}
 
 	wg.Wait()
@@ -152,18 +149,16 @@ func TestStressTestWithTimestamps(t *testing.T) {
 	const iterationsPerGoroutine = 100
 
 	var wg sync.WaitGroup
-	wg.Add(numGoroutines)
 
 	start := time.Now()
 
 	for i := range numGoroutines {
-		go func(goroutineID int) {
-			defer wg.Done()
+		wg.Go(func() {
 			for j := range iterationsPerGoroutine {
-				tracker := NewConnectionTracker("Stress", fmt.Sprintf("conn-%d-%d", goroutineID, j))
+				tracker := NewConnectionTracker("Stress", fmt.Sprintf("conn-%d-%d", i, j))
 				_ = tracker.Success()
 			}
-		}(i)
+		})
 	}
 
 	wg.Wait()
