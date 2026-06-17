@@ -55,7 +55,6 @@ func TestHighConcurrencyConnections(t *testing.T) {
 	t.Logf("Starting high concurrency test with %d connections", numConnections)
 
 	for i := range numConnections {
-		i := i
 		wg.Go(func() {
 			tracker := NewConnectionTracker("Test", "Connect").
 				WithField("conn_idx", i).
