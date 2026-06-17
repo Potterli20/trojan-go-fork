@@ -33,13 +33,13 @@ func (s *Server) acceptConnWorker() {
 			}
 			continue
 		}
-		go s.handleConn(conn)
+		s.wg.Go(func() {
+			s.handleConn(conn)
+		})
 	}
 }
 
 func (s *Server) handleConn(conn tunnel.Conn) {
-	s.wg.Add(1)
-	defer s.wg.Done()
 	defer func() {
 		if r := recover(); r != nil {
 			log.Error("panic in mux handler: ", fmt.Sprintf("%v", r))
@@ -95,8 +95,9 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 
 func (s *Server) Close() error {
 	s.cancel()
+	err := s.underlay.Close()
 	s.wg.Wait()
-	return s.underlay.Close()
+	return err
 }
 
 func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {

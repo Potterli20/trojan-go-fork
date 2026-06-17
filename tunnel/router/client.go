@@ -203,7 +203,7 @@ func (c *Client) DialPacket(overlay tunnel.Tunnel) (tunnel.PacketConn, error) {
 		ctx:        ctx,
 		packetChan: make(chan *packetInfo, 16),
 	}
-	go conn.packetLoop()
+	conn.packetLoop()
 	return conn, nil
 }
 

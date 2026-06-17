@@ -45,6 +45,27 @@ func (u *User) Close() error {
 	return nil
 }
 
+func (u *User) ipCleaner() {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-u.ctx.Done():
+			return
+		case <-ticker.C:
+			u.ipLock.Lock()
+			now := time.Now()
+			for ip, lastSeen := range u.ipTable {
+				if now.Sub(lastSeen) >= 10*time.Second {
+					delete(u.ipTable, ip)
+					atomic.AddInt32(&u.ipNum, -1)
+				}
+			}
+			u.ipLock.Unlock()
+		}
+	}
+}
+
 func (u *User) AddIP(ip string) bool {
 	if u.MaxIPNum <= 0 {
 		return true
@@ -64,33 +85,6 @@ func (u *User) AddIP(ip string) bool {
 
 	u.ipTable[ip] = time.Now()
 	atomic.AddInt32(&u.ipNum, 1)
-
-	// Use time.AfterFunc instead of spawning a goroutine per IP.
-	// The callback checks the timestamp to avoid deleting a refreshed IP.
-	u.wg.Add(1)
-	time.AfterFunc(10*time.Second, func() {
-		defer u.wg.Done()
-		// Bail out early if user context is cancelled (user removed)
-		select {
-		case <-u.ctx.Done():
-			return
-		default:
-		}
-
-		u.ipLock.Lock()
-		defer u.ipLock.Unlock()
-
-		t, found := u.ipTable[ip]
-		if !found {
-			return
-		}
-		// Only delete if the IP hasn't been refreshed recently
-		if time.Since(t) < 10*time.Second {
-			return
-		}
-		delete(u.ipTable, ip)
-		atomic.AddInt32(&u.ipNum, -1)
-	})
 	return true
 }
 
@@ -303,6 +297,9 @@ func (a *Authenticator) AddUser(hash string) error {
 	meter.wg.Go(func() {
 		meter.speedUpdater()
 	})
+	meter.wg.Go(func() {
+		meter.ipCleaner()
+	})
 	a.users.Store(hash, meter)
 	if a.pst != nil {
 		meter.wg.Go(func() {
@@ -425,6 +422,9 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 			user.setPassword(u.GetKeyShare())
 			user.wg.Go(func() {
 				user.speedUpdater()
+			})
+			user.wg.Go(func() {
+				user.ipCleaner()
 			})
 			user.wg.Go(func() {
 				user.trafficUpdater(a.pst)
