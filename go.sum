@@ -22,8 +22,8 @@ github.com/cloudflare/circl v1.6.3 h1:9GPOhQGF9MCYUeXyMYlqTR6a5gTrgR/fBLXvUgtVcg
 github.com/cloudflare/circl v1.6.3/go.mod h1:2eXP6Qfat4O/Yhh8BznvKnJ+uzEoTQ6jVKJRn81BiS4=
 github.com/database64128/netx-go v0.1.1 h1:dT5LG7Gs7zFZBthFBbzWE6K8wAHjSNAaK7wCYZT7NzM=
 github.com/database64128/netx-go v0.1.1/go.mod h1:LNlYVipaYkQArRFDNNJ02VkNV+My9A5XR/IGS7sIBQc=
-github.com/database64128/tfo-go/v2 v2.3.4-0.20260608135903-86d412ffc036 h1:ryMzvdyDniSCiacHGD7Zq9BICgTBGuOWcxiNxzZZ35E=
-github.com/database64128/tfo-go/v2 v2.3.4-0.20260608135903-86d412ffc036/go.mod h1:BNW9X3ex6hW3EtncW1CgJ9yBVIfslE1RpzP6hPfsafE=
+github.com/database64128/tfo-go/v2 v2.3.4-0.20260618214256-f2bd2e741624 h1:22dBWDSBbra1xZJstJZwcoWoyul72TViQ/e9sqVfA84=
+github.com/database64128/tfo-go/v2 v2.3.4-0.20260618214256-f2bd2e741624/go.mod h1:BNW9X3ex6hW3EtncW1CgJ9yBVIfslE1RpzP6hPfsafE=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgraph-io/ristretto v0.2.0 h1:XAfl+7cmoUDWW/2Lx8TGZQjjxIQ2Ley9DSf52dru4WE=
