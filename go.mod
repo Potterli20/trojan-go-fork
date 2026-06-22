@@ -24,7 +24,7 @@ require (
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/gorm v1.31.2-0.20260511094513-d0ee5e229615
+	gorm.io/gorm v1.31.2-0.20260622033704-1d6ce9952806
 )
 
 require (
