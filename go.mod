@@ -24,12 +24,12 @@ require (
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/gorm v1.31.2-0.20260622033704-1d6ce9952806
+	gorm.io/gorm v1.31.2
 )
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20260624140355-42f548be7204 // indirect
+	github.com/Potterli20/golem v0.0.0-20260625084548-ec89e34433c9 // indirect
 	github.com/andybalholm/brotli v1.2.2-0.20260411142453-785aba538b21 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
