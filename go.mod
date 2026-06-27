@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260608200341-99cbd1f518ff
-	github.com/Potterli20/socks5-fork v0.0.0-20260626221813-6572d2c83c42
+	github.com/Potterli20/socks5-fork v0.0.0-20260627040208-c26a7a5017cf
 	github.com/Potterli20/sqlite v0.0.0-20260626135637-1aefe32ef5ad
 	github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716
 	github.com/database64128/tfo-go/v2 v2.3.4-0.20260618214256-f2bd2e741624
@@ -29,7 +29,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20260627020531-5f7e4e6b65fa // indirect
+	github.com/Potterli20/golem v0.0.0-20260627082512-dd41ad04f2d0 // indirect
 	github.com/andybalholm/brotli v1.2.2-0.20260411142453-785aba538b21 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -51,7 +51,7 @@ require (
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/klauspost/compress v1.18.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
-	github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e // indirect
+	github.com/lufia/plan9stats v0.0.0-20260627054121-477a66015f15 // indirect
 	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
@@ -61,7 +61,7 @@ require (
 	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.69.0 // indirect
-	github.com/prometheus/procfs v0.20.1 // indirect
+	github.com/prometheus/procfs v0.21.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.5 // indirect
