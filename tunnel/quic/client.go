@@ -71,12 +71,23 @@ func (c *Client) getOrCreateConnection() (any, error) {
 	}
 
 	addrStr := c.remoteAddr.String()
-	log.Debug("QUIC dialing to", addrStr)
+
+	tracker := log.NewConnectionTracker("QUIC", "DialConn").
+		WithField("remote_addr", addrStr).
+		WithField("congestion", c.congestion)
+
+	log.Debugf("[QUIC] [conn=%s] Dialing to %s with congestion=%s, alpn=%v",
+		tracker.ConnID(), addrStr, c.congestion, c.tlsConfig.NextProtos)
 
 	quicConn, err := quic.DialAddr(context.Background(), addrStr, c.tlsConfig, c.quicConfig)
 	if err != nil {
+		_ = tracker.Error(err)
 		return nil, common.NewError("QUIC failed to dial").Base(err)
 	}
+	_ = tracker.Success()
+
+	log.Debugf("[QUIC] [conn=%s] Connection established to %s, congestion=%s",
+		tracker.ConnID(), addrStr, c.congestion)
 
 	c.applyCongestionControl(quicConn)
 
@@ -107,13 +118,21 @@ func (c *Client) keepAliveLoop() {
 }
 
 func (c *Client) DialPacket(tun tunnel.Tunnel) (tunnel.PacketConn, error) {
+	tracker := log.NewConnectionTracker("QUIC", "DialPacket").
+		WithField("remote_addr", c.remoteAddr.String())
+
+	log.Debugf("[QUIC] [conn=%s] Creating packet connection to %s",
+		tracker.ConnID(), c.remoteAddr.String())
+
 	conn, err := c.getOrCreateConnection()
 	if err != nil {
+		_ = tracker.Error(err)
 		return nil, err
 	}
 
-	log.Debug("QUIC packet connection created")
-	return &PacketConn{conn: conn}, nil
+	_ = tracker.Success()
+	log.Debugf("[QUIC] [conn=%s] Packet connection created successfully", tracker.ConnID())
+	return &PacketConn{conn: conn, tracker: tracker}, nil
 }
 
 func (c *Client) DialConn(address *tunnel.Address, tun tunnel.Tunnel) (tunnel.Conn, error) {
@@ -122,24 +141,32 @@ func (c *Client) DialConn(address *tunnel.Address, tun tunnel.Tunnel) (tunnel.Co
 		return nil, err
 	}
 
+	tracker := log.NewConnectionTracker("QUIC", "Stream").
+		WithField("remote_addr", c.remoteAddr.String())
+
+	log.Debugf("[QUIC] [conn=%s] Opening stream to %s", tracker.ConnID(), address.String())
+
 	stream, err := conn.(interface {
 		OpenStreamSync(context.Context) (quic.Stream, error)
 	}).OpenStreamSync(c.ctx)
 	if err != nil {
+		_ = tracker.Error(err)
 		log.Error(common.NewError("QUIC failed to open stream").Base(err))
 		c.quicConnMutex.Lock()
 		c.quicConn = nil
 		c.quicConnMutex.Unlock()
 		return nil, common.NewError("QUIC failed to open stream").Base(err)
 	}
+	_ = tracker.Success()
 
-	log.Debug("QUIC stream created")
-	return &StreamConn{Stream: &stream, conn: conn}, nil
+	log.Debugf("[QUIC] [conn=%s] Stream opened successfully", tracker.ConnID())
+	return &StreamConn{Stream: &stream, conn: conn, tracker: tracker}, nil
 }
 
 type StreamConn struct {
-	Stream *quic.Stream
-	conn   any
+	Stream  *quic.Stream
+	conn    any
+	tracker *log.ConnectionTracker
 }
 
 func (c *StreamConn) Metadata() *tunnel.Metadata {
@@ -179,7 +206,8 @@ func (c *StreamConn) SetWriteDeadline(t time.Time) error {
 }
 
 type PacketConn struct {
-	conn any
+	conn    any
+	tracker *log.ConnectionTracker
 }
 
 func (c *PacketConn) WriteTo(p []byte, addr net.Addr) (int, error) {

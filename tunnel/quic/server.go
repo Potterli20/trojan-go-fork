@@ -75,22 +75,29 @@ func (s *Server) acceptLoop() {
 		quicConn := conn.(*quic.Conn)
 		s.applyCongestionControl(quicConn)
 
+		tracker := log.NewConnectionTracker("QUIC", "AcceptConn").
+			WithField("remote_addr", quicConn.RemoteAddr().String()).
+			WithField("congestion", s.congestion)
+
 		s.activeConns.Store(quicConn.RemoteAddr().String(), conn)
-		log.Debug("QUIC connection accepted from", quicConn.RemoteAddr())
+		log.Debugf("[QUIC] [conn=%s] New connection accepted from %s, congestion=%s, alpn=%v",
+			tracker.ConnID(), quicConn.RemoteAddr(), s.congestion, s.tlsConfig.NextProtos)
 
 		s.wg.Go(func() {
-			s.handleConnection(conn)
+			s.handleConnection(conn, tracker)
 		})
 	}
 }
 
-func (s *Server) handleConnection(conn any) {
+func (s *Server) handleConnection(conn any, tracker *log.ConnectionTracker) {
 	defer func() {
 		conn.(interface {
 			CloseWithError(code uint32, reason string) error
 		}).CloseWithError(0, "connection closed")
 		s.activeConns.Delete(conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr().String())
-		log.Debug("QUIC connection closed from", conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr())
+		log.Debugf("[QUIC] [conn=%s] Connection closed from %s, duration=%s",
+			tracker.ConnID(), conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr(),
+			time.Since(tracker.StartTime()))
 	}()
 
 	streamChan := make(chan *quic.Stream, 16)
@@ -146,9 +153,13 @@ func (s *Server) handleConnection(conn any) {
 			if !ok {
 				return
 			}
-			log.Debug("QUIC stream accepted from", conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr())
+			streamTracker := log.NewConnectionTracker("QUIC", "Stream").
+				WithField("remote_addr", conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr().String()).
+				WithField("parent_conn", tracker.ConnID())
+			log.Debugf("[QUIC] [conn=%s] New stream accepted, parent_conn=%s",
+				streamTracker.ConnID(), tracker.ConnID())
 			select {
-			case s.connChan <- &StreamConn{Stream: stream, conn: conn}:
+			case s.connChan <- &StreamConn{Stream: stream, conn: conn, tracker: streamTracker}:
 			case <-s.ctx.Done():
 				return
 			}

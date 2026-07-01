@@ -33,16 +33,21 @@ func (s *Server) acceptConnWorker() {
 			}
 			continue
 		}
+
+		tracker := log.NewConnectionTracker("MUX", "AcceptConn").
+			WithField("remote_addr", conn.RemoteAddr().String())
+
 		s.wg.Go(func() {
-			s.handleConn(conn)
+			s.handleConn(conn, tracker)
 		})
 	}
 }
 
-func (s *Server) handleConn(conn tunnel.Conn) {
+func (s *Server) handleConn(conn tunnel.Conn, tracker *log.ConnectionTracker) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Error("panic in mux handler: ", fmt.Sprintf("%v", r))
+			tracker.Error(common.NewError(fmt.Sprintf("panic: %v", r)))
 			conn.Close()
 		}
 	}()
@@ -51,9 +56,11 @@ func (s *Server) handleConn(conn tunnel.Conn) {
 	smuxSession, err := smux.Server(conn, smuxConfig)
 	if err != nil {
 		log.Error(err)
+		_ = tracker.Error(err)
 		conn.Close()
 		return
 	}
+	_ = tracker.Success()
 	s.wg.Go(func() {
 		s.handleSession(smuxSession, conn)
 	})
@@ -68,11 +75,17 @@ func (s *Server) handleSession(session *smux.Session, conn tunnel.Conn) {
 			log.Error(err)
 			return
 		}
+
+		streamTracker := log.NewConnectionTracker("MUX", "Stream").
+			WithField("remote_addr", conn.RemoteAddr().String())
+
 		select {
 		case s.connChan <- &Conn{
-			rwc:  stream,
-			Conn: conn,
+			rwc:     stream,
+			Conn:    conn,
+			tracker: streamTracker,
 		}:
+			_ = streamTracker.Success()
 		case <-s.ctx.Done():
 			log.Debug("exiting")
 			return

@@ -21,13 +21,12 @@ type Client struct {
 }
 
 func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
-	if log.ShouldLog(log.DebugLevel) {
-		log.Debug("[WebSocket] DialConn start - hostname:", c.hostname, "path:", c.path, "headers:", len(c.headers))
-	}
-
 	tracker := log.NewConnectionTracker("WebSocket", "DialConn").
 		WithField("hostname", c.hostname).
 		WithField("path", c.path)
+
+	log.Debugf("[WebSocket] [conn=%s] Dialing to %s%s, headers=%d",
+		tracker.ConnID(), c.hostname, c.path, len(c.headers))
 
 	conn, err := c.underlay.DialConn(nil, &Tunnel{})
 	if err != nil {
@@ -36,9 +35,7 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 	}
 
 	url := "wss://" + c.hostname + c.path
-	if log.ShouldLog(log.DebugLevel) {
-		log.Debug("[WebSocket] URL:", url)
-	}
+	log.Debugf("[WebSocket] [conn=%s] Connecting to URL: %s", tracker.ConnID(), url)
 
 	wsConfig, err := websocket.NewConfig(url, "https://"+c.hostname)
 	if err != nil {
@@ -53,14 +50,17 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 		}
 	}
 
+	log.Debugf("[WebSocket] [conn=%s] Performing handshake with server", tracker.ConnID())
 	wsConn, err := websocket.NewClient(wsConfig, conn)
 	if err != nil {
-		log.Error("[WebSocket] Handshake failed:", err)
+		_ = tracker.Error(err)
+		log.Errorf("[WebSocket] [conn=%s] Handshake failed: %v", tracker.ConnID(), err)
 		conn.Close()
 		return nil, common.NewError("websocket failed to handshake with server").Base(err)
 	}
 
 	_ = tracker.Success()
+	log.Debugf("[WebSocket] [conn=%s] Connection established successfully", tracker.ConnID())
 	return &OutboundConn{
 		Conn:    wsConn,
 		tcpConn: conn,

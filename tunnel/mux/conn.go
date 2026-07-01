@@ -89,6 +89,7 @@ type Conn struct {
 	rwc io.ReadWriteCloser
 	tunnel.Conn
 	lastActiveTime *time.Time
+	tracker        *log.ConnectionTracker
 }
 
 func (c *Conn) Read(p []byte) (int, error) {

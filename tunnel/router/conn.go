@@ -23,9 +23,10 @@ type PacketConn struct {
 	net.PacketConn
 	packetChan chan *packetInfo
 	*Client
-	ctx    context.Context
-	cancel context.CancelFunc
-	wg     sync.WaitGroup
+	ctx     context.Context
+	cancel  context.CancelFunc
+	wg      sync.WaitGroup
+	tracker *log.ConnectionTracker
 }
 
 func (c *PacketConn) packetLoop() {

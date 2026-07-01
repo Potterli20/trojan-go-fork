@@ -104,6 +104,9 @@ func (c *Client) cleanLoop() {
 func (c *Client) newMuxClient() (*smuxClientInfo, error) {
 	id := generateMuxID()
 
+	tracker := log.NewConnectionTracker("MUX", "DialConn").
+		WithField("mux_id", fmt.Sprintf("%x", id))
+
 	c.clientPoolLock.Lock()
 	if _, found := c.clientPool[id]; found {
 		c.clientPoolLock.Unlock()
@@ -118,6 +121,7 @@ func (c *Client) newMuxClient() (*smuxClientInfo, error) {
 	// Dial the underlying connection OUTSIDE the lock to avoid deadlock
 	conn, err := c.underlay.DialConn(fakeAddr, &Tunnel{})
 	if err != nil {
+		_ = tracker.Error(err)
 		return nil, common.NewError("mux failed to dial").Base(err)
 	}
 	conn = newStickyConn(conn)
@@ -125,9 +129,12 @@ func (c *Client) newMuxClient() (*smuxClientInfo, error) {
 	smuxConfig := smux.DefaultConfig()
 	client, err := smux.Client(conn, smuxConfig)
 	if err != nil {
+		_ = tracker.Error(err)
 		conn.Close()
 		return nil, common.NewError("mux failed to create client").Base(err)
 	}
+	_ = tracker.Success()
+
 	info := &smuxClientInfo{
 		client:         client,
 		underlayConn:   conn,
@@ -141,10 +148,11 @@ func (c *Client) newMuxClient() (*smuxClientInfo, error) {
 }
 
 func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
-	createNewConn := func(info *smuxClientInfo) (tunnel.Conn, error) {
+	createNewConn := func(info *smuxClientInfo, streamTracker *log.ConnectionTracker) (tunnel.Conn, error) {
 		rwc, err := info.client.OpenStream()
 		info.lastActiveTime = time.Now()
 		if err != nil {
+			_ = streamTracker.Error(err)
 			info.underlayConn.Close()
 			info.client.Close()
 			c.clientPoolLock.Lock()
@@ -152,10 +160,12 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 			c.clientPoolLock.Unlock()
 			return nil, common.NewError("mux failed to open stream from client").Base(err)
 		}
+		_ = streamTracker.Success()
 		return &Conn{
 			rwc:            rwc,
 			Conn:           info.underlayConn,
 			lastActiveTime: &info.lastActiveTime,
+			tracker:        streamTracker,
 		}, nil
 	}
 
@@ -168,8 +178,10 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 			continue
 		}
 		if info.client.NumStreams() < c.concurrency || c.concurrency <= 0 {
+			streamTracker := log.NewConnectionTracker("MUX", "Stream").
+				WithField("mux_id", fmt.Sprintf("%x", info.id))
 			c.clientPoolLock.Unlock()
-			return createNewConn(info)
+			return createNewConn(info, streamTracker)
 		}
 	}
 	c.clientPoolLock.Unlock()
@@ -179,7 +191,9 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 	if err != nil {
 		return nil, common.NewError("no available mux client found").Base(err)
 	}
-	return createNewConn(info)
+	streamTracker := log.NewConnectionTracker("MUX", "Stream").
+		WithField("mux_id", fmt.Sprintf("%x", info.id))
+	return createNewConn(info, streamTracker)
 }
 
 func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {

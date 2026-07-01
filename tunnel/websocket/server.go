@@ -58,11 +58,20 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	if err != nil {
 		return nil, common.NewError("websocket failed to accept connection from underlying server")
 	}
+
+	tracker := log.NewConnectionTracker("WebSocket", "AcceptConn").
+		WithField("remote_addr", conn.RemoteAddr().String()).
+		WithField("path", s.path)
+
+	log.Debugf("[WebSocket] [conn=%s] New connection accepted from %s, path=%s, enabled=%v",
+		tracker.ConnID(), conn.RemoteAddr().String(), s.path, s.enabled)
+
 	if !s.enabled {
 		s.redir.Redirect(&redirector.Redirection{
 			InboundConn: conn,
 			RedirectTo:  s.redirAddr,
 		})
+		_ = tracker.Error(common.NewError("websocket is disabled"))
 		return nil, common.NewError("websocket is disabled. redirecting http request from " + conn.RemoteAddr().String())
 	}
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
@@ -79,6 +88,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 			InboundConn: conn,
 			RedirectTo:  s.redirAddr,
 		})
+		_ = tracker.Error(err)
 		return nil, common.NewError("not a valid http request: " + conn.RemoteAddr().String()).Base(err)
 	}
 	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" || req.URL.Path != s.path {
@@ -93,6 +103,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 			InboundConn: conn,
 			RedirectTo:  s.redirAddr,
 		})
+		_ = tracker.Error(common.NewError("not a valid websocket handshake"))
 		return nil, common.NewError("not a valid websocket handshake request: " + conn.RemoteAddr().String()).Base(err)
 	}
 
@@ -113,18 +124,18 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 			wsConn = conn                              // store the websocket after handshaking
 			wsConn.PayloadType = websocket.BinaryFrame // treat it as a binary websocket
 
-			log.Debug("websocket obtained")
+			log.Debugf("[WebSocket] [conn=%s] Handshake completed, protocol=%s",
+				tracker.ConnID(), req.Header.Get("Upgrade"))
 			select {
 			case handshake <- struct{}{}:
 			default:
 			}
-			// this function SHOULD NOT return unless the connection is ended
-			// or the websocket will be closed by ServeHTTP method
 			<-ctx.Done()
-			log.Debug("websocket closed")
+			log.Debugf("[WebSocket] [conn=%s] Connection closed", tracker.ConnID())
 		},
 		Handshake: func(wsConfig *websocket.Config, httpRequest *http.Request) error {
-			log.Debug("websocket url", httpRequest.URL.String(), httpRequest.Header.Get("Origin"))
+			log.Debugf("[WebSocket] [conn=%s] Handshake request: url=%s, origin=%s",
+				tracker.ConnID(), httpRequest.URL.String(), httpRequest.Header.Get("Origin"))
 			return nil
 		},
 	}
@@ -145,16 +156,19 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	if wsConn == nil {
 		cancel()
 		conn.Close()
+		_ = tracker.Error(common.NewError("websocket failed to handshake"))
 		return nil, common.NewError("websocket failed to handshake")
 	}
 
+	_ = tracker.Success()
 	return &InboundConn{
 		OutboundConn: OutboundConn{
 			tcpConn: conn,
 			Conn:    wsConn,
 		},
-		ctx:    ctx,
-		cancel: cancel,
+		ctx:     ctx,
+		cancel:  cancel,
+		tracker: tracker,
 	}, nil
 }
 

@@ -167,17 +167,29 @@ func (c *Client) Route(address *tunnel.Address) int {
 }
 
 func (c *Client) DialConn(address *tunnel.Address, overlay tunnel.Tunnel) (tunnel.Conn, error) {
+	tracker := log.NewConnectionTracker("Router", "DialConn").
+		WithField("target", address.String())
+
 	policy := c.Route(address)
 	switch policy {
 	case Proxy:
-		return c.underlay.DialConn(address, overlay)
+		conn, err := c.underlay.DialConn(address, overlay)
+		if err != nil {
+			_ = tracker.Error(err)
+			return nil, err
+		}
+		_ = tracker.Success()
+		return conn, nil
 	case Block:
+		_ = tracker.Error(common.NewError("blocked"))
 		return nil, common.NewError("router blocked address: " + address.String())
 	case Bypass:
 		conn, err := c.direct.DialConn(address, &Tunnel{})
 		if err != nil {
+			_ = tracker.Error(err)
 			return nil, common.NewError("router dial error").Base(err)
 		}
+		_ = tracker.Success()
 		return &transport.Conn{
 			Conn: conn,
 		}, nil
@@ -186,14 +198,21 @@ func (c *Client) DialConn(address *tunnel.Address, overlay tunnel.Tunnel) (tunne
 }
 
 func (c *Client) DialPacket(overlay tunnel.Tunnel) (tunnel.PacketConn, error) {
+	tracker := log.NewConnectionTracker("Router", "DialPacket").
+		WithField("protocol", "udp")
+
 	directConn, err := net.ListenPacket("udp", "")
 	if err != nil {
+		_ = tracker.Error(err)
 		return nil, common.NewError("router failed to dial udp (direct)").Base(err)
 	}
 	proxy, err := c.underlay.DialPacket(overlay)
 	if err != nil {
+		_ = tracker.Error(err)
 		return nil, common.NewError("router failed to dial udp (proxy)").Base(err)
 	}
+	_ = tracker.Success()
+
 	ctx, cancel := context.WithCancel(c.ctx)
 	conn := &PacketConn{
 		Client:     c,
@@ -202,6 +221,7 @@ func (c *Client) DialPacket(overlay tunnel.Tunnel) (tunnel.PacketConn, error) {
 		cancel:     cancel,
 		ctx:        ctx,
 		packetChan: make(chan *packetInfo, 16),
+		tracker:    tracker,
 	}
 	conn.packetLoop()
 	return conn, nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 
+	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"golang.org/x/net/websocket"
 )
@@ -33,8 +34,9 @@ func (c *OutboundConn) Close() error {
 
 type InboundConn struct {
 	OutboundConn
-	ctx    context.Context
-	cancel context.CancelFunc
+	ctx     context.Context
+	cancel  context.CancelFunc
+	tracker *log.ConnectionTracker
 }
 
 func (c *InboundConn) Close() error {
