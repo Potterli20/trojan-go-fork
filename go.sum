@@ -4,8 +4,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20260608200341-99cbd1f518ff h1:N4lC
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260608200341-99cbd1f518ff/go.mod h1:tjxm8bspe8mPWH7o6N4jgMePba1fWx1w7CLa99r/rR4=
 github.com/Potterli20/golem v0.0.0-20260701092649-de2ff7284b53 h1:+AUyrqYuXgff7ZV8xG52Oy9IzVsKp25OjUbj9rPSGV0=
 github.com/Potterli20/golem v0.0.0-20260701092649-de2ff7284b53/go.mod h1:RxdQ6TCaGk8IQ/srIslxn56iNICOCeh+ZxCnHZmluHE=
-github.com/Potterli20/socks5-fork v0.0.0-20260701042623-86f31c58d2ea h1:Wy9iw8HLiLF2nUkHp4U8WAkX6xava6SaE6uK1USjV7U=
-github.com/Potterli20/socks5-fork v0.0.0-20260701042623-86f31c58d2ea/go.mod h1:k7V1OWsRFRq6qyhT0UX2HBMxtbREUUZjS9yQNjLijWo=
+github.com/Potterli20/socks5-fork v0.0.0-20260701100112-bc3a987c8d1e h1:XcDvDIdvqdLgi5cr3iW8WgnyxVOCw23kjIXqrfDEY0Y=
+github.com/Potterli20/socks5-fork v0.0.0-20260701100112-bc3a987c8d1e/go.mod h1:4/znMOqsOESo7u9nR52itJpSp95lPGPLRknIDPBeChA=
 github.com/Potterli20/sqlite v0.0.0-20260626135637-1aefe32ef5ad h1:QBfe3BZ7gIEXv9sGprfhGtJ3EW+izDob7/slyl84tlw=
 github.com/Potterli20/sqlite v0.0.0-20260626135637-1aefe32ef5ad/go.mod h1:2zEeFtJ69rAeazNZb1EJtxfivZ8AXrqrUGTttNQDpvA=
 github.com/alicebob/miniredis/v2 v2.38.0 h1:nZAzCR+Lj+Vxk4ZXzm2NuKq2O33RXj1XxJ2e2uP9jiw=
@@ -86,8 +86,8 @@ github.com/jtolds/gls v4.20.0+incompatible h1:xdiiI2gbIgH/gLH7ADydsJ1uDOEzR8yvV7
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/juju/ratelimit v1.0.2 h1:sRxmtRiajbvrcLQT7S+JbqU0ntsb9W2yhSdNN8tWfaI=
 github.com/juju/ratelimit v1.0.2/go.mod h1:qapgC/Gy+xNh9UxzV13HGGl/6UXNN+ct+vwSgWNm/qk=
-github.com/klauspost/compress v1.18.7 h1:aUyZsS4kH3QTKurYhAOwAHxllVPnOthb3vPfnF1Ehjw=
-github.com/klauspost/compress v1.18.7/go.mod h1:cwPg85FWrGar70rWktvGQj8/hthj3wpl0PGDogxkrSQ=
+github.com/klauspost/compress v1.19.0 h1:sXLILfc9jV2QYWkzFOPWStmcUVH2RHEB1JCdY2oVvCQ=
+github.com/klauspost/compress v1.19.0/go.mod h1:cwPg85FWrGar70rWktvGQj8/hthj3wpl0PGDogxkrSQ=
 github.com/klauspost/cpuid/v2 v2.4.0 h1:S6Hrbc7+ywsr0r+RLapfGBHfyefhCTwEh3A0tV913Dw=
 github.com/klauspost/cpuid/v2 v2.4.0/go.mod h1:19jmZ9mjzoF//ddRSUsv0zfBTJWh3QJh9FNxZTMrGxU=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
