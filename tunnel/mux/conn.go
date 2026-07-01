@@ -111,5 +111,8 @@ func (c *Conn) Write(p []byte) (int, error) {
 }
 
 func (c *Conn) Close() error {
+	if c.tracker != nil {
+		c.tracker.Destroy("closed", 0, 0)
+	}
 	return c.rwc.Close()
 }

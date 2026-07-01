@@ -41,6 +41,9 @@ type InboundConn struct {
 
 func (c *InboundConn) Close() error {
 	c.cancel()
+	if c.tracker != nil {
+		c.tracker.Destroy("closed", 0, 0)
+	}
 	err := c.Conn.Close()
 	if c.tcpConn != nil {
 		c.tcpConn.Close()

@@ -103,6 +103,9 @@ func (c *PacketConn) Close() error {
 	c.cancel()
 	c.wg.Wait()
 	c.proxy.Close()
+	if c.tracker != nil {
+		c.tracker.Destroy("closed", 0, 0)
+	}
 	return c.PacketConn.Close()
 }
 

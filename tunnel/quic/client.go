@@ -190,6 +190,9 @@ func (c *StreamConn) Write(p []byte) (int, error) {
 }
 
 func (c *StreamConn) Close() error {
+	if c.tracker != nil {
+		c.tracker.Destroy("closed", 0, 0)
+	}
 	return (*c.Stream).Close()
 }
 
@@ -239,6 +242,9 @@ func (c *PacketConn) ReadWithMetadata(p []byte) (int, *tunnel.Metadata, error) {
 }
 
 func (c *PacketConn) Close() error {
+	if c.tracker != nil {
+		c.tracker.Destroy("closed", 0, 0)
+	}
 	return nil
 }
 
