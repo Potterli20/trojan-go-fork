@@ -29,7 +29,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/Potterli20/golem v0.0.0-20260702190723-e24f9fcc5841 // indirect
+	github.com/Potterli20/golem v0.0.0-20260705083843-81d62e61fd23 // indirect
 	github.com/andybalholm/brotli v1.2.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
