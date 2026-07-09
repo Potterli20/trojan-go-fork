@@ -18,7 +18,7 @@ require (
 	github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b
 	github.com/xtls/xray-core v1.260327.1-0.20260708175919-1aabe7ea78ec
 	golang.org/x/crypto v0.54.0
-	golang.org/x/net v0.56.0
+	golang.org/x/net v0.57.0
 	golang.org/x/term v0.45.0
 	golang.org/x/time v0.15.0
 	google.golang.org/grpc v1.82.0
