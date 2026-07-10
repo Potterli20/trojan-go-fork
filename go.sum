@@ -4,8 +4,8 @@ github.com/Potterli20/go-shadowsocks2 v0.0.0-20260708215916-5f8ee73c229e h1:SVUR
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260708215916-5f8ee73c229e/go.mod h1:CdU1VMXAU+rAXbdO/MkRBJM7iDcLCNuob9krn/ZT9Ts=
 github.com/Potterli20/golem v0.0.0-20260710135518-781b652db45d h1:UMTcTNJmvHQmJr8ruLgFs8cnKx+bxHan+t8WscFjjCE=
 github.com/Potterli20/golem v0.0.0-20260710135518-781b652db45d/go.mod h1:ujYd4s4Fupk+/TtQI5yu+yGmNJ/7q3zsZMUbeISGsTU=
-github.com/Potterli20/socks5-fork v0.0.0-20260710094632-cdc75e1ff9c1 h1:0CiHl3xHAoTgUrc1zXm1mj9cPe1YPTKauaIi1/FGyig=
-github.com/Potterli20/socks5-fork v0.0.0-20260710094632-cdc75e1ff9c1/go.mod h1:dCKeOoQ8Szd3ZiSFISsFG4/AoNTMAZGOyAJzbFcXcXU=
+github.com/Potterli20/socks5-fork v0.0.0-20260710170204-11edf57c2479 h1:WXbaueFi6hkpTxjDqHE4t3q4KoIss+WyEl3MyWe/2KQ=
+github.com/Potterli20/socks5-fork v0.0.0-20260710170204-11edf57c2479/go.mod h1:8oxMPSB3i63OL8A4JMvdR+TcmRmDWPXOUr2khZK7YYg=
 github.com/Potterli20/sqlite v0.0.0-20260708190232-005038f45402 h1:pjPAVtwwKWXyHkhvBXLGe1fzG8cLviJz7aN+UcQPM4Q=
 github.com/Potterli20/sqlite v0.0.0-20260708190232-005038f45402/go.mod h1:NyrF/6Re5oYHE0vK8A8rx6ZNPNvzxcYWWhCZG6fSM/M=
 github.com/alicebob/miniredis/v2 v2.38.0 h1:nZAzCR+Lj+Vxk4ZXzm2NuKq2O33RXj1XxJ2e2uP9jiw=
@@ -137,8 +137,8 @@ github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr8meMVVGxhp+QBTqY91tM8HjEuMjGg=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3/go.mod h1:HgjTstvQsPGkxUsCd2KWxErBblirPizecHcpD3ffK+s=
-github.com/rogpeppe/go-internal v1.14.1 h1:UQB4HGPB6osV0SQTLymcB4TgvyWu6ZyliaW0tI/otEQ=
-github.com/rogpeppe/go-internal v1.14.1/go.mod h1:MaRKkUm5W0goXpeCfT7UZI6fk/L7L7so1lCWt35ZSgc=
+github.com/rogpeppe/go-internal v1.10.0 h1:TMyTOH3F/DB16zRVcYyreMH6GnZZrwQVAoYjRBZyWFQ=
+github.com/rogpeppe/go-internal v1.10.0/go.mod h1:UQnix2H7Ngw/k4C5ijL5+65zddjncjaFoBhdsK/akog=
 github.com/shirou/gopsutil/v4 v4.26.6 h1:Mzr/npDtQC/xpeEuQKHZt8Zo9CmPvhTj8nkR8w5TLDs=
 github.com/shirou/gopsutil/v4 v4.26.6/go.mod h1:LZ6ewCSkBqUpvSOf+LsTGnRinC6iaNUNMGBtDkJBaLQ=
 github.com/smarty/assertions v1.15.1 h1:812oFiXI+G55vxsFf+8bIZ1ux30qtkdqzKbEFwyX3Tk=
