@@ -20,6 +20,8 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
 )
 
+const serveHTTPGracePeriod = 3 * time.Second
+
 type handshakeState int
 
 const (
@@ -33,7 +35,6 @@ const (
 type handshakeManager struct {
 	state     handshakeState
 	stateChan chan handshakeState
-	done      chan struct{}
 	mutex     sync.RWMutex
 }
 
@@ -41,7 +42,6 @@ func newHandshakeManager() *handshakeManager {
 	return &handshakeManager{
 		state:     handshakeStateIdle,
 		stateChan: make(chan handshakeState, 1),
-		done:      make(chan struct{}),
 	}
 }
 
@@ -74,14 +74,8 @@ func (hm *handshakeManager) waitCompletedOrTimeout(timeout time.Duration) handsh
 		case <-timer.C:
 			hm.setState(handshakeStateTimeout)
 			return handshakeStateTimeout
-		case <-hm.done:
-			return hm.getState()
 		}
 	}
-}
-
-func (hm *handshakeManager) close() {
-	close(hm.done)
 }
 
 // Fake response writer
@@ -129,12 +123,6 @@ func (s *Server) cleanupFailedHandshake(conn tunnel.Conn, tracker *log.Connectio
 		InboundConn: conn,
 		RedirectTo:  s.redirAddr,
 	})
-	return err
-}
-
-func (s *Server) cleanupHandshakeFailure(conn tunnel.Conn, tracker *log.ConnectionTracker, err error) error {
-	_ = tracker.Error(err)
-	conn.Close()
 	return err
 }
 
@@ -234,8 +222,11 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		log.Warnf("[WebSocket] [conn=%s] Handshake failed with state: %d", tracker.ConnID(), finalState)
 
 		cancel()
-		<-serveHTTPDone
-		handshakeMgr.close()
+		select {
+		case <-serveHTTPDone:
+		case <-time.After(serveHTTPGracePeriod):
+			log.Warnf("[WebSocket] [conn=%s] ServeHTTP goroutine did not complete in time after handshake failure", tracker.ConnID())
+		}
 
 		var err error
 		if finalState == handshakeStateTimeout {
@@ -243,7 +234,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		} else {
 			err = common.NewError("websocket failed to handshake")
 		}
-		return nil, s.cleanupHandshakeFailure(conn, tracker, err)
+		return nil, s.cleanupFailedHandshake(conn, tracker, err)
 	}
 
 	_ = tracker.Success()
