@@ -20,6 +20,70 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
 )
 
+type handshakeState int
+
+const (
+	handshakeStateIdle handshakeState = iota
+	handshakeStateInProgress
+	handshakeStateCompleted
+	handshakeStateFailed
+	handshakeStateTimeout
+)
+
+type handshakeManager struct {
+	state     handshakeState
+	stateChan chan handshakeState
+	done      chan struct{}
+	mutex     sync.RWMutex
+}
+
+func newHandshakeManager() *handshakeManager {
+	return &handshakeManager{
+		state:     handshakeStateIdle,
+		stateChan: make(chan handshakeState, 1),
+		done:      make(chan struct{}),
+	}
+}
+
+func (hm *handshakeManager) setState(state handshakeState) {
+	hm.mutex.Lock()
+	defer hm.mutex.Unlock()
+	hm.state = state
+	select {
+	case hm.stateChan <- state:
+	default:
+	}
+}
+
+func (hm *handshakeManager) getState() handshakeState {
+	hm.mutex.RLock()
+	defer hm.mutex.RUnlock()
+	return hm.state
+}
+
+func (hm *handshakeManager) waitCompletedOrTimeout(timeout time.Duration) handshakeState {
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+
+	for {
+		select {
+		case state := <-hm.stateChan:
+			if state == handshakeStateCompleted || state == handshakeStateFailed {
+				return state
+			}
+		case <-timer.C:
+			hm.setState(handshakeStateTimeout)
+			return handshakeStateTimeout
+		case <-hm.done:
+			return hm.getState()
+		}
+	}
+}
+
+func (hm *handshakeManager) close() {
+	close(hm.done)
+}
+
 // Fake response writer
 // Websocket ServeHTTP method uses Hijack method to get the ReadWriter
 type fakeHTTPResponseWriter struct {
@@ -53,6 +117,21 @@ func (s *Server) Close() error {
 	return s.underlay.Close()
 }
 
+func (s *Server) cleanupFailedHandshake(conn tunnel.Conn, tracker *log.ConnectionTracker, err error) error {
+	if transportConn, ok := conn.(*transport.Conn); ok {
+		if rewindConn, ok := transportConn.Conn.(*common.RewindConn); ok {
+			rewindConn.Rewind()
+			rewindConn.StopBuffering()
+		}
+	}
+	_ = tracker.Error(err)
+	s.redir.Redirect(&redirector.Redirection{
+		InboundConn: conn,
+		RedirectTo:  s.redirAddr,
+	})
+	return err
+}
+
 func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	conn, err := s.underlay.AcceptConn(&Tunnel{})
 	if err != nil {
@@ -67,47 +146,24 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		tracker.ConnID(), conn.RemoteAddr().String(), s.path, s.enabled)
 
 	if !s.enabled {
-		s.redir.Redirect(&redirector.Redirection{
-			InboundConn: conn,
-			RedirectTo:  s.redirAddr,
-		})
-		_ = tracker.Error(common.NewError("websocket is disabled"))
-		return nil, common.NewError("websocket is disabled. redirecting http request from " + conn.RemoteAddr().String())
+		err := common.NewError("websocket is disabled. redirecting http request from " + conn.RemoteAddr().String())
+		return nil, s.cleanupFailedHandshake(conn, tracker, err)
 	}
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
 	req, err := http.ReadRequest(rw.Reader)
 	if err != nil {
 		log.Debug("invalid http request")
-		if transportConn, ok := conn.(*transport.Conn); ok {
-			if rewindConn, ok := transportConn.Conn.(*common.RewindConn); ok {
-				rewindConn.Rewind()
-				rewindConn.StopBuffering()
-			}
-		}
-		s.redir.Redirect(&redirector.Redirection{
-			InboundConn: conn,
-			RedirectTo:  s.redirAddr,
-		})
-		_ = tracker.Error(err)
-		return nil, common.NewError("not a valid http request: " + conn.RemoteAddr().String()).Base(err)
+		err = common.NewError("not a valid http request: " + conn.RemoteAddr().String()).Base(err)
+		return nil, s.cleanupFailedHandshake(conn, tracker, err)
 	}
 	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" || req.URL.Path != s.path {
 		log.Debug("invalid http websocket handshake request")
-		if transportConn, ok := conn.(*transport.Conn); ok {
-			if rewindConn, ok := transportConn.Conn.(*common.RewindConn); ok {
-				rewindConn.Rewind()
-				rewindConn.StopBuffering()
-			}
-		}
-		s.redir.Redirect(&redirector.Redirection{
-			InboundConn: conn,
-			RedirectTo:  s.redirAddr,
-		})
-		_ = tracker.Error(common.NewError("not a valid websocket handshake"))
-		return nil, common.NewError("not a valid websocket handshake request: " + conn.RemoteAddr().String()).Base(err)
+		err = common.NewError("not a valid websocket handshake request: " + conn.RemoteAddr().String()).Base(err)
+		return nil, s.cleanupFailedHandshake(conn, tracker, err)
 	}
 
-	handshake := make(chan struct{}, 1)
+	handshakeMgr := newHandshakeManager()
+	handshakeMgr.setState(handshakeStateInProgress)
 
 	url := "wss://" + s.hostname + s.path
 	origin := "https://" + s.hostname
@@ -121,15 +177,21 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	wsServer := websocket.Server{
 		Config: *wsConfig,
 		Handler: func(conn *websocket.Conn) {
-			wsConn = conn                              // store the websocket after handshaking
-			wsConn.PayloadType = websocket.BinaryFrame // treat it as a binary websocket
+			defer func() {
+				if r := recover(); r != nil {
+					log.Errorf("[WebSocket] [conn=%s] Handler panic: %v", tracker.ConnID(), r)
+					handshakeMgr.setState(handshakeStateFailed)
+				}
+			}()
+
+			wsConn = conn
+			wsConn.PayloadType = websocket.BinaryFrame
 
 			log.Debugf("[WebSocket] [conn=%s] Handshake completed, protocol=%s",
 				tracker.ConnID(), req.Header.Get("Upgrade"))
-			select {
-			case handshake <- struct{}{}:
-			default:
-			}
+
+			handshakeMgr.setState(handshakeStateCompleted)
+
 			<-ctx.Done()
 			log.Debugf("[WebSocket] [conn=%s] Connection closed", tracker.ConnID())
 		},
@@ -144,20 +206,36 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		Conn:       conn,
 		ReadWriter: rw,
 	}
+
 	s.wg.Go(func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Errorf("[WebSocket] [conn=%s] ServeHTTP panic: %v", tracker.ConnID(), r)
+				if handshakeMgr.getState() == handshakeStateInProgress {
+					handshakeMgr.setState(handshakeStateFailed)
+				}
+			}
+		}()
 		wsServer.ServeHTTP(respWriter, req)
 	})
 
-	select {
-	case <-handshake:
-	case <-time.After(s.timeout):
-	}
+	finalState := handshakeMgr.waitCompletedOrTimeout(s.timeout)
 
-	if wsConn == nil {
+	if finalState != handshakeStateCompleted {
+		log.Warnf("[WebSocket] [conn=%s] Handshake failed with state: %d", tracker.ConnID(), finalState)
+
 		cancel()
 		conn.Close()
-		_ = tracker.Error(common.NewError("websocket failed to handshake"))
-		return nil, common.NewError("websocket failed to handshake")
+		handshakeMgr.close()
+
+		var err error
+		if finalState == handshakeStateTimeout {
+			err = common.NewError("websocket handshake timeout")
+		} else {
+			err = common.NewError("websocket failed to handshake")
+		}
+		_ = tracker.Error(err)
+		return nil, err
 	}
 
 	_ = tracker.Success()
