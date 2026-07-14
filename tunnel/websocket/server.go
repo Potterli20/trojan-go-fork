@@ -132,6 +132,12 @@ func (s *Server) cleanupFailedHandshake(conn tunnel.Conn, tracker *log.Connectio
 	return err
 }
 
+func (s *Server) cleanupHandshakeFailure(conn tunnel.Conn, tracker *log.ConnectionTracker, err error) error {
+	_ = tracker.Error(err)
+	conn.Close()
+	return err
+}
+
 func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	conn, err := s.underlay.AcceptConn(&Tunnel{})
 	if err != nil {
@@ -207,6 +213,8 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		ReadWriter: rw,
 	}
 
+	serveHTTPDone := make(chan struct{})
+
 	s.wg.Go(func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -215,6 +223,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 					handshakeMgr.setState(handshakeStateFailed)
 				}
 			}
+			close(serveHTTPDone)
 		}()
 		wsServer.ServeHTTP(respWriter, req)
 	})
@@ -225,7 +234,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		log.Warnf("[WebSocket] [conn=%s] Handshake failed with state: %d", tracker.ConnID(), finalState)
 
 		cancel()
-		conn.Close()
+		<-serveHTTPDone
 		handshakeMgr.close()
 
 		var err error
@@ -234,8 +243,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		} else {
 			err = common.NewError("websocket failed to handshake")
 		}
-		_ = tracker.Error(err)
-		return nil, err
+		return nil, s.cleanupHandshakeFailure(conn, tracker, err)
 	}
 
 	_ = tracker.Success()
