@@ -6,8 +6,8 @@ github.com/Potterli20/golem v0.0.0-20260717013028-729309461039 h1:rqksOWcy9yqtCS
 github.com/Potterli20/golem v0.0.0-20260717013028-729309461039/go.mod h1:fsKu5leNLMJGYotMvZjsvYDLXTLz8CimHG4+rSDGwRA=
 github.com/Potterli20/socks5-fork v0.0.0-20260717081936-ac08b466cbd8 h1:i9IL1XTEaoyHQPssJoBt+Iq3Ab0n2fovO8swqC36EUw=
 github.com/Potterli20/socks5-fork v0.0.0-20260717081936-ac08b466cbd8/go.mod h1:sfRzLuCeMyycFRmfg8GGk2nvcrc5aV1V0YRPZymoNTQ=
-github.com/Potterli20/sqlite v0.0.0-20260717160557-4bdb603c4bbc h1:GZGn5FImDQJCX3m+nTUYKYzOBr/DueAGkYC6P9sf5rM=
-github.com/Potterli20/sqlite v0.0.0-20260717160557-4bdb603c4bbc/go.mod h1:Rd8Y6jQ062RC9r2C9HAisS0MJ8UdjzTyvzcEqzTdHYs=
+github.com/Potterli20/sqlite v0.0.0-20260717184941-2dc76a39cc60 h1:EJldtQQ5Y15m1ndKNCussFiRufoZ/ZMN3VJzgdvKIAI=
+github.com/Potterli20/sqlite v0.0.0-20260717184941-2dc76a39cc60/go.mod h1:Rd8Y6jQ062RC9r2C9HAisS0MJ8UdjzTyvzcEqzTdHYs=
 github.com/alicebob/miniredis/v2 v2.38.0 h1:nZAzCR+Lj+Vxk4ZXzm2NuKq2O33RXj1XxJ2e2uP9jiw=
 github.com/alicebob/miniredis/v2 v2.38.0/go.mod h1:TcL7YfarKPGDAthEtl5NBeHZfeUQj6OXMm/+iu5cLMM=
 github.com/andybalholm/brotli v1.2.2 h1:HzTuoo2ErYQqf5qvcJInB8uvqSVxRttzkFexPWtnceM=
@@ -161,8 +161,8 @@ github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b h1:7bFUKsVEo0LmiYfbE
 github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f h1:iy2JRioxmUpoJ3SzbFPyTxHZMbR/rSHP7dOOgYaq1O8=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f/go.mod h1:DsJblcWDGt76+FVqBVwbwRhxyyNJsGV48gJLch0OOWI=
-github.com/xtls/xray-core v1.260327.1-0.20260716211746-bcaf40a82e19 h1:xhC1QFKa8pdSd2a9QvHACE2DYNPwuBqT6G1bpYzYoAI=
-github.com/xtls/xray-core v1.260327.1-0.20260716211746-bcaf40a82e19/go.mod h1:wukQoBGnQ6GaLTGuKwv8rCTgf80QxPj+6iznDZHQEWo=
+github.com/xtls/xray-core v1.260327.1-0.20260717222851-6e3322d21914 h1:0CsKmqovoq9ozr7kfcfbuqCPMY9RDJcW9Q2M4kcGEEE=
+github.com/xtls/xray-core v1.260327.1-0.20260717222851-6e3322d21914/go.mod h1:wukQoBGnQ6GaLTGuKwv8rCTgf80QxPj+6iznDZHQEWo=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/yuin/gopher-lua v1.1.1 h1:kYKnWBjvbNP4XLT3+bPEwAXJx262OhaHDWDVOPjL46M=
