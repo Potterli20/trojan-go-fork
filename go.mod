@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260708215916-5f8ee73c229e
-	github.com/Potterli20/socks5-fork v0.0.0-20260723104018-d5eca5ed3e0f
+	github.com/Potterli20/socks5-fork v0.0.0-20260723111505-af25ada5b6aa
 	github.com/Potterli20/sqlite v0.0.0-20260719213909-4e7533c6db8d
 	github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716
 	github.com/database64128/tfo-go/v2 v2.3.4-0.20260716044210-55f7f3554906
