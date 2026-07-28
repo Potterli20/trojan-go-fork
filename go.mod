@@ -12,7 +12,7 @@ require (
 	github.com/database64128/tfo-go/v2 v2.3.4-0.20260716044210-55f7f3554906
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
-	github.com/refraction-networking/utls v1.8.3-0.20260623165621-880e27d8b0e5
+	github.com/refraction-networking/utls v1.8.3-0.20260728190431-ffd9d0fc0410
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.11.1
 	github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b
