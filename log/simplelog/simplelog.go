@@ -27,11 +27,9 @@ func (l *SimpleLogger) Fatal(v ...any) {
 	}
 	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		// codeql-ignore-line - input is sanitized via SanitizeLogInput
-		l.logger.Fatalln(sanitized...)
+		l.logger.Fatalln(sanitized...) // codeql-ignore-line
 	} else {
-		// codeql-ignore-line - input is sanitized via SanitizeLogInput
-		golog.Fatalln(sanitized...)
+		golog.Fatalln(sanitized...) // codeql-ignore-line
 	}
 }
 
@@ -42,11 +40,9 @@ func (l *SimpleLogger) Fatalf(format string, v ...any) {
 	sanitizedFormat := log.SanitizeString(format)
 	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-		l.logger.Fatalf(sanitizedFormat, sanitized...)
+		l.logger.Fatalf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	} else {
-		// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-		golog.Fatalf(sanitizedFormat, sanitized...)
+		golog.Fatalf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	}
 }
 
@@ -56,11 +52,9 @@ func (l *SimpleLogger) Error(v ...any) {
 	}
 	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		// codeql-ignore-line - input is sanitized via SanitizeLogInput
-		l.logger.Println(sanitized...)
+		l.logger.Println(sanitized...) // codeql-ignore-line
 	} else {
-		// codeql-ignore-line - input is sanitized via SanitizeLogInput
-		golog.Println(sanitized...)
+		golog.Println(sanitized...) // codeql-ignore-line
 	}
 }
 
@@ -71,11 +65,9 @@ func (l *SimpleLogger) Errorf(format string, v ...any) {
 	sanitizedFormat := log.SanitizeString(format)
 	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-		l.logger.Printf(sanitizedFormat, sanitized...)
+		l.logger.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	} else {
-		// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-		golog.Printf(sanitizedFormat, sanitized...)
+		golog.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	}
 }
 
@@ -85,11 +77,9 @@ func (l *SimpleLogger) Warn(v ...any) {
 	}
 	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		// codeql-ignore-line - input is sanitized via SanitizeLogInput
-		l.logger.Println(sanitized...)
+		l.logger.Println(sanitized...) // codeql-ignore-line
 	} else {
-		// codeql-ignore-line - input is sanitized via SanitizeLogInput
-		golog.Println(sanitized...)
+		golog.Println(sanitized...) // codeql-ignore-line
 	}
 }
 
@@ -100,11 +90,9 @@ func (l *SimpleLogger) Warnf(format string, v ...any) {
 	sanitizedFormat := log.SanitizeString(format)
 	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-		l.logger.Printf(sanitizedFormat, sanitized...)
+		l.logger.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	} else {
-		// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-		golog.Printf(sanitizedFormat, sanitized...)
+		golog.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	}
 }
 
@@ -114,11 +102,9 @@ func (l *SimpleLogger) Info(v ...any) {
 	}
 	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		// codeql-ignore-line - input is sanitized via SanitizeLogInput
-		l.logger.Println(sanitized...)
+		l.logger.Println(sanitized...) // codeql-ignore-line
 	} else {
-		// codeql-ignore-line - input is sanitized via SanitizeLogInput
-		golog.Println(sanitized...)
+		golog.Println(sanitized...) // codeql-ignore-line
 	}
 }
 
@@ -129,11 +115,9 @@ func (l *SimpleLogger) Infof(format string, v ...any) {
 	sanitizedFormat := log.SanitizeString(format)
 	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-		l.logger.Printf(sanitizedFormat, sanitized...)
+		l.logger.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	} else {
-		// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-		golog.Printf(sanitizedFormat, sanitized...)
+		golog.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	}
 }
 
@@ -143,11 +127,9 @@ func (l *SimpleLogger) Debug(v ...any) {
 	}
 	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		// codeql-ignore-line - input is sanitized via SanitizeLogInput
-		l.logger.Println(sanitized...)
+		l.logger.Println(sanitized...) // codeql-ignore-line
 	} else {
-		// codeql-ignore-line - input is sanitized via SanitizeLogInput
-		golog.Println(sanitized...)
+		golog.Println(sanitized...) // codeql-ignore-line
 	}
 }
 
@@ -158,11 +140,9 @@ func (l *SimpleLogger) Debugf(format string, v ...any) {
 	sanitizedFormat := log.SanitizeString(format)
 	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-		l.logger.Printf(sanitizedFormat, sanitized...)
+		l.logger.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	} else {
-		// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-		golog.Printf(sanitizedFormat, sanitized...)
+		golog.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	}
 }
 
@@ -172,11 +152,9 @@ func (l *SimpleLogger) Trace(v ...any) {
 	}
 	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		// codeql-ignore-line - input is sanitized via SanitizeLogInput
-		l.logger.Println(sanitized...)
+		l.logger.Println(sanitized...) // codeql-ignore-line
 	} else {
-		// codeql-ignore-line - input is sanitized via SanitizeLogInput
-		golog.Println(sanitized...)
+		golog.Println(sanitized...) // codeql-ignore-line
 	}
 }
 
@@ -187,11 +165,9 @@ func (l *SimpleLogger) Tracef(format string, v ...any) {
 	sanitizedFormat := log.SanitizeString(format)
 	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-		l.logger.Printf(sanitizedFormat, sanitized...)
+		l.logger.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	} else {
-		// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-		golog.Printf(sanitizedFormat, sanitized...)
+		golog.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	}
 }
 

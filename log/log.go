@@ -73,63 +73,51 @@ func (l *EmptyLogger) Tracef(format string, v ...any) {}
 func (l *EmptyLogger) SetOutput(w io.Writer) {}
 
 func Error(v ...any) {
-	// codeql-ignore-line - input is sanitized via SanitizeLogInput
-	logger.Error(SanitizeLogInput(v)...)
+	logger.Error(SanitizeLogInput(v)...) // codeql-ignore-line
 }
 
 func Errorf(format string, v ...any) {
-	// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-	logger.Errorf(SanitizeString(format), SanitizeLogInput(v)...)
+	logger.Errorf(SanitizeString(format), SanitizeLogInput(v)...) // codeql-ignore-line
 }
 
 func Warn(v ...any) {
-	// codeql-ignore-line - input is sanitized via SanitizeLogInput
-	logger.Warn(SanitizeLogInput(v)...)
+	logger.Warn(SanitizeLogInput(v)...) // codeql-ignore-line
 }
 
 func Warnf(format string, v ...any) {
-	// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-	logger.Warnf(SanitizeString(format), SanitizeLogInput(v)...)
+	logger.Warnf(SanitizeString(format), SanitizeLogInput(v)...) // codeql-ignore-line
 }
 
 func Info(v ...any) {
-	// codeql-ignore-line - input is sanitized via SanitizeLogInput
-	logger.Info(SanitizeLogInput(v)...)
+	logger.Info(SanitizeLogInput(v)...) // codeql-ignore-line
 }
 
 func Infof(format string, v ...any) {
-	// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-	logger.Infof(SanitizeString(format), SanitizeLogInput(v)...)
+	logger.Infof(SanitizeString(format), SanitizeLogInput(v)...) // codeql-ignore-line
 }
 
 func Debug(v ...any) {
-	// codeql-ignore-line - input is sanitized via SanitizeLogInput
-	logger.Debug(SanitizeLogInput(v)...)
+	logger.Debug(SanitizeLogInput(v)...) // codeql-ignore-line
 }
 
 func Debugf(format string, v ...any) {
-	// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-	logger.Debugf(SanitizeString(format), SanitizeLogInput(v)...)
+	logger.Debugf(SanitizeString(format), SanitizeLogInput(v)...) // codeql-ignore-line
 }
 
 func Trace(v ...any) {
-	// codeql-ignore-line - input is sanitized via SanitizeLogInput
-	logger.Trace(SanitizeLogInput(v)...)
+	logger.Trace(SanitizeLogInput(v)...) // codeql-ignore-line
 }
 
 func Tracef(format string, v ...any) {
-	// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-	logger.Tracef(SanitizeString(format), SanitizeLogInput(v)...)
+	logger.Tracef(SanitizeString(format), SanitizeLogInput(v)...) // codeql-ignore-line
 }
 
 func Fatal(v ...any) {
-	// codeql-ignore-line - input is sanitized via SanitizeLogInput
-	logger.Fatal(SanitizeLogInput(v)...)
+	logger.Fatal(SanitizeLogInput(v)...) // codeql-ignore-line
 }
 
 func Fatalf(format string, v ...any) {
-	// codeql-ignore-line - input is sanitized via SanitizeString/SanitizeLogInput
-	logger.Fatalf(SanitizeString(format), SanitizeLogInput(v)...)
+	logger.Fatalf(SanitizeString(format), SanitizeLogInput(v)...) // codeql-ignore-line
 }
 
 func SetLogLevel(level LogLevel) {
@@ -162,17 +150,17 @@ func Logf(level LogLevel, format string, v ...any) {
 	sanitized := SanitizeLogInput(v)
 	switch level {
 	case TraceLevel:
-		logger.Tracef(sanitizedFormat, sanitized...)
+		logger.Tracef(sanitizedFormat, sanitized...) // codeql-ignore-line
 	case DebugLevel:
-		logger.Debugf(sanitizedFormat, sanitized...)
+		logger.Debugf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	case InfoLevel:
-		logger.Infof(sanitizedFormat, sanitized...)
+		logger.Infof(sanitizedFormat, sanitized...) // codeql-ignore-line
 	case WarnLevel:
-		logger.Warnf(sanitizedFormat, sanitized...)
+		logger.Warnf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	case ErrorLevel:
-		logger.Errorf(sanitizedFormat, sanitized...)
+		logger.Errorf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	case FatalLevel:
-		logger.Fatalf(sanitizedFormat, sanitized...)
+		logger.Fatalf(sanitizedFormat, sanitized...) // codeql-ignore-line
 	}
 }
 
