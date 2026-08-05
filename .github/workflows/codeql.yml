@@ -1,29 +1,39 @@
-# For most projects, this workflow file will not need changing; you simply need
-# to commit it to your repository.
-#
-# You may wish to alter this file to override the set of languages analyzed,
-# or to provide custom queries or build logic.
-#
-# ******** NOTE ********
-# We have attempted to detect the languages in your repository. Please check
-# the `language` matrix defined below to confirm you have the correct set of
-# supported CodeQL languages.
-#
 name: "CodeQL"
 
 on:
   push:
     branches: [ "master" ]
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '**/go.mod'
+      - '**/go.sum'
+      - '.github/workflows/codeql.yml'
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ "master" ]
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '**/go.mod'
+      - '**/go.sum'
+      - '.github/workflows/codeql.yml'
   schedule:
     - cron: '0 2 * * 4' # 每周四凌晨 2 点
+  workflow_dispatch: # 支持手动触发调试
+
+# 取消同一分支的旧运行，节省资源
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
+    timeout-minutes: 60 # 防止扫描卡死占用 runner
     permissions:
       actions: read
       contents: read
@@ -40,6 +50,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@main
 
+    - name: Setup Go
+      uses: actions/setup-go@main
+      with:
+        go-version: '^1.26'
+        cache: true
+
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@main
@@ -51,8 +67,16 @@ jobs:
 
         # Details on CodeQL's query packs refer to : https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
         queries: +security-and-quality
-
-    # Removed invalid "Enable Copilot Autofix" step
+        config: |
+          paths-ignore:
+            - '**/vendor'
+            - '**/*_test.go'
+            - '**/testdata'
+            - '**/generated'
+          # 调优查询：可按需调整
+          # query-filters:
+          #   - exclude:
+          #       id: go/unused-return-value
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
@@ -72,4 +96,4 @@ jobs:
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@main
       with:
-        category: "/language:${{matrix.language}}"
+        category: "/language:${{ matrix.language }}"
