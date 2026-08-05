@@ -29,9 +29,8 @@ func (l *SimpleLogger) Fatal(v ...any) {
 	if l.logger != nil {
 		l.logger.Fatalln(sanitized...)
 	} else {
-		golog.Fatal(sanitized...)
+		golog.Fatalln(sanitized...)
 	}
-	os.Exit(1)
 }
 
 func (l *SimpleLogger) Fatalf(format string, v ...any) {
@@ -45,7 +44,6 @@ func (l *SimpleLogger) Fatalf(format string, v ...any) {
 	} else {
 		golog.Fatalf(sanitizedFormat, sanitized...)
 	}
-	os.Exit(1)
 }
 
 func (l *SimpleLogger) Error(v ...any) {
