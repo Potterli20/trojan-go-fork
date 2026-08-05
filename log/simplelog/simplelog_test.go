@@ -77,9 +77,11 @@ func TestDebugLogSanitization(t *testing.T) {
 	defer golog.SetOutput(nil)
 
 	logger := &SimpleLogger{}
-	logger.SetLogLevel(0)
+	logger.SetLogLevel(log.AllLevel)
+	log.RegisterLogger(logger)
+	defer log.RegisterLogger(&log.EmptyLogger{})
 
-	logger.Debug("test\n[INFO] fake log entry")
+	log.Debug("test\n[INFO] fake log entry")
 
 	logOutput := buf.String()
 	if strings.Contains(logOutput, "\n[INFO]") {

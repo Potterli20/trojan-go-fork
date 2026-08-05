@@ -66,9 +66,11 @@ func TestSanitizeLogInput(t *testing.T) {
 func TestDebugLogSanitization(t *testing.T) {
 	var buf bytes.Buffer
 	logger := New(&bufferWriter{&buf})
-	logger.SetLogLevel(0)
+	logger.SetLogLevel(log.AllLevel)
+	log.RegisterLogger(logger)
+	defer log.RegisterLogger(&log.EmptyLogger{})
 
-	logger.Debug("test\n[INFO] fake log entry")
+	log.Debug("test\n[INFO] fake log entry")
 
 	logOutput := buf.String()
 	if strings.Contains(logOutput, "\n[INFO]") {

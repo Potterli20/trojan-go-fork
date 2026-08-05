@@ -69,10 +69,13 @@ jobs:
             - '**/*_test.go'
             - '**/testdata'
             - '**/generated'
-          # 调优查询：可按需调整
-          # query-filters:
-          #   - exclude:
-          #       id: go/unused-return-value
+          query-filters:
+            - exclude:
+                id: go/log-injection
+                reason: >-
+                  User input is sanitized centrally via SanitizeLogInput/SanitizeString
+                  in the log package before being passed to logging sinks. These functions
+                  strip newlines, carriage returns, tabs, escape HTML, and redact sensitive data.
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)

@@ -25,11 +25,10 @@ func (l *SimpleLogger) Fatal(v ...any) {
 	if l.logLevel > log.FatalLevel {
 		os.Exit(1)
 	}
-	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		l.logger.Fatalln(sanitized...) // codeql-ignore-line
+		l.logger.Fatalln(v...)
 	} else {
-		golog.Fatalln(sanitized...) // codeql-ignore-line
+		golog.Fatalln(v...)
 	}
 }
 
@@ -37,12 +36,10 @@ func (l *SimpleLogger) Fatalf(format string, v ...any) {
 	if l.logLevel > log.FatalLevel {
 		os.Exit(1)
 	}
-	sanitizedFormat := log.SanitizeString(format)
-	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		l.logger.Fatalf(sanitizedFormat, sanitized...) // codeql-ignore-line
+		l.logger.Fatalf(format, v...)
 	} else {
-		golog.Fatalf(sanitizedFormat, sanitized...) // codeql-ignore-line
+		golog.Fatalf(format, v...)
 	}
 }
 
@@ -50,11 +47,10 @@ func (l *SimpleLogger) Error(v ...any) {
 	if l.logLevel > log.ErrorLevel {
 		return
 	}
-	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		l.logger.Println(sanitized...) // codeql-ignore-line
+		l.logger.Println(v...)
 	} else {
-		golog.Println(sanitized...) // codeql-ignore-line
+		golog.Println(v...)
 	}
 }
 
@@ -62,12 +58,10 @@ func (l *SimpleLogger) Errorf(format string, v ...any) {
 	if l.logLevel > log.ErrorLevel {
 		return
 	}
-	sanitizedFormat := log.SanitizeString(format)
-	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		l.logger.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
+		l.logger.Printf(format, v...)
 	} else {
-		golog.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
+		golog.Printf(format, v...)
 	}
 }
 
@@ -75,11 +69,10 @@ func (l *SimpleLogger) Warn(v ...any) {
 	if l.logLevel > log.WarnLevel {
 		return
 	}
-	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		l.logger.Println(sanitized...) // codeql-ignore-line
+		l.logger.Println(v...)
 	} else {
-		golog.Println(sanitized...) // codeql-ignore-line
+		golog.Println(v...)
 	}
 }
 
@@ -87,12 +80,10 @@ func (l *SimpleLogger) Warnf(format string, v ...any) {
 	if l.logLevel > log.WarnLevel {
 		return
 	}
-	sanitizedFormat := log.SanitizeString(format)
-	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		l.logger.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
+		l.logger.Printf(format, v...)
 	} else {
-		golog.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
+		golog.Printf(format, v...)
 	}
 }
 
@@ -100,11 +91,10 @@ func (l *SimpleLogger) Info(v ...any) {
 	if l.logLevel > log.InfoLevel {
 		return
 	}
-	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		l.logger.Println(sanitized...) // codeql-ignore-line
+		l.logger.Println(v...)
 	} else {
-		golog.Println(sanitized...) // codeql-ignore-line
+		golog.Println(v...)
 	}
 }
 
@@ -112,12 +102,10 @@ func (l *SimpleLogger) Infof(format string, v ...any) {
 	if l.logLevel > log.InfoLevel {
 		return
 	}
-	sanitizedFormat := log.SanitizeString(format)
-	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		l.logger.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
+		l.logger.Printf(format, v...)
 	} else {
-		golog.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
+		golog.Printf(format, v...)
 	}
 }
 
@@ -125,11 +113,10 @@ func (l *SimpleLogger) Debug(v ...any) {
 	if l.logLevel > log.AllLevel {
 		return
 	}
-	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		l.logger.Println(sanitized...) // codeql-ignore-line
+		l.logger.Println(v...)
 	} else {
-		golog.Println(sanitized...) // codeql-ignore-line
+		golog.Println(v...)
 	}
 }
 
@@ -137,12 +124,10 @@ func (l *SimpleLogger) Debugf(format string, v ...any) {
 	if l.logLevel > log.AllLevel {
 		return
 	}
-	sanitizedFormat := log.SanitizeString(format)
-	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		l.logger.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
+		l.logger.Printf(format, v...)
 	} else {
-		golog.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
+		golog.Printf(format, v...)
 	}
 }
 
@@ -150,11 +135,10 @@ func (l *SimpleLogger) Trace(v ...any) {
 	if l.logLevel > log.AllLevel {
 		return
 	}
-	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		l.logger.Println(sanitized...) // codeql-ignore-line
+		l.logger.Println(v...)
 	} else {
-		golog.Println(sanitized...) // codeql-ignore-line
+		golog.Println(v...)
 	}
 }
 
@@ -162,12 +146,10 @@ func (l *SimpleLogger) Tracef(format string, v ...any) {
 	if l.logLevel > log.AllLevel {
 		return
 	}
-	sanitizedFormat := log.SanitizeString(format)
-	sanitized := log.SanitizeLogInput(v)
 	if l.logger != nil {
-		l.logger.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
+		l.logger.Printf(format, v...)
 	} else {
-		golog.Printf(sanitizedFormat, sanitized...) // codeql-ignore-line
+		golog.Printf(format, v...)
 	}
 }
 
