@@ -83,8 +83,8 @@ func TestDebugLogSanitization(t *testing.T) {
 // logger is used directly (not via the global log.* package).
 func TestDirectLoggerSanitization(t *testing.T) {
 	tests := []struct {
-		name   string
-		logFn  func(*Logger, string)
+		name  string
+		logFn func(*Logger, string)
 	}{
 		{
 			name: "Error direct sanitization",
