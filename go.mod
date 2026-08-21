@@ -60,3 +60,17 @@ require (
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.57.0 // indirect
 )
+
+// quic-go 版本锁定说明：
+// apernet/quic-go 在 v0.58+ 的正式 tag 中将 go.mod module 声明从
+// github.com/apernet/quic-go 改为了 github.com/quic-go/quic-go。
+// 由于 require 路径必须与对方 module 声明一致（否则 go get 会直接报错），
+// 而项目代码与 xray-core 依赖子包 import 仍使用 github.com/apernet/quic-go/*，
+// 因此锁定到 module 声明未变的伪版本 v0.59.1-0.20260425001925-6c6cc9bcb716，
+// 并通过以下 replace 将 v0.59.1/v0.60.0/v0.61.0 正式 tag 重定向到该伪版本，
+// 避免 go get -u ./... 自动升级到 module 声明已变更的版本。
+replace github.com/apernet/quic-go v0.59.1 => github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716
+
+replace github.com/apernet/quic-go v0.60.0 => github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716
+
+replace github.com/apernet/quic-go v0.61.0 => github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716

@@ -1,17 +1,26 @@
 #!/bin/bash
 set -e
 
-# 更新所有依赖到最新版本
-go get -u ./...
-
-# 整理模块并确保与 Go 1.26 兼容
-go mod tidy -compat=1.27
-
-# 获取最新 commit hash 的函数
+# 获取最新 commit hash 的函数（带校验，失败时返回非零）
 get_latest_commit() {
     local repo=$1
-    curl -s "https://api.github.com/repos/$repo/commits" | grep -m 1 '"sha"' | cut -d '"' -f 4
+    local sha
+    sha=$(curl -s --max-time 15 "https://api.github.com/repos/$repo/commits?per_page=1" \
+        | grep -m 1 '"sha"' | cut -d '"' -f 4)
+    if [[ -z "$sha" || "${#sha}" -ne 40 ]]; then
+        echo "ERROR: failed to get latest commit for $repo (sha=$sha)" >&2
+        return 1
+    fi
+    echo "$sha"
 }
+
+# 更新所有依赖到最新版本，但排除 quic-go（apernet/quic-go 的新 tag module 声明路径
+# 已改为 github.com/quic-go/quic-go，与 require 的 github.com/apernet/quic-go 不一致，
+# 必须通过 go.mod 中的 replace 固定到兼容版本，不能直接 go get -u 升级上去）
+GOFLAGS="-mod=mod" go get -u $(go list -m -f '{{if not (or (eq .Path "github.com/apernet/quic-go") (eq .Path "github.com/quic-go/quic-go"))}}{{.Path}}{{end}}' all 2>/dev/null) ./...
+
+# 整理模块并确保与 Go 1.27 兼容
+go mod tidy -compat=1.27
 
 # 获取 tfo-go 最新的 commit
 tfo_commit_hash=$(get_latest_commit "database64128/tfo-go")
@@ -53,9 +62,17 @@ go get github.com/Potterli20/socks5-fork@$socks5_commit_hash
 smux_commit_hash=$(get_latest_commit "xtaci/smux")
 go get github.com/xtaci/smux@$smux_commit_hash
 
-# 获取 quic-go 最新的 commit
-quic_go_commit_hash=$(get_latest_commit "apernet/quic-go")
-go get github.com/apernet/quic-go@$quic_go_commit_hash
+# quic-go 特殊处理：
+# 新 tag 的 go.mod module 声明已改为 github.com/quic-go/quic-go，
+# 而 require 路径仍是 github.com/apernet/quic-go，直接 go get 任何新 tag 都会触发
+# "module declares its path as ... but was required as ..." 错误。
+# 这里只在获取到最新 commit 后，尝试 go get；一旦因 module 路径冲突失败，
+# 就保留当前已锁定的兼容伪版本（由 go.mod replace 机制保障），不做强制升级。
+quic_go_commit_hash=$(get_latest_commit "apernet/quic-go") || quic_go_commit_hash=""
+if [[ -n "$quic_go_commit_hash" ]]; then
+    GOFLAGS="-mod=mod" go get github.com/apernet/quic-go@$quic_go_commit_hash 2>/dev/null \
+        || echo "WARN: skip quic-go upgrade (newer commit may have incompatible module path), keeping locked version" >&2
+fi
 
 # 最后再次整理模块，确保 go.sum 与 go.mod 一致
 go mod tidy -compat=1.27
