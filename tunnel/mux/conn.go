@@ -3,6 +3,7 @@ package mux
 import (
 	"io"
 	"math/rand/v2"
+	"sync/atomic"
 	"time"
 
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -88,15 +89,14 @@ func newStickyConn(conn tunnel.Conn) *stickyConn {
 type Conn struct {
 	rwc io.ReadWriteCloser
 	tunnel.Conn
-	lastActiveTime *time.Time
+	lastActiveTime *atomic.Int64
 	tracker        *log.ConnectionTracker
 }
 
 func (c *Conn) Read(p []byte) (int, error) {
 	n, err := c.rwc.Read(p)
 	if c.lastActiveTime != nil {
-		now := time.Now()
-		*c.lastActiveTime = now
+		c.lastActiveTime.Store(time.Now().UnixNano())
 	}
 	return n, err
 }
@@ -104,8 +104,7 @@ func (c *Conn) Read(p []byte) (int, error) {
 func (c *Conn) Write(p []byte) (int, error) {
 	n, err := c.rwc.Write(p)
 	if c.lastActiveTime != nil {
-		now := time.Now()
-		*c.lastActiveTime = now
+		c.lastActiveTime.Store(time.Now().UnixNano())
 	}
 	return n, err
 }

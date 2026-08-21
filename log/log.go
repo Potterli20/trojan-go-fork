@@ -149,8 +149,6 @@ func Logf(level LogLevel, format string, v ...any) {
 	sanitizedFormat := SanitizeString(format)
 	sanitized := SanitizeLogInput(v)
 	switch level {
-	case TraceLevel:
-		logger.Tracef(sanitizedFormat, sanitized...)
 	case DebugLevel:
 		logger.Debugf(sanitizedFormat, sanitized...)
 	case InfoLevel:

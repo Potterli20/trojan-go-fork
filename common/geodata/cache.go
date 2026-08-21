@@ -171,21 +171,5 @@ func (g geositeCache) Unmarshal(filename, code string) (*v2geodata.GeoSite, erro
 }
 
 func countryCodeFromGeoSite(geosite *v2geodata.GeoSite) string {
-	v := reflect.ValueOf(geosite).Elem()
-	f := v.FieldByName("CountryCode")
-	if f.IsValid() && f.CanInterface() {
-		if s, ok := f.Interface().(string); ok {
-			return s
-		}
-	}
-	method := v.MethodByName("GetCountryCode")
-	if method.IsValid() {
-		result := method.Call(nil)
-		if len(result) > 0 {
-			if s, ok := result[0].Interface().(string); ok {
-				return s
-			}
-		}
-	}
-	return ""
+	return geosite.GetCode()
 }

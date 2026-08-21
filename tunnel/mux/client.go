@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/xtaci/smux"
@@ -24,7 +25,7 @@ func generateMuxID() muxID {
 type smuxClientInfo struct {
 	id             muxID
 	client         *smux.Session
-	lastActiveTime time.Time
+	lastActiveTime atomic.Int64
 	underlayConn   tunnel.Conn
 }
 
@@ -74,7 +75,7 @@ func (c *Client) cleanLoop() {
 					info.underlayConn.Close()
 					delete(c.clientPool, id)
 					log.Info("mux client", id, "is dead")
-				} else if info.client.NumStreams() == 0 && time.Since(info.lastActiveTime) > c.timeout {
+				} else if info.client.NumStreams() == 0 && time.Since(time.Unix(0, info.lastActiveTime.Load())) > c.timeout {
 					info.client.Close()
 					info.underlayConn.Close()
 					delete(c.clientPool, id)
@@ -136,11 +137,11 @@ func (c *Client) newMuxClient() (*smuxClientInfo, error) {
 	_ = tracker.Success()
 
 	info := &smuxClientInfo{
-		client:         client,
-		underlayConn:   conn,
-		id:             id,
-		lastActiveTime: time.Now(),
+		client:       client,
+		underlayConn: conn,
+		id:           id,
 	}
+	info.lastActiveTime.Store(time.Now().UnixNano())
 	c.clientPoolLock.Lock()
 	c.clientPool[id] = info
 	c.clientPoolLock.Unlock()
@@ -150,7 +151,7 @@ func (c *Client) newMuxClient() (*smuxClientInfo, error) {
 func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 	createNewConn := func(info *smuxClientInfo, streamTracker *log.ConnectionTracker) (tunnel.Conn, error) {
 		rwc, err := info.client.OpenStream()
-		info.lastActiveTime = time.Now()
+		info.lastActiveTime.Store(time.Now().UnixNano())
 		if err != nil {
 			_ = streamTracker.Error(err)
 			info.underlayConn.Close()

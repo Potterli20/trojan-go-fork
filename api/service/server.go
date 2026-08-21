@@ -10,7 +10,9 @@ import (
 	"net"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/status"
 
 	"github.com/Potterli20/trojan-go-fork/api"
 	"github.com/Potterli20/trojan-go-fork/common"
@@ -202,7 +204,11 @@ func (s *ServerAPI) ListUsers(req *ListUsersRequest, stream TrojanServerService_
 
 func (s *ServerAPI) GetRecords(req *GetRecordsRequest, stream TrojanServerService_GetRecordsServer) error {
 	log.Debug("API: GetRecords")
-	uid := uuid.Must(uuid.NewRandom()).String()
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return status.Errorf(codes.Internal, "failed to generate uuid: %v", err)
+	}
+	uid := id.String()
 	recordChan := recorder.Subscribe(uid, req.Transport, req.TargetPort, req.IncludePayload)
 	defer recorder.Unsubscribe(uid)
 

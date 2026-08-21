@@ -26,6 +26,7 @@ type Client struct {
 	brutalDown     uint64
 	quicConn       any
 	quicConnMutex  sync.RWMutex
+	keepAliveOnce  sync.Once
 	ctx            context.Context
 	cancel         context.CancelFunc
 }
@@ -93,7 +94,9 @@ func (c *Client) getOrCreateConnection() (any, error) {
 
 	c.quicConn = quicConn
 
-	go c.keepAliveLoop()
+	c.keepAliveOnce.Do(func() {
+		go c.keepAliveLoop()
+	})
 
 	return quicConn, nil
 }
@@ -153,7 +156,12 @@ func (c *Client) DialConn(address *tunnel.Address, tun tunnel.Tunnel) (tunnel.Co
 		_ = tracker.Error(err)
 		log.Error(common.NewError("QUIC failed to open stream").Base(err))
 		c.quicConnMutex.Lock()
-		c.quicConn = nil
+		conn.(interface {
+			CloseWithError(code uint32, reason string) error
+		}).CloseWithError(0, "stream open failed")
+		if c.quicConn == conn {
+			c.quicConn = nil
+		}
 		c.quicConnMutex.Unlock()
 		return nil, common.NewError("QUIC failed to open stream").Base(err)
 	}
@@ -209,8 +217,9 @@ func (c *StreamConn) SetWriteDeadline(t time.Time) error {
 }
 
 type PacketConn struct {
-	conn    any
-	tracker *log.ConnectionTracker
+	conn         any
+	tracker      *log.ConnectionTracker
+	packetBuffer chan []byte
 }
 
 func (c *PacketConn) WriteTo(p []byte, addr net.Addr) (int, error) {
@@ -218,6 +227,14 @@ func (c *PacketConn) WriteTo(p []byte, addr net.Addr) (int, error) {
 }
 
 func (c *PacketConn) ReadFrom(p []byte) (int, net.Addr, error) {
+	if c.packetBuffer != nil {
+		data, ok := <-c.packetBuffer
+		if !ok {
+			return 0, nil, common.NewError("QUIC packet connection closed")
+		}
+		n := copy(p, data)
+		return n, c.conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr(), nil
+	}
 	n, err := c.conn.(interface {
 		ReceiveDatagram(context.Context, []byte) (int, error)
 	}).ReceiveDatagram(context.Background(), p)
@@ -232,6 +249,14 @@ func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error
 }
 
 func (c *PacketConn) ReadWithMetadata(p []byte) (int, *tunnel.Metadata, error) {
+	if c.packetBuffer != nil {
+		data, ok := <-c.packetBuffer
+		if !ok {
+			return 0, nil, common.NewError("QUIC packet connection closed")
+		}
+		n := copy(p, data)
+		return n, &tunnel.Metadata{}, nil
+	}
 	n, err := c.conn.(interface {
 		ReceiveDatagram(context.Context, []byte) (int, error)
 	}).ReceiveDatagram(context.Background(), p)

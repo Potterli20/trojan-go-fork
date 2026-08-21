@@ -9,6 +9,7 @@ type Config struct {
 	RemotePort       int         `json:"remote_port" yaml:"remote-port"`
 	DisableHTTPCheck bool        `json:"disable_http_check" yaml:"disable-http-check"`
 	RecordCapacity   int         `json:"record_capacity" yaml:"record-capacity"`
+	TrustHeaders     bool        `json:"trust_headers" yaml:"trust-headers"`
 	MySQL            MySQLConfig `json:"mysql" yaml:"mysql"`
 	API              APIConfig   `json:"api" yaml:"api"`
 }

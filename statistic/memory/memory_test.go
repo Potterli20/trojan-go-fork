@@ -945,7 +945,7 @@ func TestRetryableError_ClassifiesCorrectly(t *testing.T) {
 		{"mysql-deadlock", errors.New("Deadlock found when trying to get lock; try restarting transaction")},
 		{"mysql-lock-timeout", errors.New("Lock wait timeout exceeded; try restarting transaction")},
 		{"postgres-cannot-serialize", errors.New("could not serialize access due to concurrent update")},
-		{"lock-acquired-not-granted", errors.New("LOCK_ACQUIREDBUTNOTGRANTED on connection")},
+		{"lock-acquired-not-granted", errors.New("lock acquired but not granted on connection")},
 	}
 	for _, c := range retryCases {
 		t.Run("retryable/"+c.name, func(t *testing.T) {
@@ -963,6 +963,9 @@ func TestRetryableError_ClassifiesCorrectly(t *testing.T) {
 		{"conn-refused", errors.New("dial tcp 127.0.0.1:3306: connect: connection refused")},
 		{"no-such-db", errors.New("Unknown database 'trojan'")},
 		{"permission", errors.New("permission denied for relation trojan_users")},
+		// 回归测试：以下用例验证修正后的子串匹配不再误判
+		{"busybox-not-busy", errors.New("sh: busybox: command not found")},
+		{"deserialize-not-serialize", errors.New("failed to deserialize JSON payload")},
 	}
 	for _, c := range nonRetryCases {
 		t.Run("non-retryable/"+c.name, func(t *testing.T) {

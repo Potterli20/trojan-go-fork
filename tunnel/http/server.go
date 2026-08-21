@@ -204,8 +204,9 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 
 func (s *Server) Close() error {
 	s.cancel()
+	err := s.underlay.Close()
 	s.wg.Wait()
-	return s.underlay.Close()
+	return err
 }
 
 func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {

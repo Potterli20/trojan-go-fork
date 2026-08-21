@@ -25,8 +25,9 @@ type Server struct {
 
 func (s *Server) Close() error {
 	s.cancel()
+	err := s.underlay.Close()
 	s.wg.Wait()
-	return s.underlay.Close()
+	return err
 }
 
 func (s *Server) acceptLoop() {

@@ -29,6 +29,7 @@ type Redirection struct {
 
 type Redirector struct {
 	ctx             context.Context
+	cancel          context.CancelFunc
 	wg              sync.WaitGroup
 	redirectionChan chan *Redirection
 }
@@ -49,6 +50,12 @@ func injectForwardedHeader(inbound net.Conn, outbound net.Conn, clientIP string)
 	for {
 		n, err := inbound.Read(buf)
 		if err != nil {
+			if n > 0 {
+				headerBuf.Write(buf[:n])
+			}
+			if headerBuf.Len() > 0 {
+				outbound.Write(headerBuf.Bytes())
+			}
 			return err
 		}
 		headerBuf.Write(buf[:n])
@@ -58,6 +65,7 @@ func injectForwardedHeader(inbound net.Conn, outbound net.Conn, clientIP string)
 		}
 
 		if headerBuf.Len() > 65536 {
+			outbound.Write(headerBuf.Bytes())
 			return fmt.Errorf("headers too large")
 		}
 	}
@@ -159,8 +167,10 @@ func (r *Redirector) worker() {
 }
 
 func NewRedirector(ctx context.Context) *Redirector {
+	ctx, cancel := context.WithCancel(ctx)
 	r := &Redirector{
 		ctx:             ctx,
+		cancel:          cancel,
 		redirectionChan: make(chan *Redirection, 64),
 	}
 	r.wg.Go(func() {
@@ -170,7 +180,7 @@ func NewRedirector(ctx context.Context) *Redirector {
 }
 
 func (r *Redirector) Close() error {
-	close(r.redirectionChan)
+	r.cancel()
 	r.wg.Wait()
 	return nil
 }

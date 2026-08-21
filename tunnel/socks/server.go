@@ -109,9 +109,10 @@ func (s *Server) acceptConnLoop() {
 
 func (s *Server) Close() error {
 	s.cancel()
-	s.wg.Wait()
 	s.listenPacketConn.Close()
-	return s.underlay.Close()
+	err := s.underlay.Close()
+	s.wg.Wait()
+	return err
 }
 
 func (s *Server) handshake(conn net.Conn) (*Conn, error) {

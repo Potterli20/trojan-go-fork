@@ -122,7 +122,7 @@ func (u *URLOption) Handle() error {
 		}
 	}
 
-	muxEnabled := true
+	muxEnabled := false
 	if muxVal, ok := opts["mux"]; ok {
 		muxEnabled, err = strconv.ParseBool(muxVal)
 		if err != nil {

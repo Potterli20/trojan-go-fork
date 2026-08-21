@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"math/rand/v2"
-	"time"
 
 	"os"
 	"strings"
@@ -111,13 +110,11 @@ func (p *Proxy) relayConnLoop() {
 					})
 
 					select {
-					case <-done:
-						log.Debug("conn relay ends")
-					case <-p.ctx.Done():
-						log.Debug("shutting down conn relay")
-					case <-time.After(time.Second * 30):
-						log.Debug("timeout conn relay")
-					}
+				case <-done:
+					log.Debug("conn relay ends")
+				case <-p.ctx.Done():
+					log.Debug("shutting down conn relay")
+				}
 				}(inbound)
 			}
 		}(source)
@@ -212,13 +209,11 @@ func (p *Proxy) relayPacketLoop() {
 					})
 
 					select {
-					case <-done:
-						log.Debug("packet relay ends")
-					case <-p.ctx.Done():
-						log.Debug("shutting down packet relay")
-					case <-time.After(time.Second * 30):
-						log.Debug("timeout packet relay")
-					}
+				case <-done:
+					log.Debug("packet relay ends")
+				case <-p.ctx.Done():
+					log.Debug("shutting down packet relay")
+				}
 				}(inbound)
 			}
 		}(source)

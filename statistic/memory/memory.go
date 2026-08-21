@@ -20,14 +20,17 @@ import (
 const Name = "MEMORY"
 
 type User struct {
-	Sent        uint64
-	Recv        uint64
-	lastSent    uint64
-	lastRecv    uint64
-	sendSpeed   uint64
-	recvSpeed   uint64
-	Hash        string
+	Sent          uint64
+	Recv          uint64
+	lastSent      uint64
+	lastRecv      uint64
+	sendSpeed     uint64
+	recvSpeed     uint64
+	persistedSent uint64 // 持久化基线，仅 batchTrafficUpdater 读写，与 speedUpdater 使用的 lastSent 物理分离
+	persistedRecv uint64 // 持久化基线，仅 batchTrafficUpdater 读写，与 lastRecv 物理分离
+	Hash          string
 	password    string
+	passLock    sync.RWMutex
 	ipTable     map[string]time.Time
 	ipNum       int32
 	MaxIPNum    int
@@ -81,7 +84,7 @@ func (u *User) AddIP(ip string) bool {
 		return true
 	}
 
-	if int(u.ipNum) >= u.MaxIPNum {
+	if int(atomic.LoadInt32(&u.ipNum)) >= u.MaxIPNum {
 		return false
 	}
 
@@ -117,6 +120,8 @@ func (u *User) setIPLimit(n int) {
 }
 
 func (u *User) setPassword(pwd string) {
+	u.passLock.Lock()
+	defer u.passLock.Unlock()
 	u.password = pwd
 }
 
@@ -189,6 +194,8 @@ func (u *User) ResetTraffic() (uint64, uint64) {
 	recv := atomic.SwapUint64(&u.Recv, 0)
 	atomic.StoreUint64(&u.lastSent, 0)
 	atomic.StoreUint64(&u.lastRecv, 0)
+	atomic.StoreUint64(&u.persistedSent, 0)
+	atomic.StoreUint64(&u.persistedRecv, 0)
 	return sent, recv
 }
 
@@ -225,21 +232,26 @@ const (
 )
 
 // retryableError 判断错误是否属于"可以重试的临时错误"。
-// 覆盖 SQLite("database is locked"/"busy")、MySQL("Deadlock found"/"try restarting transaction")、
+// 覆盖 SQLite("database is locked"/"is busy")、MySQL("Deadlock found"/"try restarting transaction")、
 // 以及其他常见的 DB 锁错误。
+//
+// 子串匹配说明：
+//   - "is busy" 而非 "busy"，避免误匹配 "busybox"；
+//   - "lock acquired but not granted"（带空格）而非 "lock_acquiredbutnotgranted"，
+//     后者无空格在真实错误字符串中不存在；
+//   - "could not serialize" 而非 "serialize"，避免误匹配 "deserialize"。
 func retryableError(err error) bool {
 	if err == nil {
 		return false
 	}
 	msg := strings.ToLower(err.Error())
 	return strings.Contains(msg, "database is locked") ||
-		strings.Contains(msg, "busy") ||
-		strings.Contains(msg, "lock_acquiredbutnotgranted") ||
+		strings.Contains(msg, "is busy") ||
+		strings.Contains(msg, "lock acquired but not granted") ||
 		strings.Contains(msg, "deadlock") ||
-		strings.Contains(msg, "deadlock found") ||
 		strings.Contains(msg, "try restarting transaction") ||
 		strings.Contains(msg, "lock wait timeout") ||
-		strings.Contains(msg, "serialize")
+		strings.Contains(msg, "could not serialize")
 }
 
 // batchTrafficUpdater 使用单个 goroutine 统一更新所有用户的流量到持久化存储，
@@ -310,8 +322,8 @@ func (a *Authenticator) batchTrafficUpdater() {
 				u := v.(*User)
 
 				sent, recv := u.GetTraffic()
-				lastSent := atomic.LoadUint64(&u.lastSent)
-				lastRecv := atomic.LoadUint64(&u.lastRecv)
+				lastSent := atomic.LoadUint64(&u.persistedSent)
+				lastRecv := atomic.LoadUint64(&u.persistedRecv)
 
 				if sent == lastSent && recv == lastRecv {
 					// 流量无变化，跳过写库
@@ -411,8 +423,8 @@ func (a *Authenticator) batchTrafficUpdater() {
 						sent, deltaSent, recv, deltaRecv)
 				}
 
-				oldLastSent := atomic.SwapUint64(&u.lastSent, sent)
-				oldLastRecv := atomic.SwapUint64(&u.lastRecv, recv)
+				oldLastSent := atomic.SwapUint64(&u.persistedSent, sent)
+				oldLastRecv := atomic.SwapUint64(&u.persistedRecv, recv)
 				if oldLastSent != lastSent || oldLastRecv != lastRecv {
 					unmatchedUsers++
 					log.Debugf("[batchTrafficUpdater] round=%d lastSent/lastRecv 并发冲突："+
@@ -511,6 +523,8 @@ func (a *Authenticator) SetKeyShare(hash string, pwd string) error {
 }
 
 func (u *User) GetKeyShare() string {
+	u.passLock.RLock()
+	defer u.passLock.RUnlock()
 	return u.password
 }
 
@@ -532,12 +546,12 @@ func (a *Authenticator) AddUser(hash string) error {
 		meter.ipCleaner()
 	})
 	a.users.Store(hash, meter)
-	if a.pst != nil {
-		err := a.pst.SaveUser(meter)
-		if err != nil {
-			log.Errorf("Save user %s failed: %s", hash, err)
-		}
-	}
+	// 注意：此处不再调用 a.pst.SaveUser(meter)。
+	// 原实现会让 AddUser 立即 SaveUser（此时 password 仍为 ""），紧接着调用方
+	// 通常会调用 SetKeyShare(hash, password) 再次 SaveUser，造成两次 DB 写入，
+	// 且在两次写入之间崩溃会在 DB 中留下空密码行（重启后 GetKeyShare 返回空串）。
+	// 持久化统一由 SetKeyShare / SetUserIPLimit / SetUserSpeedLimit / SetUserTraffic
+	// 等带语义的方法负责——这些方法都会写入完整字段。
 	return nil
 }
 

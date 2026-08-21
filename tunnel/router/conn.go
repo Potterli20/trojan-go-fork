@@ -101,12 +101,13 @@ func (c *PacketConn) packetLoop() {
 
 func (c *PacketConn) Close() error {
 	c.cancel()
-	c.wg.Wait()
 	c.proxy.Close()
 	if c.tracker != nil {
 		c.tracker.Destroy("closed", 0, 0)
 	}
-	return c.PacketConn.Close()
+	err := c.PacketConn.Close()
+	c.wg.Wait()
+	return err
 }
 
 func (c *PacketConn) ReadFrom(p []byte) (n int, addr net.Addr, err error) {

@@ -157,7 +157,6 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	}
 
 	handshakeMgr := newHandshakeManager()
-	handshakeMgr.setState(handshakeStateInProgress)
 
 	url := "wss://" + s.hostname + s.path
 	origin := "https://" + s.hostname

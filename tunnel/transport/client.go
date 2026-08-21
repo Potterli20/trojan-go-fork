@@ -31,12 +31,13 @@ func (c *Client) Close() error {
 		}
 		if err := c.cmd.Process.Kill(); err != nil {
 			log.Error("[Transport] Failed to kill plugin process:", err)
-			return err
 		}
+		// 无论 Kill 是否返回错误，都必须调用 Wait 回收子进程，
+		// 否则被 kill 的进程会变成僵尸进程（PID 与 struct 未被 reap）。
 		if log.ShouldLog(log.DebugLevel) {
 			log.Debug("[Transport] Waiting for plugin process to exit")
 		}
-		c.cmd.Wait()
+		_ = c.cmd.Wait()
 		log.Info("[Transport] Transport plugin process killed")
 	}
 	log.Info("[Transport] Client closed successfully")

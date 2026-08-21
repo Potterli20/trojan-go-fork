@@ -42,8 +42,8 @@ func (s *Server) applyCongestionControl(conn *quic.Conn) {
 
 func (s *Server) Close() error {
 	s.cancel()
-	s.wg.Wait()
 	s.listener.(interface{ Close() error }).Close()
+	s.wg.Wait()
 	s.activeConns.Range(func(key, value any) bool {
 		value.(interface {
 			CloseWithError(code uint32, reason string) error
@@ -60,7 +60,7 @@ func (s *Server) acceptLoop() {
 	for {
 		conn, err := s.listener.(interface {
 			Accept(context.Context) (any, error)
-		}).Accept(context.Background())
+		}).Accept(s.ctx)
 		if err != nil {
 			select {
 			case <-s.ctx.Done():
@@ -79,7 +79,7 @@ func (s *Server) acceptLoop() {
 			WithField("remote_addr", quicConn.RemoteAddr().String()).
 			WithField("congestion", s.congestion)
 
-		s.activeConns.Store(quicConn.RemoteAddr().String(), conn)
+		s.activeConns.Store(quicConn, conn)
 		log.Debugf("[QUIC] [conn=%s] New connection accepted from %s, congestion=%s, alpn=%v",
 			tracker.ConnID(), quicConn.RemoteAddr(), s.congestion, s.tlsConfig.NextProtos)
 
@@ -94,7 +94,7 @@ func (s *Server) handleConnection(conn any, tracker *log.ConnectionTracker) {
 		conn.(interface {
 			CloseWithError(code uint32, reason string) error
 		}).CloseWithError(0, "connection closed")
-		s.activeConns.Delete(conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr().String())
+		s.activeConns.Delete(conn.(*quic.Conn))
 		log.Debugf("[QUIC] [conn=%s] Connection closed from %s, duration=%s",
 			tracker.ConnID(), conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr(),
 			time.Since(tracker.StartTime()))
@@ -102,6 +102,7 @@ func (s *Server) handleConnection(conn any, tracker *log.ConnectionTracker) {
 
 	streamChan := make(chan *quic.Stream, 16)
 	packetBuffer := make(chan []byte, 16)
+	packetDone := make(chan struct{})
 	connCtx, connCancel := context.WithCancel(s.ctx)
 	defer connCancel()
 
@@ -126,17 +127,27 @@ func (s *Server) handleConnection(conn any, tracker *log.ConnectionTracker) {
 
 	s.wg.Go(func() {
 		buf := make([]byte, 65536)
+		var handlerSent bool
+		defer close(packetDone)
+		defer close(packetBuffer)
 		for {
 			n, err := conn.(interface {
 				ReceiveDatagram(context.Context, []byte) (int, error)
 			}).ReceiveDatagram(connCtx, buf)
 			if err != nil {
 				log.Debug("QUIC message receive error:", err)
-				close(packetBuffer)
 				return
 			}
 			data := make([]byte, n)
 			copy(data, buf[:n])
+			if !handlerSent {
+				handlerSent = true
+				select {
+				case s.packetChan <- &PacketConn{conn: conn, packetBuffer: packetBuffer}:
+				case <-s.ctx.Done():
+					return
+				}
+			}
 			select {
 			case packetBuffer <- data:
 			case <-connCtx.Done():
@@ -144,8 +155,6 @@ func (s *Server) handleConnection(conn any, tracker *log.ConnectionTracker) {
 			}
 		}
 	})
-
-	hasPacketHandler := false
 
 	for {
 		select {
@@ -164,18 +173,8 @@ func (s *Server) handleConnection(conn any, tracker *log.ConnectionTracker) {
 				return
 			}
 
-		case _, ok := <-packetBuffer:
-			if !ok {
-				return
-			}
-			if !hasPacketHandler {
-				select {
-				case s.packetChan <- &PacketConn{conn: conn}:
-					hasPacketHandler = true
-				case <-s.ctx.Done():
-					return
-				}
-			}
+		case <-packetDone:
+			return
 
 		case <-s.ctx.Done():
 			return

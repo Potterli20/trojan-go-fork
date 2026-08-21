@@ -37,13 +37,13 @@ type InboundConn struct {
 	recv uint64
 
 	net.Conn
-	auth     statistic.Authenticator
-	user     statistic.User
-	hash     string
-	metadata *tunnel.Metadata
-	ip       string
-	ipX      string
-	password string
+	auth         statistic.Authenticator
+	user         statistic.User
+	hash         string
+	metadata     *tunnel.Metadata
+	ip           string
+	ipX          string
+	trustHeaders bool
 }
 
 func (c *InboundConn) Metadata() *tunnel.Metadata {
@@ -65,8 +65,14 @@ func (c *InboundConn) Read(p []byte) (int, error) {
 }
 
 func (c *InboundConn) Close() error {
-	log.Debug("Closing connection for user", c.hash, "KeyShare", c.password, "RealIP", c.ipX, "from", c.Conn.RemoteAddr(), "tunneling to", c.metadata.Address,
+	log.Debug("Closing connection for user", c.hash, "RealIP", c.ipX, "from", c.Conn.RemoteAddr(), "tunneling to", c.metadata.Address,
 		"sent:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.sent)), "recv:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.recv)))
+	// Auth() 成功时会调用 AddIP(RealIP) 占用 IP 槽，关闭时必须释放，
+	// 否则只能靠 memory.User 的 10 秒过期扫描清理，短连接频繁切换 IP 时会提前触顶 MaxIPNum。
+	// c.user 可能为 nil（Close 在 Auth 之前被调用），需做 nil 检查。
+	if c.user != nil {
+		c.user.DelIP(c.ipX)
+	}
 	return c.Conn.Close()
 }
 
@@ -84,6 +90,13 @@ func extractRealIPFromHeaders(header http.Header) string {
 }
 
 func GetRealIP(c *InboundConn) string {
+	// 默认不信任请求头里的 CF-Connecting-IP / X-Forwarded-For：
+	// 若 websocket 端点直接暴露（无前置可信代理/CDN），攻击者可伪造这些 header 绕过 ip_limit。
+	// 仅当 Server 配置 trust_headers=true 时才解析 header。
+	if !c.trustHeaders {
+		return c.ip
+	}
+
 	var request *http.Request
 
 	switch conn := c.Conn.(type) {
@@ -129,7 +142,7 @@ func (c *InboundConn) Auth() error {
 	c.ipX = RealIP
 	ok := user.AddIP(RealIP)
 	if !ok {
-		return common.NewError("ip limit reached, UserPassword: " + user.GetKeyShare() + " UserHash: " + c.hash + " RealIP: " + RealIP)
+		return common.NewError("ip limit reached for RealIP: " + RealIP)
 	}
 
 	crlf := [2]byte{}
@@ -162,16 +175,17 @@ func (c *InboundConn) Hash() string {
 
 // Server is a trojan tunnel server
 type Server struct {
-	auth       statistic.Authenticator
-	redir      *redirector.Redirector
-	redirAddr  *tunnel.Address
-	underlay   tunnel.Server
-	connChan   chan tunnel.Conn
-	muxChan    chan tunnel.Conn
-	packetChan chan tunnel.PacketConn
-	ctx        context.Context
-	cancel     context.CancelFunc
-	wg         sync.WaitGroup
+	auth         statistic.Authenticator
+	redir        *redirector.Redirector
+	redirAddr    *tunnel.Address
+	underlay     tunnel.Server
+	connChan     chan tunnel.Conn
+	muxChan      chan tunnel.Conn
+	packetChan   chan tunnel.PacketConn
+	ctx          context.Context
+	cancel       context.CancelFunc
+	wg           sync.WaitGroup
+	trustHeaders bool
 }
 
 func (s *Server) Close() error {
@@ -206,8 +220,9 @@ func (s *Server) acceptLoop() {
 			rewindConn.SetBufferSize(128)
 
 			inboundConn := &InboundConn{
-				Conn: rewindConn,
-				auth: s.auth,
+				Conn:         rewindConn,
+				auth:         s.auth,
+				trustHeaders: s.trustHeaders,
 			}
 
 			if err := inboundConn.Auth(); err != nil {
@@ -315,19 +330,25 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		go api.RunService(ctx, Name+"_SERVER", Auth)
 	}
 
-	recorder.Capacity = cfg.RecordCapacity
+	// 仅在显式配置 record_capacity 时覆盖包级默认值（10），
+	// 否则把 Capacity 置 0 会导致 Subscribe 创建无缓冲 channel，
+	// broadcast 的 select+default 会丢弃几乎所有 Record，录制功能静默失效。
+	if cfg.RecordCapacity > 0 {
+		recorder.Capacity = cfg.RecordCapacity
+	}
 
 	redirAddr := tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort)
 	s := &Server{
-		underlay:   underlay,
-		auth:       Auth,
-		redirAddr:  redirAddr,
-		connChan:   make(chan tunnel.Conn, 64),       // 增加连接池大小
-		muxChan:    make(chan tunnel.Conn, 64),       // 增加连接池大小
-		packetChan: make(chan tunnel.PacketConn, 64), // 增加连接池大小
-		ctx:        ctx,
-		cancel:     cancel,
-		redir:      redirector.NewRedirector(ctx),
+		underlay:     underlay,
+		auth:         Auth,
+		redirAddr:    redirAddr,
+		connChan:     make(chan tunnel.Conn, 64),       // 增加连接池大小
+		muxChan:      make(chan tunnel.Conn, 64),       // 增加连接池大小
+		packetChan:   make(chan tunnel.PacketConn, 64), // 增加连接池大小
+		ctx:          ctx,
+		cancel:       cancel,
+		redir:        redirector.NewRedirector(ctx),
+		trustHeaders: cfg.TrustHeaders,
 	}
 
 	if !cfg.DisableHTTPCheck {

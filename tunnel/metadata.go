@@ -103,30 +103,24 @@ func (a *Address) ResolveIP() (net.IP, error) {
 	if a.AddressType == IPv4 || a.AddressType == IPv6 {
 		return a.IP, nil
 	}
-
-	if a.NetworkType != "udp4" && a.NetworkType != "udp6" && a.NetworkType != "udp" {
-		return nil, fmt.Errorf("unsupported network type: %s", a.NetworkType)
-	}
 	log.Debug("ResolveIP Start! domain: ", a.DomainName, " PORT: ", a.Port)
-	address := fmt.Sprintf("%s:%d", a.DomainName, a.Port)
-	udpAddr, err := net.ResolveUDPAddr(a.NetworkType, address)
+	ipAddr, err := net.ResolveIPAddr("ip", a.DomainName)
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("ResolveIP Done! IP: ", udpAddr.IP, " PORT: ", udpAddr.Port)
-	a.IP = udpAddr.IP
-	a.Port = udpAddr.Port
-	return udpAddr.IP, nil
+	log.Debug("ResolveIP Done! IP: ", ipAddr.IP)
+	a.IP = ipAddr.IP
+	return ipAddr.IP, nil
 }
 
 func NewAddressFromAddr(network, addr string) (*Address, error) {
 	host, portStr, err := net.SplitHostPort(addr)
 	if err != nil {
-		return nil, common.NewError("failed to split host port")
+		return nil, common.NewError("failed to split host port").Base(err)
 	}
 	port, err := strconv.ParseInt(portStr, 10, 32)
 	if err != nil {
-		return nil, common.NewError("failed to parse port number")
+		return nil, common.NewError("failed to parse port number").Base(err)
 	}
 	if port < 0 || port > 65535 {
 		return nil, common.NewError("invalid port number")
@@ -136,8 +130,7 @@ func NewAddressFromAddr(network, addr string) (*Address, error) {
 
 func NewAddressFromHostPort(network string, host string, port int) *Address {
 	if network != "tcp" && network != "udp" {
-		log.Error("failed to network type : " + network + " HOST: " + host)
-		return nil
+		panic(fmt.Sprintf("unsupported network type: %s", network))
 	}
 
 	log.Debug("network type : " + network + " HOST: " + host)

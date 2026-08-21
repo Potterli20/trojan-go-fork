@@ -68,6 +68,11 @@ func Unsubscribe(uid string) {
 }
 
 func broadcast(record Record) {
+	// 守护 send：Unsubscribe 与 broadcast 并发时，send 到已关闭 channel 会 panic，
+	// select+default 无法避免 closed-channel panic。这里用 recover 兜底，
+	// 让 send 到已关闭 channel 被静默丢弃（这正是我们想要的行为），不阻断进程。
+	defer func() { _ = recover() }()
+
 	payload := record.Payload
 
 	subscribers.Range(func(uid, o any) bool {
