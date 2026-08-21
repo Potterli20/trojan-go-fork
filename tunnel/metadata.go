@@ -125,12 +125,17 @@ func NewAddressFromAddr(network, addr string) (*Address, error) {
 	if port < 0 || port > 65535 {
 		return nil, common.NewError("invalid port number")
 	}
-	return NewAddressFromHostPort(network, host, int(port)), nil
+	address := NewAddressFromHostPort(network, host, int(port))
+	if address == nil {
+		return nil, common.NewError("unsupported network type: " + network)
+	}
+	return address, nil
 }
 
 func NewAddressFromHostPort(network string, host string, port int) *Address {
 	if network != "tcp" && network != "udp" {
-		panic(fmt.Sprintf("unsupported network type: %s", network))
+		log.Error("unsupported network type: " + network + " HOST: " + host)
+		return nil
 	}
 
 	log.Debug("network type : " + network + " HOST: " + host)
