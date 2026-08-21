@@ -2,6 +2,8 @@ package memory
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -205,35 +207,256 @@ func (u *User) speedUpdater() {
 	}
 }
 
+// ---------- batchTrafficUpdater 重试配置 ----------
+//
+// 这些值是在生产环境下的保守设定：
+//   - SQLite 默认 busy_timeout 通常是 0~5 秒，
+//     我们用 maxTotalBackoff≈1.2s 的退避来在应用层规避 "database is locked"，
+//     同时避免单次更新阻塞整轮 10s 周期过长。
+//   - 如果 4 次重试全部用完，我们在下一轮（+10s 后）再尝试，
+//     此时内存中的 sent/recv 累积量依然正确，不会丢失。
+const (
+	// maxRetryAttempts 除首次尝试外，额外的重试次数。总尝试次数 = 1 + maxRetryAttempts。
+	maxRetryAttempts = 4
+	// initialBackoff 第一次重试前等待时间；后续乘以 2 指数增长。
+	initialBackoff = 20 * time.Millisecond
+	// maxBackoff 单次 backoff 上限（防止指数爆炸）。
+	maxBackoff = 400 * time.Millisecond
+)
+
+// retryableError 判断错误是否属于"可以重试的临时错误"。
+// 覆盖 SQLite("database is locked"/"busy")、MySQL("Deadlock found"/"try restarting transaction")、
+// 以及其他常见的 DB 锁错误。
+func retryableError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "database is locked") ||
+		strings.Contains(msg, "busy") ||
+		strings.Contains(msg, "lock_acquiredbutnotgranted") ||
+		strings.Contains(msg, "deadlock") ||
+		strings.Contains(msg, "deadlock found") ||
+		strings.Contains(msg, "try restarting transaction") ||
+		strings.Contains(msg, "lock wait timeout") ||
+		strings.Contains(msg, "serialize")
+}
+
 // batchTrafficUpdater 使用单个 goroutine 统一更新所有用户的流量到持久化存储，
 // 避免多个 goroutine 并发写 SQLite 导致事务冲突。
+//
+// 每个用户的 UpdateUserTraffic 都有独立的指数退避重试（最多 maxRetryAttempts 次），
+// 单个用户重试失败不会阻塞其他用户。
+//
+// 日志分级说明：
+//   - Info:  生命周期事件（启动、退出、pst 未启用），默认可见，用于确认功能是否生效
+//   - Debug: 每轮执行详情（用户数、变化列表、耗时）、每次重试细节，开 Debug 级别时可见
+//   - Warn:  单个用户 UpdateUserTraffic 失败（首次失败 + 每次重试 + 重试耗尽）、失败聚合提示
 func (a *Authenticator) batchTrafficUpdater() {
 	if a.pst == nil {
+		// 这里已经被 NewAuthenticator 的条件启动过滤了一次，
+		// 再次防御性记录，防止其他入口误触发。
+		log.Info("[batchTrafficUpdater] pst 为 nil，批量流量持久化未启用，goroutine 直接退出")
 		return
 	}
-	ticker := time.NewTicker(10 * time.Second)
+
+	const interval = 10 * time.Second
+	startAt := time.Now()
+	pstType := fmt.Sprintf("%T", a.pst)
+	log.Infof("[batchTrafficUpdater] 批量流量持久化启动：interval=%s，pst=%s，"+
+		"retry_max=%d，backoff=[%s→%s]。开始监听用户流量变化",
+		interval, pstType, maxRetryAttempts, initialBackoff, maxBackoff)
+
+	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
+
+	var round uint64
+	var (
+		totalWrites      uint64
+		totalErrors      uint64
+		totalRetryHit    uint64 // 至少触发过 1 次重试的写库总次数
+		totalRetryAborts uint64 // 重试全部耗尽最终放弃的总次数
+	)
+
 	for {
 		select {
 		case <-a.ctx.Done():
+			elapsed := time.Since(startAt)
+			log.Infof("[batchTrafficUpdater] 收到 ctx.Done()，批量持久化退出："+
+				"运行时长=%s，总轮次=%d，总写库次数=%d，总失败次数=%d，"+
+				"曾触发重试的写入=%d，重试耗尽最终放弃=%d",
+				elapsed.Round(time.Millisecond), round, totalWrites, totalErrors,
+				totalRetryHit, totalRetryAborts)
 			return
+
 		case <-ticker.C:
+			round++
+			roundStart := time.Now()
+
+			var (
+				totalUsers     uint64
+				changedUsers   uint64
+				successUsers   uint64
+				failedUsers    uint64
+				unmatchedUsers uint64
+				sentBytes      uint64
+				recvBytes      uint64
+				retryHitUsers  uint64 // 本轮至少重试过 1 次的用户数
+				retryAborted   uint64 // 本轮重试耗尽的用户数
+			)
+
 			a.users.Range(func(_, v interface{}) bool {
+				totalUsers++
 				u := v.(*User)
+
 				sent, recv := u.GetTraffic()
 				lastSent := atomic.LoadUint64(&u.lastSent)
 				lastRecv := atomic.LoadUint64(&u.lastRecv)
-				if sent != lastSent || recv != lastRecv {
-					err := a.pst.UpdateUserTraffic(u.Hash, sent, recv)
-					if err != nil {
-						log.Debugf("Update user %s traffic failed: %s", u.Hash, err)
-						return true
-					}
-					atomic.StoreUint64(&u.lastSent, sent)
-					atomic.StoreUint64(&u.lastRecv, recv)
+
+				if sent == lastSent && recv == lastRecv {
+					// 流量无变化，跳过写库
+					return true
 				}
+				changedUsers++
+				deltaSent := sent - lastSent
+				deltaRecv := recv - lastRecv
+				sentBytes += deltaSent
+				recvBytes += deltaRecv
+
+				// ---------- 带重试的 UpdateUserTraffic ----------
+				var (
+					lastErr      error
+					attempt      int
+					retriedOnce  bool
+					waitTotal    time.Duration
+					waitThisTime time.Duration
+				)
+
+				for attempt = 0; attempt <= maxRetryAttempts; attempt++ {
+					if attempt > 0 {
+						// 指数退避 (capped)
+						waitThisTime = initialBackoff * (1 << (attempt - 1))
+						if waitThisTime > maxBackoff {
+							waitThisTime = maxBackoff
+						}
+						waitTotal += waitThisTime
+
+						log.Debugf("[batchTrafficUpdater] round=%d hash=%s 即将进行第 %d/%d 次重试："+
+							"上次错误=%q，sleep=%s（累计 sleep=%s），即将写入 sent=%d recv=%d",
+							round, u.Hash, attempt, maxRetryAttempts,
+							lastErr, waitThisTime, waitTotal, sent, recv)
+
+						select {
+						case <-time.After(waitThisTime):
+						case <-a.ctx.Done():
+							// ctx 取消，跳出；外层 for-select 会捕捉到并退出
+							return false
+						}
+					}
+
+					lastErr = a.pst.UpdateUserTraffic(u.Hash, sent, recv)
+					if lastErr == nil {
+						break
+					}
+					if attempt == 0 {
+						// 首次失败：判断是否可重试
+						if retryableError(lastErr) {
+							retriedOnce = true
+							log.Warnf("[batchTrafficUpdater] round=%d hash=%s 首次写库失败（可重试）："+
+								"sent=%d (+%d), recv=%d (+%d), err=%q。将进行最多 %d 次指数退避重试",
+								round, u.Hash, sent, deltaSent, recv, deltaRecv, lastErr, maxRetryAttempts)
+						} else {
+							// 不可重试错误：直接放弃
+							log.Warnf("[batchTrafficUpdater] round=%d hash=%s 首次写库失败（不可重试）："+
+								"sent=%d (+%d), recv=%d (+%d), err=%q。跳过重试，本轮放弃",
+								round, u.Hash, sent, deltaSent, recv, deltaRecv, lastErr)
+							break
+						}
+					} else {
+						// 重试过程中的失败；如果已经不是可重试错误，提前跳出
+						if !retryableError(lastErr) {
+							log.Warnf("[batchTrafficUpdater] round=%d hash=%s 第 %d/%d 次重试返回不可重试错误，提前终止：%q",
+								round, u.Hash, attempt, maxRetryAttempts, lastErr)
+							break
+						}
+					}
+				}
+
+				if lastErr != nil {
+					failedUsers++
+					totalErrors++
+					if retriedOnce {
+						totalRetryHit++
+						totalRetryAborts++
+						retryHitUsers++
+						retryAborted++
+						log.Warnf("[batchTrafficUpdater] round=%d hash=%s 重试全部耗尽仍失败："+
+							"尝试次数=%d，累计等待=%s，sent=%d recv=%d，最终错误=%q。"+
+							"⚠️ 本轮内存 → DB 未写入该用户，下轮自动再次尝试（累积增量保留）",
+							round, u.Hash, attempt, waitTotal, sent, recv, lastErr)
+					}
+					// 没有进入重试分支的首次失败，上面已经单独打过日志，这里不再重复
+					return true
+				}
+
+				// ---- 成功 ----
+				successUsers++
+				totalWrites++
+				if retriedOnce {
+					totalRetryHit++
+					retryHitUsers++
+					log.Infof("[batchTrafficUpdater] round=%d hash=%s 重试后写库成功 ✅："+
+						"尝试次数=%d（含重试 %d 次），累计等待=%s，sent=%d (+%d), recv=%d (+%d)",
+						round, u.Hash, attempt+1, attempt, waitTotal,
+						sent, deltaSent, recv, deltaRecv)
+				}
+
+				oldLastSent := atomic.SwapUint64(&u.lastSent, sent)
+				oldLastRecv := atomic.SwapUint64(&u.lastRecv, recv)
+				if oldLastSent != lastSent || oldLastRecv != lastRecv {
+					unmatchedUsers++
+					log.Debugf("[batchTrafficUpdater] round=%d lastSent/lastRecv 并发冲突："+
+						"hash=%s，before(load)=(%d,%d)，before(swap)=(%d,%d)，written=(%d,%d)",
+						round, u.Hash,
+						lastSent, lastRecv,
+						oldLastSent, oldLastRecv,
+						sent, recv)
+				}
+
+				log.Debugf("[batchTrafficUpdater] round=%d 用户流量写库成功："+
+					"hash=%s，sent=%d (+%d), recv=%d (+%d)",
+					round, u.Hash, sent, deltaSent, recv, deltaRecv)
 				return true
 			})
+
+			roundElapsed := time.Since(roundStart)
+			// 当本轮触发重试时，用 Info 级做聚合提示（因为重试是重要的运行状态）
+			if retryHitUsers > 0 {
+				log.Infof("[batchTrafficUpdater] round=%d 锁重试情况：触发过重试的用户=%d，"+
+					"重试耗尽后仍失败=%d（其余用户重试后恢复）。本轮总耗时=%s（interval=%s）",
+					round, retryHitUsers, retryAborted,
+					roundElapsed.Round(time.Microsecond), interval)
+			}
+
+			// 每轮汇总（Debug 级，默认不刷屏）
+			log.Debugf("[batchTrafficUpdater] round=%d 完成："+
+				"总用户=%d，有变化=%d，成功=%d，失败=%d，并发冲突=%d，"+
+				"触发过重试的用户=%d（耗尽 %d）；"+
+				"本轮累计：sent=%s recv=%s；耗时=%s（interval=%s）",
+				round,
+				totalUsers, changedUsers, successUsers, failedUsers, unmatchedUsers,
+				retryHitUsers, retryAborted,
+				common.HumanFriendlyTraffic(sentBytes), common.HumanFriendlyTraffic(recvBytes),
+				roundElapsed.Round(time.Microsecond), interval)
+
+			// 当本轮出现失败时，额外 Warn 聚合提示
+			if failedUsers > 0 {
+				log.Warnf("[batchTrafficUpdater] round=%d 出现 %d 个用户写库失败 "+
+					"(触发重试的用户=%d，重试耗尽=%d，不可重试直接放弃=%d)，已成功 %d 个用户",
+					round, failedUsers, retryHitUsers, retryAborted,
+					failedUsers-retryAborted /* 未重试直接失败 = 不可重试 */,
+					successUsers)
+			}
 		}
 	}
 }
@@ -449,7 +672,11 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 		a.SetUserIPLimit(hash, cfg.MaxIPPerUser)
 	}
 	if a.pst != nil {
+		pstType := fmt.Sprintf("%T", a.pst)
+		log.Infof("[memory-authenticator] 已启用持久化后端：%s，将启动 batchTrafficUpdater（每 10s 统一写库）", pstType)
 		go a.batchTrafficUpdater()
+	} else {
+		log.Info("[memory-authenticator] 未配置持久化后端（sqlite/mysql），用户流量仅在内存中保存，进程退出后丢失")
 	}
 	log.Debug("memory authenticator created")
 	return a, nil
