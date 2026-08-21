@@ -86,7 +86,7 @@ func RegisterTrojanClientServiceServer(s grpc.ServiceRegistrar, srv TrojanClient
 	s.RegisterService(&TrojanClientService_ServiceDesc, srv)
 }
 
-func _TrojanClientService_GetTraffic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TrojanClientService_GetTraffic_Handler(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
 	in := new(GetTrafficRequest)
 	if err := dec(in); err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func _TrojanClientService_GetTraffic_Handler(srv interface{}, ctx context.Contex
 		Server:     srv,
 		FullMethod: TrojanClientService_GetTraffic_FullMethodName,
 	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+	handler := func(ctx context.Context, req any) (any, error) {
 		return srv.(TrojanClientServiceServer).GetTraffic(ctx, req.(*GetTrafficRequest))
 	}
 	return interceptor(ctx, in, info, handler)
@@ -304,7 +304,7 @@ func RegisterTrojanServerServiceServer(s grpc.ServiceRegistrar, srv TrojanServer
 	s.RegisterService(&TrojanServerService_ServiceDesc, srv)
 }
 
-func _TrojanServerService_ListUsers_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _TrojanServerService_ListUsers_Handler(srv any, stream grpc.ServerStream) error {
 	m := new(ListUsersRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
@@ -315,21 +315,21 @@ func _TrojanServerService_ListUsers_Handler(srv interface{}, stream grpc.ServerS
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type TrojanServerService_ListUsersServer = grpc.ServerStreamingServer[ListUsersResponse]
 
-func _TrojanServerService_GetUsers_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _TrojanServerService_GetUsers_Handler(srv any, stream grpc.ServerStream) error {
 	return srv.(TrojanServerServiceServer).GetUsers(&grpc.GenericServerStream[GetUsersRequest, GetUsersResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type TrojanServerService_GetUsersServer = grpc.BidiStreamingServer[GetUsersRequest, GetUsersResponse]
 
-func _TrojanServerService_SetUsers_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _TrojanServerService_SetUsers_Handler(srv any, stream grpc.ServerStream) error {
 	return srv.(TrojanServerServiceServer).SetUsers(&grpc.GenericServerStream[SetUsersRequest, SetUsersResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type TrojanServerService_SetUsersServer = grpc.BidiStreamingServer[SetUsersRequest, SetUsersResponse]
 
-func _TrojanServerService_GetRecords_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _TrojanServerService_GetRecords_Handler(srv any, stream grpc.ServerStream) error {
 	m := new(GetRecordsRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
@@ -340,7 +340,7 @@ func _TrojanServerService_GetRecords_Handler(srv interface{}, stream grpc.Server
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type TrojanServerService_GetRecordsServer = grpc.ServerStreamingServer[GetRecordsResponse]
 
-func _TrojanServerService_SetOutboundConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TrojanServerService_SetOutboundConfig_Handler(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
 	in := new(SetOutboundConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
@@ -352,13 +352,13 @@ func _TrojanServerService_SetOutboundConfig_Handler(srv interface{}, ctx context
 		Server:     srv,
 		FullMethod: TrojanServerService_SetOutboundConfig_FullMethodName,
 	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+	handler := func(ctx context.Context, req any) (any, error) {
 		return srv.(TrojanServerServiceServer).SetOutboundConfig(ctx, req.(*SetOutboundConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TrojanServerService_GetOutboundConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TrojanServerService_GetOutboundConfig_Handler(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
 	in := new(GetOutboundConfigRequest)
 	if err := dec(in); err != nil {
 		return nil, err
@@ -370,7 +370,7 @@ func _TrojanServerService_GetOutboundConfig_Handler(srv interface{}, ctx context
 		Server:     srv,
 		FullMethod: TrojanServerService_GetOutboundConfig_FullMethodName,
 	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+	handler := func(ctx context.Context, req any) (any, error) {
 		return srv.(TrojanServerServiceServer).GetOutboundConfig(ctx, req.(*GetOutboundConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)

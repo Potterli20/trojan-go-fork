@@ -46,7 +46,7 @@ func requireCapNetAdmin(t *testing.T) {
 	if err != nil {
 		t.Skipf("SO_MARK requires root or CAP_NET_ADMIN; skipping (capsh err: %v)", err)
 	}
-	for _, line := range strings.Split(string(out), "\n") {
+	for line := range strings.SplitSeq(string(out), "\n") {
 		if strings.HasPrefix(strings.TrimSpace(line), "Current:") && strings.Contains(line, "cap_net_admin") {
 			return
 		}
@@ -172,7 +172,7 @@ func TestFwmark_JSONRoundtrip(t *testing.T) {
 }
 
 func TestFwmark_YAMLRoundtrip(t *testing.T) {
-	blob := []byte(fmt.Sprintf("outbound-fwmark: %d\n", 0x100))
+	blob := fmt.Appendf(nil, "outbound-fwmark: %d\n", 0x100)
 	ctx, err := config.WithYAMLConfig(context.Background(), blob)
 	common.Must(err)
 	cfg := config.FromContext(ctx, Name).(*Config)

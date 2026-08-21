@@ -305,7 +305,7 @@ func (a *Authenticator) batchTrafficUpdater() {
 				retryAborted   uint64 // 本轮重试耗尽的用户数
 			)
 
-			a.users.Range(func(_, v interface{}) bool {
+			a.users.Range(func(_, v any) bool {
 				totalUsers++
 				u := v.(*User)
 
@@ -454,7 +454,7 @@ func (a *Authenticator) batchTrafficUpdater() {
 				log.Warnf("[batchTrafficUpdater] round=%d 出现 %d 个用户写库失败 "+
 					"(触发重试的用户=%d，重试耗尽=%d，不可重试直接放弃=%d)，已成功 %d 个用户",
 					round, failedUsers, retryHitUsers, retryAborted,
-					failedUsers-retryAborted /* 未重试直接失败 = 不可重试 */,
+					failedUsers-retryAborted, /* 未重试直接失败 = 不可重试 */
 					successUsers)
 			}
 		}

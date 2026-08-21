@@ -361,9 +361,9 @@ type trafficUpdate struct {
 	recv uint64
 }
 
-func (m *mockPersistencer) SaveUser(statistic.Metadata) error              { return nil }
-func (m *mockPersistencer) LoadUser(string) (statistic.Metadata, error)   { return nil, nil }
-func (m *mockPersistencer) DeleteUser(string) error                       { return nil }
+func (m *mockPersistencer) SaveUser(statistic.Metadata) error                    { return nil }
+func (m *mockPersistencer) LoadUser(string) (statistic.Metadata, error)          { return nil, nil }
+func (m *mockPersistencer) DeleteUser(string) error                              { return nil }
 func (m *mockPersistencer) ListUser(func(string, statistic.Metadata) bool) error { return nil }
 
 func (m *mockPersistencer) UpdateUserTraffic(hash string, sent, recv uint64) error {
@@ -452,7 +452,7 @@ func TestBatchTrafficUpdater_UpdatesAllUsers(t *testing.T) {
 	defer cancel()
 
 	const userCount = 5
-	for i := 0; i < userCount; i++ {
+	for i := range userCount {
 		hash := "user" + strconv.Itoa(i)
 		u := newTestUser(hash, auth.ctx, uint64((i+1)*100), uint64((i+1)*200))
 		go u.speedUpdater()
@@ -460,7 +460,7 @@ func TestBatchTrafficUpdater_UpdatesAllUsers(t *testing.T) {
 	}
 
 	// 模拟 batchTrafficUpdater 的一轮更新逻辑
-	auth.users.Range(func(_, v interface{}) bool {
+	auth.users.Range(func(_, v any) bool {
 		u := v.(*User)
 		sent, recv := u.GetTraffic()
 		ls := atomic.LoadUint64(&u.lastSent)
@@ -482,7 +482,7 @@ func TestBatchTrafficUpdater_UpdatesAllUsers(t *testing.T) {
 	for _, u := range updates {
 		updateMap[u.hash] = u
 	}
-	for i := 0; i < userCount; i++ {
+	for i := range userCount {
 		hash := "user" + strconv.Itoa(i)
 		u, ok := updateMap[hash]
 		if !ok {
@@ -505,7 +505,7 @@ func TestBatchTrafficUpdater_SkipsUnchanged(t *testing.T) {
 	atomic.StoreUint64(&u.lastRecv, 300)
 	auth.users.Store(hash, u)
 
-	auth.users.Range(func(_, v interface{}) bool {
+	auth.users.Range(func(_, v any) bool {
 		uu := v.(*User)
 		sent, recv := uu.GetTraffic()
 		if sent != atomic.LoadUint64(&uu.lastSent) || recv != atomic.LoadUint64(&uu.lastRecv) {
@@ -528,7 +528,7 @@ func TestAddUser_NoGoroutineLeak(t *testing.T) {
 	goroutinesBefore := runtime.NumGoroutine()
 
 	const userCount = 10
-	for i := 0; i < userCount; i++ {
+	for i := range userCount {
 		hash := "user" + strconv.Itoa(i)
 		u := newTestUser(hash, auth.ctx, 0, 0)
 		go u.speedUpdater()
@@ -567,7 +567,7 @@ func TestBatchTrafficUpdater_ConcurrentUsers(t *testing.T) {
 	auth, pst, cancel := newTestAuth()
 	defer cancel()
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		hash := "initial_" + strconv.Itoa(i)
 		u := newTestUser(hash, auth.ctx, uint64((i+1)*100), uint64((i+1)*200))
 		go u.speedUpdater()
@@ -575,17 +575,15 @@ func TestBatchTrafficUpdater_ConcurrentUsers(t *testing.T) {
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		time.Sleep(5 * time.Millisecond)
 		hash := "dynamic_user"
 		u := newTestUser(hash, auth.ctx, 999, 888)
 		go u.speedUpdater()
 		auth.users.Store(hash, u)
-	}()
+	})
 
-	auth.users.Range(func(_, v interface{}) bool {
+	auth.users.Range(func(_, v any) bool {
 		u := v.(*User)
 		sent, recv := u.GetTraffic()
 		pst.UpdateUserTraffic(u.Hash, sent, recv)
