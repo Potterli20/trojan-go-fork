@@ -19,8 +19,7 @@ import (
 )
 
 func TestOutboundConfigAPI(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ctx = config.WithConfig(ctx, memory.Name, &memory.Config{Passwords: []string{}})
 	port := common.PickPort("tcp", "127.0.0.1")
 	ctx = config.WithConfig(ctx, Name, &Config{

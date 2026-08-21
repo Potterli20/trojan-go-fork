@@ -218,7 +218,7 @@ func (a *Authenticator) batchTrafficUpdater() {
 		case <-a.ctx.Done():
 			return
 		case <-ticker.C:
-			a.users.Range(func(_, v interface{}) bool {
+			a.users.Range(func(_, v any) bool {
 				u := v.(*User)
 				sent, recv := u.GetTraffic()
 				lastSent := atomic.LoadUint64(&u.lastSent)
