@@ -20,7 +20,7 @@ jobs:
             go clean -modcache
             gofmt -w -r 'interface{} -> any' .
             go fix ./...
-            go mod tidy -compat=1.26
+            go mod tidy -compat=1.27
             go mod download
           else
             echo "没有找到 go.mod 文件，跳过模块更新"
