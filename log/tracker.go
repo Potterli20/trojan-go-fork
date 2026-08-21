@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
-var connIDCounter uint64
+var connIDCounter atomic.Uint64
 
 func generateConnID() string {
-	id := atomic.AddUint64(&connIDCounter, 1)
+	id := connIDCounter.Add(1)
 	return fmt.Sprintf("conn-%d-%d", time.Now().UnixNano()%1000000, id)
 }
 

@@ -162,9 +162,7 @@ func (u *URLOption) Handle() error {
 		RemoteAddr: info.TrojanHost,
 		RemotePort: int(info.Port),
 		Password:   []string{info.TrojanPassword},
-		TLS: TLS{
-			SNI: info.SNI,
-		},
+		SNI:        info.SNI,
 		Websocket: Websocket{
 			Enabled: wsEnabled,
 			Path:    info.Path,

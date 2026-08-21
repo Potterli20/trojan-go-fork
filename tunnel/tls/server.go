@@ -47,7 +47,7 @@ type Server struct {
 	ctx                context.Context
 	cancel             context.CancelFunc
 	underlay           tunnel.Server
-	nextHTTP           int32
+	nextHTTP           atomic.Int32
 	portOverrider      map[string]int
 	wg                 sync.WaitGroup
 }
@@ -172,7 +172,7 @@ func (s *Server) acceptLoop() {
 					Conn: rewindConn,
 				}
 			} else {
-				if atomic.LoadInt32(&s.nextHTTP) != 1 {
+				if s.nextHTTP.Load() != 1 {
 					// there is no websocket layer waiting for connections, redirect it
 					log.Error("incoming http request, but no websocket server is listening")
 					s.redir.Redirect(&redirector.Redirection{
@@ -193,7 +193,7 @@ func (s *Server) acceptLoop() {
 
 func (s *Server) AcceptConn(overlay tunnel.Tunnel) (tunnel.Conn, error) {
 	if _, ok := overlay.(*websocket.Tunnel); ok {
-		atomic.StoreInt32(&s.nextHTTP, 1)
+		s.nextHTTP.Store(1)
 		log.Debug("next proto http")
 		// websocket overlay
 		select {

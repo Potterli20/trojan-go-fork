@@ -30,8 +30,8 @@ const (
 )
 
 type OutboundConn struct {
-	sent uint64
-	recv uint64
+	sent atomic.Uint64
+	recv atomic.Uint64
 
 	metadata          *tunnel.Metadata
 	user              statistic.User
@@ -84,7 +84,7 @@ func (c *OutboundConn) Write(p []byte) (int, error) {
 	}
 	n, err := c.Conn.Write(p)
 	c.user.AddSentTraffic(n)
-	atomic.AddUint64(&c.sent, uint64(n))
+	c.sent.Add(uint64(n))
 	return n, err
 }
 
@@ -94,14 +94,14 @@ func (c *OutboundConn) Read(p []byte) (int, error) {
 		log.Debug("[Trojan] Connection read error:", err)
 	}
 	c.user.AddRecvTraffic(n)
-	atomic.AddUint64(&c.recv, uint64(n))
+	c.recv.Add(uint64(n))
 	return n, err
 }
 
 func (c *OutboundConn) Close() error {
 	c.cancel()
 	if log.ShouldLog(log.InfoLevel) {
-		log.Info("[Trojan] Connection to", c.metadata, "closed", "sent:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.sent)), "recv:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.recv)))
+		log.Info("[Trojan] Connection to", c.metadata, "closed", "sent:", common.HumanFriendlyTraffic(c.sent.Load()), "recv:", common.HumanFriendlyTraffic(c.recv.Load()))
 	}
 	if err := c.Conn.Close(); err != nil {
 		log.Error("[Trojan] Failed to close connection:", err)

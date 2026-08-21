@@ -24,23 +24,23 @@ type User struct {
 	Recv          uint64
 	lastSent      uint64
 	lastRecv      uint64
-	sendSpeed     uint64
-	recvSpeed     uint64
-	persistedSent uint64 // 持久化基线，仅 batchTrafficUpdater 读写，与 speedUpdater 使用的 lastSent 物理分离
-	persistedRecv uint64 // 持久化基线，仅 batchTrafficUpdater 读写，与 lastRecv 物理分离
+	sendSpeed     atomic.Uint64
+	recvSpeed     atomic.Uint64
+	persistedSent atomic.Uint64 // 持久化基线，仅 batchTrafficUpdater 读写，与 speedUpdater 使用的 lastSent 物理分离
+	persistedRecv atomic.Uint64 // 持久化基线，仅 batchTrafficUpdater 读写，与 lastRecv 物理分离
 	Hash          string
-	password    string
-	passLock    sync.RWMutex
-	ipTable     map[string]time.Time
-	ipNum       int32
-	MaxIPNum    int
-	limiterLock sync.RWMutex
-	ipLock      sync.Mutex
-	SendLimiter *rate.Limiter
-	RecvLimiter *rate.Limiter
-	ctx         context.Context
-	wg          sync.WaitGroup
-	cancel      context.CancelFunc
+	password      string
+	passLock      sync.RWMutex
+	ipTable       map[string]time.Time
+	ipNum         atomic.Int32
+	MaxIPNum      int
+	limiterLock   sync.RWMutex
+	ipLock        sync.Mutex
+	SendLimiter   *rate.Limiter
+	RecvLimiter   *rate.Limiter
+	ctx           context.Context
+	wg            sync.WaitGroup
+	cancel        context.CancelFunc
 }
 
 func (u *User) Close() error {
@@ -63,7 +63,7 @@ func (u *User) ipCleaner() {
 			for ip, lastSeen := range u.ipTable {
 				if now.Sub(lastSeen) >= 10*time.Second {
 					delete(u.ipTable, ip)
-					atomic.AddInt32(&u.ipNum, -1)
+					u.ipNum.Add(-1)
 				}
 			}
 			u.ipLock.Unlock()
@@ -84,12 +84,12 @@ func (u *User) AddIP(ip string) bool {
 		return true
 	}
 
-	if int(atomic.LoadInt32(&u.ipNum)) >= u.MaxIPNum {
+	if int(u.ipNum.Load()) >= u.MaxIPNum {
 		return false
 	}
 
 	u.ipTable[ip] = time.Now()
-	atomic.AddInt32(&u.ipNum, 1)
+	u.ipNum.Add(1)
 	return true
 }
 
@@ -106,13 +106,13 @@ func (u *User) DelIP(ip string) bool {
 	}
 
 	delete(u.ipTable, ip)
-	atomic.AddInt32(&u.ipNum, -1)
+	u.ipNum.Add(-1)
 
 	return true
 }
 
 func (u *User) GetIP() int {
-	return int(atomic.LoadInt32(&u.ipNum))
+	return int(u.ipNum.Load())
 }
 
 func (u *User) setIPLimit(n int) {
@@ -194,8 +194,8 @@ func (u *User) ResetTraffic() (uint64, uint64) {
 	recv := atomic.SwapUint64(&u.Recv, 0)
 	atomic.StoreUint64(&u.lastSent, 0)
 	atomic.StoreUint64(&u.lastRecv, 0)
-	atomic.StoreUint64(&u.persistedSent, 0)
-	atomic.StoreUint64(&u.persistedRecv, 0)
+	u.persistedSent.Store(0)
+	u.persistedRecv.Store(0)
 	return sent, recv
 }
 
@@ -208,8 +208,8 @@ func (u *User) speedUpdater() {
 			return
 		case <-ticker.C:
 			sent, recv := u.GetTraffic()
-			atomic.StoreUint64(&u.sendSpeed, sent-atomic.SwapUint64(&u.lastSent, sent))
-			atomic.StoreUint64(&u.recvSpeed, recv-atomic.SwapUint64(&u.lastRecv, recv))
+			u.sendSpeed.Store(sent - atomic.SwapUint64(&u.lastSent, sent))
+			u.recvSpeed.Store(recv - atomic.SwapUint64(&u.lastRecv, recv))
 		}
 	}
 }
@@ -322,8 +322,8 @@ func (a *Authenticator) batchTrafficUpdater() {
 				u := v.(*User)
 
 				sent, recv := u.GetTraffic()
-				lastSent := atomic.LoadUint64(&u.persistedSent)
-				lastRecv := atomic.LoadUint64(&u.persistedRecv)
+				lastSent := u.persistedSent.Load()
+				lastRecv := u.persistedRecv.Load()
 
 				if sent == lastSent && recv == lastRecv {
 					// 流量无变化，跳过写库
@@ -347,10 +347,7 @@ func (a *Authenticator) batchTrafficUpdater() {
 				for attempt = 0; attempt <= maxRetryAttempts; attempt++ {
 					if attempt > 0 {
 						// 指数退避 (capped)
-						waitThisTime = initialBackoff * (1 << (attempt - 1))
-						if waitThisTime > maxBackoff {
-							waitThisTime = maxBackoff
-						}
+						waitThisTime = min(initialBackoff*(1<<(attempt-1)), maxBackoff)
 						waitTotal += waitThisTime
 
 						log.Debugf("[batchTrafficUpdater] round=%d hash=%s 即将进行第 %d/%d 次重试："+
@@ -423,8 +420,8 @@ func (a *Authenticator) batchTrafficUpdater() {
 						sent, deltaSent, recv, deltaRecv)
 				}
 
-				oldLastSent := atomic.SwapUint64(&u.persistedSent, sent)
-				oldLastRecv := atomic.SwapUint64(&u.persistedRecv, recv)
+				oldLastSent := u.persistedSent.Swap(sent)
+				oldLastRecv := u.persistedRecv.Swap(recv)
 				if oldLastSent != lastSent || oldLastRecv != lastRecv {
 					unmatchedUsers++
 					log.Debugf("[batchTrafficUpdater] round=%d lastSent/lastRecv 并发冲突："+
@@ -474,7 +471,7 @@ func (a *Authenticator) batchTrafficUpdater() {
 }
 
 func (u *User) GetSpeed() (uint64, uint64) {
-	return atomic.LoadUint64(&u.sendSpeed), atomic.LoadUint64(&u.recvSpeed)
+	return u.sendSpeed.Load(), u.recvSpeed.Load()
 }
 
 type Authenticator struct {

@@ -155,12 +155,10 @@ func Dial(ctx context.Context, cfg DialConfig) (net.Conn, error) {
 
 		if cfg.EnableTFO {
 			dialer := &tfo.Dialer{
-				Dialer: net.Dialer{
-					Timeout:   cfg.Timeout,
-					LocalAddr: cfg.LocalAddr,
-					Control:   cfg.Control,
-				},
-				Fallback: true,
+				Timeout:   cfg.Timeout,
+				LocalAddr: cfg.LocalAddr,
+				Control:   cfg.Control,
+				Fallback:  true,
 			}
 			conn, err = dialer.DialContext(ctx, network, cfg.Address, nil)
 			if err == nil {

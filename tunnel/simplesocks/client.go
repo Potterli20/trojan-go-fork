@@ -6,7 +6,6 @@ import (
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
-	"github.com/Potterli20/trojan-go-fork/tunnel/trojan"
 )
 
 const (
@@ -57,9 +56,7 @@ func (c *Client) DialPacket(t tunnel.Tunnel) (tunnel.PacketConn, error) {
 		return nil, common.NewError("simplesocks failed to write udp associate").Base(err)
 	}
 	return &PacketConn{
-		PacketConn: trojan.PacketConn{
-			Conn: conn,
-		},
+		Conn: conn,
 	}, nil
 }
 

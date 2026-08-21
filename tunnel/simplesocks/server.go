@@ -58,9 +58,7 @@ func (s *Server) acceptLoop() {
 			Record(conn, metadata)
 		case Associate:
 			s.packetChan <- &PacketConn{
-				PacketConn: trojan.PacketConn{
-					Conn: conn,
-				},
+				Conn: conn,
 			}
 		default:
 			log.Error(common.NewError(fmt.Sprintf("simplesocks unknown command %d", metadata.Command)))

@@ -238,10 +238,8 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 
 	_ = tracker.Success()
 	return &InboundConn{
-		OutboundConn: OutboundConn{
-			tcpConn: conn,
-			Conn:    wsConn,
-		},
+		tcpConn: conn,
+		Conn:    wsConn,
 		ctx:     ctx,
 		cancel:  cancel,
 		tracker: tracker,

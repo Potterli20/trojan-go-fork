@@ -39,7 +39,7 @@ type Logger struct {
 	timestamp bool
 	quiet     bool
 	buf       colorful.ColorBuffer
-	logLevel  int32
+	logLevel  atomic.Int32
 }
 
 // Prefix struct define plain and color byte
@@ -111,7 +111,7 @@ func New(out FdWriter) *Logger {
 func (l *Logger) SetLogLevel(level log.LogLevel) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	atomic.StoreInt32(&l.logLevel, int32(level))
+	l.logLevel.Store(int32(level))
 }
 
 func (l *Logger) SetOutput(w io.Writer) {
@@ -296,7 +296,7 @@ func (l *Logger) Output(depth int, prefix Prefix, data string) error {
 
 // Fatal print fatal message to output and quit the application with status 1
 func (l *Logger) Fatal(v ...any) {
-	if atomic.LoadInt32(&l.logLevel) <= 4 {
+	if l.logLevel.Load() <= 4 {
 		l.Output(1, FatalPrefix, fmt.Sprintln(log.SanitizeLogInput(v)...))
 	}
 	os.Exit(1)
@@ -305,7 +305,7 @@ func (l *Logger) Fatal(v ...any) {
 // Fatalf print formatted fatal message to output and quit the application
 // with status 1
 func (l *Logger) Fatalf(format string, v ...any) {
-	if atomic.LoadInt32(&l.logLevel) <= 4 {
+	if l.logLevel.Load() <= 4 {
 		l.Output(1, FatalPrefix, fmt.Sprintf(log.SanitizeString(format), log.SanitizeLogInput(v)...))
 	}
 	os.Exit(1)
@@ -313,70 +313,70 @@ func (l *Logger) Fatalf(format string, v ...any) {
 
 // Error print error message to output
 func (l *Logger) Error(v ...any) {
-	if atomic.LoadInt32(&l.logLevel) <= 3 {
+	if l.logLevel.Load() <= 3 {
 		l.Output(1, ErrorPrefix, fmt.Sprintln(log.SanitizeLogInput(v)...))
 	}
 }
 
 // Errorf print formatted error message to output
 func (l *Logger) Errorf(format string, v ...any) {
-	if atomic.LoadInt32(&l.logLevel) <= 3 {
+	if l.logLevel.Load() <= 3 {
 		l.Output(1, ErrorPrefix, fmt.Sprintf(log.SanitizeString(format), log.SanitizeLogInput(v)...))
 	}
 }
 
 // Warn print warning message to output
 func (l *Logger) Warn(v ...any) {
-	if atomic.LoadInt32(&l.logLevel) <= 2 {
+	if l.logLevel.Load() <= 2 {
 		l.Output(1, WarnPrefix, fmt.Sprintln(log.SanitizeLogInput(v)...))
 	}
 }
 
 // Warnf print formatted warning message to output
 func (l *Logger) Warnf(format string, v ...any) {
-	if atomic.LoadInt32(&l.logLevel) <= 2 {
+	if l.logLevel.Load() <= 2 {
 		l.Output(1, WarnPrefix, fmt.Sprintf(log.SanitizeString(format), log.SanitizeLogInput(v)...))
 	}
 }
 
 // Info print informational message to output
 func (l *Logger) Info(v ...any) {
-	if atomic.LoadInt32(&l.logLevel) <= 1 {
+	if l.logLevel.Load() <= 1 {
 		l.Output(1, InfoPrefix, fmt.Sprintln(log.SanitizeLogInput(v)...))
 	}
 }
 
 // Infof print formatted informational message to output
 func (l *Logger) Infof(format string, v ...any) {
-	if atomic.LoadInt32(&l.logLevel) <= 1 {
+	if l.logLevel.Load() <= 1 {
 		l.Output(1, InfoPrefix, fmt.Sprintf(log.SanitizeString(format), log.SanitizeLogInput(v)...))
 	}
 }
 
 // Debug print debug message to output if debug output enabled
 func (l *Logger) Debug(v ...any) {
-	if atomic.LoadInt32(&l.logLevel) == 0 {
+	if l.logLevel.Load() == 0 {
 		l.Output(1, DebugPrefix, fmt.Sprintln(log.SanitizeLogInput(v)...))
 	}
 }
 
 // Debugf print formatted debug message to output if debug output enabled
 func (l *Logger) Debugf(format string, v ...any) {
-	if atomic.LoadInt32(&l.logLevel) == 0 {
+	if l.logLevel.Load() == 0 {
 		l.Output(1, DebugPrefix, fmt.Sprintf(log.SanitizeString(format), log.SanitizeLogInput(v)...))
 	}
 }
 
 // Trace print trace message to output if debug output enabled
 func (l *Logger) Trace(v ...any) {
-	if atomic.LoadInt32(&l.logLevel) == 0 {
+	if l.logLevel.Load() == 0 {
 		l.Output(1, TracePrefix, fmt.Sprintln(log.SanitizeLogInput(v)...))
 	}
 }
 
 // Tracef print formatted trace message to output if debug output enabled
 func (l *Logger) Tracef(format string, v ...any) {
-	if atomic.LoadInt32(&l.logLevel) == 0 {
+	if l.logLevel.Load() == 0 {
 		l.Output(1, TracePrefix, fmt.Sprintf(log.SanitizeString(format), log.SanitizeLogInput(v)...))
 	}
 }

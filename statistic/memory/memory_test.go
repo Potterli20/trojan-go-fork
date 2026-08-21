@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"maps"
 	"math/rand"
 	"runtime"
 	"strconv"
@@ -638,7 +639,7 @@ type lockableMockPersistencer struct {
 	// 用于模拟"整表锁竞争 / 备份导致的短暂全表锁"
 	globalLockFirstNCalls int
 	// globalCallCount 全局 UpdateUserTraffic 调用次数（atomic）
-	globalCallCount uint64
+	globalCallCount atomic.Uint64
 
 	recordsMu sync.Mutex
 	records   []lockedCallRecord
@@ -650,7 +651,7 @@ type lockableMockPersistencer struct {
 
 func newLockableMockPersistencer() *lockableMockPersistencer {
 	return &lockableMockPersistencer{
-		perHash:       make(map[string]*perHashPolicy),
+		perHash:         make(map[string]*perHashPolicy),
 		callCountByHash: make(map[string]uint64),
 	}
 }
@@ -669,7 +670,7 @@ func (p *lockableMockPersistencer) setDefaultPolicy(pol *perHashPolicy) {
 
 func (p *lockableMockPersistencer) setGlobalLockFirstNCalls(n int) {
 	p.globalLockFirstNCalls = n
-	atomic.StoreUint64(&p.globalCallCount, 0)
+	p.globalCallCount.Store(0)
 }
 
 // policyFor 读取 hash 对应的策略（默认兜底）
@@ -693,9 +694,7 @@ func (p *lockableMockPersistencer) snapshotHashCalls() map[string]uint64 {
 	p.callCountMu.Lock()
 	defer p.callCountMu.Unlock()
 	out := make(map[string]uint64, len(p.callCountByHash))
-	for k, v := range p.callCountByHash {
-		out[k] = v
-	}
+	maps.Copy(out, p.callCountByHash)
 	return out
 }
 
@@ -709,7 +708,7 @@ func (p *lockableMockPersistencer) getRecords() []lockedCallRecord {
 
 // UpdateUserTraffic 执行真实策略判断
 func (p *lockableMockPersistencer) UpdateUserTraffic(hash string, sent, recv uint64) error {
-	callSeq := atomic.AddUint64(&p.globalCallCount, 1)
+	callSeq := p.globalCallCount.Add(1)
 	hashCalls := p.incrHashCall(hash)
 	pol := p.policyFor(hash)
 
@@ -800,7 +799,8 @@ type userSeed struct {
 }
 
 // sha256Hex6 辅助函数：用字符串的 sha256 前 6 位构造生产风格的短 hash
-//   方便测试中出现大量 hash 时肉眼可读
+//
+//	方便测试中出现大量 hash 时肉眼可读
 func sha256Hex6(s string) string {
 	d := sha256.Sum256([]byte(s))
 	return hex.EncodeToString(d[:])[:6]
@@ -813,7 +813,7 @@ func buildProductionUsers(n int, seedRand int64, rng *rand.Rand) []userSeed {
 		rng = rand.New(rand.NewSource(seedRand))
 	}
 	seeds := make([]userSeed, 0, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		tag := fmt.Sprintf("u_%06d", i)
 		hash := sha256Hex6(tag)
 		r := rng.Float64()
@@ -992,7 +992,7 @@ func TestRetryableError_ClassifiesCorrectly(t *testing.T) {
 func simulateOneBatchRound(auth *Authenticator, roundIdx uint64) (
 	totalUsers, changedUsers, successUsers, failedUsers, retryHitUsers, retryAborted uint64,
 ) {
-	auth.users.Range(func(_, v interface{}) bool {
+	auth.users.Range(func(_, v any) bool {
 		totalUsers++
 		u := v.(*User)
 
@@ -1013,10 +1013,7 @@ func simulateOneBatchRound(auth *Authenticator, roundIdx uint64) (
 		)
 		for attempt = 0; attempt <= maxRetryAttempts; attempt++ {
 			if attempt > 0 {
-				wait := initialBackoff * (1 << (attempt - 1))
-				if wait > maxBackoff {
-					wait = maxBackoff
-				}
+				wait := min(initialBackoff*(1<<(attempt-1)), maxBackoff)
 				waitTotal += wait
 				// 测试中也尊重真实等待：用于验证"指数退避时序"的测试
 				time.Sleep(wait)
@@ -1059,8 +1056,7 @@ func simulateOneBatchRound(auth *Authenticator, roundIdx uint64) (
 
 // ---------- 锁 2 次 + 第 3 次成功：验证尝试次数 & 最终落库 ----------
 func TestBatchUpdateRound_LockedTwiceThenSucceed(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	pst := newLockableMockPersistencer()
 	auth := &Authenticator{ctx: ctx, pst: pst}
 
@@ -1108,8 +1104,7 @@ func TestBatchUpdateRound_LockedTwiceThenSucceed(t *testing.T) {
 
 // ---------- 永久 locked：重试耗尽，该用户本轮放弃 ----------
 func TestBatchUpdateRound_PermanentLockRetryExhausted(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	pst := newLockableMockPersistencer()
 	auth := &Authenticator{ctx: ctx, pst: pst}
 
@@ -1154,8 +1149,7 @@ func TestBatchUpdateRound_PermanentLockRetryExhausted(t *testing.T) {
 
 // ---------- 首次就是不可重试错误：0 次重试，直接失败 ----------
 func TestBatchUpdateRound_NonRetryableSkipsRetries(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	pst := newLockableMockPersistencer()
 	auth := &Authenticator{ctx: ctx, pst: pst}
 
@@ -1188,8 +1182,7 @@ func TestBatchUpdateRound_PartialLocksIsolated(t *testing.T) {
 	rng := rand.New(rand.NewSource(42))
 	users := buildProductionUsers(100, 0, rng)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	pst := newLockableMockPersistencer()
 	auth := &Authenticator{ctx: ctx, pst: pst}
 
@@ -1260,8 +1253,7 @@ func TestBatchUpdateRound_PartialLocksIsolated(t *testing.T) {
 
 // ---------- 全局前 N 次全锁（模拟整表 backup 锁） ----------
 func TestBatchUpdateRound_GlobalLockFirstNCalls(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	pst := newLockableMockPersistencer()
 	auth := &Authenticator{ctx: ctx, pst: pst}
 
@@ -1290,8 +1282,7 @@ func TestBatchUpdateRound_GlobalLockFirstNCalls(t *testing.T) {
 
 // ---------- 指数退避时序：locked 4 次 → 检查每轮间隔是否符合 20/40/80/160 ms ----------
 func TestBatchUpdateRound_ExponentialBackoffTiming(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	pst := newLockableMockPersistencer()
 	auth := &Authenticator{ctx: ctx, pst: pst}
 
@@ -1333,8 +1324,7 @@ func TestBatchUpdateRound_ProductionScaleDataset(t *testing.T) {
 	rng := rand.New(rand.NewSource(7))
 	users := buildProductionUsers(N, 7, rng)
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	pst := newLockableMockPersistencer()
 	auth := &Authenticator{ctx: ctx, pst: pst}
 

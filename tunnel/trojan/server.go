@@ -33,8 +33,8 @@ type InboundConn struct {
 	// must be 64-bit aligned on 32-bit systems.
 	// Reference: https://github.com/golang/go/issues/599
 	// Solution: https://github.com/golang/go/issues/11891#issuecomment-433623786
-	sent uint64
-	recv uint64
+	sent atomic.Uint64
+	recv atomic.Uint64
 
 	net.Conn
 	auth         statistic.Authenticator
@@ -52,21 +52,21 @@ func (c *InboundConn) Metadata() *tunnel.Metadata {
 
 func (c *InboundConn) Write(p []byte) (int, error) {
 	n, err := c.Conn.Write(p)
-	atomic.AddUint64(&c.sent, uint64(n))
+	c.sent.Add(uint64(n))
 	c.user.AddRecvTraffic(n) // 服务端写入数据到客户端，对应客户端的接收，即服务端的下行
 	return n, err
 }
 
 func (c *InboundConn) Read(p []byte) (int, error) {
 	n, err := c.Conn.Read(p)
-	atomic.AddUint64(&c.recv, uint64(n))
+	c.recv.Add(uint64(n))
 	c.user.AddSentTraffic(n) // 服务端从客户端读取数据，对应客户端的发送，即服务端的上行
 	return n, err
 }
 
 func (c *InboundConn) Close() error {
 	log.Debug("Closing connection for user", c.hash, "RealIP", c.ipX, "from", c.Conn.RemoteAddr(), "tunneling to", c.metadata.Address,
-		"sent:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.sent)), "recv:", common.HumanFriendlyTraffic(atomic.LoadUint64(&c.recv)))
+		"sent:", common.HumanFriendlyTraffic(c.sent.Load()), "recv:", common.HumanFriendlyTraffic(c.recv.Load()))
 	// Auth() 成功时会调用 AddIP(RealIP) 占用 IP 槽，关闭时必须释放，
 	// 否则只能靠 memory.User 的 10 秒过期扫描清理，短连接频繁切换 IP 时会提前触顶 MaxIPNum。
 	// c.user 可能为 nil（Close 在 Auth 之前被调用），需做 nil 检查。
