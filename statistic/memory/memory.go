@@ -205,27 +205,35 @@ func (u *User) speedUpdater() {
 	}
 }
 
-func (u *User) trafficUpdater(pst statistic.Persistencer) {
+// batchTrafficUpdater 使用单个 goroutine 统一更新所有用户的流量到持久化存储，
+// 避免多个 goroutine 并发写 SQLite 导致事务冲突。
+func (a *Authenticator) batchTrafficUpdater() {
+	if a.pst == nil {
+		return
+	}
 	ticker := time.NewTicker(10 * time.Second)
-	var lastSent, lastRecv uint64
+	defer ticker.Stop()
 	for {
 		select {
-		case <-u.ctx.Done():
+		case <-a.ctx.Done():
 			return
 		case <-ticker.C:
-			if pst != nil {
+			a.users.Range(func(_, v interface{}) bool {
+				u := v.(*User)
 				sent, recv := u.GetTraffic()
+				lastSent := atomic.LoadUint64(&u.lastSent)
+				lastRecv := atomic.LoadUint64(&u.lastRecv)
 				if sent != lastSent || recv != lastRecv {
-					log.Debugf("Update %s traffic", u.Hash)
-					err := pst.UpdateUserTraffic(u.Hash, sent, recv)
+					err := a.pst.UpdateUserTraffic(u.Hash, sent, recv)
 					if err != nil {
 						log.Debugf("Update user %s traffic failed: %s", u.Hash, err)
-						continue
+						return true
 					}
-					lastRecv = recv
-					lastSent = sent
+					atomic.StoreUint64(&u.lastSent, sent)
+					atomic.StoreUint64(&u.lastRecv, recv)
 				}
-			}
+				return true
+			})
 		}
 	}
 }
@@ -302,9 +310,6 @@ func (a *Authenticator) AddUser(hash string) error {
 	})
 	a.users.Store(hash, meter)
 	if a.pst != nil {
-		meter.wg.Go(func() {
-			meter.trafficUpdater(a.pst)
-		})
 		err := a.pst.SaveUser(meter)
 		if err != nil {
 			log.Errorf("Save user %s failed: %s", hash, err)
@@ -426,9 +431,6 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 			user.wg.Go(func() {
 				user.ipCleaner()
 			})
-			user.wg.Go(func() {
-				user.trafficUpdater(a.pst)
-			})
 			a.users.Store(hash, user)
 			return true
 		})
@@ -445,6 +447,9 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 		a.AddUser(hash)
 		a.SetKeyShare(hash, password)
 		a.SetUserIPLimit(hash, cfg.MaxIPPerUser)
+	}
+	if a.pst != nil {
+		go a.batchTrafficUpdater()
 	}
 	log.Debug("memory authenticator created")
 	return a, nil

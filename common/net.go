@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/database64128/tfo-go/v2"
@@ -134,6 +135,8 @@ type DialConfig struct {
 	PreferIPv4    bool
 	RetryCount    int
 	RetryInterval time.Duration
+	LocalAddr     net.Addr
+	Control       func(network, address string, c syscall.RawConn) error
 }
 
 func Dial(ctx context.Context, cfg DialConfig) (net.Conn, error) {
@@ -153,7 +156,9 @@ func Dial(ctx context.Context, cfg DialConfig) (net.Conn, error) {
 		if cfg.EnableTFO {
 			dialer := &tfo.Dialer{
 				Dialer: net.Dialer{
-					Timeout: cfg.Timeout,
+					Timeout:   cfg.Timeout,
+					LocalAddr: cfg.LocalAddr,
+					Control:   cfg.Control,
 				},
 				Fallback: true,
 			}
@@ -164,7 +169,9 @@ func Dial(ctx context.Context, cfg DialConfig) (net.Conn, error) {
 		}
 
 		dialer := &net.Dialer{
-			Timeout: cfg.Timeout,
+			Timeout:   cfg.Timeout,
+			LocalAddr: cfg.LocalAddr,
+			Control:   cfg.Control,
 		}
 		conn, err = dialer.DialContext(ctx, network, cfg.Address)
 		if err == nil {

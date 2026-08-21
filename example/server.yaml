@@ -25,6 +25,13 @@ ssl:
   plain-http-response: ""
   fallback-addr: ""
   fallback-port: 0
+
+# 指定本服务器与真实目标建立 TCP/UDP 连接时使用的源 IP
+# 用于配合策略路由 (ip rule from <此 IP> table <xxx>) 选择出口接口
+# 仅接受 IP (IPv4 或 IPv6);未配置时使用系统默认源 IP;非法值会导致启动失败
+# outbound-local-addr: 192.168.1.100
+# outbound-fwmark: 256
+
 tcp:
   fast-open: true
 websocket:

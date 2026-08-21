@@ -10,25 +10,27 @@ import (
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
+	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
 type Client struct {
-	preferIPv4   bool
-	noDelay      bool
-	keepAlive    bool
-	fastOpen     bool
-	ctx          context.Context
-	cancel       context.CancelFunc
-	forwardProxy bool
-	proxyAddr    *tunnel.Address
-	username     string
-	password     string
+	preferIPv4      bool
+	noDelay         bool
+	keepAlive       bool
+	fastOpen        bool
+	ctx             context.Context
+	cancel          context.CancelFunc
+	forwardProxy    bool
+	proxyAddr       *tunnel.Address
+	username        string
+	password        string
+	outboundLocalIP net.IP
+	outboundFwmark  int
 }
 
 func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, error) {
 	// forward proxy
-
 	if c.forwardProxy {
 		var auth *proxy.Auth
 		if c.username != "" {
@@ -49,6 +51,12 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 			Conn: conn,
 		}, nil
 	}
+
+	localIP, fwmark := getGlobalOutbound()
+	var localAddr net.Addr
+	if localIP != nil {
+		localAddr = &net.TCPAddr{IP: localIP}
+	}
 	dialCfg := common.DialConfig{
 		Network:       "tcp",
 		Address:       addr.String(),
@@ -59,6 +67,8 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 		PreferIPv4:    c.preferIPv4,
 		RetryCount:    1,
 		RetryInterval: 500 * time.Millisecond,
+		LocalAddr:     localAddr,
+		Control:       fwmarkControl(fwmark),
 	}
 	tcpConn, err := common.Dial(c.ctx, dialCfg)
 	if err != nil {
@@ -112,7 +122,16 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	if c.preferIPv4 {
 		network = "udp4"
 	}
-	udpConn, err := net.ListenPacket(network, "")
+	localIP, fwmark := getGlobalOutbound()
+	listenAddr := ""
+	if localIP != nil {
+		listenAddr = (&net.UDPAddr{IP: localIP, Port: 0}).String()
+	}
+	lc := net.ListenConfig{}
+	if ctrl := fwmarkControl(fwmark); ctrl != nil {
+		lc.Control = ctrl
+	}
+	udpConn, err := lc.ListenPacket(c.ctx, network, listenAddr)
 	if err != nil {
 		return nil, common.NewError("freedom failed to listen udp socket").Base(err)
 	}
@@ -129,17 +148,35 @@ func (c *Client) Close() error {
 func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
 	addr := tunnel.NewAddressFromHostPort("tcp", cfg.ForwardProxy.ProxyHost, cfg.ForwardProxy.ProxyPort)
+
+	var outboundLocalIP net.IP
+	if cfg.OutboundLocalAddr != "" {
+		outboundLocalIP = net.ParseIP(cfg.OutboundLocalAddr)
+		if outboundLocalIP == nil {
+			return nil, common.NewError("freedom: invalid outbound_local_addr: " + cfg.OutboundLocalAddr)
+		}
+	}
+
+	fwmark := cfg.OutboundFwmark
+	if fwmark != 0 && !fwmarkSupported {
+		log.Warn("freedom: outbound_fwmark is set but not supported on this platform; ignored")
+		fwmark = 0
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
+	SetGlobalOutbound(outboundLocalIP, fwmark)
 	return &Client{
-		ctx:          ctx,
-		cancel:       cancel,
-		noDelay:      cfg.TCP.NoDelay,
-		keepAlive:    cfg.TCP.KeepAlive,
-		preferIPv4:   cfg.TCP.PreferIPV4,
-		fastOpen:     cfg.TCP.FastOpen,
-		forwardProxy: cfg.ForwardProxy.Enabled,
-		proxyAddr:    addr,
-		username:     cfg.ForwardProxy.Username,
-		password:     cfg.ForwardProxy.Password,
+		ctx:             ctx,
+		cancel:          cancel,
+		noDelay:         cfg.TCP.NoDelay,
+		keepAlive:       cfg.TCP.KeepAlive,
+		preferIPv4:      cfg.TCP.PreferIPV4,
+		fastOpen:        cfg.TCP.FastOpen,
+		forwardProxy:    cfg.ForwardProxy.Enabled,
+		proxyAddr:       addr,
+		username:        cfg.ForwardProxy.Username,
+		password:        cfg.ForwardProxy.Password,
+		outboundLocalIP: outboundLocalIP,
+		outboundFwmark:  fwmark,
 	}, nil
 }

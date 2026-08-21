@@ -3,10 +3,12 @@ package freedom
 import "github.com/Potterli20/trojan-go-fork/config"
 
 type Config struct {
-	LocalHost    string             `json:"local_addr" yaml:"local-addr"`
-	LocalPort    int                `json:"local_port" yaml:"local-port"`
-	TCP          TCPConfig          `json:"tcp" yaml:"tcp"`
-	ForwardProxy ForwardProxyConfig `json:"forward_proxy" yaml:"forward-proxy"`
+	LocalHost         string             `json:"local_addr" yaml:"local-addr"`
+	LocalPort         int                `json:"local_port" yaml:"local-port"`
+	OutboundLocalAddr string             `json:"outbound_local_addr" yaml:"outbound-local-addr"`
+	OutboundFwmark    int                `json:"outbound_fwmark" yaml:"outbound-fwmark"`
+	TCP               TCPConfig          `json:"tcp" yaml:"tcp"`
+	ForwardProxy      ForwardProxyConfig `json:"forward_proxy" yaml:"forward-proxy"`
 }
 
 type TCPConfig struct {

@@ -92,6 +92,24 @@ service TrojanClientService {
     rpc GetTraffic(GetTrafficRequest) returns(GetTrafficResponse){}
 }
 
+message SetOutboundConfigRequest {
+    string local_addr = 1;
+    int32 fwmark = 2;
+}
+
+message SetOutboundConfigResponse {
+    bool success = 1;
+    string info = 2;
+}
+
+message GetOutboundConfigRequest {
+}
+
+message GetOutboundConfigResponse {
+    string local_addr = 1;
+    int32 fwmark = 2;
+}
+
 service TrojanServerService {
     // list all users
     rpc ListUsers(ListUsersRequest) returns(stream ListUsersResponse){}
@@ -101,4 +119,8 @@ service TrojanServerService {
     rpc SetUsers(stream SetUsersRequest) returns(stream SetUsersResponse){}
     // get traffic records
     rpc GetRecords(GetRecordsRequest) returns(stream GetRecordsResponse){}
+    // set freedom outbound local addr / fwmark at runtime
+    rpc SetOutboundConfig(SetOutboundConfigRequest) returns(SetOutboundConfigResponse){}
+    // get current freedom outbound local addr / fwmark
+    rpc GetOutboundConfig(GetOutboundConfigRequest) returns(GetOutboundConfigResponse){}
 }
