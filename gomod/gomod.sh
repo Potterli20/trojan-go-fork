@@ -5,7 +5,7 @@ set -e
 go get -u ./...
 
 # 整理模块并确保与 Go 1.26 兼容
-go mod tidy -compat=1.26
+go mod tidy -compat=1.27
 
 # 获取最新 commit hash 的函数
 get_latest_commit() {
@@ -53,5 +53,9 @@ go get github.com/Potterli20/socks5-fork@$socks5_commit_hash
 smux_commit_hash=$(get_latest_commit "xtaci/smux")
 go get github.com/xtaci/smux@$smux_commit_hash
 
+# 获取 quic-go 最新的 commit
+quic_go_commit_hash=$(get_latest_commit "apernet/quic-go")
+go get github.com/apernet/quic-go@$quic_go_commit_hash
+
 # 最后再次整理模块，确保 go.sum 与 go.mod 一致
-go mod tidy -compat=1.26
+go mod tidy -compat=1.27
