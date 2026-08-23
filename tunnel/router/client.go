@@ -173,6 +173,7 @@ func (c *Client) DialConn(address *tunnel.Address, overlay tunnel.Tunnel) (tunne
 	policy := c.Route(address)
 	switch policy {
 	case Proxy:
+		log.Debugf("router policy=proxy target=%s", address.String())
 		conn, err := c.underlay.DialConn(address, overlay)
 		if err != nil {
 			_ = tracker.Error(err)
@@ -181,10 +182,14 @@ func (c *Client) DialConn(address *tunnel.Address, overlay tunnel.Tunnel) (tunne
 		_ = tracker.Success()
 		return conn, nil
 	case Block:
+		log.Debugf("router policy=block target=%s", address.String())
 		_ = tracker.Error(common.NewError("blocked"))
 		return nil, common.NewError("router blocked address: " + address.String())
 	case Bypass:
-		conn, err := c.direct.DialConn(address, &Tunnel{})
+		// 即使配置了 forward_proxy，bypass 规则命中时也应直连目标，绕过 freedom 的 SOCKS5 转发。
+		log.Debugf("router policy=bypass target=%s addr_type=%d domain=%s ip=%v",
+			address.String(), address.AddressType, address.DomainName, address.IP)
+		conn, err := c.direct.DialConnDirect(address, &Tunnel{})
 		if err != nil {
 			_ = tracker.Error(err)
 			return nil, common.NewError("router dial error").Base(err)

@@ -51,12 +51,20 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 			Conn: conn,
 		}, nil
 	}
+	return c.DialConnDirect(addr, nil)
+}
 
+// DialConnDirect 直接拨号到目标地址，绕过 forward_proxy 配置。
+// 用于 router 的 bypass 分支：即使配置了 forward_proxy，bypass 规则命中时也应直连目标。
+func (c *Client) DialConnDirect(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, error) {
 	localIP, fwmark := getGlobalOutbound()
 	var localAddr net.Addr
 	if localIP != nil {
 		localAddr = &net.TCPAddr{IP: localIP}
 	}
+	log.Tracef("freedom dial-direct start: target=%s forward_proxy_enabled=%v local_ip=%v fwmark=%d tfo=%v",
+		addr.String(), c.forwardProxy, localIP, fwmark, c.fastOpen)
+	start := time.Now()
 	dialCfg := common.DialConfig{
 		Network:       "tcp",
 		Address:       addr.String(),
@@ -72,8 +80,12 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 	}
 	tcpConn, err := common.Dial(c.ctx, dialCfg)
 	if err != nil {
+		log.Debugf("freedom dial-direct failed: target=%s elapsed=%s err=%v",
+			addr.String(), time.Since(start), err)
 		return nil, common.NewError("freedom failed to dial " + addr.String()).Base(err)
 	}
+	log.Tracef("freedom dial-direct ok: target=%s elapsed=%s local=%s remote=%s",
+		addr.String(), time.Since(start), tcpConn.LocalAddr(), tcpConn.RemoteAddr())
 	return &Conn{
 		Conn: tcpConn,
 	}, nil
