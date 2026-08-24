@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260811213656-71847589a521
 	github.com/Potterli20/socks5-fork v0.0.0-20260822034641-a599926a55be
 	github.com/Potterli20/sqlite v0.0.0-20260821122051-5139dca557ee
-	github.com/apernet/quic-go v0.60.0-mod-rename
+	github.com/apernet/quic-go v0.60.1-0.20260618182935-599b15a1fa26
 	github.com/database64128/tfo-go/v2 v2.3.4-0.20260716044210-55f7f3554906
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
@@ -65,7 +65,9 @@ require (
 // apernet/quic-go 在 v0.58+ 的正式 tag 中将 go.mod module 声明从
 // github.com/apernet/quic-go 改为了 github.com/quic-go/quic-go，导致直接
 // require 新 tag 会触发 "module declares its path as ... but was required as ..."
-// 错误。使用 HyNetworks/quic-go fork 上的 *-mod-rename tag，这些 tag 的 module
+// 错误。使用 HyNetworks/quic-go fork 上的 *-mod-rename 分支，这些分支的 module
 // 声明保留为 github.com/apernet/quic-go，代码与 apernet 上游对应正式版本一致。
-// 通过 replace 将版本从 HyNetworks fork 拉取，import 路径保持不变。
-replace github.com/apernet/quic-go v0.60.0-mod-rename => github.com/HyNetworks/quic-go v0.60.0-mod-rename
+// 注意：mod-rename 是 branch 名不是 tag，不能直接写在 require/replace 里（CI
+// 清空 modcache 后会报 "is not a tag" 错误），必须使用该 branch HEAD commit
+// 生成的伪版本（pseudo-version），由 gomod.sh 里的 update_quic_go 自动生成。
+replace github.com/apernet/quic-go v0.60.1-0.20260618182935-599b15a1fa26 => github.com/HyNetworks/quic-go v0.60.1-0.20260618182935-599b15a1fa26

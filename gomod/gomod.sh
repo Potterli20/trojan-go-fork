@@ -25,9 +25,13 @@ MODULES=(
 )
 
 # quic-go 特殊配置（需要 replace，见下方 update_quic_go 函数）
+# 注意：HyNetworks/quic-go 上的 *-mod-rename 是分支（branch）不是 tag，不能
+# 直接作为 module version 写进 go.mod（CI 清 modcache 后会报 "is not a tag"）。
+# 脚本里会自动 resolve 该分支最新 commit → 生成占位伪版本 → go get 触发 Go 自
+# 动计算正确伪版本后写入 go.mod / replace。
 QUIC_GO_MODULE="github.com/apernet/quic-go"
 QUIC_GO_FORK_REPO="HyNetworks/quic-go"
-QUIC_GO_FORK_TAG="v0.60.0-mod-rename"
+QUIC_GO_FORK_BRANCH="refs/heads/v0.60.0-mod-rename"
 
 # 需要从"批量 go get -u"中排除的模块路径（quic-go 有特殊处理，避免被乱升级）
 EXCLUDE_MODULES_REGEX='^github\.com/(apernet|quic-go)/quic-go$'
@@ -130,23 +134,32 @@ done
 # github.com/apernet/quic-go/*，直接 go get 任何新 tag 都会触发
 # "module declares its path as ... but was required as ..." 错误。
 #
-# 解法：使用 HyNetworks/quic-go fork 上的 "*-mod-rename" tag，这些 tag 将
-# go.mod module 声明保留为 github.com/apernet/quic-go，同时版本与 apernet
-# 同步。通过 require + replace 的形式引入：
-#   require github.com/apernet/quic-go  v0.60.0-mod-rename
-#   replace github.com/apernet/quic-go  v0.60.0-mod-rename => github.com/HyNetworks/quic-go v0.60.0-mod-rename
+# 解法：使用 HyNetworks/quic-go fork 上的 *-mod-rename 分支（注意是 branch
+# 不是 tag！），这些分支的 go.mod module 声明保留为 github.com/apernet/quic-go，
+# 代码与 apernet 上游对应正式版本一致。
+#
+# 难点：Go module version 只能是 tag 或伪版本（pseudo-version），不能直接写
+# branch 名 —— 本地有缓存时虽然能解析，但 CI 执行 go clean -modcache 后重新
+# 解析会报 "vX.Y.Z-mod-rename is not a tag" 错误。
+#
+# 因此这里通过以下流程自动转写为伪版本：
+#   1) git ls-remote 拿 fork 上 mod-rename 分支的 HEAD commit hash
+#   2) 写一个「占位 replace」：把 $mod 全版本替换到 fork 的占位伪版本
+#      （base version + timestamp 任意写，hash 部分必须是真实 commit 前 12 位）
+#   3) go get $mod@<hash> 触发 Go 去 fork 仓库解析该 commit
+#   4) Go 会自动把占位伪版本替换为「基于真实 base tag + commit 时间 + hash」的
+#      正确伪版本，写入 require / replace 两端
 # ---------------------------------------------------------------------------
 
 update_quic_go() {
     local mod="$QUIC_GO_MODULE"
     local fork_repo="$QUIC_GO_FORK_REPO"
-    local fork_tag="$QUIC_GO_FORK_TAG"
-    local version="$fork_tag"   # 在 require / replace 中使用的版本号 = fork 的 tag 名
+    local fork_branch="$QUIC_GO_FORK_BRANCH"
+    local fork_url="https://github.com/${fork_repo}.git"
 
-    log_info "quic-go → switching to HyNetworks fork tag $fork_tag (module path kept as $mod)"
+    log_info "quic-go → resolving HyNetworks/$fork_repo ${fork_branch#refs/heads/} branch HEAD"
 
     # 3a. 清理所有旧的 quic-go replace 规则（apernet 旧 tag、旧伪版本等）
-    # 先枚举所有已存在的 replace，再逐个 drop，避免正则误删
     local existing_versions
     existing_versions=$(go list -m -json all 2>/dev/null \
         | python3 -c "
@@ -165,16 +178,40 @@ for m in data.get('Replace', []):
         go mod edit -dropreplace="${mod}@${old_v}"
         log_info "quic-go → dropped stale replace ${mod}@${old_v}"
     done
+    # 如果存在不带版本的 replace（替换所有版本），也一并清理
+    go mod edit -dropreplace="${mod}" 2>/dev/null || true
 
-    # 3b. 写入新 replace：$mod @ $version  =>  $fork_repo @ $fork_tag
-    go mod edit -replace="${mod}@${version}=${fork_repo}@${fork_tag}"
+    # 3b. git ls-remote 拿 branch HEAD commit hash
+    local full_sha short_sha
+    full_sha=$(git ls-remote --exit-code "$fork_url" "$fork_branch" 2>/tmp/gomod_quic_ls_err \
+        | awk '{print $1; exit}')
+    if [[ -z "$full_sha" || "${#full_sha}" -ne 40 ]]; then
+        err_msg=$(cat /tmp/gomod_quic_ls_err 2>/dev/null || echo "(empty response)")
+        log_error "quic-go → cannot resolve branch $fork_branch on $fork_repo — $err_msg"
+        return 1
+    fi
+    short_sha="${full_sha:0:12}"
+    log_info "quic-go → branch HEAD commit = $full_sha ($short_sha)"
 
-    # 3c. go get 指定版本（replace 已存在，go 会 follow replace 去 fork 仓库拉代码）
-    if GOFLAGS="-mod=mod" go get "${mod}@${version}" 2>/tmp/gomod_quic_err; then
-        log_ok "quic-go → pinned to HyNetworks/$fork_repo@$fork_tag (imported as $mod)"
+    # 3c. 写占位 replace（不带 @v 左边 = 替换所有版本）
+    #   replace $mod => $fork_repo v0.0.0-00000000000000-$short_sha
+    # Go 会在 go get / tidy 时发现该 hash，重新计算正确 base version + timestamp，
+    # 并把占位版本替换为真实伪版本写入 go.mod。
+    local placeholder="v0.0.0-00000000000000-${short_sha}"
+    go mod edit -replace="${mod}=${fork_repo}@${placeholder}"
+    log_info "quic-go → wrote placeholder replace (${short_sha}), waiting for Go to resolve pseudo-version"
+
+    # 3d. go get @commit_hash 触发解析。由于 replace 生效，Go 会去 fork 仓库找
+    # 该 commit，然后生成正确伪版本写入 require / replace。
+    if GOFLAGS="-mod=mod" go get "${mod}@${short_sha}" 2>/tmp/gomod_quic_err; then
+        # 3e. go mod tidy 再跑一次，确保 replace 右边的占位伪版本也被修正为正确值
+        go mod tidy -compat=1.27 2>/dev/null || true
+        local resolved_ver
+        resolved_ver=$(go list -m -f '{{if .Replace}}{{.Replace.Version}}{{else}}{{.Version}}{{end}}' "$mod" 2>/dev/null || echo "?")
+        log_ok "quic-go → pinned to HyNetworks/$fork_repo pseudo-version $resolved_ver (imported as $mod)"
     else
         err_msg=$(cat /tmp/gomod_quic_err 2>/dev/null || echo "(no error output)")
-        log_error "quic-go → failed to upgrade to $version — ${err_msg//$'\n'/ | }"
+        log_error "quic-go → go get @${short_sha} failed — ${err_msg//$'\n'/ | }"
         return 1
     fi
 }
