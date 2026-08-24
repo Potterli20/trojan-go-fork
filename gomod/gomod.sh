@@ -134,32 +134,115 @@ done
 # github.com/apernet/quic-go/*，直接 go get 任何新 tag 都会触发
 # "module declares its path as ... but was required as ..." 错误。
 #
-# 解法：使用 HyNetworks/quic-go fork 上的 *-mod-rename 分支（注意是 branch
-# 不是 tag！），这些分支的 go.mod module 声明保留为 github.com/apernet/quic-go，
-# 代码与 apernet 上游对应正式版本一致。
+# 解法：使用 HyNetworks/quic-go fork 上的 *-mod-rename 分支。这些分支在
+# apernet 对应正式 tag 的基础上只改了 go.mod 的 module 声明（保留为
+# github.com/apernet/quic-go），代码完全一致。
 #
-# 难点：Go module version 只能是 tag 或伪版本（pseudo-version），不能直接写
-# branch 名 —— 本地有缓存时虽然能解析，但 CI 执行 go clean -modcache 后重新
-# 解析会报 "vX.Y.Z-mod-rename is not a tag" 错误。
+# 难点 1：*-mod-rename 是 branch 名不是 tag，不能直接写进 go.mod 做 version
+#         （CI 清 modcache 后 Go 会直接报 "vX.Y.Z-mod-rename is not a tag"）
+# 难点 2：只能使用伪版本（pseudo-version），且 Go 对伪版本的 3 个组成部分
+#         base version / timestamp / hash-12 都做严格校验，必须与 commit
+#         在 fork 仓库中的真实状态完全一致：
+#           base version = 该 commit 之前最近一个正式 tag 的 PATCH+1
+#           timestamp    = commit 的 UTC 时间（YYYYMMDDHHMMSS）
+#           hash-12      = commit hash 前 12 位
+#         任何一个字段错（哪怕只是时间戳早了 1 秒）都会被 Go 拒绝。
 #
-# 因此这里通过以下流程自动转写为伪版本：
-#   1) git ls-remote 拿 fork 上 mod-rename 分支的 HEAD commit hash
-#   2) 写一个「占位 replace」：把 $mod 全版本替换到 fork 的占位伪版本
-#      （base version + timestamp 任意写，hash 部分必须是真实 commit 前 12 位）
-#   3) go get $mod@<hash> 触发 Go 去 fork 仓库解析该 commit
-#   4) Go 会自动把占位伪版本替换为「基于真实 base tag + commit 时间 + hash」的
-#      正确伪版本，写入 require / replace 两端
+# 因此流程：
+#   1) git ls-remote 拿 branch HEAD 的 40 位 commit hash
+#   2) GitHub API /repos/:owner/:repo/commits/:sha 拿 commit 的 UTC 提交时间
+#   3) 从 branch 名 vX.Y.Z-mod-rename 反推出 base tag vX.Y.Z，
+#      base version 取 vX.Y.(Z+1)（mod-rename commit 在 tag 之后）
+#   4) 拼成 vBASE-TIMESTAMP-HASH12 伪版本
+#   5) 清理所有旧 quic-go replace，写带精确版本约束的 replace，再 go get
 # ---------------------------------------------------------------------------
 
 update_quic_go() {
     local mod="$QUIC_GO_MODULE"
-    local fork_repo="$QUIC_GO_FORK_REPO"
+    local fork_repo="$QUIC_GO_FORK_REPO"                  # owner/repo 格式（用于 git ls-remote + GitHub API URL）
+    local fork_mod="github.com/${QUIC_GO_FORK_REPO}"      # 完整 module path（用于 replace 右边，必须带域名）
     local fork_branch="$QUIC_GO_FORK_BRANCH"
     local fork_url="https://github.com/${fork_repo}.git"
 
-    log_info "quic-go → resolving HyNetworks/$fork_repo ${fork_branch#refs/heads/} branch HEAD"
+    # branch 名形如 refs/heads/v0.60.0-mod-rename → 取出纯名称 v0.60.0-mod-rename
+    local branch_short="${fork_branch#refs/heads/}"
+    log_info "quic-go → resolving ${fork_mod} branch ${branch_short}"
 
-    # 3a. 清理所有旧的 quic-go replace 规则（apernet 旧 tag、旧伪版本等）
+    # ------------------------------------------------------------------
+    # 步骤 1：git ls-remote 拿 branch HEAD 的完整 40 位 commit hash
+    # ------------------------------------------------------------------
+    local full_sha short_sha
+    full_sha=$(git ls-remote --exit-code "$fork_url" "$fork_branch" 2>/tmp/gomod_quic_ls_err \
+        | awk '{print $1; exit}')
+    if [[ -z "$full_sha" || "${#full_sha}" -ne 40 ]]; then
+        local err_msg
+        err_msg=$(cat /tmp/gomod_quic_ls_err 2>/dev/null || echo "(empty response)")
+        log_error "quic-go → cannot resolve branch $fork_branch on $fork_repo — $err_msg"
+        return 1
+    fi
+    short_sha="${full_sha:0:12}"
+    log_info "quic-go → branch HEAD commit = ${full_sha} (short=${short_sha})"
+
+    # ------------------------------------------------------------------
+    # 步骤 2：GitHub API 拿该 commit 的真实提交时间戳（UTC）
+    # ------------------------------------------------------------------
+    local iso_date timestamp
+    iso_date=$(curl -s --max-time 15 "https://api.github.com/repos/${fork_repo}/commits/${full_sha}" 2>/tmp/gomod_quic_api_err \
+        | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d["commit"]["committer"]["date"])' 2>/dev/null || true)
+    if [[ -z "$iso_date" ]]; then
+        local err_msg
+        err_msg=$(cat /tmp/gomod_quic_api_err 2>/dev/null || echo "(curl/GitHub API failure)")
+        log_error "quic-go → cannot fetch commit date from GitHub API — $err_msg"
+        return 1
+    fi
+    timestamp=$(python3 -c '
+from datetime import datetime
+import sys
+try:
+    dt = datetime.fromisoformat(sys.argv[1].replace("Z", "+00:00"))
+    print(dt.strftime("%Y%m%d%H%M%S"))
+except Exception as e:
+    print(f"ERROR: {e}", file=sys.stderr)
+    sys.exit(1)
+' "$iso_date" 2>/tmp/gomod_quic_ts_err) || {
+        local err_msg
+        err_msg=$(cat /tmp/gomod_quic_ts_err 2>/dev/null || echo "failed to parse $iso_date")
+        log_error "quic-go → $err_msg"
+        return 1
+    }
+    log_info "quic-go → commit UTC date = ${iso_date} (timestamp=${timestamp})"
+
+    # ------------------------------------------------------------------
+    # 步骤 3：从 branch 名计算伪版本的 base version
+    #   branch 名 = vX.Y.Z-mod-rename
+    #   对应 base tag = vX.Y.Z。mod-rename 分支在该 tag 基础上改了 go.mod，
+    #   因此该 commit 一定 NOT ON tag，根据 Go 伪版本规则，base = vX.Y.(Z+1)
+    # ------------------------------------------------------------------
+    local base_tag="${branch_short%-mod-rename}"  # v0.60.0-mod-rename → v0.60.0
+    if [[ "$base_tag" == "$branch_short" ]]; then
+        log_error "quic-go → branch name '$branch_short' does not match *-mod-rename pattern; cannot infer base tag"
+        return 1
+    fi
+    if [[ ! "$base_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        log_error "quic-go → extracted base tag '$base_tag' is not a valid semver tag (vX.Y.Z required)"
+        return 1
+    fi
+    local mmp="${base_tag#v}"                               # 0.60.0
+    local major="${mmp%%.*}"                                # 0
+    local rest="${mmp#*.}"                                  # 60.0
+    local minor="${rest%%.*}"                               # 60
+    local patch="${rest#*.}"                                # 0
+    local next_patch=$(( patch + 1 ))
+    local base_ver="v${major}.${minor}.${next_patch}"       # v0.60.1
+    log_info "quic-go → base tag = ${base_tag}, pseudo base version = ${base_ver} (PATCH ${patch} → ${next_patch})"
+
+    # 拼完整伪版本
+    local pseudo_ver="${base_ver}-${timestamp}-${short_sha}"
+    log_info "quic-go → computed pseudo-version = ${pseudo_ver}"
+
+    # ------------------------------------------------------------------
+    # 步骤 4：清理旧 replace，写入正确的 require/replace
+    # ------------------------------------------------------------------
     local existing_versions
     existing_versions=$(go list -m -json all 2>/dev/null \
         | python3 -c "
@@ -178,40 +261,27 @@ for m in data.get('Replace', []):
         go mod edit -dropreplace="${mod}@${old_v}"
         log_info "quic-go → dropped stale replace ${mod}@${old_v}"
     done
-    # 如果存在不带版本的 replace（替换所有版本），也一并清理
+    # 也清理不带版本的 replace（替换所有版本）
     go mod edit -dropreplace="${mod}" 2>/dev/null || true
 
-    # 3b. git ls-remote 拿 branch HEAD commit hash
-    local full_sha short_sha
-    full_sha=$(git ls-remote --exit-code "$fork_url" "$fork_branch" 2>/tmp/gomod_quic_ls_err \
-        | awk '{print $1; exit}')
-    if [[ -z "$full_sha" || "${#full_sha}" -ne 40 ]]; then
-        err_msg=$(cat /tmp/gomod_quic_ls_err 2>/dev/null || echo "(empty response)")
-        log_error "quic-go → cannot resolve branch $fork_branch on $fork_repo — $err_msg"
-        return 1
-    fi
-    short_sha="${full_sha:0:12}"
-    log_info "quic-go → branch HEAD commit = $full_sha ($short_sha)"
+    # 写带版本约束的 replace（精确版本，不是全量替换，避免意外影响 indirect 依赖的选择）
+    go mod edit -replace="${mod}@${pseudo_ver}=${fork_mod}@${pseudo_ver}"
+    log_info "quic-go → replace ${mod}@${pseudo_ver}  =>  ${fork_mod}@${pseudo_ver}"
 
-    # 3c. 写占位 replace（不带 @v 左边 = 替换所有版本）
-    #   replace $mod => $fork_repo v0.0.0-00000000000000-$short_sha
-    # Go 会在 go get / tidy 时发现该 hash，重新计算正确 base version + timestamp，
-    # 并把占位版本替换为真实伪版本写入 go.mod。
-    local placeholder="v0.0.0-00000000000000-${short_sha}"
-    go mod edit -replace="${mod}=${fork_repo}@${placeholder}"
-    log_info "quic-go → wrote placeholder replace (${short_sha}), waiting for Go to resolve pseudo-version"
-
-    # 3d. go get @commit_hash 触发解析。由于 replace 生效，Go 会去 fork 仓库找
-    # 该 commit，然后生成正确伪版本写入 require / replace。
-    if GOFLAGS="-mod=mod" go get "${mod}@${short_sha}" 2>/tmp/gomod_quic_err; then
-        # 3e. go mod tidy 再跑一次，确保 replace 右边的占位伪版本也被修正为正确值
+    # go get 精确版本 — 此时 replace 已写好，Go follow replace 拉 fork 仓库，
+    # 伪版本与 commit 完全匹配，会通过校验直接写入 require
+    if GOFLAGS="-mod=mod" go get "${mod}@${pseudo_ver}" 2>/tmp/gomod_quic_err; then
+        # tidy 一次收齐 go.sum
         go mod tidy -compat=1.27 2>/dev/null || true
-        local resolved_ver
-        resolved_ver=$(go list -m -f '{{if .Replace}}{{.Replace.Version}}{{else}}{{.Version}}{{end}}' "$mod" 2>/dev/null || echo "?")
-        log_ok "quic-go → pinned to HyNetworks/$fork_repo pseudo-version $resolved_ver (imported as $mod)"
+        local resolved_ver resolved_replace
+        resolved_ver=$(go list -m -f '{{.Version}}' "$mod" 2>/dev/null || echo "?")
+        resolved_replace=$(go list -m -f '{{if .Replace}}{{.Replace.Path}}@{{.Replace.Version}}{{else}}(no replace){{end}}' "$mod" 2>/dev/null || echo "?")
+        log_ok "quic-go → require  ${mod}@${resolved_ver}"
+        log_ok "quic-go → →→ replace with ${resolved_replace}"
     else
+        local err_msg
         err_msg=$(cat /tmp/gomod_quic_err 2>/dev/null || echo "(no error output)")
-        log_error "quic-go → go get @${short_sha} failed — ${err_msg//$'\n'/ | }"
+        log_error "quic-go → go get @${pseudo_ver} failed — ${err_msg//$'\n'/ | }"
         return 1
     fi
 }

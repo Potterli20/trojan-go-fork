@@ -69,5 +69,5 @@ require (
 // 声明保留为 github.com/apernet/quic-go，代码与 apernet 上游对应正式版本一致。
 // 注意：mod-rename 是 branch 名不是 tag，不能直接写在 require/replace 里（CI
 // 清空 modcache 后会报 "is not a tag" 错误），必须使用该 branch HEAD commit
-// 生成的伪版本（pseudo-version），由 gomod.sh 里的 update_quic_go 自动生成。
+// 生成的伪版本（vBASE-TIMESTAMP-HASH12），由 gomod.sh 中 update_quic_go 自动计算。
 replace github.com/apernet/quic-go v0.60.1-0.20260618182935-599b15a1fa26 => github.com/HyNetworks/quic-go v0.60.1-0.20260618182935-599b15a1fa26
