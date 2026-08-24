@@ -7,8 +7,8 @@ tool golang.org/x/tools/cmd/stringer
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260811213656-71847589a521
 	github.com/Potterli20/socks5-fork v0.0.0-20260822034641-a599926a55be
-	github.com/Potterli20/sqlite v0.0.0-20260821122051-5139dca557ee
-	github.com/apernet/quic-go v0.60.1-0.20260618182935-599b15a1fa26
+	github.com/Potterli20/sqlite v0.0.0-20260824122154-697c3298ead9
+	github.com/apernet/quic-go v0.61.1-0.20260806010916-184d081eef3e
 	github.com/database64128/tfo-go/v2 v2.3.4-0.20260716044210-55f7f3554906
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
@@ -16,7 +16,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.12.1
 	github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b
-	github.com/xtls/xray-core v1.260327.1-0.20260819053144-2323273e373f
+	github.com/xtls/xray-core v1.260327.1-0.20260824023800-f02a35786124
 	golang.org/x/crypto v0.55.0
 	golang.org/x/net v0.58.0
 	golang.org/x/sys v0.47.0
@@ -55,19 +55,22 @@ require (
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260819154853-08b0e4226688 // indirect
-	modernc.org/libc v1.75.4 // indirect
+	modernc.org/libc v1.75.5 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.57.0 // indirect
 )
 
-// quic-go 使用 HyNetworks fork 的 mod-rename 版本说明：
-// apernet/quic-go 在 v0.58+ 的正式 tag 中将 go.mod module 声明从
-// github.com/apernet/quic-go 改为了 github.com/quic-go/quic-go，导致直接
-// require 新 tag 会触发 "module declares its path as ... but was required as ..."
-// 错误。使用 HyNetworks/quic-go fork 上的 *-mod-rename 分支，这些分支的 module
-// 声明保留为 github.com/apernet/quic-go，代码与 apernet 上游对应正式版本一致。
-// 注意：mod-rename 是 branch 名不是 tag，不能直接写在 require/replace 里（CI
-// 清空 modcache 后会报 "is not a tag" 错误），必须使用该 branch HEAD commit
-// 生成的伪版本（vBASE-TIMESTAMP-HASH12），由 gomod.sh 中 update_quic_go 自动计算。
-replace github.com/apernet/quic-go v0.60.1-0.20260618182935-599b15a1fa26 => github.com/HyNetworks/quic-go v0.60.1-0.20260618182935-599b15a1fa26
+replace (
+	// quic-go 使用 HyNetworks fork 的 mod-rename 版本说明：
+	// apernet/quic-go 在 v0.58+ 的正式 tag 中将 go.mod module 声明从
+	// github.com/apernet/quic-go 改为了 github.com/quic-go/quic-go，导致直接
+	// require 新 tag 会触发 "module declares its path as ... but was required as ..."
+	// 错误。使用 HyNetworks/quic-go fork 上的 *-mod-rename 分支，这些分支的 module
+	// 声明保留为 github.com/apernet/quic-go，代码与 apernet 上游对应正式版本一致。
+	// 注意：mod-rename 是 branch 名不是 tag，不能直接写在 require/replace 里（CI
+	// 清空 modcache 后会报 "is not a tag" 错误），必须使用该 branch HEAD commit
+	// 生成的伪版本（vBASE-TIMESTAMP-HASH12），由 gomod.sh 中 update_quic_go 自动计算。
+	github.com/apernet/quic-go v0.60.1-0.20260618182935-599b15a1fa26 => github.com/HyNetworks/quic-go v0.60.1-0.20260618182935-599b15a1fa26
+	github.com/apernet/quic-go v0.61.1-0.20260806010916-184d081eef3e => github.com/HyNetworks/quic-go v0.61.1-0.20260806010916-184d081eef3e
+)
