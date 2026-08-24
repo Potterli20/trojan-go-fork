@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260811213656-71847589a521
 	github.com/Potterli20/socks5-fork v0.0.0-20260822034641-a599926a55be
 	github.com/Potterli20/sqlite v0.0.0-20260821122051-5139dca557ee
-	github.com/apernet/quic-go v0.61.0
+	github.com/apernet/quic-go v0.60.0-mod-rename
 	github.com/database64128/tfo-go/v2 v2.3.4-0.20260716044210-55f7f3554906
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518
@@ -61,16 +61,11 @@ require (
 	modernc.org/sqlite v1.57.0 // indirect
 )
 
-// quic-go 版本锁定说明：
+// quic-go 使用 HyNetworks fork 的 mod-rename 版本说明：
 // apernet/quic-go 在 v0.58+ 的正式 tag 中将 go.mod module 声明从
-// github.com/apernet/quic-go 改为了 github.com/quic-go/quic-go。
-// 由于 require 路径必须与对方 module 声明一致（否则 go get 会直接报错），
-// 而项目代码与 xray-core 依赖子包 import 仍使用 github.com/apernet/quic-go/*，
-// 因此锁定到 module 声明未变的伪版本 v0.59.1-0.20260425001925-6c6cc9bcb716，
-// 并通过以下 replace 将 v0.59.1/v0.60.0/v0.61.0 正式 tag 重定向到该伪版本，
-// 避免 go get -u ./... 自动升级到 module 声明已变更的版本。
-replace github.com/apernet/quic-go v0.59.1 => github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716
-
-replace github.com/apernet/quic-go v0.60.0 => github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716
-
-replace github.com/apernet/quic-go v0.61.0 => github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716
+// github.com/apernet/quic-go 改为了 github.com/quic-go/quic-go，导致直接
+// require 新 tag 会触发 "module declares its path as ... but was required as ..."
+// 错误。使用 HyNetworks/quic-go fork 上的 *-mod-rename tag，这些 tag 的 module
+// 声明保留为 github.com/apernet/quic-go，代码与 apernet 上游对应正式版本一致。
+// 通过 replace 将版本从 HyNetworks fork 拉取，import 路径保持不变。
+replace github.com/apernet/quic-go v0.60.0-mod-rename => github.com/HyNetworks/quic-go v0.60.0-mod-rename

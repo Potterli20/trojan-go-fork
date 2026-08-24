@@ -1,5 +1,7 @@
 filippo.io/edwards25519 v1.2.0 h1:crnVqOiS4jqYleHd9vaKZ+HKtHfllngJIiOpNpoJsjo=
 filippo.io/edwards25519 v1.2.0/go.mod h1:xzAOLCNug/yB62zG1bQ8uziwrIqIuxhctzJT18Q77mc=
+github.com/HyNetworks/quic-go v0.60.0-mod-rename h1:VF19fkGDM62pbEqcm8PzEbUoarGXSy46Lrzj+FlUEj0=
+github.com/HyNetworks/quic-go v0.60.0-mod-rename/go.mod h1:B5eVtZG4ZkCvDZQNaOAAEZEtdBC7DIj56Q9EIb0mGAQ=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260811213656-71847589a521 h1:y7oLi8eShVGl6+d0n+NANq807YJHNB6mQ2B2OjeCbTA=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260811213656-71847589a521/go.mod h1:DfW2OzQOJWQPD6rRNcVqrBZVZiaVJgkiQUKDdb4Z7jk=
 github.com/Potterli20/socks5-fork v0.0.0-20260822034641-a599926a55be h1:KNune6dZvv526iPWXcAByAtiUgTrqHxD9kgVYFJ6afA=
@@ -8,8 +10,6 @@ github.com/Potterli20/sqlite v0.0.0-20260821122051-5139dca557ee h1:35L/Zi4mZu/IS
 github.com/Potterli20/sqlite v0.0.0-20260821122051-5139dca557ee/go.mod h1:U6ToD3SLpXRIMGumd4ZDRLFJ2zxwIC0UUluOs67S4gY=
 github.com/andybalholm/brotli v1.2.2 h1:HzTuoo2ErYQqf5qvcJInB8uvqSVxRttzkFexPWtnceM=
 github.com/andybalholm/brotli v1.2.2/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
-github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716 h1:J1O+xpLuJWkdYbw5JPGwBqIHs2J8tiEP7Py9lPqkN2I=
-github.com/apernet/quic-go v0.59.1-0.20260425001925-6c6cc9bcb716/go.mod h1:Npbg8qBtAZlsAB3FWmqwlVh5jtVG6a4DlYsOylUpvzA=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/cloudflare/circl v1.6.5 h1:O64F26HEqNhznd/hrC5KZXVKYuKM2rx4deZDTc4ihQA=
@@ -66,6 +66,8 @@ github.com/ncruces/go-strftime v1.0.0 h1:HMFp8mLCTPp341M/ZnA4qaf7ZlsbTc+miZjCLOF
 github.com/ncruces/go-strftime v1.0.0/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
 github.com/pires/go-proxyproto v0.15.0 h1:dTshmNbFm/D+0+sbrxUuddPOZ5Y0B7c5NhtsBkm6LqI=
 github.com/pires/go-proxyproto v0.15.0/go.mod h1:OXsCrKwrK2tXS9YrI5tkHx5xaQlO8FH3lFW76orFh24=
+github.com/quic-go/go-ossfuzz-seeds v0.1.0 h1:APacT+iIaNF6fd8AGEiN3bT/Jtkd2jz4v4TzM7MFjy0=
+github.com/quic-go/go-ossfuzz-seeds v0.1.0/go.mod h1:3IOHRbJIc+L6YKMwfDtJAM9Vj9k0YY4muhuyUYk5tbk=
 github.com/refraction-networking/utls v1.8.3-0.20260802151714-23b1dac19c06 h1:pFxVvH10NuenLiYsgqTqQBR8SaWbf/TCa8z51k68t70=
 github.com/refraction-networking/utls v1.8.3-0.20260802151714-23b1dac19c06/go.mod h1:jkSOEkLqn+S/jtpEHPOsVv/4V4EVnelwbMQl4vCWXAM=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
