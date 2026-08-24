@@ -29,9 +29,10 @@ MODULES=(
 # 直接作为 module version 写进 go.mod（CI 清 modcache 后会报 "is not a tag"）。
 # 脚本里会自动 resolve 该分支最新 commit → 生成占位伪版本 → go get 触发 Go 自
 # 动计算正确伪版本后写入 go.mod / replace。
+# QUIC_GO_FORK_BRANCH 留空 = 自动发现版本号最大的 *-mod-rename 分支
 QUIC_GO_MODULE="github.com/apernet/quic-go"
 QUIC_GO_FORK_REPO="HyNetworks/quic-go"
-QUIC_GO_FORK_BRANCH="refs/heads/v0.60.0-mod-rename"
+QUIC_GO_FORK_BRANCH=""  # 留空则自动发现；也可手动指定如 "refs/heads/v0.61.0-mod-rename"
 
 # 需要从"批量 go get -u"中排除的模块路径（quic-go 有特殊处理，避免被乱升级）
 EXCLUDE_MODULES_REGEX='^github\.com/(apernet|quic-go)/quic-go$'
@@ -164,6 +165,25 @@ update_quic_go() {
     local fork_branch="$QUIC_GO_FORK_BRANCH"
     local fork_url="https://github.com/${fork_repo}.git"
 
+    # 如果 fork_branch 留空，自动发现版本号最大的 *-mod-rename 分支
+    if [[ -z "$fork_branch" ]]; then
+        log_info "quic-go → auto-discovering latest *-mod-rename branch on ${fork_mod}"
+        # 列所有 refs/heads/v*-mod-rename 分支，按版本号排序取最大
+        local discovered
+        discovered=$(git ls-remote "$fork_url" 'refs/heads/v*-mod-rename' 2>/dev/null \
+            | awk '{print $2}' \
+            | sed 's|refs/heads/||' \
+            | sed 's|-mod-rename||' \
+            | sort -V \
+            | tail -1)
+        if [[ -z "$discovered" ]]; then
+            log_error "quic-go → no *-mod-rename branch found on $fork_repo"
+            return 1
+        fi
+        fork_branch="refs/heads/${discovered}-mod-rename"
+        log_info "quic-go → latest mod-rename branch = ${discovered}-mod-rename"
+    fi
+
     # branch 名形如 refs/heads/v0.60.0-mod-rename → 取出纯名称 v0.60.0-mod-rename
     local branch_short="${fork_branch#refs/heads/}"
     log_info "quic-go → resolving ${fork_mod} branch ${branch_short}"
@@ -237,7 +257,11 @@ except Exception as e:
     log_info "quic-go → base tag = ${base_tag}, pseudo base version = ${base_ver} (PATCH ${patch} → ${next_patch})"
 
     # 拼完整伪版本
-    local pseudo_ver="${base_ver}-${timestamp}-${short_sha}"
+    # 格式规则（Go 模块参考文档）：
+    #   commit 在 release tag vX.Y.Z 之后 → 伪版本 = vX.Y.(Z+1)-0.YYYMMDDHHMMSS-HASH12
+    #   其中的 "-0." 前缀不可省，表示这是 (Z+1) 的 pre-release；缺这个前缀 Go
+    #   会以 "unknown revision" 拒绝（因为 git 仓库里不存在该字符串作为 ref）。
+    local pseudo_ver="${base_ver}-0.${timestamp}-${short_sha}"
     log_info "quic-go → computed pseudo-version = ${pseudo_ver}"
 
     # ------------------------------------------------------------------
