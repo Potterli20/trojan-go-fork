@@ -4,8 +4,8 @@ github.com/HyNetworks/quic-go v0.61.1-0.20260806010916-184d081eef3e h1:IWdnVU6+R
 github.com/HyNetworks/quic-go v0.61.1-0.20260806010916-184d081eef3e/go.mod h1:x7qxEvX6MCVtDuBKHj3E+88+BtrbEMuAL5qGUKItjW8=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260811213656-71847589a521 h1:y7oLi8eShVGl6+d0n+NANq807YJHNB6mQ2B2OjeCbTA=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260811213656-71847589a521/go.mod h1:DfW2OzQOJWQPD6rRNcVqrBZVZiaVJgkiQUKDdb4Z7jk=
-github.com/Potterli20/socks5-fork v0.0.0-20260826014339-2c2afcfe04ac h1:Lpgb3dPn6D6b6v1NYDfHRckZbvots55IMMIkEVmGLgs=
-github.com/Potterli20/socks5-fork v0.0.0-20260826014339-2c2afcfe04ac/go.mod h1:MEZSU73tmFT49bsCUrVuwmfSSomptb4nQDTGStq34HQ=
+github.com/Potterli20/socks5-fork v0.0.0-20260826065753-cc3c0249a929 h1:AKnX2xJMmdIC841FO/XfhZe31w8+XwwpyRkJcfecOlU=
+github.com/Potterli20/socks5-fork v0.0.0-20260826065753-cc3c0249a929/go.mod h1:K+YpWk6Fi0L4u3GjvcTXHiNjtTwzu+HFmMHS6ZDPic4=
 github.com/Potterli20/sqlite v0.0.0-20260824152713-8e547e2554f7 h1:XuAXnZrw6VIgHpGWVjNbxfAQHdNuX0hdhFkeRa0u5VY=
 github.com/Potterli20/sqlite v0.0.0-20260824152713-8e547e2554f7/go.mod h1:HqFR3r41B1CWNv3PKevLMkVB5jzF7F66QllLE75tvsY=
 github.com/andybalholm/brotli v1.2.2 h1:HzTuoo2ErYQqf5qvcJInB8uvqSVxRttzkFexPWtnceM=
@@ -16,8 +16,8 @@ github.com/cloudflare/circl v1.6.5 h1:O64F26HEqNhznd/hrC5KZXVKYuKM2rx4deZDTc4ihQ
 github.com/cloudflare/circl v1.6.5/go.mod h1:h5LNyxAc5nTue9DS5jT+48en2PSDYt3zdGnz5OstK6c=
 github.com/database64128/netx-go v0.1.1 h1:dT5LG7Gs7zFZBthFBbzWE6K8wAHjSNAaK7wCYZT7NzM=
 github.com/database64128/netx-go v0.1.1/go.mod h1:LNlYVipaYkQArRFDNNJ02VkNV+My9A5XR/IGS7sIBQc=
-github.com/database64128/tfo-go/v2 v2.3.4-0.20260716044210-55f7f3554906 h1:8ztjfsNJNzdr/1Tvma4X5iQZOo6MG6LLGUUYV3xv7Gw=
-github.com/database64128/tfo-go/v2 v2.3.4-0.20260716044210-55f7f3554906/go.mod h1:Pdk7RtWP19hhrI8FvTywGV8JSngV3TVfgmEayWZt+20=
+github.com/database64128/tfo-go/v2 v2.4.1-0.20260826113932-498aa0d59c9b h1:jWKh5RFg/PtuZGzdHTu59wkrT85jESJf3QMtXqFY8I8=
+github.com/database64128/tfo-go/v2 v2.4.1-0.20260826113932-498aa0d59c9b/go.mod h1:Pdk7RtWP19hhrI8FvTywGV8JSngV3TVfgmEayWZt+20=
 github.com/dustin/go-humanize v1.0.1 h1:GzkhY7T5VNhEkwH0PVJgjz+fX1rhBrR7pRT3mDkpeCY=
 github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+mFykh5fBlto=
 github.com/go-logr/logr v1.4.4 h1:tG4xh9yMsRCAiodLVTxyrkzSZ9+o0L1Kg/+cPVcbP/8=
