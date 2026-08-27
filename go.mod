@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260811213656-71847589a521
-	github.com/Potterli20/socks5-fork v0.0.0-20260826195431-42c6d74630e7
+	github.com/Potterli20/socks5-fork v0.0.0-20260827140105-314c239cb3ae
 	github.com/Potterli20/sqlite v0.0.0-20260826192821-81c43fa35221
 	github.com/apernet/quic-go v0.61.1-0.20260806010916-184d081eef3e
 	github.com/database64128/tfo-go/v2 v2.4.1-0.20260826113932-498aa0d59c9b
@@ -16,7 +16,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.12.1
 	github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b
-	github.com/xtls/xray-core v1.260327.1-0.20260826212958-aa3d6589da5e
+	github.com/xtls/xray-core v1.260327.1-0.20260827214626-540b9070f5bc
 	golang.org/x/crypto v0.55.0
 	golang.org/x/net v0.58.0
 	golang.org/x/sys v0.47.0
@@ -30,7 +30,7 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/andybalholm/brotli v1.2.2 // indirect
+	github.com/andybalholm/brotli v1.2.3 // indirect
 	github.com/database64128/netx-go v0.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
