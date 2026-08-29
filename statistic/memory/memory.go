@@ -673,11 +673,9 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 		}
 	}
 	for _, password := range cfg.Passwords {
-		hash, err := common.HashPassword(password)
-		if err != nil {
-			log.Errorf("Failed to hash password: %v", err)
-			continue
-		}
+		// trojan 协议要求客户端发送 hex(SHA224(password))，必须用确定性哈希，
+		// 不能用 bcrypt（随机 salt 导致双端结果不同，认证永远失败）
+		hash := common.SHA224String(password)
 		a.AddUser(hash)
 		a.SetKeyShare(hash, password)
 		a.SetUserIPLimit(hash, cfg.MaxIPPerUser)

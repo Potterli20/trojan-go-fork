@@ -79,8 +79,13 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 
 	var conn net.Conn
 	var err error
+	// address 可能为 nil（如测试直连场景），tunnel.Address.String() 是指针方法，需判空
+	var target string
+	if address != nil {
+		target = address.String()
+	}
 	tracker := log.NewConnectionTracker("TLS", "DialConn").
-		WithField("target", address.String()).
+		WithField("target", target).
 		WithField("sni", c.sni).
 		WithField("fingerprint", c.fingerprint)
 

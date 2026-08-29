@@ -110,9 +110,11 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 
 func (s *Server) Close() error {
 	s.cancel()
-	s.wg.Wait()
+	// 先关闭监听解除 acceptConnLoop 的 Accept 阻塞，否则 wg.Wait() 会永久死锁
 	s.tcpListener.Close()
-	return s.udpListener.Close()
+	err := s.udpListener.Close()
+	s.wg.Wait()
+	return err
 }
 
 func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {

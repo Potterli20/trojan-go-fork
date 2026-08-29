@@ -107,8 +107,10 @@ type Server struct {
 
 func (s *Server) Close() error {
 	s.cancel()
+	// 先关闭底层解除 acceptLoop 阻塞，否则 wg.Wait() 会永久死锁
+	err := s.underlay.Close()
 	s.wg.Wait()
-	return s.underlay.Close()
+	return err
 }
 
 func (s *Server) cleanupFailedHandshake(conn tunnel.Conn, tracker *log.ConnectionTracker, err error) error {

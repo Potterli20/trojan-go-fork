@@ -1,11 +1,21 @@
 package common
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"os"
 	"path/filepath"
 
 	"golang.org/x/crypto/bcrypt"
 )
+
+// SHA224String 计算 trojan 协议标准的密码哈希：hex(SHA224(password))。
+// 客户端与服务端必须使用同一算法，不能换成 bcrypt 等带随机 salt 的算法，
+// 否则双端计算结果不一致，配置文件密码认证将永远失败。
+func SHA224String(password string) string {
+	sum := sha256.Sum224([]byte(password))
+	return hex.EncodeToString(sum[:])
+}
 
 type Runnable interface {
 	Run() error

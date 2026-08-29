@@ -224,15 +224,15 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
 
 ### 路由模块
 
-客户端内置路由模块，支持自定义分流策略。支持三种策略：
+内置路由模块，支持自定义分流策略。客户端与服务端均可使用。支持三种策略：
 
 | 策略 | 说明 |
 |------|------|
-| `proxy` | 代理：通过 TLS 隧道由服务端连接目标 |
+| `proxy` | 代理：通过隧道交给下一层处理（客户端为远程服务端；服务端为出站栈） |
 | `bypass` | 绕过：本地直接连接目标 |
 | `block` | 封锁：直接关闭连接 |
 
-配置示例：
+客户端配置示例：
 
 ```json
 "router": {
@@ -251,6 +251,35 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
     "default_policy": "proxy"
 }
 ```
+
+#### 服务端分流（forward_proxy 配合路由）
+
+服务端同样支持路由模块。当服务端配置了 `forward_proxy`（出站上游 SOCKS5 代理）时，
+可以配合路由实现"只允许部分目标地址经过上游转发，其余直连"的分流效果：
+
+- 命中 `proxy` 规则的目标：经 `forward_proxy` 上游转发；
+- 命中 `bypass` 规则（含 `default_policy`）的目标：由本机直连目标，绕过上游；
+- 命中 `block` 规则的目标：直接拒绝。
+
+服务端配置示例（只允许访问本地回环段的目标走上游转发，其余直连）：
+
+```json
+"forward_proxy": {
+    "enabled": true,
+    "proxy_addr": "127.0.0.1",
+    "proxy_port": 1080
+},
+"router": {
+    "enabled": true,
+    "domain_strategy": "as_is",
+    "default_policy": "bypass",
+    "proxy": [
+        "cidr:127.0.0.1/32"
+    ]
+}
+```
+
+> 服务端未启用路由时，所有出站流量统一走 `forward_proxy`（若启用）。
 
 ### AEAD 加密
 
@@ -297,7 +326,7 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
 
 ## 构建指南
 
-> 要求 Go 版本 >= 1.22
+> 要求 Go 版本 >= 1.27
 
 ### 使用 Make
 

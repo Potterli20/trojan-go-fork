@@ -79,29 +79,34 @@ func (s *Server) acceptConnLoop() {
 				conn.Close() // handshake 失败时确保关闭原始连接
 				return
 			}
-			defer handledConn.Close()
+			// 握手成功的连接所有权移交给上层（connChan 的使用方负责关闭），
+			// 此处不能 defer Close，否则连接在移交给 connChan 后会被立即关闭
 			switch handledConn.Metadata().Command {
 			case Connect:
 				log.Info("socks connect request from", handledConn.RemoteAddr(), "metadata", handledConn.Metadata())
 				err = s.connect(handledConn)
 				if err != nil {
 					log.Error(common.NewError("socks failed to respond connect").Base(err))
+					handledConn.Close()
 					return
 				}
 				select {
 				case s.connChan <- handledConn:
 				case <-s.ctx.Done():
 					log.Debug("exiting")
+					handledConn.Close()
 				}
 			case Associate:
 				log.Info("socks associate request from", handledConn.RemoteAddr(), "metadata", handledConn.Metadata())
 				err = s.associate(handledConn, handledConn.Metadata().Address)
 				if err != nil {
 					log.Error(common.NewError("socks failed to respond associate").Base(err))
+					handledConn.Close()
 					return
 				}
 			default:
 				log.Error("socks unknown command", handledConn.Metadata().Command)
+				handledConn.Close()
 			}
 		}(conn)
 	}

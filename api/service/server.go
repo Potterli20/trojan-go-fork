@@ -6,13 +6,12 @@ import (
 	"crypto/x509"
 	"io"
 	"os"
+	"uuid"
 
 	"net"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/status"
 
 	"github.com/Potterli20/trojan-go-fork/api"
 	"github.com/Potterli20/trojan-go-fork/common"
@@ -22,7 +21,6 @@ import (
 	"github.com/Potterli20/trojan-go-fork/statistic"
 	"github.com/Potterli20/trojan-go-fork/tunnel/freedom"
 	"github.com/Potterli20/trojan-go-fork/tunnel/trojan"
-	"github.com/google/uuid"
 )
 
 type ServerAPI struct {
@@ -44,11 +42,7 @@ func (s *ServerAPI) GetUsers(stream TrojanServerService_GetUsersServer) error {
 			return common.NewError("user is unspecified")
 		}
 		if req.User.Hash == "" {
-			hash, err := common.HashPassword(req.User.Password)
-			if err != nil {
-				return common.NewError("Failed to hash password").Base(err)
-			}
-			req.User.Hash = hash
+			req.User.Hash = common.SHA224String(req.User.Password)
 		}
 		valid, user := s.auth.AuthUser(req.User.Hash)
 		if !valid {
@@ -103,11 +97,7 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 			return common.NewError("status is unspecified")
 		}
 		if req.Status.User.Hash == "" {
-			hash, err := common.HashPassword(req.Status.User.Password)
-			if err != nil {
-				return common.NewError("Failed to hash password").Base(err)
-			}
-			req.Status.User.Hash = hash
+			req.Status.User.Hash = common.SHA224String(req.Status.User.Password)
 		}
 		switch req.Operation {
 		case SetUsersRequest_Add:
@@ -204,11 +194,8 @@ func (s *ServerAPI) ListUsers(req *ListUsersRequest, stream TrojanServerService_
 
 func (s *ServerAPI) GetRecords(req *GetRecordsRequest, stream TrojanServerService_GetRecordsServer) error {
 	log.Debug("API: GetRecords")
-	id, err := uuid.NewRandom()
-	if err != nil {
-		return status.Errorf(codes.Internal, "failed to generate uuid: %v", err)
-	}
-	uid := id.String()
+	// 标准库 uuid（Go 1.27 新增）：New 基于 crypto/rand 生成 v4 UUID 且不会失败，无需错误处理
+	uid := uuid.New().String()
 	recordChan := recorder.Subscribe(uid, req.Transport, req.TargetPort, req.IncludePayload)
 	defer recorder.Unsubscribe(uid)
 

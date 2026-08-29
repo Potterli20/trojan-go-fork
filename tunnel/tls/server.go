@@ -54,11 +54,13 @@ type Server struct {
 
 func (s *Server) Close() error {
 	s.cancel()
+	// 先关闭底层 transport 解除 acceptLoop 的 AcceptConn 阻塞，否则 wg.Wait() 会永久死锁
+	err := s.underlay.Close()
 	s.wg.Wait()
 	if s.keyLogger != nil {
 		s.keyLogger.Close()
 	}
-	return s.underlay.Close()
+	return err
 }
 
 func isDomainNameMatched(pattern string, domainName string) bool {

@@ -190,8 +190,11 @@ type Server struct {
 
 func (s *Server) Close() error {
 	s.cancel()
+	// 先关闭底层 transport 再等待 acceptLoop 退出：
+	// acceptLoop 阻塞在 underlay.AcceptConn 上，若先 wg.Wait() 会永久死锁
+	err := s.underlay.Close()
 	s.wg.Wait()
-	return s.underlay.Close()
+	return err
 }
 
 func (s *Server) acceptLoop() {

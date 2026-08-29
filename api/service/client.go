@@ -29,11 +29,7 @@ func (s *ClientAPI) GetTraffic(ctx context.Context, req *GetTrafficRequest) (*Ge
 		return nil, common.NewError("User is unspecified")
 	}
 	if req.User.Hash == "" {
-		hash, err := common.HashPassword(req.User.Password)
-		if err != nil {
-			return nil, common.NewError("Failed to hash password").Base(err)
-		}
-		req.User.Hash = hash
+		req.User.Hash = common.SHA224String(req.User.Password)
 	}
 	valid, user := s.auth.AuthUser(req.User.Hash)
 	if !valid {
