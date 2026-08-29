@@ -351,17 +351,14 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	for _, c := range siteCode {
 		code := c.code
 		attrWanted := ""
-		if attrIdx := strings.Index(code, "@"); attrIdx > 0 {
-			if !strings.HasSuffix(code, "@") {
-				code = c.code[:attrIdx]
-				attrWanted = c.code[attrIdx+1:]
-			} else {
+		// strings.Cut 等价拆分 "code@attr"：@ 前后任一侧为空则视为非法
+		if name, attr, found := strings.Cut(code, "@"); found {
+			if name == "" || attr == "" {
 				log.Warnf("geosite:%s invalid", code)
 				continue
 			}
-		} else if attrIdx == 0 {
-			log.Warnf("geosite:%s invalid", code)
-			continue
+			code = name
+			attrWanted = attr
 		}
 
 		domainList, err := geodataLoader.LoadSite(cfg.Router.GeoSiteFilename, code)

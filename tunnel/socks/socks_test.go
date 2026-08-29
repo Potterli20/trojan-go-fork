@@ -45,15 +45,17 @@ func TestSocks(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 	go func() {
-		conn2, err = s.AcceptConn(nil)
-		common.Must(err)
+		var acceptErr error
+		conn2, acceptErr = s.AcceptConn(nil)
+		common.Must(acceptErr)
 		wg.Done()
 	}()
 
 	time.Sleep(time.Second * 1)
 	go func() {
-		conn1, err = socksClient.Dial("tcp", util.EchoAddr)
-		common.Must(err)
+		var dialErr error
+		conn1, dialErr = socksClient.Dial("tcp", util.EchoAddr)
+		common.Must(dialErr)
 		wg.Done()
 	}()
 

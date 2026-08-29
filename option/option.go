@@ -1,6 +1,9 @@
 package option
 
 import (
+	"cmp"
+	"maps"
+	"slices"
 	"sync"
 
 	"github.com/Potterli20/trojan-go-fork/common"
@@ -27,15 +30,13 @@ func PopOptionHandler() (Handler, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	var maxHandler Handler
-	for _, h := range handlers {
-		if maxHandler == nil || maxHandler.Priority() < h.Priority() {
-			maxHandler = h
-		}
-	}
-	if maxHandler == nil {
+	candidates := slices.Collect(maps.Values(handlers))
+	if len(candidates) == 0 {
 		return nil, common.NewError("no option handler available")
 	}
+	maxHandler := slices.MaxFunc(candidates, func(a, b Handler) int {
+		return cmp.Compare(a.Priority(), b.Priority())
+	})
 	delete(handlers, maxHandler.Name())
 	return maxHandler, nil
 }

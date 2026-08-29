@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"context"
-	"slices"
 
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
@@ -57,14 +56,18 @@ func (n *Node) LinkNextNode(next *Node) *Node {
 }
 
 func FindAllEndpoints(root *Node) []tunnel.Server {
+	// 注意：不能用 early-return。trojan 节点可能同时被标记为 IsEndpoint 且拥有
+	// mux→simplesocks 子节点（服务端树构建对同一父节点两次 BuildNext(trojan) 会复用
+	// 同一节点），此时必须把自身和子树端点都收录，否则 mux 端点没有 relay goroutine，
+	// 所有 mux 连接（TCP 与 WebSocket）会永久滞留在 simplesocks 的 connChan 中。
+	list := make([]tunnel.Server, 0)
 	if root.IsEndpoint || len(root.Next) == 0 {
-		return []tunnel.Server{root.Server}
+		list = append(list, root.Server)
 	}
-	var lists [][]tunnel.Server
 	for _, next := range root.Next {
-		lists = append(lists, FindAllEndpoints(next))
+		list = append(list, FindAllEndpoints(next)...)
 	}
-	return slices.Concat(lists...)
+	return list
 }
 
 // CreateClientStack create client tunnel stacks from lists

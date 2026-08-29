@@ -22,8 +22,6 @@ func TestUrl_Handle(t *testing.T) {
 
 	for _, s := range urlCases {
 		for _, opt := range optionCases {
-			s := s
-			opt := opt
 			u := &URLOption{
 				urlStr:  &s,
 				options: &opt,

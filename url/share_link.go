@@ -150,27 +150,20 @@ func NewShareInfoFromURL(shareLink string) (info ShareInfo, e error) {
 		e = errors.New("empty encryption")
 		return
 	} else {
-		encryptionParts := strings.SplitN(info.Encryption, ";", 2)
-		encryptionProviderName := encryptionParts[0]
+		// strings.Cut 切出 "provider;params" 两段；无分号时 params 为空串，与原 SplitN 语义一致
+		encryptionProviderName, encryptionParams, _ := strings.Cut(info.Encryption, ";")
 
 		if _, ok := validEncryptionProviders[encryptionProviderName]; !ok {
 			e = fmt.Errorf("unsupported encryption provider name: %s", encryptionProviderName)
 			return
 		}
 
-		var encryptionParams string
-		if len(encryptionParts) >= 2 {
-			encryptionParams = encryptionParts[1]
-		}
-
 		if encryptionProviderName == "ss" {
-			ssParams := strings.SplitN(encryptionParams, ":", 2)
-			if len(ssParams) < 2 {
+			ssMethod, ssPassword, found := strings.Cut(encryptionParams, ":")
+			if !found {
 				e = errors.New("missing ss password")
 				return
 			}
-
-			ssMethod, ssPassword := ssParams[0], ssParams[1]
 			if _, ok := validSSEncryptionMap[ssMethod]; !ok {
 				e = fmt.Errorf("unsupported ss method: %s", ssMethod)
 				return

@@ -116,6 +116,10 @@ func (u *User) GetIP() int {
 }
 
 func (u *User) setIPLimit(n int) {
+	// MaxIPNum 会被活跃连接的 AddIP 并发读取，必须与 ipLock 保护下的读端配对，
+	// 否则 API 运行时调整 IP 上限会与 AddIP 产生数据竞争。
+	u.ipLock.Lock()
+	defer u.ipLock.Unlock()
 	u.MaxIPNum = n
 }
 
@@ -126,24 +130,30 @@ func (u *User) setPassword(pwd string) {
 }
 
 func (u *User) GetIPLimit() int {
+	u.ipLock.Lock()
+	defer u.ipLock.Unlock()
 	return u.MaxIPNum
 }
 
 func (u *User) AddSentTraffic(sent int) {
 	u.limiterLock.RLock()
-	if u.SendLimiter != nil && sent >= 0 {
-		u.SendLimiter.WaitN(u.ctx, sent)
-	}
+	limiter := u.SendLimiter
 	u.limiterLock.RUnlock()
+	// WaitN 可能长时间阻塞（限速生效期间），不能持有 limiterLock 等待，
+	// 否则 SetSpeedLimit 的写锁会长期饥饿，运行中修改限速迟迟不生效。
+	if limiter != nil && sent >= 0 {
+		limiter.WaitN(u.ctx, sent)
+	}
 	atomic.AddUint64(&u.Sent, uint64(sent))
 }
 
 func (u *User) AddRecvTraffic(recv int) {
 	u.limiterLock.RLock()
-	if u.RecvLimiter != nil && recv >= 0 {
-		u.RecvLimiter.WaitN(u.ctx, recv)
-	}
+	limiter := u.RecvLimiter
 	u.limiterLock.RUnlock()
+	if limiter != nil && recv >= 0 {
+		limiter.WaitN(u.ctx, recv)
+	}
 	atomic.AddUint64(&u.Recv, uint64(recv))
 }
 

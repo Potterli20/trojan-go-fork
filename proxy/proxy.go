@@ -27,8 +27,47 @@ type Proxy struct {
 	ctx     context.Context
 	cancel  context.CancelFunc
 	bufSize int
-	bufPool sync.Pool
+	bufPool *boundedBufPool
 	wg      sync.WaitGroup
+}
+
+// boundedBufPool 带驻留数量上限的转发 buffer 池：
+// 池内最多驻留 limit 个 buffer（limit<=0 时不池化），池空或池满时临时分配/直接丢弃，
+// 由 GC 回收，从而限制转发层的常驻内存占用。
+type boundedBufPool struct {
+	size  int
+	limit int
+	bufs  chan []byte
+}
+
+func newBoundedBufPool(size, limit int) *boundedBufPool {
+	if limit < 0 {
+		limit = 0
+	}
+	return &boundedBufPool{
+		size:  size,
+		limit: limit,
+		bufs:  make(chan []byte, limit),
+	}
+}
+
+func (p *boundedBufPool) Get() []byte {
+	select {
+	case buf := <-p.bufs:
+		return buf
+	default:
+		return make([]byte, p.size)
+	}
+}
+
+func (p *boundedBufPool) Put(buf []byte) {
+	if cap(buf) != p.size {
+		return
+	}
+	select {
+	case p.bufs <- buf[:p.size]:
+	default:
+	}
 }
 
 // Run starts the proxy relay loops and waits for context cancellation
@@ -50,7 +89,10 @@ func (p *Proxy) Close() error {
 	return nil
 }
 
-var defaultBufSize = 8 * 1024
+var (
+	defaultBufSize  = 8 * 1024
+	defaultBufCount = 1024
+)
 
 func (p *Proxy) relayConnLoop() {
 	for _, source := range p.sources {
@@ -86,11 +128,10 @@ func (p *Proxy) relayConnLoop() {
 					defer outbound.Close()
 
 					done := make(chan struct{})
-					var once sync.Once
-					closeDone := func() { once.Do(func() { close(done) }) }
+					closeDone := sync.OnceFunc(func() { close(done) })
 
 					p.wg.Go(func() {
-						buffer := p.bufPool.Get().([]byte)
+						buffer := p.bufPool.Get()
 						defer p.bufPool.Put(buffer)
 						_, err := io.CopyBuffer(inbound, outbound, buffer)
 						if err != nil {
@@ -100,7 +141,7 @@ func (p *Proxy) relayConnLoop() {
 					})
 
 					p.wg.Go(func() {
-						buffer := p.bufPool.Get().([]byte)
+						buffer := p.bufPool.Get()
 						defer p.bufPool.Put(buffer)
 						_, err := io.CopyBuffer(outbound, inbound, buffer)
 						if err != nil {
@@ -155,12 +196,11 @@ func (p *Proxy) relayPacketLoop() {
 					defer outbound.Close()
 
 					done := make(chan struct{})
-					var once sync.Once
-					closeDone := func() { once.Do(func() { close(done) }) }
+					closeDone := sync.OnceFunc(func() { close(done) })
 
 					p.wg.Go(func() {
 						for {
-							buf := p.bufPool.Get().([]byte)
+							buf := p.bufPool.Get()
 							n, metadata, err := inbound.ReadWithMetadata(buf)
 							if err != nil {
 								p.bufPool.Put(buf)
@@ -185,7 +225,7 @@ func (p *Proxy) relayPacketLoop() {
 
 					p.wg.Go(func() {
 						for {
-							buf := p.bufPool.Get().([]byte)
+							buf := p.bufPool.Get()
 							n, metadata, err := outbound.ReadWithMetadata(buf)
 							if err != nil {
 								p.bufPool.Put(buf)
@@ -222,9 +262,13 @@ func (p *Proxy) relayPacketLoop() {
 
 func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.Server, sink tunnel.Client) *Proxy {
 	bufSize := defaultBufSize
+	bufCount := defaultBufCount
 	if cfg, ok := config.FromContext(ctx, Name).(*Config); ok {
 		if cfg.RelayBufferSize > 0 {
 			bufSize = cfg.RelayBufferSize
+		}
+		if cfg.RelayBufferCount > 0 {
+			bufCount = cfg.RelayBufferCount
 		}
 	}
 	return &Proxy{
@@ -233,11 +277,7 @@ func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.S
 		ctx:     ctx,
 		cancel:  cancel,
 		bufSize: bufSize,
-		bufPool: sync.Pool{
-			New: func() any {
-				return make([]byte, bufSize)
-			},
-		},
+		bufPool: newBoundedBufPool(bufSize, bufCount),
 	}
 }
 

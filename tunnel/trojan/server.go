@@ -53,14 +53,16 @@ func (c *InboundConn) Metadata() *tunnel.Metadata {
 func (c *InboundConn) Write(p []byte) (int, error) {
 	n, err := c.Conn.Write(p)
 	c.sent.Add(uint64(n))
-	c.user.AddRecvTraffic(n) // 服务端写入数据到客户端，对应客户端的接收，即服务端的下行
+	// 流量方向必须与 API 契约一致：Sent = 服务端发出 = 用户下载（API 的 DownloadTraffic，受 SendLimiter 限制），
+	// Recv = 服务端收到 = 用户上传（API 的 UploadTraffic，受 RecvLimiter 限制）。对调会导致上下行限速互相打反。
+	c.user.AddSentTraffic(n)
 	return n, err
 }
 
 func (c *InboundConn) Read(p []byte) (int, error) {
 	n, err := c.Conn.Read(p)
 	c.recv.Add(uint64(n))
-	c.user.AddSentTraffic(n) // 服务端从客户端读取数据，对应客户端的发送，即服务端的上行
+	c.user.AddRecvTraffic(n)
 	return n, err
 }
 
@@ -81,10 +83,8 @@ func extractRealIPFromHeaders(header http.Header) string {
 		return cfIP
 	}
 	if xff := header.Get("X-Forwarded-For"); xff != "" {
-		ips := strings.Split(xff, ",")
-		if len(ips) > 0 {
-			return strings.TrimSpace(ips[0])
-		}
+		firstIP, _, _ := strings.Cut(xff, ",")
+		return strings.TrimSpace(firstIP)
 	}
 	return ""
 }
@@ -275,7 +275,7 @@ func (s *Server) acceptLoop() {
 					inboundConn.Close()
 				}
 			default:
-				log.Error(common.NewError(fmt.Sprintf("unknown trojan command %d", inboundConn.metadata.Command)))
+				log.Error(common.NewErrorf("unknown trojan command %d", inboundConn.metadata.Command))
 				inboundConn.Close()
 			}
 		}(conn)

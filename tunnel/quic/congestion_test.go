@@ -6,6 +6,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// 说明：本文件中的单元测试均以 nil conn 调用 ApplyCongestionControl（构造真实
+// QUIC 连接成本过高）。自 af73d6fd 引入空指针防御后，nil conn 一律提前返回
+// Success=false 且 ErrorMessage="conn is nil"，早于各算法分支的参数校验执行，
+// 因此这些用例只能覆盖 nil 防御路径与 status 字段透传；各算法分支的实际行为
+// （UseBrutal/UseBBR 调用、参数校验错误消息）依赖真实连接，由集成测试覆盖。
+
 func TestApplyCongestionControl_BBRAlgorithm(t *testing.T) {
 	tests := []struct {
 		name            string
@@ -23,7 +29,7 @@ func TestApplyCongestionControl_BBRAlgorithm(t *testing.T) {
 			},
 			role:            "server",
 			expectedAlgo:    "bbr",
-			expectedSuccess: true,
+			expectedSuccess: false,
 		},
 		{
 			name: "BBR algorithm default when empty",
@@ -34,7 +40,7 @@ func TestApplyCongestionControl_BBRAlgorithm(t *testing.T) {
 			},
 			role:            "client",
 			expectedAlgo:    "bbr",
-			expectedSuccess: true,
+			expectedSuccess: false,
 		},
 		{
 			name: "BBR algorithm default when nil",
@@ -44,7 +50,7 @@ func TestApplyCongestionControl_BBRAlgorithm(t *testing.T) {
 			},
 			role:            "server",
 			expectedAlgo:    "bbr",
-			expectedSuccess: true,
+			expectedSuccess: false,
 		},
 	}
 
@@ -54,6 +60,7 @@ func TestApplyCongestionControl_BBRAlgorithm(t *testing.T) {
 
 			assert.Equal(t, tt.expectedAlgo, status.Algorithm, "Algorithm mismatch")
 			assert.Equal(t, tt.expectedSuccess, status.Success, "Success status mismatch")
+			assert.Equal(t, "conn is nil", status.ErrorMessage, "ErrorMessage mismatch")
 			assert.Equal(t, tt.role, status.Role, "Role mismatch")
 			assert.Equal(t, tt.config.BrutalUp, status.BrutalUp, "BrutalUp mismatch")
 			assert.Equal(t, tt.config.BrutalDown, status.BrutalDown, "BrutalDown mismatch")
@@ -71,9 +78,9 @@ func TestApplyCongestionControl_RenoAlgorithm(t *testing.T) {
 	status := ApplyCongestionControl(nil, config, "client")
 
 	assert.Equal(t, "reno", status.Algorithm)
-	assert.True(t, status.Success)
+	assert.False(t, status.Success)
+	assert.Equal(t, "conn is nil", status.ErrorMessage)
 	assert.Equal(t, uint64(0), status.EffectiveSpeed)
-	assert.Empty(t, status.ErrorMessage)
 }
 
 func TestApplyCongestionControl_BrutalAlgorithm(t *testing.T) {
@@ -83,7 +90,6 @@ func TestApplyCongestionControl_BrutalAlgorithm(t *testing.T) {
 		role            string
 		expectedSuccess bool
 		expectedSpeed   uint64
-		expectedError   string
 	}{
 		{
 			name: "Brutal with valid up and down",
@@ -93,9 +99,8 @@ func TestApplyCongestionControl_BrutalAlgorithm(t *testing.T) {
 				BrutalDown: 2000000,
 			},
 			role:            "server",
-			expectedSuccess: true,
-			expectedSpeed:   1000000,
-			expectedError:   "",
+			expectedSuccess: false,
+			expectedSpeed:   0,
 		},
 		{
 			name: "Brutal with equal up and down",
@@ -105,9 +110,8 @@ func TestApplyCongestionControl_BrutalAlgorithm(t *testing.T) {
 				BrutalDown: 5000000,
 			},
 			role:            "client",
-			expectedSuccess: true,
-			expectedSpeed:   5000000,
-			expectedError:   "",
+			expectedSuccess: false,
+			expectedSpeed:   0,
 		},
 		{
 			name: "Brutal missing down",
@@ -119,7 +123,6 @@ func TestApplyCongestionControl_BrutalAlgorithm(t *testing.T) {
 			role:            "server",
 			expectedSuccess: false,
 			expectedSpeed:   0,
-			expectedError:   "Brutal congestion control requires both brutal_up and brutal_down to be set",
 		},
 		{
 			name: "Brutal missing up",
@@ -131,7 +134,6 @@ func TestApplyCongestionControl_BrutalAlgorithm(t *testing.T) {
 			role:            "client",
 			expectedSuccess: false,
 			expectedSpeed:   0,
-			expectedError:   "Brutal congestion control requires both brutal_up and brutal_down to be set",
 		},
 		{
 			name: "Brutal missing both",
@@ -143,29 +145,27 @@ func TestApplyCongestionControl_BrutalAlgorithm(t *testing.T) {
 			role:            "server",
 			expectedSuccess: false,
 			expectedSpeed:   0,
-			expectedError:   "Brutal congestion control requires both brutal_up and brutal_down to be set",
 		},
 	}
 
+	// nil conn 的防御分支先于参数校验执行，因此无论参数是否有效，
+	// EffectiveSpeed 均为 0 且 Success=false
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			status := ApplyCongestionControl(nil, tt.config, tt.role)
 
 			assert.Equal(t, tt.expectedSuccess, status.Success, "Success status mismatch")
 			assert.Equal(t, tt.expectedSpeed, status.EffectiveSpeed, "EffectiveSpeed mismatch")
-			assert.Equal(t, tt.expectedError, status.ErrorMessage, "ErrorMessage mismatch")
+			assert.Equal(t, "conn is nil", status.ErrorMessage, "ErrorMessage mismatch")
 		})
 	}
 }
 
 func TestApplyCongestionControl_ForceBrutalAlgorithm(t *testing.T) {
 	tests := []struct {
-		name            string
-		config          CongestionConfig
-		role            string
-		expectedSuccess bool
-		expectedSpeed   uint64
-		expectedError   string
+		name   string
+		config CongestionConfig
+		role   string
 	}{
 		{
 			name: "Force-brutal with valid up",
@@ -174,10 +174,7 @@ func TestApplyCongestionControl_ForceBrutalAlgorithm(t *testing.T) {
 				BrutalUp:   1000000,
 				BrutalDown: 0,
 			},
-			role:            "server",
-			expectedSuccess: true,
-			expectedSpeed:   1000000,
-			expectedError:   "",
+			role: "server",
 		},
 		{
 			name: "Force-brutal with both values",
@@ -186,10 +183,7 @@ func TestApplyCongestionControl_ForceBrutalAlgorithm(t *testing.T) {
 				BrutalUp:   5000000,
 				BrutalDown: 3000000,
 			},
-			role:            "client",
-			expectedSuccess: true,
-			expectedSpeed:   5000000,
-			expectedError:   "",
+			role: "client",
 		},
 		{
 			name: "Force-brutal missing up",
@@ -198,10 +192,7 @@ func TestApplyCongestionControl_ForceBrutalAlgorithm(t *testing.T) {
 				BrutalUp:   0,
 				BrutalDown: 1000000,
 			},
-			role:            "server",
-			expectedSuccess: false,
-			expectedSpeed:   0,
-			expectedError:   "Force-brutal congestion control requires brutal_up to be set",
+			role: "server",
 		},
 	}
 
@@ -209,36 +200,33 @@ func TestApplyCongestionControl_ForceBrutalAlgorithm(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			status := ApplyCongestionControl(nil, tt.config, tt.role)
 
-			assert.Equal(t, tt.expectedSuccess, status.Success, "Success status mismatch")
-			assert.Equal(t, tt.expectedSpeed, status.EffectiveSpeed, "EffectiveSpeed mismatch")
-			assert.Equal(t, tt.expectedError, status.ErrorMessage, "ErrorMessage mismatch")
+			assert.False(t, status.Success, "nil conn should fail")
+			assert.Equal(t, uint64(0), status.EffectiveSpeed, "EffectiveSpeed mismatch")
+			assert.Equal(t, "conn is nil", status.ErrorMessage, "ErrorMessage mismatch")
 		})
 	}
 }
 
 func TestApplyCongestionControl_UnknownAlgorithm(t *testing.T) {
 	tests := []struct {
-		name          string
-		algorithm     string
-		expectedError string
+		name      string
+		algorithm string
 	}{
 		{
-			name:          "Unknown algorithm CUBIC",
-			algorithm:     "cubic",
-			expectedError: "Unknown congestion control: cubic",
+			name:      "Unknown algorithm CUBIC",
+			algorithm: "cubic",
 		},
 		{
-			name:          "Unknown algorithm VEGAS",
-			algorithm:     "vegas",
-			expectedError: "Unknown congestion control: vegas",
+			name:      "Unknown algorithm VEGAS",
+			algorithm: "vegas",
 		},
 		{
-			name:          "Empty string defaults to BBR",
-			algorithm:     "",
-			expectedError: "",
+			name:      "Empty string defaults to BBR",
+			algorithm: "",
 		},
 	}
 
+	// nil conn 下无法到达算法分支，空算法的 BBR 默认值解析仍会先执行
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			config := CongestionConfig{
@@ -246,11 +234,9 @@ func TestApplyCongestionControl_UnknownAlgorithm(t *testing.T) {
 			}
 			status := ApplyCongestionControl(nil, config, "server")
 
-			if tt.expectedError != "" {
-				assert.False(t, status.Success, "Expected failure for unknown algorithm")
-				assert.Equal(t, tt.expectedError, status.ErrorMessage, "ErrorMessage mismatch")
-			} else {
-				assert.True(t, status.Success, "Expected success")
+			assert.False(t, status.Success, "nil conn should fail")
+			assert.Equal(t, "conn is nil", status.ErrorMessage, "ErrorMessage mismatch")
+			if tt.algorithm == "" {
 				assert.Equal(t, "bbr", status.Algorithm, "Default algorithm should be BBR")
 			}
 		})
@@ -259,11 +245,9 @@ func TestApplyCongestionControl_UnknownAlgorithm(t *testing.T) {
 
 func TestApplyCongestionControl_BoundaryConditions(t *testing.T) {
 	tests := []struct {
-		name            string
-		config          CongestionConfig
-		role            string
-		expectedSuccess bool
-		expectedSpeed   uint64
+		name   string
+		config CongestionConfig
+		role   string
 	}{
 		{
 			name: "Zero speed values",
@@ -272,9 +256,7 @@ func TestApplyCongestionControl_BoundaryConditions(t *testing.T) {
 				BrutalUp:   0,
 				BrutalDown: 0,
 			},
-			role:            "server",
-			expectedSuccess: false,
-			expectedSpeed:   0,
+			role: "server",
 		},
 		{
 			name: "Maximum uint64 values",
@@ -283,9 +265,7 @@ func TestApplyCongestionControl_BoundaryConditions(t *testing.T) {
 				BrutalUp:   18446744073709551615,
 				BrutalDown: 18446744073709551615,
 			},
-			role:            "client",
-			expectedSuccess: true,
-			expectedSpeed:   18446744073709551615,
+			role: "client",
 		},
 		{
 			name: "Different boundary values",
@@ -294,9 +274,7 @@ func TestApplyCongestionControl_BoundaryConditions(t *testing.T) {
 				BrutalUp:   1,
 				BrutalDown: 18446744073709551615,
 			},
-			role:            "server",
-			expectedSuccess: true,
-			expectedSpeed:   1,
+			role: "server",
 		},
 		{
 			name: "Very small non-zero values",
@@ -305,9 +283,7 @@ func TestApplyCongestionControl_BoundaryConditions(t *testing.T) {
 				BrutalUp:   100,
 				BrutalDown: 200,
 			},
-			role:            "client",
-			expectedSuccess: true,
-			expectedSpeed:   100,
+			role: "client",
 		},
 	}
 
@@ -315,8 +291,8 @@ func TestApplyCongestionControl_BoundaryConditions(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			status := ApplyCongestionControl(nil, tt.config, tt.role)
 
-			assert.Equal(t, tt.expectedSuccess, status.Success, "Success status mismatch")
-			assert.Equal(t, tt.expectedSpeed, status.EffectiveSpeed, "EffectiveSpeed mismatch")
+			assert.False(t, status.Success, "nil conn should fail")
+			assert.Equal(t, uint64(0), status.EffectiveSpeed, "EffectiveSpeed mismatch")
 		})
 	}
 }
@@ -352,7 +328,7 @@ func TestApplyCongestionControl_RoleParameter(t *testing.T) {
 			status := ApplyCongestionControl(nil, config, tt.role)
 
 			assert.Equal(t, tt.role, status.Role, "Role should be preserved")
-			assert.True(t, status.Success, "Should succeed with BBR")
+			assert.False(t, status.Success, "nil conn should fail")
 		})
 	}
 }
@@ -410,8 +386,8 @@ func TestMinUint64(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := minUint64(tt.a, tt.b)
-			assert.Equal(t, tt.expected, result, "minUint64 result mismatch")
+			result := min(tt.a, tt.b)
+			assert.Equal(t, tt.expected, result, "min result mismatch")
 		})
 	}
 }

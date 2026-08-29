@@ -170,8 +170,14 @@ func (s *Server) acceptLoop() {
 			rewindConn.StopBuffering()
 			if err != nil {
 				// this is not a http request. pass it to trojan protocol layer for further inspection
-				s.connChan <- &transport.Conn{
+				select {
+				case s.connChan <- &transport.Conn{
 					Conn: rewindConn,
+				}:
+				case <-s.ctx.Done():
+					// 下游（trojan server）已停止消费，必须关闭连接并退出，
+					// 否则该 goroutine 永久阻塞在 channel 发送上，Close() 的 wg.Wait() 随之死锁。
+					rewindConn.Close()
 				}
 			} else {
 				if s.nextHTTP.Load() != 1 {
@@ -185,8 +191,12 @@ func (s *Server) acceptLoop() {
 				}
 				// this is a http request, pass it to websocket protocol layer
 				log.Debug("http req: ", httpReq)
-				s.wsChan <- &transport.Conn{
+				select {
+				case s.wsChan <- &transport.Conn{
 					Conn: rewindConn,
+				}:
+				case <-s.ctx.Done():
+					rewindConn.Close()
 				}
 			}
 		}(conn)

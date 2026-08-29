@@ -32,10 +32,10 @@ COMMIT := `git rev-parse HEAD`
 
 PLATFORM := linux
 BUILD_DIR := build
-GOEXPERIMENT_FLAGS := GOEXPERIMENT=greenteagc
 
 VAR_SETTING := -X $(PACKAGE_NAME)/constant.Version=$(VERSION) -X $(PACKAGE_NAME)/constant.Commit=$(COMMIT)
-GOBUILD = env CGO_ENABLED=0 GOEXPERIMENT=greenteagc go build -tags "full" -trimpath -ldflags="-s -w -buildid= $(VAR_SETTING)" -o $(BUILD_DIR)
+# Go 1.26+ 已默认启用 green tea GC（原 GOEXPERIMENT=greenteagc），无需显式设置
+GOBUILD = env CGO_ENABLED=0 go build -tags "full" -trimpath -ldflags="-s -w -buildid= $(VAR_SETTING)" -o $(BUILD_DIR)
 
 .PHONY: trojan-go-fork release test
 normal: clean trojan-go-fork

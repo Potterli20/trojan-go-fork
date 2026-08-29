@@ -3,7 +3,6 @@ package socks
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -126,7 +125,7 @@ func (s *Server) handshake(conn net.Conn) (*Conn, error) {
 		return nil, common.NewError("failed to read socks version").Base(err)
 	}
 	if version[0] != 5 {
-		return nil, common.NewError(fmt.Sprintf("invalid socks version %d", version[0]))
+		return nil, common.NewErrorf("invalid socks version %d", version[0])
 	}
 	nmethods := [1]byte{}
 	if _, err := conn.Read(nmethods[:]); err != nil {
@@ -165,8 +164,16 @@ func (s *Server) connect(conn net.Conn) error {
 }
 
 func (s *Server) associate(conn net.Conn, addr *tunnel.Address) error {
+	// RFC 1928：UDP ASSOCIATE 响应中的 BND.ADDR/BND.PORT 是服务端 UDP 中继地址，
+	// 客户端随后向该地址发送 UDP 报文。标准 socks5 客户端（如 txthinking/socks5）
+	// 会原样使用该地址，回显请求的 DST（通常为 0.0.0.0:0）会导致 UDP 关联永远无法建立。
+	udpAddr, ok := s.listenPacketConn.LocalAddr().(*net.UDPAddr)
+	if !ok {
+		return common.NewError("socks failed to get udp relay address")
+	}
+	relayAddr := tunnel.NewAddressFromHostPort("udp", udpAddr.IP.String(), udpAddr.Port)
 	buf := bytes.NewBuffer([]byte{0x05, 0x00, 0x00})
-	_, err := addr.WriteTo(buf)
+	_, err := relayAddr.WriteTo(buf)
 	common.Must(err)
 	_, err = conn.Write(buf.Bytes())
 	return err
@@ -249,8 +256,15 @@ func (s *Server) packetDispatchLoop() {
 			s.mapping[src.String()] = conn
 			s.mappingLock.Unlock()
 
-			s.packetChan <- conn
-			log.Info("socks new udp session from", src)
+			select {
+			case s.packetChan <- conn:
+				log.Info("socks new udp session from", src)
+			case <-s.ctx.Done():
+				// 下游已停止消费，必须退出，否则关闭时该 goroutine 永久阻塞导致泄露
+				conn.Close()
+				log.Debug("exiting")
+				return
+			}
 		}
 		r := bytes.NewReader(buf[3:n])
 		address := new(tunnel.Address)

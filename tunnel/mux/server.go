@@ -47,7 +47,7 @@ func (s *Server) handleConn(conn tunnel.Conn, tracker *log.ConnectionTracker) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Error("panic in mux handler: ", fmt.Sprintf("%v", r))
-			tracker.Error(common.NewError(fmt.Sprintf("panic: %v", r)))
+			tracker.Error(common.NewErrorf("panic: %v", r))
 			conn.Close()
 		}
 	}()

@@ -39,8 +39,9 @@ func TestTransport(t *testing.T) {
 	wg.Add(1)
 	var conn1, conn2 net.Conn
 	go func() {
-		conn2, err = s.AcceptConn(nil)
-		common.Must(err)
+		var acceptErr error
+		conn2, acceptErr = s.AcceptConn(nil)
+		common.Must(acceptErr)
 		wg.Done()
 	}()
 	conn1, err = c.DialConn(nil, nil)

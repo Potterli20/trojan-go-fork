@@ -2,7 +2,6 @@ package simplesocks
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/Potterli20/trojan-go-fork/common"
@@ -61,7 +60,7 @@ func (s *Server) acceptLoop() {
 				Conn: conn,
 			}
 		default:
-			log.Error(common.NewError(fmt.Sprintf("simplesocks unknown command %d", metadata.Command)))
+			log.Error(common.NewErrorf("simplesocks unknown command %d", metadata.Command))
 			conn.Close()
 		}
 	}

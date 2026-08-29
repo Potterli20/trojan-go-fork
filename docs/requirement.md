@@ -9,6 +9,42 @@
 | 1. 指定 local IP (outbound_local_addr) | 已完成 |
 | 2. 指定 fwmark (outbound_fwmark) | 已完成 |
 | 3. gRPC API 动态配置 local IP / fwmark | 已完成 |
+| 4. 修复多处 data race 风险 | 已完成（2026-08-29 回归审计） |
+| 5. 修复服务端添加用户后 WebSocket 访问无效 | 已完成（2026-08-29 回归审计） |
+| 6. 服务端支持使用 SQLite 实现用户数据持久化（仅 Linux） | 已完成（2026-08-29 回归审计） |
+| 7. 支持指定转发 buffer 大小及数量限制 | 已完成（2026-08-29 补回数量限制） |
+| 8. 修复服务端上行限速无效的问题 | 已完成（2026-08-29 修复方向映射回归） |
+| 9. 修复连接转发阻塞导致 goroutine 泄露的问题 | 已完成（2026-08-29 修复 tls/socks channel 发送阻塞） |
+| 10. 修复客户端 TCP 和 WebSocket 无法连接的问题 | 已完成（2026-08-29 修复 FindAllEndpoints 回归） |
+| 11. 新增 TCP Fast Open 支持 | 已完成（2026-08-29 回归审计） |
+
+## 4~11. 上游/社区修复项回归审计（2026-08-29）
+README 中列出的 8 项社区改进（@fregie 等）在后续大规模重构中出现了不同程度的退化，
+本轮逐项对照 fregie 原始实现（remote `fregie`，2021）做了回归审计与修复：
+
+- **data race**：
+  - `statistic/memory`：`MaxIPNum` 此前由 `setIPLimit` 无锁写入、`AddIP` 持 ipLock 读取，已统一用 ipLock 保护；
+    `AddSentTraffic/AddRecvTraffic` 改为锁内取 limiter 指针、锁外 WaitN，避免限速阻塞期间 `SetSpeedLimit` 写锁饥饿。
+  - 测试代码三处共享 `err` 变量的 race（transport/websocket/socks 测试）已修复。
+  - 全量 `go test -race -tags full ./...` 通过。
+- **WebSocket 添加用户**：共享认证器机制（`trojan.Auth` 包级变量 + `statistic.NewAuthenticator` 按 ctx 缓存）在位，
+  TLS 子树与 WebSocket 子树的 trojan 服务端共用同一实例，API AddUser 对两条链路同时生效。api/service 测试通过。
+- **SQLite 持久化**：`statistic/sqlite`（`linux && (amd64||386||arm||arm64)` 真实现，其余平台 no-op 桩）在位，
+  memory 认证器经 `sqlite` 配置项启用，批量流量回写（batchTrafficUpdater）带指数退避重试。windows/darwin 交叉编译通过。
+- **buffer 大小及数量限制**：大小限制（`relay_buffer_size`）在位；数量限制此前丢失，已补回：
+  `relay_buffer_count`（默认 1024）+ `proxy.boundedBufPool`（channel 池，池满丢弃、池空临时分配），
+  限制转发层常驻内存上限。
+- **上行限速**：`tunnel/trojan/server.go` 的流量方向映射在 2026-04 被错误对调
+  （Write→RecvLimiter、Read→SendLimiter），与 API 契约（Sent=DownloadTraffic、SendLimiter=下行、RecvLimiter=上行）相反，
+  导致 API 的上行限速实际作用于下行。已恢复 fregie/上游语义：Write→AddSentTraffic，Read→AddRecvTraffic。
+- **goroutine 泄露**：`tls/server.go` 与 `socks/server.go` 的 channel 发送无 ctx 保护，
+  关闭时若下游停止消费且 channel 满，goroutine 永久阻塞、`Close()` 的 wg.Wait() 死锁。已补 select ctx.Done 分支。
+- **客户端 TCP/WebSocket 无法连接**：`proxy/stack.go::FindAllEndpoints` 被改为 early-return，
+  而服务端树构建对同一父节点两次 `BuildNext(trojan)`（复用同一节点并置 IsEndpoint），
+  导致 trojan 节点既是端点又持有 mux→simplesocks 子树时，子树端点被整体丢弃——
+  所有启用 mux 的服务端（TCP 与 WebSocket）连接永久滞留。已恢复 fregie 语义（收录自身并继续下钻）。
+- **TCP Fast Open**：`common.Dial/common.Listen`（tfo-go，带 fallback）在位；
+  服务端监听（transport）与客户端出站（freedom，`tcp.fast_open`，默认 true）均已接通。
 
 ## 1. 指定local IP
 需要能在配置文件中指定代理使用的local ip,只需要指定由本服务和需要代理的目标之间所建立的tcp或udp所使用的本地ip是什么,主要用于能够使用策略路由控制实际的出口接口.

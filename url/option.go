@@ -71,11 +71,11 @@ func parseOptions(optStr string) (map[string]string, error) {
 	}
 	pairs := strings.SplitSeq(optStr, ";")
 	for pair := range pairs {
-		kv := strings.SplitN(pair, "=", 2)
-		if len(kv) != 2 {
+		key, value, found := strings.Cut(pair, "=")
+		if !found {
 			return nil, common.NewError("invalid option format: " + pair + ". expected key=value")
 		}
-		result[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
+		result[strings.TrimSpace(key)] = strings.TrimSpace(value)
 	}
 	return result, nil
 }
@@ -145,14 +145,13 @@ func (u *URLOption) Handle() error {
 
 	var ssEnabled bool
 	var ssMethod, ssPassword string
-	if strings.HasPrefix(info.Encryption, "ss;") {
-		ssConfig := strings.SplitN(info.Encryption[3:], ":", 2)
-		if len(ssConfig) != 2 {
+	if ssConfig, ok := strings.CutPrefix(info.Encryption, "ss;"); ok {
+		var found bool
+		ssMethod, ssPassword, found = strings.Cut(ssConfig, ":")
+		if !found {
 			return common.NewError("invalid shadowsocks config: " + info.Encryption)
 		}
 		ssEnabled = true
-		ssMethod = ssConfig[0]
-		ssPassword = ssConfig[1]
 	}
 
 	config := UrlConfig{

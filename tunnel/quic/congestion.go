@@ -76,8 +76,10 @@ func ApplyCongestionControl(conn *quic.Conn, config CongestionConfig, role strin
 	switch algorithm {
 	case "brutal":
 		if config.BrutalUp > 0 && config.BrutalDown > 0 {
-			speed := minUint64(config.BrutalUp, config.BrutalDown)
-			xrayCongestion.UseBrutal(conn, speed)
+			speed := min(config.BrutalUp, config.BrutalDown)
+			// xray-core 新版 UseBrutal 增加了 disableLossCompensation 参数，
+			// 传 false 保持旧版"丢包时维持固定速率"的 brutal 语义
+			xrayCongestion.UseBrutal(conn, speed, false)
 			status.EffectiveSpeed = speed
 			log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] [BRUTAL] Applied brutal congestion control with speed=%d bps, Conn=%p",
 				time.Now().Format("2006-01-02 15:04:05.000"),
@@ -92,7 +94,7 @@ func ApplyCongestionControl(conn *quic.Conn, config CongestionConfig, role strin
 		}
 	case "force-brutal":
 		if config.BrutalUp > 0 {
-			xrayCongestion.UseBrutal(conn, config.BrutalUp)
+			xrayCongestion.UseBrutal(conn, config.BrutalUp, false)
 			status.EffectiveSpeed = config.BrutalUp
 			log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] [FORCE-BRUTAL] Applied force-brutal congestion control with speed=%d bps, Conn=%p",
 				time.Now().Format("2006-01-02 15:04:05.000"),
@@ -140,11 +142,4 @@ func ApplyCongestionControl(conn *quic.Conn, config CongestionConfig, role strin
 	))
 
 	return status
-}
-
-func minUint64(a, b uint64) uint64 {
-	if a < b {
-		return a
-	}
-	return b
 }

@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"math/rand"
+	"math/rand/v2"
 	"runtime"
 	"strconv"
 	"sync"
@@ -810,7 +810,7 @@ func sha256Hex6(s string) string {
 // 返回 seed 列表，可直接配合 seedUsersIntoAuth 注入 Authenticator。
 func buildProductionUsers(n int, seedRand int64, rng *rand.Rand) []userSeed {
 	if rng == nil {
-		rng = rand.New(rand.NewSource(seedRand))
+		rng = rand.New(rand.NewPCG(uint64(seedRand), uint64(seedRand)))
 	}
 	seeds := make([]userSeed, 0, n)
 	for i := range n {
@@ -833,15 +833,15 @@ func buildProductionUsers(n int, seedRand int64, rng *rand.Rand) []userSeed {
 		var base uint64
 		switch p {
 		case profStatic:
-			base = uint64(rng.Intn(1_000_000))
+			base = uint64(rng.IntN(1_000_000))
 		case profIncremental:
-			base = uint64(rng.Intn(5_000_000)) + 1_000_000
+			base = uint64(rng.IntN(5_000_000)) + 1_000_000
 		case profActive:
-			base = uint64(rng.Intn(50_000_000)) + 10_000_000
+			base = uint64(rng.IntN(50_000_000)) + 10_000_000
 		case profHeavy:
-			base = uint64(rng.Intn(500_000_000)) + 200_000_000
+			base = uint64(rng.IntN(500_000_000)) + 200_000_000
 		case profSkewed:
-			base = uint64(rng.Intn(1_000_000_000)) + 500_000_000
+			base = uint64(rng.IntN(1_000_000_000)) + 500_000_000
 		}
 		// lastSent/lastRecv 是"上次写入 DB 的值"；Sent/Recv 是"当前内存快照"
 		// 二者之差等于本轮增量；对于 profStatic，两者相同 → 写库逻辑直接跳过
@@ -850,17 +850,17 @@ func buildProductionUsers(n int, seedRand int64, rng *rand.Rand) []userSeed {
 		case profStatic:
 			sent, recv = base, base/2
 		case profIncremental:
-			sent = base + uint64(rng.Intn(50_000))
-			recv = base/2 + uint64(rng.Intn(30_000))
+			sent = base + uint64(rng.IntN(50_000))
+			recv = base/2 + uint64(rng.IntN(30_000))
 		case profActive:
-			sent = base + uint64(rng.Intn(5_000_000))
-			recv = base/2 + uint64(rng.Intn(3_000_000))
+			sent = base + uint64(rng.IntN(5_000_000))
+			recv = base/2 + uint64(rng.IntN(3_000_000))
 		case profHeavy:
-			sent = base + uint64(rng.Intn(50_000_000))
-			recv = base/2 + uint64(rng.Intn(30_000_000))
+			sent = base + uint64(rng.IntN(50_000_000))
+			recv = base/2 + uint64(rng.IntN(30_000_000))
 		case profSkewed:
-			sent = base + uint64(rng.Intn(200_000_000))
-			recv = base/100 + uint64(rng.Intn(100_000))
+			sent = base + uint64(rng.IntN(200_000_000))
+			recv = base/100 + uint64(rng.IntN(100_000))
 		}
 		seeds = append(seeds, userSeed{
 			hash:    hash,
@@ -1179,7 +1179,7 @@ func TestBatchUpdateRound_NonRetryableSkipsRetries(t *testing.T) {
 
 // ---------- 部分用户锁 + 部分正常：相互隔离，不影响整体 ----------
 func TestBatchUpdateRound_PartialLocksIsolated(t *testing.T) {
-	rng := rand.New(rand.NewSource(42))
+	rng := rand.New(rand.NewPCG(42, 42))
 	users := buildProductionUsers(100, 0, rng)
 
 	ctx := t.Context()
@@ -1321,7 +1321,7 @@ func TestBatchUpdateRound_ExponentialBackoffTiming(t *testing.T) {
 // ---------- 生产规模数据集 + 随机锁（稳定性 + 正确性综合） ----------
 func TestBatchUpdateRound_ProductionScaleDataset(t *testing.T) {
 	const N = 500
-	rng := rand.New(rand.NewSource(7))
+	rng := rand.New(rand.NewPCG(7, 7))
 	users := buildProductionUsers(N, 7, rng)
 
 	ctx := t.Context()
