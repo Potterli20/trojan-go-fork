@@ -4,8 +4,8 @@ github.com/HyNetworks/quic-go v0.61.1-0.20260806010916-184d081eef3e h1:IWdnVU6+R
 github.com/HyNetworks/quic-go v0.61.1-0.20260806010916-184d081eef3e/go.mod h1:x7qxEvX6MCVtDuBKHj3E+88+BtrbEMuAL5qGUKItjW8=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260811213656-71847589a521 h1:y7oLi8eShVGl6+d0n+NANq807YJHNB6mQ2B2OjeCbTA=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260811213656-71847589a521/go.mod h1:DfW2OzQOJWQPD6rRNcVqrBZVZiaVJgkiQUKDdb4Z7jk=
-github.com/Potterli20/socks5-fork v0.0.0-20260827140105-314c239cb3ae h1:s/3uQPtx8UuxgL3RhVz1+LTHVJTCbcjJjXRoFZU0nBY=
-github.com/Potterli20/socks5-fork v0.0.0-20260827140105-314c239cb3ae/go.mod h1:pxosvjZhl/is8rsotfThix8hC6J8V2XGQ7Zy4/4Eva8=
+github.com/Potterli20/socks5-fork v0.0.0-20260829013822-fd5fe8b9ac4e h1:3qwSNqTkVKiBbfzpoiq1oT7um9PrqxMn90P/ga2oDXk=
+github.com/Potterli20/socks5-fork v0.0.0-20260829013822-fd5fe8b9ac4e/go.mod h1:10l8t26633ujB3FIKvlcz8y+Ulx6bzOTqbRRVzFOe94=
 github.com/Potterli20/sqlite v0.0.0-20260826192821-81c43fa35221 h1:LdB8CYst5ynp1Uy4iY67/V9koZ+d32ifZMow8ZLx9IE=
 github.com/Potterli20/sqlite v0.0.0-20260826192821-81c43fa35221/go.mod h1:2IgZ7gsTWYt3EybQfrSPRdXKgMViSGLa89OZwfK0i6M=
 github.com/andybalholm/brotli v1.2.3 h1:8H1qwOkl2LPfjf3YezB90JnCliZb6SInJ/OJkEbA5NQ=
@@ -88,8 +88,8 @@ github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b h1:7bFUKsVEo0LmiYfbE
 github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f h1:iy2JRioxmUpoJ3SzbFPyTxHZMbR/rSHP7dOOgYaq1O8=
 github.com/xtls/reality v0.0.0-20260322125925-9234c772ba8f/go.mod h1:DsJblcWDGt76+FVqBVwbwRhxyyNJsGV48gJLch0OOWI=
-github.com/xtls/xray-core v1.260327.1-0.20260827214626-540b9070f5bc h1:0L/YJ2UPzMsPUUMnhgSgk2P7lR/R7sJb3kepYJQrXVM=
-github.com/xtls/xray-core v1.260327.1-0.20260827214626-540b9070f5bc/go.mod h1:fe9K9be86fbA/RKjFyQ+uMwUBkJY0tBLEXptwM/HMdE=
+github.com/xtls/xray-core v1.260327.1-0.20260827223245-c1958dba04ba h1:F0U3CZoPXB4QWcefbQdfwUCBJhHgevjw1OZOHo7oUPQ=
+github.com/xtls/xray-core v1.260327.1-0.20260827223245-c1958dba04ba/go.mod h1:fe9K9be86fbA/RKjFyQ+uMwUBkJY0tBLEXptwM/HMdE=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 h1:SpG238mmCez9TdHDu0Qba+ol57R+/pUxvJsDXT22Fug=
