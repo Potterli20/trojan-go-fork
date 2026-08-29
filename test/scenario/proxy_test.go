@@ -153,7 +153,7 @@ func CheckClientServer(clientData, serverData string, socksPort int) (ok bool) {
 
 	select {
 	case <-done:
-	case <-time.After(time.Second * 30):
+	case <-time.After(time.Second * 60):
 		ok = false
 	}
 

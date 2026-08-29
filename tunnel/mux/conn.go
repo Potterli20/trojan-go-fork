@@ -40,14 +40,21 @@ stick2:
 	return buf
 }
 
+// closePaddingDeadline 限定 Close 时写出粘住的帧头与混淆 padding 的时限：
+// 对端停止读取（已关闭/半开连接）时底层 Write 可能无限阻塞，若不设限时，
+// mux Client 会在清理会话时永久挂起并拖死整个拨号路径。
+const closePaddingDeadline = 10 * time.Second
+
 func (c *stickyConn) Close() error {
 	const maxPaddingLength = 512
 	padding := [maxPaddingLength + 8]byte{'A', 'B', 'C', 'D', 'E', 'F'} // for debugging
+	_ = c.Conn.SetWriteDeadline(time.Now().Add(closePaddingDeadline))
 	buf := c.stickToPayload(nil)
 	_, err := c.Write(append(buf, padding[:rand.IntN(maxPaddingLength)]...))
 	if err != nil {
 		log.Error("failed to write padding:", err)
 	}
+	_ = c.Conn.SetWriteDeadline(time.Time{})
 	return c.Conn.Close()
 }
 

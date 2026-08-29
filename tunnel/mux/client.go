@@ -44,12 +44,19 @@ type Client struct {
 func (c *Client) Close() error {
 	c.cancel()
 	c.wg.Wait()
+	// 会话关闭可能因底层写阻塞而耗时，必须在锁外执行，
+	// 避免持有 clientPoolLock 拖死并发的 DialConn
 	c.clientPoolLock.Lock()
-	defer c.clientPoolLock.Unlock()
+	pending := make([]*smuxClientInfo, 0, len(c.clientPool))
 	for id, info := range c.clientPool {
+		pending = append(pending, info)
+		delete(c.clientPool, id)
+		log.Debug("mux client", id, "closed")
+	}
+	c.clientPoolLock.Unlock()
+	for _, info := range pending {
 		info.client.Close()
 		info.underlayConn.Close()
-		log.Debug("mux client", id, "closed")
 	}
 	return nil
 }
@@ -68,17 +75,18 @@ func (c *Client) cleanLoop() {
 	for {
 		select {
 		case <-ticker.C:
+			// 与 Close 同理：会话关闭（含 stickyConn 写 padding）可能阻塞，
+			// 锁内只做收集与删除，关闭动作放到锁外
 			c.clientPoolLock.Lock()
+			var dead []*smuxClientInfo
 			for id, info := range c.clientPool {
 				if info.client.IsClosed() {
-					info.client.Close()
-					info.underlayConn.Close()
 					delete(c.clientPool, id)
+					dead = append(dead, info)
 					log.Info("mux client", id, "is dead")
 				} else if info.client.NumStreams() == 0 && time.Since(time.Unix(0, info.lastActiveTime.Load())) > c.timeout {
-					info.client.Close()
-					info.underlayConn.Close()
 					delete(c.clientPool, id)
+					dead = append(dead, info)
 					log.Info("mux client", id, "is closed due to inactivity")
 				}
 			}
@@ -87,16 +95,24 @@ func (c *Client) cleanLoop() {
 				log.Debug(fmt.Sprintf("  - %x: %d/%d", id, info.client.NumStreams(), c.concurrency))
 			}
 			c.clientPoolLock.Unlock()
+			for _, info := range dead {
+				info.client.Close()
+				info.underlayConn.Close()
+			}
 		case <-c.ctx.Done():
 			log.Debug("shutting down mux cleaner..")
 			c.clientPoolLock.Lock()
+			pending := make([]*smuxClientInfo, 0, len(c.clientPool))
 			for id, info := range c.clientPool {
-				info.client.Close()
-				info.underlayConn.Close()
+				pending = append(pending, info)
 				log.Debug("mux client", id, "closed")
 			}
 			clear(c.clientPool)
 			c.clientPoolLock.Unlock()
+			for _, info := range pending {
+				info.client.Close()
+				info.underlayConn.Close()
+			}
 			return
 		}
 	}
