@@ -130,8 +130,9 @@ func GetRealIP(c *InboundConn) string {
 
 func (c *InboundConn) Auth() error {
 	userHash := [56]byte{}
-	n, err := c.Conn.Read(userHash[:])
-	if err != nil || n != 56 {
+	// 单次 Read 不保证读满 56 字节，TCP 分段时合法客户端会被误判；
+	// 连接带 authTimeout 截止时间，不会永久阻塞
+	if _, err := io.ReadFull(c.Conn, userHash[:]); err != nil {
 		return common.NewError("failed to read hash").Base(err)
 	}
 
@@ -238,7 +239,11 @@ func (s *Server) acceptLoop() {
 			// 对端静默时不设截止时间会让 handler 永久阻塞在 Auth，Close() 的 wg.Wait() 随之挂起
 			rewindConn.SetReadDeadline(time.Now().Add(authTimeout))
 			if err := inboundConn.Auth(); err != nil {
+				// 先 Rewind 保留已读字节供重定向方回放，再停止累积：
+				// 只 Rewind 不 StopBuffering 会让重定向中继的全部流量
+				// 继续被无界 append 进 buf，长连接下内存无限增长
 				rewindConn.Rewind()
+				rewindConn.StopBuffering()
 				rewindConn.SetReadDeadline(time.Time{})
 				log.Warn(common.NewError("connection with invalid trojan header from " + rewindConn.RemoteAddr().String()).Base(err))
 				s.redir.Redirect(&redirector.Redirection{

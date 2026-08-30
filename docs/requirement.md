@@ -130,6 +130,51 @@ README 中列出的 8 项社区改进（@fregie 等）在后续大规模重构�
 - **验证**：go vet、staticcheck（仅剩保留项）、全量测试 28 包、-race 全量、9 种 build tag 组合、
   windows/darwin/386/arm64 交叉编译全部通过。
 
+### 2026-08-30 追加修复（第五轮全量审计与现代化）
+- **websocket 迁移回归排查（无发现）**：逐行核对 coder/websocket v1.8.15 的 Accept/Dial/NetConn 源码——
+  fakeHTTPResponseWriter 的 Hijack/WriteHeader 协议与库的 `hijacker()` + `errCallerOwnerConn` 机制吻合；
+  客户端经固定 DialContext 的 http.Transport 完成 RFC 6455 升级后连接所有权移交正确；
+  NetConn 后重设读上限、InboundConn.Close 调用 cancel、写帧后 Flush 均确认无误。
+- **tproxy IPv6 UDP 全链路修复**（三个叠加缺陷）：
+  1. cmsg 过滤用 v4 的 `IP_RECVORIGDSTADDR`(20) 同时匹配两层，而 IPv6 内核投递
+     `(SOL_IPV6, IPV6_RECVORIGDSTADDR=74)`，永远不命中 → 任意一个 IPv6 UDP 包即
+     "unable to obtain original destination" → 读循环 `s.Close()` 杀死整个 tproxy 服务
+     （远程 DoS）。现在按 Level 分流匹配，ListenUDP 对 IPv6 socket 补设
+     `SOL_IPV6/74` 选项（stdlib 部分架构缺该常量，自定义 `ipv6RecvOrigDstAddr=0x4a`；
+     按 LocalAddr 实际 family 判断，避免对绑定 v4 地址的 AF_INET socket 误设报错）。
+  2. AF_INET6 分支对 16 字节 `RawSockaddrInet4` 做 28 字节强转越界读（读出垃圾
+     当 v6 地址，流量被转发到错误目的地）；改为直接 unsafe cast `msg.Data`
+     （即 native 布局的 sockaddr_in/in6），并加长度校验。
+  3. `udpAddrToSocketAddr` 对 Zone="" 的全球单播 `ParseUint` 必败 → 回包 DialUDP 失败；
+     `udpAddrFamily` 第二个条件误写 `laddr.IP.To4()` 两次（应为 raddr），混合族场景
+     EAFNOSUPPORT。均已修。
+- **tproxy UDP 读循环防误杀**：单次读失败即 `s.Close()` 杀整个服务（TCP+UDP 同死）；
+  改为连续 10 次失败（约 1s）才判定 socket 永久损坏，单次失败记日志后重试。
+- **tproxy/dokodemo UDP 会话中毒修复**：会话 goroutine 因 DialUDP/Write 失败退出时
+  只 cancel 不删 mapping（tproxy），dokodemo 更是连 conn.Close 都没有（relay goroutine
+  永久阻塞在 output 发送）。两个会话 goroutine 统一改为 defer 删 mapping + 关会话，
+  任意失败路径后同源新包都能建立新会话。
+- **trojan server 重定向路径 RewindConn 无界缓冲**（fork commit 5bc1d696 引入的回归）：
+  Auth 失败分支只 `Rewind()` 不 `StopBuffering()`，buffering 期间底层读到的所有字节
+  继续 append 进 buf（超过 bufferSize*2 只打日志不停累积），重定向中继的整个生命周期
+  按流量速率无上限吃内存，可被低带宽打 OOM。对齐 shadowsocks/websocket 同路径的
+  先 Rewind 后 StopBuffering 语义。
+- **trojan Auth 56 字节 hash 改 io.ReadFull**：单次 Read 不保证读满，TCP 分段时合法
+  客户端被误判重定向（函数内其余字段均已用 io.ReadFull）；连接已有 10s 截止时间，
+  无阻塞风险。
+- **router packetLoop 无限重试**：底层会话被 trojan 层关闭后返回非 EOF 包装错误
+  （common 错误无 Unwrap，errors.Is 穿透不了），循环以 10Hz 空转且消费端永久阻塞；
+  两个读循环加连续失败计数（10 次约 1s），超阈值 cancel 自身 ctx 让消费端随
+  ctx.Done 返回 EOF 干净退出，单次错误仍可重试。
+- **api/service 测试弃用 API 清理**（第四轮只修了非测试代码的残留）：
+  `grpc.Dial/WithInsecure` → `grpc.NewClient/insecure.NewCredentials`。
+- **go fix（Go 1.27 规则）**：简化 websocket server 的嵌套结构体字面量。
+- **保留项（有意）**：memory_test 的空分支为有意注释占位、未用测试辅助函数
+  （AGENTS.md 不清理预先存在的代码）；memory.go 重试循环与 trojan client 延迟写头的
+  `time.After` 为正确用法（非热循环，timer 自然到期释放）。
+- **验证**：go build/vet（full 标签）、staticcheck（仅剩既知保留项）、-race 全量 28 包、
+  windows/amd64、darwin/arm64、linux/386、linux/arm64 交叉编译通过。
+
 ## 1. 指定local IP
 需要能在配置文件中指定代理使用的local ip,只需要指定由本服务和需要代理的目标之间所建立的tcp或udp所使用的本地ip是什么,主要用于能够使用策略路由控制实际的出口接口.
 

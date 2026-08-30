@@ -72,15 +72,26 @@ func (s *Server) packetDispatchLoop() {
 
 	go func() {
 		buf := make([]byte, MaxPacketSize)
+		readErrors := 0
 		for {
 			n, src, dst, err := ReadFromUDP(s.udpListener, buf)
 			if err != nil {
-				if s.ctx.Err() == nil {
-					log.Error(common.NewError("tproxy failed to read from udp socket").Base(err))
+				// 单次读失败(如一个畸形 IPv6 包)不应立刻杀死整个 tproxy 服务；
+				// 但 socket 永久损坏或主动关闭时也不能无限空转，连续失败后才 Close
+				if s.ctx.Err() != nil {
+					return
 				}
-				s.Close()
-				return
+				readErrors++
+				log.Error(common.NewError("tproxy failed to read from udp socket").Base(err))
+				if readErrors >= 10 {
+					log.Error("tproxy udp socket persistently failing, closing server")
+					s.Close()
+					return
+				}
+				time.Sleep(time.Millisecond * 100)
+				continue
 			}
+			readErrors = 0
 			log.Debug("udp packet from", src, "metadata", dst, "size", n)
 			payload := make([]byte, n)
 			copy(payload, buf[:n])
@@ -134,55 +145,60 @@ func (s *Server) packetDispatchLoop() {
 				return
 			}
 
-			go func(conn *PacketConn) {
-				defer conn.Close()
-				log.Debug("udp packet daemon for", conn.src.String())
-				timer := time.NewTimer(s.timeout)
-				defer timer.Stop()
-				for {
-					select {
-					case info := <-conn.output:
-						if info.metadata.AddressType != tunnel.IPv4 &&
-							info.metadata.AddressType != tunnel.IPv6 {
-							log.Error("tproxy invalid response metadata address", info.metadata)
-							continue
-						}
-						back, err := DialUDP(
-							"udp",
-							&net.UDPAddr{
-								IP:   info.metadata.IP,
-								Port: info.metadata.Port,
-							},
-							conn.src.(*net.UDPAddr),
-						)
-						if err != nil {
-							log.Error(common.NewError("failed to dial tproxy udp").Base(err))
-							return
-						}
-						n, err := back.Write(info.payload)
-						if err != nil {
-							back.Close()
-							log.Error(common.NewError("tproxy udp write error").Base(err))
-							return
-						}
-						log.Debug("recv packet, send back to", conn.src, "payload", len(info.payload), "sent", n)
-						back.Close()
-						if !timer.Stop() {
-							<-timer.C
-						}
-						timer.Reset(s.timeout)
-					case <-s.ctx.Done():
-						log.Debug("exiting")
-						return
-					case <-timer.C:
-						s.mappingLock.Lock()
-						delete(s.mapping, conn.src.String())
-						s.mappingLock.Unlock()
-						log.Debug("packet session ", conn.src.String(), "timeout")
+		go func(conn *PacketConn) {
+			defer conn.Close()
+			// 无论会话因超时、写失败还是拨号失败退出，都必须从 mapping 移除，
+			// 否则后续同源包持续命中死会话被 select/default 静默丢弃，
+			// 该客户端的 UDP 永久失效，死表项也随之累积
+			defer func() {
+				s.mappingLock.Lock()
+				delete(s.mapping, conn.src.String())
+				s.mappingLock.Unlock()
+			}()
+			log.Debug("udp packet daemon for", conn.src.String())
+			timer := time.NewTimer(s.timeout)
+			defer timer.Stop()
+			for {
+				select {
+				case info := <-conn.output:
+					if info.metadata.AddressType != tunnel.IPv4 &&
+						info.metadata.AddressType != tunnel.IPv6 {
+						log.Error("tproxy invalid response metadata address", info.metadata)
+						continue
+					}
+					back, err := DialUDP(
+						"udp",
+						&net.UDPAddr{
+							IP:   info.metadata.IP,
+							Port: info.metadata.Port,
+						},
+						conn.src.(*net.UDPAddr),
+					)
+					if err != nil {
+						log.Error(common.NewError("failed to dial tproxy udp").Base(err))
 						return
 					}
+					n, err := back.Write(info.payload)
+					if err != nil {
+						back.Close()
+						log.Error(common.NewError("tproxy udp write error").Base(err))
+						return
+					}
+					log.Debug("recv packet, send back to", conn.src, "payload", len(info.payload), "sent", n)
+					back.Close()
+					if !timer.Stop() {
+						<-timer.C
+					}
+					timer.Reset(s.timeout)
+				case <-s.ctx.Done():
+					log.Debug("exiting")
+					return
+				case <-timer.C:
+					log.Debug("packet session ", conn.src.String(), "timeout")
+					return
 				}
-			}(conn)
+			}
+		}(conn)
 		}
 
 		select {

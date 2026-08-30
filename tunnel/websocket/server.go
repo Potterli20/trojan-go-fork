@@ -103,11 +103,9 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	_ = tracker.Success()
 	log.Debugf("[WebSocket] [conn=%s] Handshake completed, remote=%s", tracker.ConnID(), conn.RemoteAddr().String())
 	return &InboundConn{
-		OutboundConn: OutboundConn{
-			Conn:    stream,
-			tcpConn: conn,
-			request: req,
-		},
+		Conn:    stream,
+		tcpConn: conn,
+		request: req,
 		cancel:  cancel,
 		tracker: tracker,
 	}, nil

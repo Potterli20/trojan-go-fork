@@ -11,6 +11,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -33,7 +34,7 @@ func TestOutboundConfigAPI(t *testing.T) {
 	freedom.SetGlobalOutbound(nil, 0)
 	defer freedom.SetGlobalOutbound(nil, 0)
 
-	conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithInsecure())
+	conn, err := grpc.NewClient(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	common.Must(err)
 	defer conn.Close()
 	client := NewTrojanServerServiceClient(conn)
@@ -104,7 +105,7 @@ func TestServerAPI(t *testing.T) {
 	time.Sleep(time.Second * 3)
 	common.Must(auth.AddUser("hash1234"))
 	_, user := auth.AuthUser("hash1234")
-	conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithInsecure())
+	conn, err := grpc.NewClient(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	common.Must(err)
 	server := NewTrojanServerServiceClient(conn)
 	stream1, err := server.ListUsers(ctx, &ListUsersRequest{})
@@ -266,7 +267,7 @@ func TestTLSRSA(t *testing.T) {
 		RootCAs:      pool,
 		Certificates: []tls.Certificate{certificate},
 	})
-	conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(creds))
+	conn, err := grpc.NewClient(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(creds))
 	common.Must(err)
 	server := NewTrojanServerServiceClient(conn)
 	stream, err := server.ListUsers(ctx, &ListUsersRequest{})
@@ -316,7 +317,7 @@ func TestTLSECC(t *testing.T) {
 		RootCAs:      pool,
 		Certificates: []tls.Certificate{certificate},
 	})
-	conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(creds))
+	conn, err := grpc.NewClient(fmt.Sprintf("127.0.0.1:%d", port), grpc.WithTransportCredentials(creds))
 	common.Must(err)
 	server := NewTrojanServerServiceClient(conn)
 	stream, err := server.ListUsers(ctx, &ListUsersRequest{})

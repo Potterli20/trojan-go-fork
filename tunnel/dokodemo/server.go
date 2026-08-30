@@ -81,6 +81,15 @@ func (s *Server) dispatchLoop() {
 		s.wg.Go(func() {
 			timer := time.NewTimer(s.timeout)
 			defer timer.Stop()
+			// 无论会话因超时还是写失败退出，都必须移除表项并关闭会话：
+			// 不删 mapping 则后续同源包持续命中死会话被 select/default 丢弃；
+			// 不 Close 则取消会话 ctx，阻塞在 output 发送上的 relay goroutine 永久卡死
+			defer func() {
+				s.mappingLock.Lock()
+				delete(s.mapping, conn.src.String())
+				s.mappingLock.Unlock()
+				conn.Close()
+			}()
 			for {
 				select {
 				case payload := <-conn.output:
@@ -96,10 +105,6 @@ func (s *Server) dispatchLoop() {
 				case <-s.ctx.Done():
 					return
 				case <-timer.C:
-					s.mappingLock.Lock()
-					delete(s.mapping, conn.src.String())
-					s.mappingLock.Unlock()
-					conn.Close()
 					log.Debug("closing timeout packetConn")
 					return
 				}
