@@ -77,7 +77,7 @@ make release     # cross-compile matrix + zip (see Makefile)
 ./build/trojan-go -config config.json
 ```
 
-CI (`.github/workflows/`): `go.yml` runs tests + golangci-lint on ubuntu/macos/windows; `main.yml` runs the cross-compile release matrix; `codeql.yml` security analysis; `docker-build.yml` image build; `dependency-review.yml` dependency review on PRs.
+CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`gofmt -r 'interface{} -> any'`, `go fix`, `go mod tidy -compat=1.27`, `gomod/gomod.sh`, then force-push); `main.yml` runs the weekly cross-compile release matrix; `codeql.yml` security analysis; `docker-build.yml` image build; `dependency-review.yml` dependency review on PRs. Note: no workflow runs the test suite — run `make test` / `make test-race` locally.
 
 ## Notes
 
