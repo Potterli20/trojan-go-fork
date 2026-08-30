@@ -31,6 +31,9 @@ func TestSocks(t *testing.T) {
 	ctx = config.WithConfig(ctx, socks.Name, &socks.Config{
 		LocalHost: "127.0.0.1",
 		LocalPort: port,
+		// 测试直接构造 Config 绕过了 creator 的默认值;UDPTimeout=0 会让
+		// UDP 会话空闲超时立即触发(与 dokodemo 测试显式设置的原因相同)
+		UDPTimeout: 30,
 	})
 	tcpServer, err := adapter.NewServer(ctx, nil)
 	common.Must(err)

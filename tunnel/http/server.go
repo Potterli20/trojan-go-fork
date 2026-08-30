@@ -41,7 +41,8 @@ func (c *OtherConn) Read(p []byte) (int, error) {
 	n, err := c.reqReader.Read(p)
 	if err == io.EOF {
 		if n != 0 {
-			panic("non zero")
+			// io.Pipe 不应产生 n>0 且 EOF;防御此死分支时不杀进程
+			return n, io.ErrUnexpectedEOF
 		}
 		if c.ctx.Err() != nil {
 			return 0, common.NewError("http conn closed")

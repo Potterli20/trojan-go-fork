@@ -34,11 +34,12 @@ type PacketConn struct {
 }
 
 func (c *PacketConn) ReadFrom(p []byte) (n int, addr net.Addr, err error) {
-	panic("implement me")
+	// relay 只使用 ReadWithMetadata;此方法仅为满足接口,不应被调用
+	return 0, nil, common.NewError("tproxy packet conn does not implement ReadFrom, use ReadWithMetadata")
 }
 
 func (c *PacketConn) WriteTo(p []byte, addr net.Addr) (n int, err error) {
-	panic("implement me")
+	return 0, common.NewError("tproxy packet conn does not implement WriteTo, use WriteWithMetadata")
 }
 
 func (c *PacketConn) Close() error {

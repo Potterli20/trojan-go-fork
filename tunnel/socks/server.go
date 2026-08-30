@@ -210,7 +210,8 @@ func (s *Server) packetDispatchLoop() {
 			go func(conn *PacketConn) {
 				defer s.wg.Done()
 				defer conn.Close()
-				timeout := time.Second * 5
+				// UDP 会话空闲超时与 dokodemo/tproxy 对齐,取配置的 UDPTimeout(默认 60s)
+				timeout := s.timeout
 				timer := time.NewTimer(timeout)
 				defer timer.Stop()
 				responseBuf := make([]byte, MaxPacketSize)

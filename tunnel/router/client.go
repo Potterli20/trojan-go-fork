@@ -5,6 +5,7 @@ import (
 	"net"
 	"regexp"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -326,7 +327,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	case "block":
 		client.defaultPolicy = Block
 	default:
-		return nil, common.NewError("unknown strategy: " + cfg.Router.DomainStrategy)
+		return nil, common.NewError("unknown default policy: " + cfg.Router.DefaultPolicy)
 	}
 
 	runtime.ReadMemStats(&m1)
@@ -368,11 +369,12 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 			found := false
 			if attrWanted != "" {
 				for _, domain := range domainList {
-					for _, attr := range domain.Attribute {
-						if strings.EqualFold(attrWanted, attr.Key) {
-							client.domains[c.strategy] = append(client.domains[c.strategy], domain)
-							found = true
-						}
+					// 同一 domain 至多 append 一次(原先重复属性会重复 append,属去重改进)
+					if slices.ContainsFunc(domain.Attribute, func(attr *v2geodata.Domain_Attribute) bool {
+						return strings.EqualFold(attrWanted, attr.Key)
+					}) {
+						client.domains[c.strategy] = append(client.domains[c.strategy], domain)
+						found = true
 					}
 				}
 			} else {
@@ -442,15 +444,15 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 
 	cidrInfo := loadCode(cfg, "cidr:")
 	for _, info := range cidrInfo {
-		tmp := strings.Split(info.code, "/")
-		if len(tmp) != 2 {
+		ipStr, prefixStr, ok := strings.Cut(info.code, "/")
+		if !ok {
 			return nil, common.NewError("invalid cidr: " + info.code)
 		}
-		ip := net.ParseIP(tmp[0])
+		ip := net.ParseIP(ipStr)
 		if ip == nil {
 			return nil, common.NewError("invalid cidr ip: " + info.code)
 		}
-		prefix, err := strconv.ParseInt(tmp[1], 10, 32)
+		prefix, err := strconv.ParseInt(prefixStr, 10, 32)
 		if err != nil {
 			return nil, common.NewError("invalid prefix").Base(err)
 		}
