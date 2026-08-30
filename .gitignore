@@ -31,3 +31,7 @@ trojan-go
 .github
 .omo
 .opencode
+
+#ai
+changed_file_tree.json
+AGENTS.md
