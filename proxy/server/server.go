@@ -42,22 +42,62 @@ func init() {
 		}
 
 		if !cfg.TransportPlugin.Enabled {
-			root = root.BuildNext(tls.Name)
+			var err error
+			root, err = root.BuildNext(tls.Name)
+			if err != nil {
+				cancel()
+				return nil, err
+			}
 		}
 
 		trojanSubTree := root
 		if cfg.Shadowsocks.Enabled {
-			trojanSubTree = trojanSubTree.BuildNext(shadowsocks.Name)
+			var err error
+			trojanSubTree, err = trojanSubTree.BuildNext(shadowsocks.Name)
+			if err != nil {
+				cancel()
+				return nil, err
+			}
 		}
-		trojanSubTree.BuildNext(trojan.Name).BuildNext(mux.Name).BuildNext(simplesocks.Name).IsEndpoint = true
-		trojanSubTree.BuildNext(trojan.Name).IsEndpoint = true
+		// mux 端点与 trojan 端点都要标记 IsEndpoint:FindAllEndpoints 需同时收录
+		// 自身与子树端点,否则 mux 连接会滞留在 simplesocks 的 connChan 中
+		simplesocksNode, err := trojanSubTree.BuildChain(trojan.Name, mux.Name, simplesocks.Name)
+		if err != nil {
+			cancel()
+			return nil, err
+		}
+		simplesocksNode.IsEndpoint = true
+		trojanNode, err := trojanSubTree.BuildNext(trojan.Name)
+		if err != nil {
+			cancel()
+			return nil, err
+		}
+		trojanNode.IsEndpoint = true
 
-		wsSubTree := root.BuildNext(websocket.Name)
-		if cfg.Shadowsocks.Enabled {
-			wsSubTree = wsSubTree.BuildNext(shadowsocks.Name)
+		wsSubTree, err := root.BuildNext(websocket.Name)
+		if err != nil {
+			cancel()
+			return nil, err
 		}
-		wsSubTree.BuildNext(trojan.Name).BuildNext(mux.Name).BuildNext(simplesocks.Name).IsEndpoint = true
-		wsSubTree.BuildNext(trojan.Name).IsEndpoint = true
+		if cfg.Shadowsocks.Enabled {
+			wsSubTree, err = wsSubTree.BuildNext(shadowsocks.Name)
+			if err != nil {
+				cancel()
+				return nil, err
+			}
+		}
+		wsSimplesocksNode, err := wsSubTree.BuildChain(trojan.Name, mux.Name, simplesocks.Name)
+		if err != nil {
+			cancel()
+			return nil, err
+		}
+		wsSimplesocksNode.IsEndpoint = true
+		wsTrojanNode, err := wsSubTree.BuildNext(trojan.Name)
+		if err != nil {
+			cancel()
+			return nil, err
+		}
+		wsTrojanNode.IsEndpoint = true
 
 		serverList := proxy.FindAllEndpoints(root)
 		clientList, err := proxy.CreateClientStack(ctx, clientStack)

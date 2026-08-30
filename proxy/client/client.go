@@ -61,8 +61,18 @@ func init() {
 			Server:     adapterServer,
 		}
 
-		root.BuildNext(http.Name).IsEndpoint = true
-		root.BuildNext(socks.Name).IsEndpoint = true
+		httpNode, err := root.BuildNext(http.Name)
+		if err != nil {
+			cancel()
+			return nil, err
+		}
+		httpNode.IsEndpoint = true
+		socksNode, err := root.BuildNext(socks.Name)
+		if err != nil {
+			cancel()
+			return nil, err
+		}
+		socksNode.IsEndpoint = true
 
 		clientStack := GenerateClientTree(cfg.TransportPlugin.Enabled, cfg.Mux.Enabled, cfg.Websocket.Enabled, cfg.Shadowsocks.Enabled, cfg.Router.Enabled)
 		c, err := proxy.CreateClientStack(ctx, clientStack)

@@ -3,7 +3,6 @@ package proxy
 import (
 	"context"
 
-	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
@@ -16,17 +15,17 @@ type Node struct {
 	tunnel.Client
 }
 
-func (n *Node) BuildNext(name string) *Node {
+func (n *Node) BuildNext(name string) (*Node, error) {
 	if next, found := n.Next[name]; found {
-		return next
+		return next, nil
 	}
 	t, err := tunnel.GetTunnel(name)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	s, err := t.NewServer(n.Context, n.Server)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	newNode := &Node{
 		Name:    name,
@@ -35,24 +34,40 @@ func (n *Node) BuildNext(name string) *Node {
 		Server:  s,
 	}
 	n.Next[name] = newNode
-	return newNode
+	return newNode, nil
 }
 
-func (n *Node) LinkNextNode(next *Node) *Node {
-	if next, found := n.Next[next.Name]; found {
-		return next
+func (n *Node) LinkNextNode(next *Node) (*Node, error) {
+	if found, ok := n.Next[next.Name]; ok {
+		return found, nil
 	}
 	n.Next[next.Name] = next
 	t, err := tunnel.GetTunnel(next.Name)
 	if err != nil {
-		log.Fatal(err)
+		delete(n.Next, next.Name)
+		return nil, err
 	}
 	s, err := t.NewServer(next.Context, n.Server) // context of the child nodes have been initialized
 	if err != nil {
-		log.Fatal(err)
+		// 回滚链接,避免失败的半初始化节点被 FindAllEndpoints 触达
+		delete(n.Next, next.Name)
+		return nil, err
 	}
 	next.Server = s
-	return next
+	return next, nil
+}
+
+// BuildChain 从 n 出发依次 BuildNext,返回链条末端节点
+func (n *Node) BuildChain(names ...string) (*Node, error) {
+	current := n
+	for _, name := range names {
+		next, err := current.BuildNext(name)
+		if err != nil {
+			return nil, err
+		}
+		current = next
+	}
+	return current, nil
 }
 
 func FindAllEndpoints(root *Node) []tunnel.Server {

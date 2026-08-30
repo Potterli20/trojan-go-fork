@@ -93,7 +93,11 @@ func init() {
 						lastNode = root
 					}
 				} else {
-					lastNode = lastNode.LinkNextNode(nodes[tag])
+					var err error
+					lastNode, err = lastNode.LinkNextNode(nodes[tag])
+					if err != nil {
+						return nil, common.NewError("failed to link node " + tag).Base(err)
+					}
 				}
 			}
 			lastNode.IsEndpoint = true
