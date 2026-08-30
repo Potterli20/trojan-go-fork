@@ -22,6 +22,9 @@ import (
 
 const serveHTTPGracePeriod = 3 * time.Second
 
+// handshakeTimeout 限定等待客户端发出 WebSocket 升级 HTTP 请求的时限
+const handshakeTimeout = 30 * time.Second
+
 type handshakeState int
 
 const (
@@ -146,7 +149,12 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		return nil, s.cleanupFailedHandshake(conn, tracker, err)
 	}
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
+	// 等待 WebSocket 升级请求限时:对端静默时不让 handler 永久阻塞,
+	// 进而卡死串行调用方的 accept 循环与 Close() 的 wg.Wait();
+	// 超时连接走 cleanupFailedHandshake 移交重定向,故读完即解除
+	conn.SetReadDeadline(time.Now().Add(handshakeTimeout))
 	req, err := http.ReadRequest(rw.Reader)
+	conn.SetReadDeadline(time.Time{})
 	if err != nil {
 		log.Debug("invalid http request")
 		err = common.NewError("not a valid http request: " + conn.RemoteAddr().String()).Base(err)

@@ -21,22 +21,26 @@ type RouterConfig struct {
 	GeoSiteFilename string   `json:"geosite" yaml:"geosite"`
 }
 
+// assetLocation 解析 geo 数据文件路径;失败时回退裸文件名——
+// 加载期 common/geodata/cache.go 会再次解析,届时失败也只会跳过
+// 对应规则并告警,不应在 init 阶段以 Fatal 杀死整个进程
+func assetLocation(file string) string {
+	path, err := common.GetAssetLocation(file)
+	if err != nil {
+		log.Warn(common.NewError("failed to resolve asset location, fallback to bare filename").Base(err))
+		return file
+	}
+	return path
+}
+
 func init() {
-	geoipPath, err := common.GetAssetLocation("geoip.dat")
-	if err != nil {
-		log.Fatal(err)
-	}
-	geositePath, err := common.GetAssetLocation("geosite.dat")
-	if err != nil {
-		log.Fatal(err)
-	}
 	config.RegisterConfigCreator(Name, func() any {
 		cfg := &Config{
 			Router: RouterConfig{
 				DefaultPolicy:   "proxy",
 				DomainStrategy:  "as_is",
-				GeoIPFilename:   geoipPath,
-				GeoSiteFilename: geositePath,
+				GeoIPFilename:   assetLocation("geoip.dat"),
+				GeoSiteFilename: assetLocation("geosite.dat"),
 			},
 		}
 		return cfg

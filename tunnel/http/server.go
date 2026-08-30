@@ -9,11 +9,15 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
+
+// handshakeTimeout 限定等待单个 HTTP 请求(含 keep-alive 后续请求)的时限
+const handshakeTimeout = 30 * time.Second
 
 type ConnectConn struct {
 	net.Conn
@@ -89,7 +93,10 @@ func (s *Server) acceptLoop() {
 		go func(conn net.Conn) {
 			defer s.wg.Done()
 			reqBufReader := bufio.NewReader(io.NopCloser(conn))
+			// 等待首个请求限时:对端静默(如端口扫描)时不让 handler 永久阻塞
+			conn.SetReadDeadline(time.Now().Add(handshakeTimeout))
 			req, err := http.ReadRequest(reqBufReader)
+			conn.SetReadDeadline(time.Time{})
 			if err != nil {
 				log.Error(common.NewError("not a valid http request").Base(err))
 				conn.Close()
@@ -183,7 +190,10 @@ func (s *Server) acceptLoop() {
 					req.Body.Close()
 					resp.Body.Close()
 
+					// keep-alive:等待下一个请求同样限时,读完即解除
+					conn.SetReadDeadline(time.Now().Add(handshakeTimeout))
 					req, err = http.ReadRequest(reqBufReader)
+					conn.SetReadDeadline(time.Time{})
 					if err != nil {
 						log.Error(common.NewError("http failed to read request from local").Base(err))
 						return

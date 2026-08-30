@@ -23,6 +23,9 @@ const (
 	MaxPacketSize = 1024 * 8
 )
 
+// handshakeTimeout 限定 socks 握手(version/method/command/address)整体时限
+const handshakeTimeout = 30 * time.Second
+
 type Server struct {
 	connChan         chan tunnel.Conn
 	packetChan       chan tunnel.PacketConn
@@ -72,6 +75,9 @@ func (s *Server) acceptConnLoop() {
 		s.wg.Add(1)
 		go func(conn tunnel.Conn) {
 			defer s.wg.Done()
+			// 握手期间对端可能静默(如端口扫描);截止时间覆盖 version/method/
+			// command/address 全部握手读,移交下游前解除
+			conn.SetDeadline(time.Now().Add(handshakeTimeout))
 			handledConn, err := s.handshake(conn)
 			if err != nil {
 				log.Error(common.NewError("socks failed to handshake").Base(err))
@@ -89,6 +95,8 @@ func (s *Server) acceptConnLoop() {
 					handledConn.Close()
 					return
 				}
+				// 连接即将移交下游长期使用,必须解除握手期截止时间
+				conn.SetDeadline(time.Time{})
 				select {
 				case s.connChan <- handledConn:
 				case <-s.ctx.Done():
@@ -103,6 +111,7 @@ func (s *Server) acceptConnLoop() {
 					handledConn.Close()
 					return
 				}
+				// associate 的 TCP 连接响应后即被放弃,无需解除截止时间
 			default:
 				log.Error("socks unknown command", handledConn.Metadata().Command)
 				handledConn.Close()
