@@ -76,6 +76,15 @@ jobs:
                   User input is sanitized centrally via SanitizeLogInput/SanitizeString
                   in the log package before being passed to logging sinks. These functions
                   strip newlines, carriage returns, tabs, escape HTML, and redact sensitive data.
+            - exclude:
+                id: go/weak-sensitive-data-hashing
+                reason: >-
+                  SHA224(password) is mandated by the trojan wire protocol: both client
+                  and server must derive the same deterministic 56-byte hex token from the
+                  configured password (see common.SHA224String). A randomized KDF such as
+                  bcrypt yields different tokens on each side and breaks authentication
+                  entirely, so this heuristic is a false positive for a protocol
+                  implementation; it is not password storage.
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
