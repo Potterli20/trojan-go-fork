@@ -33,6 +33,9 @@ var fingerprintsMap = map[string]utls.ClientHelloID{
 	"qqbrowser":  utls.HelloQQ_Auto,
 }
 
+// handshakeTimeout 限定 TLS 握手时限,防止对端静默导致 DialConn 永久阻塞
+const handshakeTimeout = 30 * time.Second
+
 type Client struct {
 	verify        bool
 	sni           string
@@ -135,7 +138,10 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 			NextProtos:             c.alpn,
 		}, c.helloID)
 
-		if err := uconn.Handshake(); err != nil {
+		conn.SetDeadline(time.Now().Add(handshakeTimeout))
+		err := uconn.Handshake()
+		conn.SetDeadline(time.Time{})
+		if err != nil {
 			log.Error("[TLS] uTLS handshake failed:", err)
 			conn.Close()
 			return nil, common.NewError("TLS handshake failed").Base(err)
@@ -164,7 +170,10 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		NextProtos:             c.alpn,
 	})
 
-	if err := tlsConn.Handshake(); err != nil {
+	conn.SetDeadline(time.Now().Add(handshakeTimeout))
+	err = tlsConn.Handshake()
+	conn.SetDeadline(time.Time{})
+	if err != nil {
 		log.Error("[TLS] Handshake failed:", err)
 		conn.Close()
 		return nil, common.NewError("TLS handshake failed").Base(err)

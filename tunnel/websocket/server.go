@@ -2,15 +2,15 @@ package websocket
 
 import (
 	"bufio"
+	"bytes"
 	"context"
-	"math/rand/v2"
+	"io"
 	"net"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
-	"golang.org/x/net/websocket"
+	"github.com/coder/websocket"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -20,100 +20,22 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
 )
 
-const serveHTTPGracePeriod = 3 * time.Second
-
-// handshakeTimeout 限定等待客户端发出 WebSocket 升级 HTTP 请求的时限
+// handshakeTimeout 限定等待客户端发出 WebSocket 升级请求的时限
 const handshakeTimeout = 30 * time.Second
-
-type handshakeState int
-
-const (
-	handshakeStateIdle handshakeState = iota
-	handshakeStateInProgress
-	handshakeStateCompleted
-	handshakeStateFailed
-	handshakeStateTimeout
-)
-
-type handshakeManager struct {
-	state     handshakeState
-	stateChan chan handshakeState
-	mutex     sync.RWMutex
-}
-
-func newHandshakeManager() *handshakeManager {
-	return &handshakeManager{
-		state:     handshakeStateIdle,
-		stateChan: make(chan handshakeState, 1),
-	}
-}
-
-func (hm *handshakeManager) setState(state handshakeState) {
-	hm.mutex.Lock()
-	defer hm.mutex.Unlock()
-	hm.state = state
-	select {
-	case hm.stateChan <- state:
-	default:
-	}
-}
-
-func (hm *handshakeManager) getState() handshakeState {
-	hm.mutex.RLock()
-	defer hm.mutex.RUnlock()
-	return hm.state
-}
-
-func (hm *handshakeManager) waitCompletedOrTimeout(timeout time.Duration) handshakeState {
-	timer := time.NewTimer(timeout)
-	defer timer.Stop()
-
-	for {
-		select {
-		case state := <-hm.stateChan:
-			if state == handshakeStateCompleted || state == handshakeStateFailed {
-				return state
-			}
-		case <-timer.C:
-			hm.setState(handshakeStateTimeout)
-			return handshakeStateTimeout
-		}
-	}
-}
-
-// Fake response writer
-// Websocket ServeHTTP method uses Hijack method to get the ReadWriter
-type fakeHTTPResponseWriter struct {
-	http.Hijacker
-	http.ResponseWriter
-
-	ReadWriter *bufio.ReadWriter
-	Conn       net.Conn
-}
-
-func (w *fakeHTTPResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	return w.Conn, w.ReadWriter, nil
-}
 
 type Server struct {
 	underlay  tunnel.Server
-	hostname  string
 	path      string
 	enabled   bool
 	redirAddr net.Addr
 	redir     *redirector.Redirector
 	ctx       context.Context
 	cancel    context.CancelFunc
-	timeout   time.Duration
-	wg        sync.WaitGroup
 }
 
 func (s *Server) Close() error {
 	s.cancel()
-	// 先关闭底层解除 acceptLoop 阻塞，否则 wg.Wait() 会永久死锁
-	err := s.underlay.Close()
-	s.wg.Wait()
-	return err
+	return s.underlay.Close()
 }
 
 func (s *Server) cleanupFailedHandshake(conn tunnel.Conn, tracker *log.ConnectionTracker, err error) error {
@@ -149,9 +71,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		return nil, s.cleanupFailedHandshake(conn, tracker, err)
 	}
 	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
-	// 等待 WebSocket 升级请求限时:对端静默时不让 handler 永久阻塞,
-	// 进而卡死串行调用方的 accept 循环与 Close() 的 wg.Wait();
-	// 超时连接走 cleanupFailedHandshake 移交重定向,故读完即解除
+	// 等待 WebSocket 升级请求限时:对端静默时不让本调用永久阻塞
 	conn.SetReadDeadline(time.Now().Add(handshakeTimeout))
 	req, err := http.ReadRequest(rw.Reader)
 	conn.SetReadDeadline(time.Time{})
@@ -166,91 +86,28 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		return nil, s.cleanupFailedHandshake(conn, tracker, err)
 	}
 
-	handshakeMgr := newHandshakeManager()
-
-	url := "wss://" + s.hostname + s.path
-	origin := "https://" + s.hostname
-	wsConfig, err := websocket.NewConfig(url, origin)
-	if err != nil {
-		return nil, common.NewError("failed to create websocket config").Base(err)
-	}
-	var wsConn *websocket.Conn
-	ctx, cancel := context.WithCancel(s.ctx)
-
-	wsServer := websocket.Server{
-		Config: *wsConfig,
-		Handler: func(conn *websocket.Conn) {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Errorf("[WebSocket] [conn=%s] Handler panic: %v", tracker.ConnID(), r)
-					handshakeMgr.setState(handshakeStateFailed)
-				}
-			}()
-
-			wsConn = conn
-			wsConn.PayloadType = websocket.BinaryFrame
-
-			log.Debugf("[WebSocket] [conn=%s] Handshake completed, protocol=%s",
-				tracker.ConnID(), req.Header.Get("Upgrade"))
-
-			handshakeMgr.setState(handshakeStateCompleted)
-
-			<-ctx.Done()
-			log.Debugf("[WebSocket] [conn=%s] Connection closed", tracker.ConnID())
-		},
-		Handshake: func(wsConfig *websocket.Config, httpRequest *http.Request) error {
-			log.Debugf("[WebSocket] [conn=%s] Handshake request: url=%s, origin=%s",
-				tracker.ConnID(), httpRequest.URL.String(), httpRequest.Header.Get("Origin"))
-			return nil
-		},
-	}
-
-	respWriter := &fakeHTTPResponseWriter{
-		Conn:       conn,
-		ReadWriter: rw,
-	}
-
-	serveHTTPDone := make(chan struct{})
-
-	s.wg.Go(func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Errorf("[WebSocket] [conn=%s] ServeHTTP panic: %v", tracker.ConnID(), r)
-				if handshakeMgr.getState() == handshakeStateInProgress {
-					handshakeMgr.setState(handshakeStateFailed)
-				}
-			}
-			close(serveHTTPDone)
-		}()
-		wsServer.ServeHTTP(respWriter, req)
+	connCtx, cancel := context.WithCancel(s.ctx)
+	wsConn, err := websocket.Accept(&fakeHTTPResponseWriter{Conn: conn, ReadWriter: rw}, req, &websocket.AcceptOptions{
+		// Host/Origin 不匹配是代理场景常态(如 CDN 回源),鉴权由 trojan 层完成
+		InsecureSkipVerify: true,
 	})
-
-	finalState := handshakeMgr.waitCompletedOrTimeout(s.timeout)
-
-	if finalState != handshakeStateCompleted {
-		log.Warnf("[WebSocket] [conn=%s] Handshake failed with state: %d", tracker.ConnID(), finalState)
-
+	if err != nil {
 		cancel()
-		select {
-		case <-serveHTTPDone:
-		case <-time.After(serveHTTPGracePeriod):
-			log.Warnf("[WebSocket] [conn=%s] ServeHTTP goroutine did not complete in time after handshake failure", tracker.ConnID())
-		}
-
-		var err error
-		if finalState == handshakeStateTimeout {
-			err = common.NewError("websocket handshake timeout")
-		} else {
-			err = common.NewError("websocket failed to handshake")
-		}
+		err = common.NewError("websocket failed to handshake: " + conn.RemoteAddr().String()).Base(err)
 		return nil, s.cleanupFailedHandshake(conn, tracker, err)
 	}
+	// NetConn 会把读上限重置为 -1,必须在 NetConn 之后重新设置
+	stream := websocket.NetConn(connCtx, wsConn, websocket.MessageBinary)
+	wsConn.SetReadLimit(maxMessageSize)
 
 	_ = tracker.Success()
+	log.Debugf("[WebSocket] [conn=%s] Handshake completed, remote=%s", tracker.ConnID(), conn.RemoteAddr().String())
 	return &InboundConn{
-		tcpConn: conn,
-		Conn:    wsConn,
-		ctx:     ctx,
+		OutboundConn: OutboundConn{
+			Conn:    stream,
+			tcpConn: conn,
+			request: req,
+		},
 		cancel:  cancel,
 		tracker: tracker,
 	}, nil
@@ -280,13 +137,60 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 
 	return &Server{
 		enabled:   cfg.Websocket.Enabled,
-		hostname:  cfg.Websocket.Host,
 		path:      cfg.Websocket.Path,
 		ctx:       ctx,
 		cancel:    cancel,
 		underlay:  underlay,
-		timeout:   time.Second * time.Duration(rand.IntN(10)+5),
 		redir:     redirector.NewRedirector(ctx),
 		redirAddr: tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort),
 	}, nil
+}
+
+// fakeHTTPResponseWriter 模拟 http.ResponseWriter:coder 的 Accept 依赖
+// WriteHeader 输出 101 升级响应,再通过 Hijack 取出连接进行帧读写;
+// 失败路径(http.Error)的错误响应在此丢弃,保持底层流干净以便重定向
+type fakeHTTPResponseWriter struct {
+	Conn       net.Conn
+	ReadWriter *bufio.ReadWriter
+	header     http.Header
+	wrote101   bool
+}
+
+func (w *fakeHTTPResponseWriter) Header() http.Header {
+	if w.header == nil {
+		w.header = make(http.Header)
+	}
+	return w.header
+}
+
+func (w *fakeHTTPResponseWriter) WriteHeader(code int) {
+	if code != http.StatusSwitchingProtocols || w.wrote101 {
+		return
+	}
+	w.wrote101 = true
+	// 手写 101 响应头,避免 http.Response.Write 注入 Content-Length 等干扰头;
+	// 响应留在 bufio.Writer 缓冲中,由后续帧写出时一并 flush,顺序正确
+	var buf bytes.Buffer
+	buf.WriteString("HTTP/1.1 101 Switching Protocols\r\n")
+	for key, values := range w.Header() {
+		for _, value := range values {
+			buf.WriteString(key)
+			buf.WriteString(": ")
+			buf.WriteString(value)
+			buf.WriteString("\r\n")
+		}
+	}
+	buf.WriteString("\r\n")
+	_, _ = w.ReadWriter.Writer.Write(buf.Bytes())
+	// 101 必须立即上线:coder 只在写帧时 flush,而握手后双方都无帧可写,
+	// 不主动 flush 客户端将等不到升级响应
+	_ = w.ReadWriter.Writer.Flush()
+}
+
+func (*fakeHTTPResponseWriter) Write([]byte) (int, error) {
+	return 0, io.EOF
+}
+
+func (w *fakeHTTPResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return w.Conn, w.ReadWriter, nil
 }

@@ -3,13 +3,12 @@ package websocket
 import (
 	"context"
 	"fmt"
-	"net"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
-	"golang.org/x/net/websocket"
+	"github.com/coder/websocket"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -108,17 +107,12 @@ func TestRedirect(t *testing.T) {
 		}
 	}()
 	time.Sleep(time.Second)
-	conn, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", port))
-	common.Must(err)
-	url := "wss://localhost/wrong-path"
-	origin := "https://localhost"
-	wsConfig, err := websocket.NewConfig(url, origin)
-	common.Must(err)
-	_, err = websocket.NewClient(wsConfig, conn)
+	dialCtx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	_, _, err = websocket.Dial(dialCtx, fmt.Sprintf("ws://127.0.0.1:%d/wrong-path", port), nil)
 	if err == nil {
 		t.Fail()
 	}
-	conn.Close()
 
 	s.Close()
 }

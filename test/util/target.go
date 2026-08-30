@@ -1,17 +1,17 @@
 package util
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
-	"strings"
-
-	"golang.org/x/net/websocket"
+	"github.com/coder/websocket"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -27,25 +27,31 @@ func runHelloHTTPServer() {
 		w.Write([]byte("HelloWorld"))
 	}
 
-	wsConfig, err := websocket.NewConfig("wss://127.0.0.1/websocket", "https://127.0.0.1")
-	common.Must(err)
-	wsServer := websocket.Server{
-		Config: *wsConfig,
-		Handler: func(conn *websocket.Conn) {
-			conn.Write([]byte("HelloWorld"))
-		},
-		Handshake: func(wsConfig *websocket.Config, httpRequest *http.Request) error {
-			sanitizedURL := strings.ReplaceAll(httpRequest.URL.String(), "\n", "")
-			sanitizedURL = strings.ReplaceAll(sanitizedURL, "\r", "")
-			sanitizedOrigin := strings.ReplaceAll(httpRequest.Header.Get("Origin"), "\n", "")
-			sanitizedOrigin = strings.ReplaceAll(sanitizedOrigin, "\r", "")
-			log.Debug("websocket url", sanitizedURL, "origin", sanitizedOrigin)
-			return nil
-		},
+	wsHandler := func(w http.ResponseWriter, req *http.Request) {
+		sanitizedURL := strings.ReplaceAll(req.URL.String(), "\n", "")
+		sanitizedURL = strings.ReplaceAll(sanitizedURL, "\r", "")
+		sanitizedOrigin := strings.ReplaceAll(req.Header.Get("Origin"), "\n", "")
+		sanitizedOrigin = strings.ReplaceAll(sanitizedOrigin, "\r", "")
+		log.Debug("websocket url", sanitizedURL, "origin", sanitizedOrigin)
+		conn, err := websocket.Accept(w, req, &websocket.AcceptOptions{InsecureSkipVerify: true})
+		if err != nil {
+			return
+		}
+		defer conn.Close(websocket.StatusNormalClosure, "")
+		if err := conn.Write(context.Background(), websocket.MessageBinary, []byte("HelloWorld")); err != nil {
+			return
+		}
+		// 等待对端关闭,handler 返回即断开连接
+		for {
+			if _, _, err := conn.Reader(context.Background()); err != nil {
+				return
+			}
+		}
 	}
+
 	mux := &http.ServeMux{}
 	mux.HandleFunc("/", httpHello)
-	mux.HandleFunc("/websocket", wsServer.ServeHTTP)
+	mux.HandleFunc("/websocket", wsHandler)
 	HTTPAddr = GetTestAddr()
 	_, HTTPPort, _ = net.SplitHostPort(HTTPAddr)
 	server := http.Server{

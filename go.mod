@@ -9,6 +9,7 @@ require (
 	github.com/Potterli20/socks5-fork v0.0.0-20260829013822-fd5fe8b9ac4e
 	github.com/Potterli20/sqlite v0.0.0-20260826192821-81c43fa35221
 	github.com/apernet/quic-go v0.61.1-0.20260806010916-184d081eef3e
+	github.com/coder/websocket v1.8.15
 	github.com/database64128/tfo-go/v2 v2.4.1-0.20260826113932-498aa0d59c9b
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/refraction-networking/utls v1.8.3-0.20260802151714-23b1dac19c06

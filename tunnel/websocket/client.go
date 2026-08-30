@@ -3,15 +3,21 @@ package websocket
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
 	"strings"
+	"time"
 
-	"golang.org/x/net/websocket"
+	"github.com/coder/websocket"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
+
+// clientHandshakeTimeout 限定客户端等待服务器升级响应的时限
+const clientHandshakeTimeout = 30 * time.Second
 
 type Client struct {
 	underlay tunnel.Client
@@ -34,36 +40,62 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 		return nil, common.NewError("websocket cannot dial with underlying client").Base(err)
 	}
 
-	url := "wss://" + c.hostname + c.path
-	log.Debugf("[WebSocket] [conn=%s] Connecting to URL: %s", tracker.ConnID(), url)
-
-	wsConfig, err := websocket.NewConfig(url, "https://"+c.hostname)
-	if err != nil {
-		log.Error("[WebSocket] Failed to create config:", err)
-		return nil, common.NewError("invalid websocket config").Base(err)
-	}
-
+	// TLS 由上层隧道完成,此处用 ws:// 占位;coder 会把请求经固定返回底层连接的
+	// Transport 发出,从而在已建立的连接上完成 RFC 6455 升级握手,不再拨号或 TLS
+	host := c.hostname
+	dialHeader := make(http.Header)
 	for key, value := range c.headers {
-		wsConfig.Header.Set(key, value)
+		if strings.EqualFold(key, "Host") {
+			host = value
+			continue
+		}
+		dialHeader.Set(key, value)
 		if log.ShouldLog(log.DebugLevel) {
 			log.Debug("[WebSocket] Custom header:", key, "=", value)
 		}
 	}
 
-	log.Debugf("[WebSocket] [conn=%s] Performing handshake with server", tracker.ConnID())
-	wsConn, err := websocket.NewClient(wsConfig, conn)
+	url := "ws://" + c.hostname + c.path
+	request, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		conn.Close()
+		return nil, common.NewError("invalid websocket url").Base(err)
+	}
+	request.Host = host
+	request.Header = dialHeader
+
+	dialCtx, cancel := context.WithTimeout(context.Background(), clientHandshakeTimeout)
+	defer cancel()
+	wsConn, resp, err := websocket.Dial(dialCtx, url, &websocket.DialOptions{
+		Host:       host,
+		HTTPHeader: dialHeader,
+		HTTPClient: &http.Client{
+			Transport: &http.Transport{
+				DialContext: func(context.Context, string, string) (net.Conn, error) {
+					return conn, nil
+				},
+			},
+		},
+	})
 	if err != nil {
 		_ = tracker.Error(err)
-		log.Errorf("[WebSocket] [conn=%s] Handshake failed: %v", tracker.ConnID(), err)
+		if resp != nil && resp.Body != nil {
+			resp.Body.Close()
+		}
 		conn.Close()
+		log.Errorf("[WebSocket] [conn=%s] Handshake failed: %v", tracker.ConnID(), err)
 		return nil, common.NewError("websocket failed to handshake with server").Base(err)
 	}
+	// NetConn 会把读上限重置为 -1,必须在 NetConn 之后重新设置
+	stream := websocket.NetConn(context.Background(), wsConn, websocket.MessageBinary)
+	wsConn.SetReadLimit(maxMessageSize)
 
 	_ = tracker.Success()
 	log.Debugf("[WebSocket] [conn=%s] Connection established successfully", tracker.ConnID())
 	return &OutboundConn{
-		Conn:    wsConn,
+		Conn:    stream,
 		tcpConn: conn,
+		request: request,
 	}, nil
 }
 
