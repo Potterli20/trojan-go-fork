@@ -37,7 +37,7 @@ VAR_SETTING := -X $(PACKAGE_NAME)/constant.Version=$(VERSION) -X $(PACKAGE_NAME)
 # Go 1.26+ 已默认启用 green tea GC（原 GOEXPERIMENT=greenteagc），无需显式设置
 GOBUILD = env CGO_ENABLED=0 go build -tags "full" -trimpath -ldflags="-s -w -buildid= $(VAR_SETTING)" -o $(BUILD_DIR)
 
-.PHONY: trojan-go-fork release test
+.PHONY: trojan-go-fork release test test-race
 normal: clean trojan-go-fork
 
 clean:
@@ -54,7 +54,11 @@ geosite.dat:
 
 test:
 	# Disable Bloomfilter when testing
-	SHADOWSOCKS_SF_CAPACITY="-1" $(GO_DIR)go test -v ./...
+	SHADOWSOCKS_SF_CAPACITY="-1" go test -v ./...
+
+test-race:
+	# Disable Bloomfilter when testing; -race 检测数据竞争
+	SHADOWSOCKS_SF_CAPACITY="-1" go test -count=1 -race -tags full ./...
 
 trojan-go-fork:
 	mkdir -p $(BUILD_DIR)

@@ -40,7 +40,7 @@ The transitive `init()` functions register the actual tunnels/proxies/configs/op
 
 - **Every new tunnel/proxy MUST get a blank import here**, gated by the right tag, or it will never be registered at runtime.
 - **Default tag = `full`** (set by Makefile). Distributors wanting a smaller binary pick `mini` or role-specific tags.
-- `mini` excludes: `forward`, `nat`, `api`, `mysql`, `sqlite`. Minimum viable trojan client/server only.
+- `mini` excludes: `api` only (`api.go`: `api || full`); it still includes `forward`/`nat`/`mysql` auth backend (see `client.go`, `server.go`, `nat.go`, `forward.go`, `mysql.go`). The `sqlite` backend is gated by platform tags inside `statistic/sqlite` (linux+cgo), not by component tags.
 
 ## Anti-patterns
 

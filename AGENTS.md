@@ -72,11 +72,12 @@ Set via `go build -tags "..."`. Selection happens entirely through `component/*.
 ```
 make             # CGO_ENABLED=0 go build -tags "full" -trimpath -o build/trojan-go
 make test        # SHADOWSOCKS_SF_CAPACITY="-1" go test -v ./...
+make test-race   # SHADOWSOCKS_SF_CAPACITY="-1" go test -count=1 -race -tags full ./...
 make release     # cross-compile matrix + zip (see Makefile)
 ./build/trojan-go -config config.json
 ```
 
-CI: `.github/workflows/test.yml` runs tests on ubuntu/macos/windows; `release-build.yml` + `nightly-build.yml` do the release matrix; `linter.yml` runs golangci-lint.
+CI (`.github/workflows/`): `go.yml` runs tests + golangci-lint on ubuntu/macos/windows; `main.yml` runs the cross-compile release matrix; `codeql.yml` security analysis; `docker-build.yml` image build; `dependency-review.yml` dependency review on PRs.
 
 ## Notes
 
