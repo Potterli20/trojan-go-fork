@@ -72,9 +72,7 @@ func (s *Server) acceptConnLoop() {
 			log.Error(common.NewError("socks failed to accept conn").Base(err))
 			continue
 		}
-		s.wg.Add(1)
-		go func(conn tunnel.Conn) {
-			defer s.wg.Done()
+		s.wg.Go(func() {
 			// 握手期间对端可能静默(如端口扫描);截止时间覆盖 version/method/
 			// command/address 全部握手读,移交下游前解除
 			conn.SetDeadline(time.Now().Add(handshakeTimeout))
@@ -116,7 +114,7 @@ func (s *Server) acceptConnLoop() {
 				log.Error("socks unknown command", handledConn.Metadata().Command)
 				handledConn.Close()
 			}
-		}(conn)
+		})
 	}
 }
 
@@ -215,9 +213,7 @@ func (s *Server) packetDispatchLoop() {
 				PacketConn: s.listenPacketConn,
 				src:        src,
 			}
-			s.wg.Add(1)
-			go func(conn *PacketConn) {
-				defer s.wg.Done()
+			s.wg.Go(func() {
 				defer conn.Close()
 				// UDP 会话空闲超时与 dokodemo/tproxy 对齐,取配置的 UDPTimeout(默认 60s)
 				timeout := s.timeout
@@ -260,7 +256,7 @@ func (s *Server) packetDispatchLoop() {
 						return
 					}
 				}
-			}(conn)
+			})
 
 			s.mappingLock.Lock()
 			s.mapping[src.String()] = conn

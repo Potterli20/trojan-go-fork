@@ -20,10 +20,10 @@ import (
 const Name = "MEMORY"
 
 type User struct {
-	Sent          uint64
-	Recv          uint64
-	lastSent      uint64
-	lastRecv      uint64
+	Sent          atomic.Uint64
+	Recv          atomic.Uint64
+	lastSent      atomic.Uint64
+	lastRecv      atomic.Uint64
 	sendSpeed     atomic.Uint64
 	recvSpeed     atomic.Uint64
 	persistedSent atomic.Uint64 // 持久化基线，仅 batchTrafficUpdater 读写，与 speedUpdater 使用的 lastSent 物理分离
@@ -144,7 +144,7 @@ func (u *User) AddSentTraffic(sent int) {
 	if limiter != nil && sent >= 0 {
 		limiter.WaitN(u.ctx, sent)
 	}
-	atomic.AddUint64(&u.Sent, uint64(sent))
+	u.Sent.Add(uint64(sent))
 }
 
 func (u *User) AddRecvTraffic(recv int) {
@@ -154,7 +154,7 @@ func (u *User) AddRecvTraffic(recv int) {
 	if limiter != nil && recv >= 0 {
 		limiter.WaitN(u.ctx, recv)
 	}
-	atomic.AddUint64(&u.Recv, uint64(recv))
+	u.Recv.Add(uint64(recv))
 }
 
 func (u *User) SetSpeedLimit(send, recv int) {
@@ -191,19 +191,19 @@ func (u *User) GetHash() string {
 }
 
 func (u *User) setTraffic(send, recv uint64) {
-	atomic.StoreUint64(&u.Sent, send)
-	atomic.StoreUint64(&u.Recv, recv)
+	u.Sent.Store(send)
+	u.Recv.Store(recv)
 }
 
 func (u *User) GetTraffic() (uint64, uint64) {
-	return atomic.LoadUint64(&u.Sent), atomic.LoadUint64(&u.Recv)
+	return u.Sent.Load(), u.Recv.Load()
 }
 
 func (u *User) ResetTraffic() (uint64, uint64) {
-	sent := atomic.SwapUint64(&u.Sent, 0)
-	recv := atomic.SwapUint64(&u.Recv, 0)
-	atomic.StoreUint64(&u.lastSent, 0)
-	atomic.StoreUint64(&u.lastRecv, 0)
+	sent := u.Sent.Swap(0)
+	recv := u.Recv.Swap(0)
+	u.lastSent.Store(0)
+	u.lastRecv.Store(0)
 	u.persistedSent.Store(0)
 	u.persistedRecv.Store(0)
 	return sent, recv
@@ -218,8 +218,8 @@ func (u *User) speedUpdater() {
 			return
 		case <-ticker.C:
 			sent, recv := u.GetTraffic()
-			u.sendSpeed.Store(sent - atomic.SwapUint64(&u.lastSent, sent))
-			u.recvSpeed.Store(recv - atomic.SwapUint64(&u.lastRecv, recv))
+			u.sendSpeed.Store(sent - u.lastSent.Swap(sent))
+			u.recvSpeed.Store(recv - u.lastRecv.Swap(recv))
 		}
 	}
 }

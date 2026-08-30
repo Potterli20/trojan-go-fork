@@ -218,9 +218,7 @@ func (s *Server) acceptLoop() {
 			log.Error(common.NewError("trojan failed to accept conn").Base(err))
 			continue
 		}
-		s.wg.Add(1)
-		go func(conn tunnel.Conn) {
-			defer s.wg.Done()
+		s.wg.Go(func() {
 			defer func() {
 				if r := recover(); r != nil {
 					log.Error(common.NewError("panic in trojan handler: " + fmt.Sprintf("%v", r)))
@@ -291,7 +289,7 @@ func (s *Server) acceptLoop() {
 				log.Error(common.NewErrorf("unknown trojan command %d", inboundConn.metadata.Command))
 				inboundConn.Close()
 			}
-		}(conn)
+		})
 	}
 }
 

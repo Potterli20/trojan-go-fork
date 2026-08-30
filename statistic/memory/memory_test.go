@@ -405,8 +405,8 @@ func newTestUser(hash string, parentCtx context.Context, sent, recv uint64) *Use
 		ctx:    ctx,
 		cancel: cancel,
 	}
-	atomic.StoreUint64(&u.Sent, sent)
-	atomic.StoreUint64(&u.Recv, recv)
+	u.Sent.Store( sent)
+	u.Recv.Store( recv)
 	return u
 }
 
@@ -464,12 +464,12 @@ func TestBatchTrafficUpdater_UpdatesAllUsers(t *testing.T) {
 	auth.users.Range(func(_, v any) bool {
 		u := v.(*User)
 		sent, recv := u.GetTraffic()
-		ls := atomic.LoadUint64(&u.lastSent)
-		lr := atomic.LoadUint64(&u.lastRecv)
+		ls := u.lastSent.Load()
+		lr := u.lastRecv.Load()
 		if sent != ls || recv != lr {
 			pst.UpdateUserTraffic(u.Hash, sent, recv)
-			atomic.StoreUint64(&u.lastSent, sent)
-			atomic.StoreUint64(&u.lastRecv, recv)
+			u.lastSent.Store( sent)
+			u.lastRecv.Store( recv)
 		}
 		return true
 	})
@@ -502,14 +502,14 @@ func TestBatchTrafficUpdater_SkipsUnchanged(t *testing.T) {
 
 	hash := "static_user"
 	u := newTestUser(hash, auth.ctx, 500, 300)
-	atomic.StoreUint64(&u.lastSent, 500)
-	atomic.StoreUint64(&u.lastRecv, 300)
+	u.lastSent.Store( 500)
+	u.lastRecv.Store( 300)
 	auth.users.Store(hash, u)
 
 	auth.users.Range(func(_, v any) bool {
 		uu := v.(*User)
 		sent, recv := uu.GetTraffic()
-		if sent != atomic.LoadUint64(&uu.lastSent) || recv != atomic.LoadUint64(&uu.lastRecv) {
+		if sent != uu.lastSent.Load() || recv != uu.lastRecv.Load() {
 			pst.UpdateUserTraffic(uu.Hash, sent, recv)
 		}
 		return true
@@ -884,16 +884,16 @@ func seedUsersIntoAuth(auth *Authenticator, seeds []userSeed) (total int, change
 		// profStatic 情形下 lastSent == sent → 不会触发 UpdateUserTraffic
 		switch s.profile {
 		case profStatic:
-			atomic.StoreUint64(&u.lastSent, s.sent)
-			atomic.StoreUint64(&u.lastRecv, s.recv)
+			u.lastSent.Store( s.sent)
+			u.lastRecv.Store( s.recv)
 		default:
 			// 对有增量的 profile：lastSent/lastRecv 写入 sent/recv 之前的快照（通过简单递减估计）
-			atomic.StoreUint64(&u.lastSent, s.sent-1)
-			atomic.StoreUint64(&u.lastRecv, s.recv-1)
+			u.lastSent.Store( s.sent-1)
+			u.lastRecv.Store( s.recv-1)
 		}
 		auth.users.Store(s.hash, u)
 		total++
-		if atomic.LoadUint64(&u.lastSent) != s.sent || atomic.LoadUint64(&u.lastRecv) != s.recv {
+		if u.lastSent.Load() != s.sent || u.lastRecv.Load() != s.recv {
 			changedCount++
 		}
 	}
@@ -997,8 +997,8 @@ func simulateOneBatchRound(auth *Authenticator, roundIdx uint64) (
 		u := v.(*User)
 
 		sent, recv := u.GetTraffic()
-		lastSent := atomic.LoadUint64(&u.lastSent)
-		lastRecv := atomic.LoadUint64(&u.lastRecv)
+		lastSent := u.lastSent.Load()
+		lastRecv := u.lastRecv.Load()
 
 		if sent == lastSent && recv == lastRecv {
 			return true
@@ -1045,8 +1045,8 @@ func simulateOneBatchRound(auth *Authenticator, roundIdx uint64) (
 		if retriedOnce {
 			retryHitUsers++
 		}
-		atomic.SwapUint64(&u.lastSent, sent)
-		atomic.SwapUint64(&u.lastRecv, recv)
+		u.lastSent.Swap( sent)
+		u.lastRecv.Swap( recv)
 		_ = waitTotal
 		_ = roundIdx
 		return true
@@ -1096,9 +1096,9 @@ func TestBatchUpdateRound_LockedTwiceThenSucceed(t *testing.T) {
 		t.Fatalf("records 错误序列不匹配：%+v", recs)
 	}
 	// 内存 lastSent/lastRecv 更新完成
-	if atomic.LoadUint64(&u.lastSent) != 1_000_000 || atomic.LoadUint64(&u.lastRecv) != 2_000_000 {
+	if u.lastSent.Load() != 1_000_000 || u.lastRecv.Load() != 2_000_000 {
 		t.Fatalf("lastSent/lastRecv 未同步：(%d, %d) vs (%d, %d)",
-			u.lastSent, u.lastRecv, u.Sent, u.Recv)
+			u.lastSent.Load(), u.lastRecv.Load(), u.Sent.Load(), u.Recv.Load())
 	}
 }
 
@@ -1133,8 +1133,8 @@ func TestBatchUpdateRound_PermanentLockRetryExhausted(t *testing.T) {
 		t.Fatalf("重试耗尽时不应该有成功写入，实际 %d 条：%+v", len(pst.getUpdates()), pst.getUpdates())
 	}
 	// 内存 lastSent/lastRecv 未被更新（下次轮次继续尝试累积增量）
-	if atomic.LoadUint64(&u.lastSent) != 0 || atomic.LoadUint64(&u.lastRecv) != 0 {
-		t.Fatalf("重试耗尽时 lastSent/lastRecv 不应变化，实际 (%d,%d)", u.lastSent, u.lastRecv)
+	if u.lastSent.Load() != 0 || u.lastRecv.Load() != 0 {
+		t.Fatalf("重试耗尽时 lastSent/lastRecv 不应变化，实际 (%d,%d)", u.lastSent.Load(), u.lastRecv.Load())
 	}
 	// 总耗时：20 + 40 + 80 + 160 = 300 ms 的退避；允许 ±50ms 浮动
 	expectedBackoff := 20*time.Millisecond + 40*time.Millisecond + 80*time.Millisecond + 160*time.Millisecond
@@ -1239,7 +1239,7 @@ func TestBatchUpdateRound_PartialLocksIsolated(t *testing.T) {
 			uRaw, _ := auth.users.Load(h)
 			u := uRaw.(*User)
 			s, r := u.GetTraffic()
-			if atomic.LoadUint64(&u.lastSent) != s || atomic.LoadUint64(&u.lastRecv) != r {
+			if u.lastSent.Load() != s || u.lastRecv.Load() != r {
 				// 还有变化但未更新 → 说明被重试耗尽？不该发生
 			}
 			if c > 1 {
@@ -1391,8 +1391,8 @@ func TestBatchUpdateRound_ProductionScaleDataset(t *testing.T) {
 		t.Fatalf("permLocked user %s no longer exists", permLocked)
 	}
 	uu := uRaw.(*User)
-	atomic.AddUint64(&uu.Sent, 888)
-	atomic.AddUint64(&uu.Recv, 777)
+	uu.Sent.Add( 888)
+	uu.Recv.Add( 777)
 
 	// 第 2 轮：将 permLocked 的策略改为"之后成功"（模拟 DB 恢复了）
 	pst.setPolicy(permLocked, &perHashPolicy{lockFirstNCalls: 0})

@@ -78,9 +78,7 @@ func (s *Server) dispatchLoop() {
 			return
 		}
 
-		s.wg.Add(1)
-		go func(conn *PacketConn) {
-			defer s.wg.Done()
+		s.wg.Go(func() {
 			timer := time.NewTimer(s.timeout)
 			defer timer.Stop()
 			for {
@@ -106,7 +104,7 @@ func (s *Server) dispatchLoop() {
 					return
 				}
 			}
-		}(conn)
+		})
 	}
 }
 

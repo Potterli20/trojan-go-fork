@@ -96,9 +96,7 @@ var (
 
 func (p *Proxy) relayConnLoop() {
 	for _, source := range p.sources {
-		p.wg.Add(1)
-		go func(source tunnel.Server) {
-			defer p.wg.Done()
+		p.wg.Go(func() {
 			for {
 				if p.ctx.Err() != nil {
 					log.Debug("exiting")
@@ -112,9 +110,7 @@ func (p *Proxy) relayConnLoop() {
 					}
 					continue
 				}
-				p.wg.Add(1)
-				go func(inbound tunnel.Conn) {
-					defer p.wg.Done()
+				p.wg.Go(func() {
 					defer inbound.Close()
 					outbound, err := p.sink.DialConn(inbound.Metadata().Address, nil)
 					if err != nil {
@@ -152,17 +148,15 @@ func (p *Proxy) relayConnLoop() {
 					case <-p.ctx.Done():
 						log.Debug("shutting down conn relay")
 					}
-				}(inbound)
+				})
 			}
-		}(source)
+		})
 	}
 }
 
 func (p *Proxy) relayPacketLoop() {
 	for _, source := range p.sources {
-		p.wg.Add(1)
-		go func(source tunnel.Server) {
-			defer p.wg.Done()
+		p.wg.Go(func() {
 			for {
 				if p.ctx.Err() != nil {
 					log.Debug("exiting")
@@ -176,9 +170,7 @@ func (p *Proxy) relayPacketLoop() {
 					}
 					continue
 				}
-				p.wg.Add(1)
-				go func(inbound tunnel.PacketConn) {
-					defer p.wg.Done()
+				p.wg.Go(func() {
 					defer inbound.Close()
 					outbound, err := p.sink.DialPacket(nil)
 					if err != nil {
@@ -246,9 +238,9 @@ func (p *Proxy) relayPacketLoop() {
 					case <-p.ctx.Done():
 						log.Debug("shutting down packet relay")
 					}
-				}(inbound)
+				})
 			}
-		}(source)
+		})
 	}
 }
 

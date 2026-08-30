@@ -89,9 +89,7 @@ func (s *Server) acceptLoop() {
 			continue
 		}
 
-		s.wg.Add(1)
-		go func(conn net.Conn) {
-			defer s.wg.Done()
+		s.wg.Go(func() {
 			reqBufReader := bufio.NewReader(io.NopCloser(conn))
 			// 等待首个请求限时:对端静默(如端口扫描)时不让 handler 永久阻塞
 			conn.SetReadDeadline(time.Now().Add(handshakeTimeout))
@@ -200,7 +198,7 @@ func (s *Server) acceptLoop() {
 					}
 				}
 			}
-		}(conn)
+		})
 	}
 }
 

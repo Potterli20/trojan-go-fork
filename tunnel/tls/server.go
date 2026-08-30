@@ -89,9 +89,7 @@ func (s *Server) acceptLoop() {
 			log.Error(common.NewError("transport accept error" + err.Error()))
 			return
 		}
-		s.wg.Add(1)
-		go func(conn net.Conn) {
-			defer s.wg.Done()
+		s.wg.Go(func() {
 			defer func() {
 				if r := recover(); r != nil {
 					log.Error(common.NewError("panic in tls handler: " + fmt.Sprintf("%v", r)))
@@ -210,7 +208,7 @@ func (s *Server) acceptLoop() {
 					rewindConn.Close()
 				}
 			}
-		}(conn)
+		})
 	}
 }
 
