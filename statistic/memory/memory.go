@@ -485,10 +485,11 @@ func (u *User) GetSpeed() (uint64, uint64) {
 }
 
 type Authenticator struct {
-	users sync.Map
-	pst   statistic.Persistencer
-	ctx   context.Context
-	wg    sync.WaitGroup
+	users  sync.Map
+	pst    statistic.Persistencer
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     sync.WaitGroup
 }
 
 func (a *Authenticator) AuthUser(hash string) (bool, statistic.User) {
@@ -585,6 +586,12 @@ func (a *Authenticator) ListUsers() []statistic.User {
 }
 
 func (a *Authenticator) Close() error {
+	// 顺序至关重要:必须先停 updater 再关用户。
+	// 若先关用户,User.Close 的 ResetTraffic 会把 Sent/Recv 清零,而仍在运行的
+	// batchTrafficUpdater 会读到 sent < persistedSent,uint64 下溢把天文数字写进 DB;
+	// 且 updater 每轮都会撞上这种脏数据。
+	a.cancel()
+	a.wg.Wait()
 	a.users.Range(func(k, v any) bool {
 		v.(*User).Close()
 		return true
@@ -642,13 +649,18 @@ func (a *Authenticator) SetUserIPLimit(hash string, limit int) error {
 
 func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
+	// 派生自有 ctx:认证器的生命周期(含 batchTrafficUpdater)由自身 Close 控制,
+	// 不依赖调用方取消父 ctx
+	ctx, cancel := context.WithCancel(ctx)
 	a := &Authenticator{
-		ctx: ctx,
+		ctx:    ctx,
+		cancel: cancel,
 	}
 	var err error
 	if cfg.Sqlite != "" {
 		a.pst, err = sqlite.NewSqlitePersistencer(cfg.Sqlite)
 		if err != nil {
+			cancel()
 			return nil, err
 		}
 	}
@@ -693,7 +705,9 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 	if a.pst != nil {
 		pstType := fmt.Sprintf("%T", a.pst)
 		log.Infof("[memory-authenticator] 已启用持久化后端：%s，将启动 batchTrafficUpdater（每 10s 统一写库）", pstType)
-		go a.batchTrafficUpdater()
+		// 用 wg.Go 而非裸 go:Close() 的 wg.Wait() 必须能等到 updater 退出,
+		// 否则 cancel 后它可能还在写库
+		a.wg.Go(a.batchTrafficUpdater)
 	} else {
 		log.Info("[memory-authenticator] 未配置持久化后端（sqlite/mysql），用户流量仅在内存中保存，进程退出后丢失")
 	}

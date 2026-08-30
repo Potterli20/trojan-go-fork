@@ -25,7 +25,12 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel/websocket"
 )
 
-var Auth statistic.Authenticator
+var (
+	// Auth 是包级共享的认证器:多个 Server 实例(test/scenario 里反复
+	// NewServer)并发创建时,check-then-set 需要互斥保护
+	authMu sync.Mutex
+	Auth   statistic.Authenticator
+)
 
 // authTimeout 限定读取 trojan 认证头（56 字节 hash + 地址）的时限
 const authTimeout = 10 * time.Second
@@ -322,8 +327,9 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
 	ctx, cancel := context.WithCancel(ctx)
 
+	authMu.Lock()
+	var err error
 	if Auth == nil {
-		var err error
 		if cfg.MySQL.Enabled {
 			log.Debug("mysql enabled")
 			Auth, err = statistic.NewAuthenticator(ctx, mysql.Name)
@@ -331,10 +337,12 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 			log.Debug("auth by config file")
 			Auth, err = statistic.NewAuthenticator(ctx, memory.Name)
 		}
-		if err != nil {
-			cancel()
-			return nil, common.NewError("trojan failed to create authenticator")
-		}
+	}
+	auth := Auth
+	authMu.Unlock()
+	if err != nil {
+		cancel()
+		return nil, common.NewError("trojan failed to create authenticator")
 	}
 
 	if cfg.API.Enabled {
@@ -351,7 +359,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	redirAddr := tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort)
 	s := &Server{
 		underlay:     underlay,
-		auth:         Auth,
+		auth:         auth,
 		redirAddr:    redirAddr,
 		connChan:     make(chan tunnel.Conn, 64),       // 增加连接池大小
 		muxChan:      make(chan tunnel.Conn, 64),       // 增加连接池大小

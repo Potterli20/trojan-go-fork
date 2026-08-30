@@ -43,28 +43,32 @@ func (s *Server) dispatchLoop() {
 		log.Debug("udp packet from", addr)
 		toInput := make([]byte, n)
 		copy(toInput, buf[:n])
+		// 锁内只做查表与建表,解锁后再发送:input 缓冲满时若持锁阻塞发送,
+		// 会话读端/超时清理/Close 全部被 mappingLock 卡死
 		s.mappingLock.Lock()
-		if conn, found := s.mapping[addr.String()]; found {
-			conn.input <- toInput
-			s.mappingLock.Unlock()
-			continue
+		conn, found := s.mapping[addr.String()]
+		if !found {
+			ctx, cancel := context.WithCancel(s.ctx)
+			conn = &PacketConn{
+				input:      make(chan []byte, 16),
+				output:     make(chan []byte, 16),
+				metadata:   fixedMetadata,
+				src:        addr,
+				PacketConn: s.udpListener,
+				ctx:        ctx,
+				cancel:     cancel,
+			}
+			s.mapping[addr.String()] = conn
 		}
-		ctx, cancel := context.WithCancel(s.ctx)
-		conn := &PacketConn{
-			input:      make(chan []byte, 16),
-			output:     make(chan []byte, 16),
-			metadata:   fixedMetadata,
-			src:        addr,
-			PacketConn: s.udpListener,
-			ctx:        ctx,
-			cancel:     cancel,
-		}
-		s.mapping[addr.String()] = conn
 		s.mappingLock.Unlock()
+		// Close() 从不 close channel,旧会话对象与新发送物理隔离,最坏只是丢包
 		select {
 		case conn.input <- toInput:
 		default:
 			// 会话可能刚超时清理、已无读者；丢包优于阻塞 dispatch 循环
+		}
+		if found {
+			continue
 		}
 		select {
 		case s.packetChan <- conn:
