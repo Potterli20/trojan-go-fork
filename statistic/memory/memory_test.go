@@ -405,8 +405,8 @@ func newTestUser(hash string, parentCtx context.Context, sent, recv uint64) *Use
 		ctx:    ctx,
 		cancel: cancel,
 	}
-	u.Sent.Store( sent)
-	u.Recv.Store( recv)
+	u.Sent.Store(sent)
+	u.Recv.Store(recv)
 	return u
 }
 
@@ -468,8 +468,8 @@ func TestBatchTrafficUpdater_UpdatesAllUsers(t *testing.T) {
 		lr := u.lastRecv.Load()
 		if sent != ls || recv != lr {
 			pst.UpdateUserTraffic(u.Hash, sent, recv)
-			u.lastSent.Store( sent)
-			u.lastRecv.Store( recv)
+			u.lastSent.Store(sent)
+			u.lastRecv.Store(recv)
 		}
 		return true
 	})
@@ -502,8 +502,8 @@ func TestBatchTrafficUpdater_SkipsUnchanged(t *testing.T) {
 
 	hash := "static_user"
 	u := newTestUser(hash, auth.ctx, 500, 300)
-	u.lastSent.Store( 500)
-	u.lastRecv.Store( 300)
+	u.lastSent.Store(500)
+	u.lastRecv.Store(300)
 	auth.users.Store(hash, u)
 
 	auth.users.Range(func(_, v any) bool {
@@ -884,12 +884,12 @@ func seedUsersIntoAuth(auth *Authenticator, seeds []userSeed) (total int, change
 		// profStatic 情形下 lastSent == sent → 不会触发 UpdateUserTraffic
 		switch s.profile {
 		case profStatic:
-			u.lastSent.Store( s.sent)
-			u.lastRecv.Store( s.recv)
+			u.lastSent.Store(s.sent)
+			u.lastRecv.Store(s.recv)
 		default:
 			// 对有增量的 profile：lastSent/lastRecv 写入 sent/recv 之前的快照（通过简单递减估计）
-			u.lastSent.Store( s.sent-1)
-			u.lastRecv.Store( s.recv-1)
+			u.lastSent.Store(s.sent - 1)
+			u.lastRecv.Store(s.recv - 1)
 		}
 		auth.users.Store(s.hash, u)
 		total++
@@ -1045,8 +1045,8 @@ func simulateOneBatchRound(auth *Authenticator, roundIdx uint64) (
 		if retriedOnce {
 			retryHitUsers++
 		}
-		u.lastSent.Swap( sent)
-		u.lastRecv.Swap( recv)
+		u.lastSent.Swap(sent)
+		u.lastRecv.Swap(recv)
 		_ = waitTotal
 		_ = roundIdx
 		return true
@@ -1391,8 +1391,8 @@ func TestBatchUpdateRound_ProductionScaleDataset(t *testing.T) {
 		t.Fatalf("permLocked user %s no longer exists", permLocked)
 	}
 	uu := uRaw.(*User)
-	uu.Sent.Add( 888)
-	uu.Recv.Add( 777)
+	uu.Sent.Add(888)
+	uu.Recv.Add(777)
 
 	// 第 2 轮：将 permLocked 的策略改为"之后成功"（模拟 DB 恢复了）
 	pst.setPolicy(permLocked, &perHashPolicy{lockFirstNCalls: 0})
