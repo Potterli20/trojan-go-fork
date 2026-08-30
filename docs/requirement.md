@@ -62,6 +62,38 @@ README 中列出的 8 项社区改进（@fregie 等）在后续大规模重构�
 - **common.PickPort 只探测 TCP**：adapter 等会在同一端口同时监听 TCP+UDP，
   现同时探测两种协议可用性，消除测试与服务启动的偶发 EADDRINUSE。
 
+### 2026-08-30 追加修复（第三轮全量审计与现代化）
+- **select/default 判断关闭残留 18 处**（同第二轮陷阱）：trojan/adapter/socks(x2)/http/mux/simplesocks
+  的 accept 循环、redirector worker 关闭期不再阻塞在 copyWg.Wait()、proxy relay 双循环、
+  quic accept、router packetLoop(x2)、http OtherConn.Read 关闭判定，全部改为直接检查 `ctx.Err()`。
+- **库代码 panic 移除**：tproxy/socks PacketConn 的 ReadFrom/WriteTo（relay 只用 WithMetadata 方法，
+  panic("implement me") 改为返回错误）；http OtherConn.Read 的 panic("non zero") 死分支改返回
+  io.ErrUnexpectedEOF。
+- **socks UDP 会话超时接线**：硬编码 5s 改为配置的 UDPTimeout（默认 60s，与 dokodemo/tproxy 对齐）。
+  测试直接构造 Config 绕过 creator 默认值，UDPTimeout=0 会使会话立即超时——此前被 5s 掩盖，测试已显式设置。
+- **等待对端首字节的读补齐截止时间**（第二轮遗漏的入站路径）：socks 握手（30s，connect 移交前解除、
+  associate 用后即弃）、shadowsocks AEAD 探测读（10s，成功与重定向两路都解除）、http 首个请求与
+  keep-alive 后续读（各 30s，读完即解除）、websocket 升级请求读（30s，超时走既有重定向清理）。
+  实测：nc 静默连入 30s 被清退；SIGTERM 后 1s 内干净退出。
+- **router init 中的 log.Fatal 移除**：GetAssetLocation 移入 config creator 闭包，失败回退裸文件名并
+  Warn——加载期 geodata cache 会再次解析，届时失败仅跳过规则，包初始化阶段不应杀死进程。
+- **dokodemo 持锁发送**：命中已有会话时持 mappingLock 阻塞发送 conn.input，缓冲满会卡死超时清理与
+  Close 的锁竞争方；改为锁内只做查表/建表，解锁后 select+default 尽力发送。
+- **trojan 包级 Auth 竞态**：check-then-set 无互斥，并发 NewServer 可能创建两个认证器互相覆盖；
+  加包级 sync.Mutex。
+- **memory 认证器关闭时序**：Authenticator 派生自有 ctx+cancel，batchTrafficUpdater 由裸 go 改
+  wg.Go；Close 顺序改为先 cancel 停 updater、wg.Wait、最后关用户——若先关用户，ResetTraffic 清零后
+  仍在跑的 updater 会读到 sent < persistedSent，uint64 下溢把天文数字写进 DB。
+- **proxy 栈构建 Fatal 改错误传播**：BuildNext/LinkNextNode 返回 (*Node, error)，新增 BuildChain；
+  配置错误等可恢复场景不再 os.Exit，部分失败 cancel 已构建部分。LinkNextNode 失败回滚挂链。
+- **mux stickyConn AEAD 竞态**（-race 发现）：同一 stickyConn 被并发 DialConn 失败清理/cleanLoop/
+  Client.Close 并发 Close，padding 写与数据写并发进入无锁的 trojan/shadowsocks AEAD 层破坏 nonce；
+  加 writeMu + closeOnce，SetWriteDeadline 纳入锁内。
+- **Go 1.27 现代化**：User 的 Sent/Recv/lastSent/lastRecv 改 atomic.Uint64；剩余 10 处
+  wg.Add(1)+go func 改 wg.Go；go fix（1.27 规则）检查无命中。
+- **基础设施**：Makefile 清理未定义的 $(GO_DIR)、新增 test-race 目标；AGENTS.md 的 CI 章节修正为
+  实际存在的 workflow；component/AGENTS.md 修正 mini 标签描述（仅排除 api，仍含 forward/nat/mysql）。
+
 ## 1. 指定local IP
 需要能在配置文件中指定代理使用的local ip,只需要指定由本服务和需要代理的目标之间所建立的tcp或udp所使用的本地ip是什么,主要用于能够使用策略路由控制实际的出口接口.
 
