@@ -3,6 +3,7 @@ package mux
 import (
 	"io"
 	"math/rand/v2"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -12,8 +13,14 @@ import (
 
 type stickyConn struct {
 	tunnel.Conn
-	synQueue chan []byte
-	finQueue chan []byte
+	// writeMu 串行化 Write 与 Close 的 padding 写:同一 stickyConn 可能被
+	// 多个调用方并发 Close(并发 DialConn 的 OpenStream 失败清理、cleanLoop、
+	// Client.Close),而底层 AEAD(trojan/shadowsocks)的 Write 无锁,
+	// 并发写会破坏加密状态(nonce 计数器),-race 下报 DATA RACE
+	writeMu   sync.Mutex
+	closeOnce sync.Once
+	synQueue  chan []byte
+	finQueue  chan []byte
 }
 
 func (c *stickyConn) stickToPayload(p []byte) []byte {
@@ -46,19 +53,33 @@ stick2:
 const closePaddingDeadline = 10 * time.Second
 
 func (c *stickyConn) Close() error {
-	const maxPaddingLength = 512
-	padding := [maxPaddingLength + 8]byte{'A', 'B', 'C', 'D', 'E', 'F'} // for debugging
-	_ = c.Conn.SetWriteDeadline(time.Now().Add(closePaddingDeadline))
-	buf := c.stickToPayload(nil)
-	_, err := c.Write(append(buf, padding[:rand.IntN(maxPaddingLength)]...))
-	if err != nil {
-		log.Error("failed to write padding:", err)
-	}
-	_ = c.Conn.SetWriteDeadline(time.Time{})
-	return c.Conn.Close()
+	var err error
+	// 并发 Close 只执行一次 padding 写;SetWriteDeadline 也必须与数据写互斥,
+	// 否则会把 10s 截止时间强加给并发数据写
+	c.closeOnce.Do(func() {
+		const maxPaddingLength = 512
+		padding := [maxPaddingLength + 8]byte{'A', 'B', 'C', 'D', 'E', 'F'} // for debugging
+		c.writeMu.Lock()
+		defer c.writeMu.Unlock()
+		_ = c.Conn.SetWriteDeadline(time.Now().Add(closePaddingDeadline))
+		// 与原实现一致经两次 stickToPayload drain(原先经 c.Write 间接完成);
+		// 此处不能调 c.Write——writeMu 不可重入
+		payload := c.stickToPayload(append(c.stickToPayload(nil), padding[:rand.IntN(maxPaddingLength)]...))
+		_, err = c.Conn.Write(payload)
+		if err != nil {
+			log.Error("failed to write padding:", err)
+		}
+		_ = c.Conn.SetWriteDeadline(time.Time{})
+		err = c.Conn.Close()
+	})
+	return err
 }
 
 func (c *stickyConn) Write(p []byte) (int, error) {
+	// smux 写循环是唯一的数据写者(单 goroutine),但 Close 的 padding 写
+	// 与之并发,底层 AEAD 无锁,必须互斥
+	c.writeMu.Lock()
+	defer c.writeMu.Unlock()
 	if len(p) == 8 {
 		if p[0] == 1 || p[0] == 2 { // smux 8 bytes header
 			switch p[1] {
