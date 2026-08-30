@@ -17,6 +17,9 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
+// firstByteTimeout 限定 HTTP 嗅探阶段等待对端数据的时限
+const firstByteTimeout = 30 * time.Second
+
 // Server is a server of transport layer
 type Server struct {
 	tcpListener net.Listener
@@ -73,10 +76,14 @@ func (s *Server) handleConnection(tcpConn net.Conn) {
 		rewindConn := common.NewRewindConn(tcpConn)
 		rewindConn.SetBufferSize(512)
 
+		// 对端静默时不设截止时间会让 handler 永久阻塞，Close() 的 wg.Wait() 随之挂起
+		tcpConn.SetDeadline(time.Now().Add(firstByteTimeout))
 		r := bufio.NewReader(rewindConn)
 		httpReq, err := http.ReadRequest(r)
 		rewindConn.Rewind()
 		rewindConn.StopBuffering()
+		// 连接即将移交下游长期使用，必须解除截止时间
+		tcpConn.SetDeadline(time.Time{})
 		if err != nil {
 			log.Debug("failed to parse http request, treating as trojan connection:", err)
 			select {

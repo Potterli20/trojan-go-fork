@@ -100,19 +100,15 @@ func (p *Proxy) relayConnLoop() {
 		go func(source tunnel.Server) {
 			defer p.wg.Done()
 			for {
-				select {
-				case <-p.ctx.Done():
+				if p.ctx.Err() != nil {
 					log.Debug("exiting")
 					return
-				default:
 				}
 				inbound, err := source.AcceptConn(nil)
 				if err != nil {
 					log.Error(common.NewError("failed to accept connection").Base(err))
-					select {
-					case <-p.ctx.Done():
+					if p.ctx.Err() != nil {
 						return
-					default:
 					}
 					continue
 				}
@@ -168,19 +164,15 @@ func (p *Proxy) relayPacketLoop() {
 		go func(source tunnel.Server) {
 			defer p.wg.Done()
 			for {
-				select {
-				case <-p.ctx.Done():
+				if p.ctx.Err() != nil {
 					log.Debug("exiting")
 					return
-				default:
 				}
 				inbound, err := source.AcceptPacket(nil)
 				if err != nil {
 					log.Error(common.NewError("failed to accept packet").Base(err))
-					select {
-					case <-p.ctx.Done():
+					if p.ctx.Err() != nil {
 						return
-					default:
 					}
 					continue
 				}

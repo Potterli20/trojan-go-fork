@@ -32,10 +32,8 @@ type PacketConn struct {
 func (c *PacketConn) packetLoop() {
 	c.wg.Go(func() {
 		for {
-			select {
-			case <-c.ctx.Done():
+			if c.ctx.Err() != nil {
 				return
-			default:
 			}
 			buf := make([]byte, MaxPacketSize)
 			n, addr, err := c.proxy.ReadWithMetadata(buf)
@@ -43,14 +41,14 @@ func (c *PacketConn) packetLoop() {
 				if errors.Is(err, io.EOF) {
 					return
 				}
-				select {
-				case <-c.ctx.Done():
+				// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中；
+				// 直接检查 ctx.Err()
+				if c.ctx.Err() != nil {
 					return
-				default:
-					log.Error("router packetConn error", err)
-					time.Sleep(time.Millisecond * 100) // 避免 busy loop
-					continue
 				}
+				log.Error("router packetConn error", err)
+				time.Sleep(time.Millisecond * 100) // 避免 busy loop
+				continue
 			}
 			select {
 			case c.packetChan <- &packetInfo{
@@ -64,10 +62,8 @@ func (c *PacketConn) packetLoop() {
 	})
 	c.wg.Go(func() {
 		for {
-			select {
-			case <-c.ctx.Done():
+			if c.ctx.Err() != nil {
 				return
-			default:
 			}
 			buf := make([]byte, MaxPacketSize)
 			n, addr, err := c.PacketConn.ReadFrom(buf)
@@ -75,14 +71,14 @@ func (c *PacketConn) packetLoop() {
 				if errors.Is(err, io.EOF) {
 					return
 				}
-				select {
-				case <-c.ctx.Done():
+				// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中；
+				// 直接检查 ctx.Err()
+				if c.ctx.Err() != nil {
 					return
-				default:
-					log.Error("router packetConn error", err)
-					time.Sleep(time.Millisecond * 100) // 避免 busy loop
-					continue
 				}
+				log.Error("router packetConn error", err)
+				time.Sleep(time.Millisecond * 100) // 避免 busy loop
+				continue
 			}
 			address, _ := tunnel.NewAddressFromAddr("udp", addr.String())
 			select {

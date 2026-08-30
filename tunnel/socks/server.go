@@ -60,14 +60,14 @@ func (s *Server) acceptConnLoop() {
 	for {
 		conn, err := s.underlay.AcceptConn(&Tunnel{})
 		if err != nil {
-			select {
-			case <-s.ctx.Done():
+			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中；
+			// 直接检查 ctx.Err()
+			if s.ctx.Err() != nil {
 				log.Debug("exiting")
 				return
-			default:
-				log.Error(common.NewError("socks failed to accept conn").Base(err))
-				continue
 			}
+			log.Error(common.NewError("socks failed to accept conn").Base(err))
+			continue
 		}
 		s.wg.Add(1)
 		go func(conn tunnel.Conn) {
@@ -184,13 +184,13 @@ func (s *Server) packetDispatchLoop() {
 	for {
 		n, src, err := s.listenPacketConn.ReadFrom(buf)
 		if err != nil {
-			select {
-			case <-s.ctx.Done():
+			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中，
+			// 可能误走 continue 变成 busy loop；直接检查 ctx.Err()
+			if s.ctx.Err() != nil {
 				log.Debug("exiting")
 				return
-			default:
-				continue
 			}
+			continue
 		}
 		log.Debug("socks recv udp packet from", src)
 		s.mappingLock.RLock()

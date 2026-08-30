@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/Potterli20/trojan-go-fork/api"
 	"github.com/Potterli20/trojan-go-fork/common"
@@ -25,6 +26,9 @@ import (
 )
 
 var Auth statistic.Authenticator
+
+// authTimeout 限定读取 trojan 认证头（56 字节 hash + 地址）的时限
+const authTimeout = 10 * time.Second
 
 // InboundConn is a trojan inbound connection
 type InboundConn struct {
@@ -201,12 +205,12 @@ func (s *Server) acceptLoop() {
 	for {
 		conn, err := s.underlay.AcceptConn(&Tunnel{})
 		if err != nil {
-			select {
-			case <-s.ctx.Done():
+			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中，
+			// 会漏记错误；直接检查 ctx.Err()
+			if s.ctx.Err() != nil {
 				return
-			default:
-				log.Error(common.NewError("trojan failed to accept conn").Base(err))
 			}
+			log.Error(common.NewError("trojan failed to accept conn").Base(err))
 			continue
 		}
 		s.wg.Add(1)
@@ -228,8 +232,11 @@ func (s *Server) acceptLoop() {
 				trustHeaders: s.trustHeaders,
 			}
 
+			// 对端静默时不设截止时间会让 handler 永久阻塞在 Auth，Close() 的 wg.Wait() 随之挂起
+			rewindConn.SetReadDeadline(time.Now().Add(authTimeout))
 			if err := inboundConn.Auth(); err != nil {
 				rewindConn.Rewind()
+				rewindConn.SetReadDeadline(time.Time{})
 				log.Warn(common.NewError("connection with invalid trojan header from " + rewindConn.RemoteAddr().String()).Base(err))
 				s.redir.Redirect(&redirector.Redirection{
 					RedirectTo:  s.redirAddr,
@@ -237,6 +244,7 @@ func (s *Server) acceptLoop() {
 				})
 				return
 			}
+			rewindConn.SetReadDeadline(time.Time{})
 
 			rewindConn.StopBuffering()
 			switch inboundConn.metadata.Command {
@@ -337,7 +345,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	// 否则把 Capacity 置 0 会导致 Subscribe 创建无缓冲 channel，
 	// broadcast 的 select+default 会丢弃几乎所有 Record，录制功能静默失效。
 	if cfg.RecordCapacity > 0 {
-		recorder.Capacity = cfg.RecordCapacity
+		recorder.SetCapacity(cfg.RecordCapacity)
 	}
 
 	redirAddr := tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort)

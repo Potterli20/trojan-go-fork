@@ -152,13 +152,14 @@ func (r *Redirector) worker() {
 					}
 				})
 
-				select {
-				case <-r.ctx.Done():
+				// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中，
+				// 可能误走 default 继续阻塞在 copyWg.Wait() 上；直接检查 ctx.Err()
+				if r.ctx.Err() != nil {
 					log.Debug("redirector shutting down")
-				default:
-					copyWg.Wait()
-					log.Info("redirection done")
+					return
 				}
+				copyWg.Wait()
+				log.Info("redirection done")
 			})
 		case <-r.ctx.Done():
 			return

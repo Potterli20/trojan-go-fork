@@ -34,10 +34,9 @@ func (s *Server) dispatchLoop() {
 	for {
 		n, addr, err := s.udpListener.ReadFrom(buf)
 		if err != nil {
-			select {
-			case <-s.ctx.Done():
-			default:
-				log.Fatal(common.NewError("dokodemo failed to read from udp socket").Base(err))
+			// 同 tls/server.go：不能用 select/default 判断关闭（default 恒就绪会被随机选中）
+			if s.ctx.Err() == nil {
+				log.Error(common.NewError("dokodemo failed to read from udp socket").Base(err))
 			}
 			return
 		}
@@ -62,8 +61,18 @@ func (s *Server) dispatchLoop() {
 		}
 		s.mapping[addr.String()] = conn
 		s.mappingLock.Unlock()
-		conn.input <- toInput
-		s.packetChan <- conn
+		select {
+		case conn.input <- toInput:
+		default:
+			// 会话可能刚超时清理、已无读者；丢包优于阻塞 dispatch 循环
+		}
+		select {
+		case s.packetChan <- conn:
+		case <-s.ctx.Done():
+			// 下游已停止消费，退出以免 Close() 的 wg.Wait() 死锁
+			conn.Close()
+			return
+		}
 
 		s.wg.Add(1)
 		go func(conn *PacketConn) {
@@ -100,7 +109,8 @@ func (s *Server) dispatchLoop() {
 func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	conn, err := s.tcpListener.Accept()
 	if err != nil {
-		log.Fatal(common.NewError("dokodemo failed to accept connection").Base(err))
+		// 监听已关闭（含关闭流程）或出错时不得杀死进程；AcceptConn 调用方会处理 nil/err
+		return nil, common.NewError("dokodemo failed to accept connection").Base(err)
 	}
 	return &Conn{
 		Conn: conn,

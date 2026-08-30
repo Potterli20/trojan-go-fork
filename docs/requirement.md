@@ -46,6 +46,22 @@ README 中列出的 8 项社区改进（@fregie 等）在后续大规模重构�
 - **TCP Fast Open**：`common.Dial/common.Listen`（tfo-go，带 fallback）在位；
   服务端监听（transport）与客户端出站（freedom，`tcp.fast_open`，默认 true）均已接通。
 
+### 2026-08-30 追加修复（第二轮回归排查）
+- **log.ConnectionTracker data race**：`Success/Error`（连接建立方调用）与 `Destroy`（消费方关闭时调用）
+  并发写 `endTime`/`fields`，已加锁保护。
+- **select/default 判断关闭的陷阱**：`select { case <-ctx.Done(): default: log.Fatal() }` 中 default 恒就绪，
+  当 ctx 恰已取消时两分支同时就绪被随机二选一，正常关闭路径约 50% 概率 os.Exit 杀死进程。
+  tls/dokodemo/tproxy 共 4 处已改为直接检查 `ctx.Err()`，并把 accept 循环中的 Fatal 降级为 Error。
+- **无 ctx 保护的 channel 发送**（关闭时消费端停止 → 发送方永久阻塞 → wg.Wait 死锁）：
+  simplesocks（connChan/packetChan）、dokodemo（packetChan、input）、tproxy（packetChan、packetQueue、input）、
+  http（CONNECT 分支 connChan）已补 select ctx.Done 分支或 default 丢包。
+- **等待对端首字节的读无截止时间**（对端静默 → handler 永久阻塞 → Close 的 wg.Wait 挂起）：
+  tls 握手+HTTP 嗅探（30s）、transport HTTP 嗅探（30s）、trojan Auth（10s）、adapter 协议嗅探（10s）
+  已设截止时间，移交下游前解除。
+- **recorder.Capacity 全局变量竞态**：改为 atomic，新增 SetCapacity。
+- **common.PickPort 只探测 TCP**：adapter 等会在同一端口同时监听 TCP+UDP，
+  现同时探测两种协议可用性，消除测试与服务启动的偶发 EADDRINUSE。
+
 ## 1. 指定local IP
 需要能在配置文件中指定代理使用的local ip,只需要指定由本服务和需要代理的目标之间所建立的tcp或udp所使用的本地ip是什么,主要用于能够使用策略路由控制实际的出口接口.
 

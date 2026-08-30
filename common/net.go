@@ -35,38 +35,34 @@ func HumanFriendlyTraffic(bytes uint64) string {
 	return fmt.Sprintf("%.2f GiB", float32(bytes)/GiB)
 }
 
+// PickPort 在 host 上挑选一个当前未被占用的端口。
+// "tcp" 模式会同时探测该端口的 TCP 与 UDP 可用性：许多服务（如 adapter）会在
+// 同一端口上同时监听 TCP 与 UDP，只探测 TCP 会导致 UDP 绑定偶发 EADDRINUSE。
 func PickPort(network string, host string) int {
 	switch network {
-	case "tcp":
+	case "tcp", "udp":
 		for range 16 {
 			l, err := net.Listen("tcp", host+":0")
 			if err != nil {
 				continue
 			}
-			defer l.Close()
 			_, port, err := net.SplitHostPort(l.Addr().String())
 			Must(err)
 			p, err := strconv.ParseInt(port, 10, 32)
 			Must(err)
-			return int(p)
-		}
-	case "udp":
-		for range 16 {
-			conn, err := net.ListenPacket("udp", host+":0")
+			l.Close()
+
+			conn, err := net.ListenPacket("udp", host+":"+port)
 			if err != nil {
 				continue
 			}
-			defer conn.Close()
-			_, port, err := net.SplitHostPort(conn.LocalAddr().String())
-			Must(err)
-			p, err := strconv.ParseInt(port, 10, 32)
-			Must(err)
+			conn.Close()
 			return int(p)
 		}
+		return 0
 	default:
 		return 0
 	}
-	return 0
 }
 
 func WriteAllBytes(writer io.Writer, payload []byte) error {

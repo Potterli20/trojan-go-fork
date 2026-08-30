@@ -3,6 +3,7 @@ package log
 import (
 	"fmt"
 	"maps"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -19,8 +20,11 @@ type ConnectionTracker struct {
 	module    string
 	action    string
 	startTime time.Time
-	endTime   time.Time
-	fields    map[string]any
+	// mu 保护 endTime 与 fields：Success/Error（连接建立方调用）与 Destroy（消费方
+	// 关闭连接时调用）可能从不同 goroutine 并发触达同一个 tracker。
+	mu      sync.Mutex
+	endTime time.Time
+	fields  map[string]any
 }
 
 func NewConnectionTracker(module, action string) *ConnectionTracker {
@@ -52,16 +56,22 @@ func (t *ConnectionTracker) StartTime() time.Time {
 }
 
 func (t *ConnectionTracker) WithField(key string, value any) *ConnectionTracker {
+	t.mu.Lock()
 	t.fields[key] = value
+	t.mu.Unlock()
 	return t
 }
 
 func (t *ConnectionTracker) WithFields(fields map[string]any) *ConnectionTracker {
+	t.mu.Lock()
 	maps.Copy(t.fields, fields)
+	t.mu.Unlock()
 	return t
 }
 
 func (t *ConnectionTracker) Success() error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 	t.endTime = time.Now()
 	if !ShouldLog(InfoLevel) {
 		return nil
@@ -78,6 +88,8 @@ func (t *ConnectionTracker) Success() error {
 }
 
 func (t *ConnectionTracker) Error(err error) error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 	t.endTime = time.Now()
 	if !ShouldLog(ErrorLevel) {
 		return err
@@ -94,6 +106,8 @@ func (t *ConnectionTracker) Error(err error) error {
 }
 
 func (t *ConnectionTracker) Destroy(reason string, sentBytes, recvBytes uint64) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 	t.endTime = time.Now()
 	if !ShouldLog(InfoLevel) {
 		return

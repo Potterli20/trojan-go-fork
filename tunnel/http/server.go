@@ -43,12 +43,10 @@ func (c *OtherConn) Read(p []byte) (int, error) {
 		if n != 0 {
 			panic("non zero")
 		}
-		select {
-		case <-c.ctx.Done():
+		if c.ctx.Err() != nil {
 			return 0, common.NewError("http conn closed")
-		default:
-			return 0, io.EOF
 		}
+		return 0, io.EOF
 	}
 	return n, err
 }
@@ -76,14 +74,14 @@ func (s *Server) acceptLoop() {
 	for {
 		conn, err := s.underlay.AcceptConn(&Tunnel{})
 		if err != nil {
-			select {
-			case <-s.ctx.Done():
+			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中；
+			// 直接检查 ctx.Err()
+			if s.ctx.Err() != nil {
 				log.Error(common.NewError("http closed"))
 				return
-			default:
-				log.Error(common.NewError("http failed to accept connection").Base(err))
-				continue
 			}
+			log.Error(common.NewError("http failed to accept connection").Base(err))
+			continue
 		}
 
 		s.wg.Add(1)
@@ -114,11 +112,18 @@ func (s *Server) acceptLoop() {
 					return
 				}
 				req.Body.Close()
-				s.connChan <- &ConnectConn{
+				connectConn := &ConnectConn{
 					Conn: conn,
 					metadata: &tunnel.Metadata{
 						Address: addr,
 					},
+				}
+				select {
+				case s.connChan <- connectConn:
+				case <-s.ctx.Done():
+					// 下游已停止消费，关闭连接并返回，否则 goroutine 永久阻塞
+					connectConn.Close()
+					return
 				}
 			} else { // GET, POST, PUT...
 				defer conn.Close()

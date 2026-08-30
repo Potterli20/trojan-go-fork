@@ -25,12 +25,12 @@ func (s *Server) acceptConnWorker() {
 	for {
 		conn, err := s.underlay.AcceptConn(&Tunnel{})
 		if err != nil {
-			select {
-			case <-s.ctx.Done():
+			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中；
+			// 直接检查 ctx.Err()
+			if s.ctx.Err() != nil {
 				return
-			default:
-				log.Debug(err)
 			}
+			log.Debug(err)
 			continue
 		}
 

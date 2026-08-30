@@ -62,14 +62,14 @@ func (s *Server) acceptLoop() {
 			Accept(context.Context) (any, error)
 		}).Accept(s.ctx)
 		if err != nil {
-			select {
-			case <-s.ctx.Done():
+			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中；
+			// 直接检查 ctx.Err()
+			if s.ctx.Err() != nil {
 				log.Debug("QUIC accept loop stopped")
-				return
-			default:
+			} else {
 				log.Error(common.NewError("QUIC accept error").Base(err))
-				return
 			}
+			return
 		}
 
 		quicConn := conn.(*quic.Conn)

@@ -34,10 +34,10 @@ func (s *Server) acceptLoop() {
 		conn, err := s.underlay.AcceptConn(&Tunnel{})
 		if err != nil {
 			log.Error(common.NewError("simplesocks failed to accept connection from underlying tunnel").Base(err))
-			select {
-			case <-s.ctx.Done():
+			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中；
+			// 直接检查 ctx.Err()
+			if s.ctx.Err() != nil {
 				return
-			default:
 			}
 			continue
 		}
@@ -50,14 +50,25 @@ func (s *Server) acceptLoop() {
 		}
 		switch metadata.Command {
 		case Connect:
-			s.connChan <- &Conn{
+			select {
+			case s.connChan <- &Conn{
 				metadata: metadata,
 				Conn:     conn,
+			}:
+			case <-s.ctx.Done():
+				// 下游已停止消费，关闭连接并退出，否则 Close() 的 wg.Wait() 死锁
+				conn.Close()
+				return
 			}
 			Record(conn, metadata)
 		case Associate:
-			s.packetChan <- &PacketConn{
+			select {
+			case s.packetChan <- &PacketConn{
 				Conn: conn,
+			}:
+			case <-s.ctx.Done():
+				conn.Close()
+				return
 			}
 		default:
 			log.Error(common.NewErrorf("simplesocks unknown command %d", metadata.Command))

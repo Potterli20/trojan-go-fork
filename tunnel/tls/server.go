@@ -27,6 +27,9 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel/websocket"
 )
 
+// firstByteTimeout 限定 TLS 握手与 HTTP 嗅探阶段等待对端数据的时限
+const firstByteTimeout = 30 * time.Second
+
 // Server is a tls server
 type Server struct {
 	fallbackAddress    *tunnel.Address
@@ -76,11 +79,14 @@ func (s *Server) acceptLoop() {
 	for {
 		conn, err := s.underlay.AcceptConn(&Tunnel{})
 		if err != nil {
-			select {
-			case <-s.ctx.Done():
-			default:
-				log.Fatal(common.NewError("transport accept error" + err.Error()))
+			// 注意：这里不能用 "select ctx.Done / default" 模式判断是否在关闭：
+			// default 永远就绪，当 ctx 恰已取消时两个分支同时就绪，runtime 随机二选一，
+			// 会以约 50% 概率在正常关闭路径上触发 Fatal（os.Exit）杀死整个进程。
+			if s.ctx.Err() != nil {
+				return
 			}
+			// 底层已不可用，accept 循环终止；用 Error 而非 Fatal，进程不应被库代码杀死
+			log.Error(common.NewError("transport accept error" + err.Error()))
 			return
 		}
 		s.wg.Add(1)
@@ -131,6 +137,9 @@ func (s *Server) acceptLoop() {
 			handshakeRewindConn.SetBufferSize(2048)
 			defer handshakeRewindConn.StopBuffering()
 
+			// 握手与后续 HTTP 嗅探期间对端可能静默不发数据；不设截止时间会让
+			// handler goroutine 永久阻塞，Close() 的 wg.Wait() 随之挂起
+			conn.SetDeadline(time.Now().Add(firstByteTimeout))
 			tlsConn := tls.Server(handshakeRewindConn, tlsConfig)
 			err = tlsConn.Handshake()
 
@@ -168,6 +177,8 @@ func (s *Server) acceptLoop() {
 			httpReq, err := http.ReadRequest(r)
 			rewindConn.Rewind()
 			rewindConn.StopBuffering()
+			// 连接即将移交下游长期使用，必须解除上面的截止时间
+			conn.SetDeadline(time.Time{})
 			if err != nil {
 				// this is not a http request. pass it to trojan protocol layer for further inspection
 				select {

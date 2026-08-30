@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -13,6 +14,9 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel/http"
 	"github.com/Potterli20/trojan-go-fork/tunnel/socks"
 )
+
+// firstByteTimeout 限定协议嗅探阶段等待对端数据的时限
+const firstByteTimeout = 10 * time.Second
 
 type Server struct {
 	tcpListener net.Listener
@@ -30,20 +34,23 @@ func (s *Server) acceptConnLoop() {
 	for {
 		conn, err := s.tcpListener.Accept()
 		if err != nil {
-			select {
-			case <-s.ctx.Done():
+			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中，
+			// 可能误走 continue 变成 busy loop；直接检查 ctx.Err()
+			if s.ctx.Err() != nil {
 				log.Debug("exiting")
 				return
-			default:
-				continue
 			}
+			continue
 		}
 		rewindConn := common.NewRewindConn(conn)
 		rewindConn.SetBufferSize(16)
+		// 对端静默时不设截止时间会让 accept 循环永久阻塞，Close() 的 wg.Wait() 随之挂起
+		rewindConn.SetReadDeadline(time.Now().Add(firstByteTimeout))
 		buf := [3]byte{}
 		_, err = rewindConn.Read(buf[:])
 		rewindConn.Rewind()
 		rewindConn.StopBuffering()
+		rewindConn.SetReadDeadline(time.Time{})
 		if err != nil {
 			log.Error(common.NewError("failed to detect proxy protocol type").Base(err))
 			rewindConn.Close()

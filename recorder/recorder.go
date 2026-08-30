@@ -4,12 +4,26 @@ import (
 	"net"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Potterli20/trojan-go-fork/log"
 )
 
-var Capacity int = 10 // capacity of each subscriber
+// subscriberCapacity 为每个订阅者的 channel 缓冲大小。
+// 运行中会被 trojan 服务端按配置覆盖，而 Subscribe（API 调用）可能并发读取，
+// 因此用 atomic 而非裸全局变量。
+var subscriberCapacity atomic.Int32
+
+func init() { subscriberCapacity.Store(10) }
+
+// SetCapacity 设置每个订阅者的缓冲容量（须在 Subscribe 之前调用才有意义）
+func SetCapacity(n int) {
+	if n > 0 {
+		subscriberCapacity.Store(int32(n))
+	}
+}
+
 var subscribers sync.Map
 
 type option struct {
@@ -50,7 +64,7 @@ func Add(hash string, clientAddr, targetAddr net.Addr, transport string, payload
 func Subscribe(uid string, transport, targetPort string, includePayload bool) chan Record {
 	log.Debug("New recorder subscriber", uid)
 	opt := option{
-		recordChan:     make(chan Record, Capacity),
+		recordChan:     make(chan Record, subscriberCapacity.Load()),
 		transport:      transport,
 		targetPort:     targetPort,
 		includePayload: includePayload,

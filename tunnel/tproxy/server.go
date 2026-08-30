@@ -41,10 +41,9 @@ func (s *Server) Close() error {
 func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	conn, err := s.tcpListener.Accept()
 	if err != nil {
-		select {
-		case <-s.ctx.Done():
-		default:
-			log.Fatal(common.NewError("tproxy failed to accept connection").Base(err))
+		// 同 tls/server.go：select/default 判断关闭会被随机选中 default，必须直接检查 ctx
+		if s.ctx.Err() == nil {
+			log.Error(common.NewError("tproxy failed to accept connection").Base(err))
 		}
 		return nil, common.NewError("tproxy failed to accept conn")
 	}
@@ -76,10 +75,8 @@ func (s *Server) packetDispatchLoop() {
 		for {
 			n, src, dst, err := ReadFromUDP(s.udpListener, buf)
 			if err != nil {
-				select {
-				case <-s.ctx.Done():
-				default:
-					log.Fatal(common.NewError("tproxy failed to read from udp socket").Base(err))
+				if s.ctx.Err() == nil {
+					log.Error(common.NewError("tproxy failed to read from udp socket").Base(err))
 				}
 				s.Close()
 				return
@@ -87,10 +84,15 @@ func (s *Server) packetDispatchLoop() {
 			log.Debug("udp packet from", src, "metadata", dst, "size", n)
 			payload := make([]byte, n)
 			copy(payload, buf[:n])
-			packetQueue <- &tproxyPacketInfo{
+			select {
+			case packetQueue <- &tproxyPacketInfo{
 				src:     src,
 				dst:     dst,
 				payload: payload,
+			}:
+			case <-s.ctx.Done():
+				// 关闭时消费端已停止，必须退出，否则 goroutine 永久阻塞在 channel 发送上
+				return
 			}
 		}
 	}()
@@ -124,7 +126,13 @@ func (s *Server) packetDispatchLoop() {
 			s.mappingLock.Unlock()
 
 			log.Info("new tproxy udp session from", info.src.String(), "metadata", info.dst.String())
-			s.packetChan <- conn
+			select {
+			case s.packetChan <- conn:
+			case <-s.ctx.Done():
+				// 下游已停止消费，关闭会话并退出，否则 Close() 的 wg.Wait() 死锁
+				conn.Close()
+				return
+			}
 
 			go func(conn *PacketConn) {
 				defer conn.Close()
@@ -176,11 +184,15 @@ func (s *Server) packetDispatchLoop() {
 			}(conn)
 		}
 
-		conn.input <- &packetInfo{
+		select {
+		case conn.input <- &packetInfo{
 			metadata: &tunnel.Metadata{
 				Address: tunnel.NewAddressFromHostPort("udp", info.dst.IP.String(), info.dst.Port),
 			},
 			payload: info.payload,
+		}:
+		default:
+			// 会话可能刚超时清理、已无读者；丢包优于阻塞整个 dispatch 循环
 		}
 		log.Debug("tproxy packet sent with metadata", info.dst, "size", len(info.payload))
 	}
