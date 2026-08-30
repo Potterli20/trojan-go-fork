@@ -15,12 +15,8 @@ import (
 type ClientAPI struct {
 	TrojanClientServiceServer
 
-	auth          statistic.Authenticator
-	ctx           context.Context
-	uploadSpeed   uint64
-	downloadSpeed uint64
-	lastSent      uint64
-	lastRecv      uint64
+	auth statistic.Authenticator
+	ctx  context.Context
 }
 
 func (s *ClientAPI) GetTraffic(ctx context.Context, req *GetTrafficRequest) (*GetTrafficResponse, error) {

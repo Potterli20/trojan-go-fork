@@ -33,11 +33,15 @@ type OutboundConn struct {
 	sent atomic.Uint64
 	recv atomic.Uint64
 
-	metadata          *tunnel.Metadata
-	user              statistic.User
-	headerWrittenOnce sync.Once
-	ctx               context.Context
-	cancel            context.CancelFunc
+	metadata *tunnel.Metadata
+	user     statistic.User
+	// headerMu 串行化协议头写入；headerWritten 标记头已写出；
+	// headerFailed 表示头已写出失败——流上可能残留部分字节，连接不可再复用
+	headerMu      sync.Mutex
+	headerWritten atomic.Bool
+	headerFailed  bool
+	ctx           context.Context
+	cancel        context.CancelFunc
 	net.Conn
 }
 
@@ -46,31 +50,38 @@ func (c *OutboundConn) Metadata() *tunnel.Metadata {
 }
 
 func (c *OutboundConn) WriteHeader(payload []byte) (bool, error) {
-	var err error
-	written := false
-	c.headerWrittenOnce.Do(func() {
-		hash := c.user.GetHash()
-		buf := bytes.NewBuffer(make([]byte, 0, MaxPacketSize))
-		crlf := []byte{0x0d, 0x0a}
-		buf.Write([]byte(hash))
-		buf.Write(crlf)
-		c.metadata.WriteTo(buf)
-		buf.Write(crlf)
-		if payload != nil {
-			buf.Write(payload)
-		}
-		_, err = c.Conn.Write(buf.Bytes())
-		if err == nil {
-			written = true
-			if log.ShouldLog(log.DebugLevel) {
-				log.Debug("[Trojan] Header written for", c.metadata.Address)
-				log.Debug("[Trojan] Target:", c.metadata.Command, c.metadata.Address)
-			}
-		} else {
-			log.Error("[Trojan] Failed to write header:", err)
-		}
-	})
-	return written, err
+	if c.headerWritten.Load() {
+		return false, nil
+	}
+	c.headerMu.Lock()
+	defer c.headerMu.Unlock()
+	if c.headerWritten.Load() {
+		return false, nil
+	}
+	if c.headerFailed {
+		return false, common.NewError("trojan header write previously failed, connection is unusable")
+	}
+	hash := c.user.GetHash()
+	buf := bytes.NewBuffer(make([]byte, 0, MaxPacketSize))
+	crlf := []byte{0x0d, 0x0a}
+	buf.Write([]byte(hash))
+	buf.Write(crlf)
+	c.metadata.WriteTo(buf)
+	buf.Write(crlf)
+	if payload != nil {
+		buf.Write(payload)
+	}
+	if _, err := c.Conn.Write(buf.Bytes()); err != nil {
+		c.headerFailed = true
+		log.Error("[Trojan] Failed to write header:", err)
+		return false, err
+	}
+	c.headerWritten.Store(true)
+	if log.ShouldLog(log.DebugLevel) {
+		log.Debug("[Trojan] Header written for", c.metadata.Address)
+		log.Debug("[Trojan] Target:", c.metadata.Command, c.metadata.Address)
+	}
+	return true, nil
 }
 
 func (c *OutboundConn) Write(p []byte) (int, error) {

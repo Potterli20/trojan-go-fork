@@ -214,6 +214,7 @@ func (c *Client) DialPacket(overlay tunnel.Tunnel) (tunnel.PacketConn, error) {
 	}
 	proxy, err := c.underlay.DialPacket(overlay)
 	if err != nil {
+		directConn.Close()
 		_ = tracker.Error(err)
 		return nil, common.NewError("router failed to dial udp (proxy)").Base(err)
 	}

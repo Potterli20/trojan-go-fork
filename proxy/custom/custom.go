@@ -12,22 +12,6 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
-func convert(i any) any {
-	switch x := i.(type) {
-	case map[any]any:
-		m2 := map[string]any{}
-		for k, v := range x {
-			m2[k.(string)] = convert(v)
-		}
-		return m2
-	case []any:
-		for i, v := range x {
-			x[i] = convert(v)
-		}
-	}
-	return i
-}
-
 func buildNodes(ctx context.Context, nodeConfigList []NodeConfig) (map[string]*proxy.Node, error) {
 	nodes := make(map[string]*proxy.Node)
 	for _, nodeCfg := range nodeConfigList {

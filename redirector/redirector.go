@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -17,7 +18,10 @@ import (
 type Dial func(net.Addr) (net.Conn, error)
 
 func defaultDial(addr net.Addr) (net.Conn, error) {
-	return net.Dial("tcp", addr.String())
+	// 带超时的拨号：Redirector.Close 的 wg.Wait 依赖 worker 退出，
+	// 无超时拨号会被不可达目标拖住约 2 分钟
+	d := net.Dialer{Timeout: 30 * time.Second}
+	return d.Dial("tcp", addr.String())
 }
 
 type Redirection struct {

@@ -112,7 +112,12 @@ func (p *Proxy) relayConnLoop() {
 				}
 				p.wg.Go(func() {
 					defer inbound.Close()
-					outbound, err := p.sink.DialConn(inbound.Metadata().Address, nil)
+					metadata := inbound.Metadata()
+					if metadata == nil {
+						log.Error("inbound connection has no metadata; check the protocol stack configuration")
+						return
+					}
+					outbound, err := p.sink.DialConn(metadata.Address, nil)
 					if err != nil {
 						log.Error(common.NewError("proxy failed to dial connection").Base(err))
 						return

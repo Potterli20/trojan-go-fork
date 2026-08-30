@@ -16,12 +16,10 @@
         "verify": false,
         "verify_hostname": true,
         "cipher": "",
-        "prefer_server_cipher": true,
         "reuse_session": true,
         "alpn": [
             "http/1.1"
         ],
-        "curves": "",
         "fingerprint": "",
         "key_log": "",
         "cert_check_rate": 60,

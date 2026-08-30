@@ -5,7 +5,9 @@ package tproxy
 import (
 	"fmt"
 	"net"
+	"os"
 	"syscall"
+	"unsafe"
 )
 
 // Listener describes a TCP Listener
@@ -72,11 +74,57 @@ const (
 
 // getOriginalTCPDest retrieves the original destination address from
 // NATed connection.  Currently, only Linux iptables using DNAT/REDIRECT
-// is supported.  For other operating systems, this will just return
-// conn.LocalAddr().
+// is supported.
 //
-// Note that this function only works when nf_conntrack_ipv4 and/or
-// nf_conntrack_ipv6 is loaded in the kernel.
+// REDIRECT/DNAT 模式下 LocalAddr 是改写后的本机地址，必须经 conntrack 的
+// SO_ORIGINAL_DST 取回真实目的地址（需内核加载 nf_conntrack_ipv4/ipv6）；
+// TPROXY 模式不经过 conntrack 改写，查询会失败，此时 LocalAddr 就是原始
+// 目的地址，回退返回。
 func getOriginalTCPDest(conn *net.TCPConn) (*net.TCPAddr, error) {
-	return conn.LocalAddr().(*net.TCPAddr), nil
+	f, err := conn.File()
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	fd := int(f.Fd())
+	// revert to non-blocking mode.
+	// see http://stackoverflow.com/a/28968431/1493661
+	if err = syscall.SetNonblock(fd, true); err != nil {
+		return nil, os.NewSyscallError("setnonblock", err)
+	}
+
+	v6 := conn.LocalAddr().(*net.TCPAddr).IP.To4() == nil
+	if v6 {
+		var addr syscall.RawSockaddrInet6
+		len := uint32(unsafe.Sizeof(addr))
+		err = getsockopt(fd, syscall.IPPROTO_IPV6, IP6T_SO_ORIGINAL_DST,
+			unsafe.Pointer(&addr), &len)
+		if err != nil {
+			return conn.LocalAddr().(*net.TCPAddr), nil
+		}
+		ip := make([]byte, 16)
+		copy(ip, addr.Addr[:])
+		pb := *(*[2]byte)(unsafe.Pointer(&addr.Port))
+		return &net.TCPAddr{
+			IP:   ip,
+			Port: int(pb[0])*256 + int(pb[1]),
+		}, nil
+	}
+
+	// IPv4
+	var addr syscall.RawSockaddrInet4
+	len := uint32(unsafe.Sizeof(addr))
+	err = getsockopt(fd, syscall.IPPROTO_IP, SO_ORIGINAL_DST,
+		unsafe.Pointer(&addr), &len)
+	if err != nil {
+		return conn.LocalAddr().(*net.TCPAddr), nil
+	}
+	ip := make([]byte, 4)
+	copy(ip, addr.Addr[:])
+	pb := *(*[2]byte)(unsafe.Pointer(&addr.Port))
+	return &net.TCPAddr{
+		IP:   ip,
+		Port: int(pb[0])*256 + int(pb[1]),
+	}, nil
 }

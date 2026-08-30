@@ -161,6 +161,7 @@ func (s *Server) packetDispatchLoop() {
 						}
 						n, err := back.Write(info.payload)
 						if err != nil {
+							back.Close()
 							log.Error(common.NewError("tproxy udp write error").Base(err))
 							return
 						}

@@ -242,6 +242,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 
 	listener, err := quic.Listen(packetConn, tlsConfig, quicConfig)
 	if err != nil {
+		packetConn.Close()
 		return nil, common.NewError("QUIC failed to listen").Base(err)
 	}
 

@@ -94,6 +94,42 @@ README 中列出的 8 项社区改进（@fregie 等）在后续大规模重构�
 - **基础设施**：Makefile 清理未定义的 $(GO_DIR)、新增 test-race 目标；AGENTS.md 的 CI 章节修正为
   实际存在的 workflow；component/AGENTS.md 修正 mini 标签描述（仅排除 api，仍含 forward/nat/mysql）。
 
+### 2026-08-30 追加修复（第四轮全量审计与现代化）
+- **mysql 认证器生命周期重写**（与第三轮 memory 修复同类问题的残留）：
+  updater 由裸 go 改 wg.Go；派生自有 ctx + cancel，原先监听外部 ctx 导致 Close 后 updater 仍
+  在操作已关闭的 memory 认证器；新增 Close()（先停 updater → wg.Wait → 关 memory → 关 db，
+  顺序同 memory 的时序约束）；check_rate 非正数时兜底 30s（time.NewTicker 对非正周期 panic）。
+- **mysql syncUsers 数据破坏与连接泄漏**：db.Query 的 rows 全路径从不 Close（每轮泄漏一条连接）；
+  Scan 失败 break 后继续用不完整的 userMap 清理，把合法用户整体误删；rows.Err() 从未检查。
+  现查询失败/迭代失败直接放弃本轮同步（只记日志，不做清理），rows 显式 Close。
+- **trojan client 协议静默损坏**：DialConn 的后台 goroutine 100ms 先写协议头失败时 sync.Once
+  已消耗且返回 (false, nil)，后续 Write(p) 走裸写分支把不带协议头的 payload 直接发出，
+  服务端认证必然失败且无任何报错。改为 headerMu + atomic headerWritten + headerFailed：
+  失败后连接标记不可用，后续写入显式报错；并发时等待写头完成而非竞速。
+- **tproxy TCP REDIRECT 模式失效**（2022-02 pr @3F2CF810 引入的回归）：getOriginalTCPDest 被
+  简化为直接返回 LocalAddr，丢弃了 SO_ORIGINAL_DST 查询——iptables REDIRECT/DNAT 下拿到的是
+  改写后的本机地址，流量被转发到错误目的地。已恢复 getsockopt 实现（v4/v6 双分支），
+  查询失败（TPROXY 模式无 conntrack DNAT 记录）回退 LocalAddr，两种模式均兼容；
+  staticcheck 报的 getsockopt U1000 即此 bug 的信号。
+- **资源泄漏修复（8 处）**：router DialPacket 下游失败不关 directConn；freedom DialPacket
+  forwardProxy 分支各失败路径不关 packetConn / socks TCP 连接；simplesocks DialPacket 写
+  associate 失败不关 conn；tproxy UDP 回包 Write 失败不关透明 socket；quic Listen 失败不关
+  packetConn；dokodemo/adapter NewServer UDP 失败不关 tcpListener；tproxy DialUDP FileConn
+  失败路径 fd double-close（fd 号被复用会误关无关 fd）。
+- **无超时拨号**：tls client 直连分支与 redirector defaultDial 的裸 net.Dial 加 30s 超时
+  （无超时拨号会被不可达目标拖住约 2 分钟，后者还阻塞 Redirector.Close 的 wg.Wait）。
+- **proxy relay 元数据防御**：inbound.Metadata() 为 nil（栈配置不当）时不再 nil-deref。
+- **废弃 API 与死代码清理**：grpc.Dial/WithInsecure → grpc.NewClient/insecure.NewCredentials；
+  删除 Go 1.18 起被忽略的 PreferServerCipherSuites（连 config schema 的 prefer_server_cipher/
+  curves 死键与示例配置一并清理，这两个键从未实际生效）；删除从未实现的内部占位字段
+  （tls curve/portOverrider/reuseSession、api control key/cert/list、api service client 4 字段、
+  custom convert 死函数）；mysql 错误文案小写化。
+- **保留项（有意）**：x509.DecryptPEMBlock（key_password 传统加密私钥支持，标准库无替代）；
+  config context key 用字符串（公开惯例，AGENTS.md 已记载）；dokodemo PacketConn.src 为
+  staticcheck 误报（server.go 回包/超时清理实际使用）。
+- **验证**：go vet、staticcheck（仅剩保留项）、全量测试 28 包、-race 全量、9 种 build tag 组合、
+  windows/darwin/386/arm64 交叉编译全部通过。
+
 ## 1. 指定local IP
 需要能在配置文件中指定代理使用的local ip,只需要指定由本服务和需要代理的目标之间所建立的tcp或udp所使用的本地ip是什么,主要用于能够使用策略路由控制实际的出口接口.
 

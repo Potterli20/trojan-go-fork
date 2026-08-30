@@ -91,7 +91,7 @@ func ReadFromUDP(conn *net.UDPConn, b []byte) (int, *net.UDPAddr, *net.UDPAddr, 
 	}
 
 	if originalDst == nil {
-		return 0, nil, nil, fmt.Errorf("unable to obtain original destination: %s", err)
+		return 0, nil, nil, fmt.Errorf("unable to obtain original destination: no IP_RECVORIGDSTADDR control message received")
 	}
 
 	return n, addr, originalDst, nil
@@ -141,7 +141,7 @@ func DialUDP(network string, laddr *net.UDPAddr, raddr *net.UDPAddr) (*net.UDPCo
 
 	remoteConn, err := net.FileConn(fdFile)
 	if err != nil {
-		syscall.Close(fileDescriptor)
+		// fd 的关闭由上面的 defer fdFile.Close() 负责，这里再 syscall.Close 会 double-close
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("convert file descriptor to connection: %s", err)}
 	}
 

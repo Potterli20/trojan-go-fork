@@ -8,6 +8,7 @@ import (
 	"io"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/Potterli20/trojan-go-fork/api/service"
 	"github.com/Potterli20/trojan-go-fork/common"
@@ -17,16 +18,13 @@ import (
 
 type apiController struct {
 	address *string
-	key     *string
 	hash    *string
-	cert    *string
 
 	cmd                *string
 	password           *string
 	add                *bool
 	delete             *bool
 	modify             *bool
-	list               *bool
 	uploadSpeedLimit   *int
 	downloadSpeedLimit *int
 	ipLimit            *int
@@ -154,7 +152,7 @@ func (o *apiController) Handle() error {
 	if *o.cmd == "" {
 		return common.NewError("")
 	}
-	conn, err := grpc.Dial(*o.address, grpc.WithInsecure())
+	conn, err := grpc.NewClient(*o.address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Error(err)
 		return nil

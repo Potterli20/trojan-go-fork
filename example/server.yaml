@@ -14,11 +14,9 @@ ssl:
   verify: false
   verify-hostname: true
   cipher: ""
-  prefer-server-cipher: true
   reuse-session: true
   alpn:
     - http/1.1
-  curves: ""
   fingerprint: ""
   key-log: ""
   cert-check-rate: 60

@@ -32,27 +32,24 @@ const firstByteTimeout = 30 * time.Second
 
 // Server is a tls server
 type Server struct {
-	fallbackAddress    *tunnel.Address
-	verifySNI          bool
-	sni                string
-	alpn               []string
-	PreferServerCipher bool
-	keyPair            []tls.Certificate
-	keyPairLock        sync.RWMutex
-	httpResp           []byte
-	cipherSuite        []uint16
-	sessionTicket      bool
-	curve              []tls.CurveID
-	keyLogger          io.WriteCloser
-	connChan           chan tunnel.Conn
-	wsChan             chan tunnel.Conn
-	redir              *redirector.Redirector
-	ctx                context.Context
-	cancel             context.CancelFunc
-	underlay           tunnel.Server
-	nextHTTP           atomic.Int32
-	portOverrider      map[string]int
-	wg                 sync.WaitGroup
+	fallbackAddress *tunnel.Address
+	verifySNI       bool
+	sni             string
+	alpn            []string
+	keyPair         []tls.Certificate
+	keyPairLock     sync.RWMutex
+	httpResp        []byte
+	cipherSuite     []uint16
+	sessionTicket   bool
+	keyLogger       io.WriteCloser
+	connChan        chan tunnel.Conn
+	wsChan          chan tunnel.Conn
+	redir           *redirector.Redirector
+	ctx             context.Context
+	cancel          context.CancelFunc
+	underlay        tunnel.Server
+	nextHTTP        atomic.Int32
+	wg              sync.WaitGroup
 }
 
 func (s *Server) Close() error {
@@ -98,11 +95,10 @@ func (s *Server) acceptLoop() {
 			}()
 
 			tlsConfig := &tls.Config{
-				CipherSuites:             s.cipherSuite,
-				PreferServerCipherSuites: s.PreferServerCipher,
-				SessionTicketsDisabled:   !s.sessionTicket,
-				NextProtos:               s.alpn,
-				KeyLogWriter:             s.keyLogger,
+				CipherSuites:           s.cipherSuite,
+				SessionTicketsDisabled: !s.sessionTicket,
+				NextProtos:             s.alpn,
+				KeyLogWriter:           s.keyLogger,
 				GetCertificate: func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 					s.keyPairLock.RLock()
 					defer s.keyPairLock.RUnlock()
@@ -301,6 +297,8 @@ func loadKeyPair(keyPath string, certPath string, password string) (*tls.Certifi
 		if keyBlock == nil {
 			return nil, common.NewError("failed to decode key file").Base(err)
 		}
+		// DecryptPEMBlock 自 Go 1.16 起标记废弃（RFC 1423 本身不安全），但标准库无替代实现；
+		// 保留以兼容配置了 key_password 的传统 PEM 加密私钥，解密结果只用于本地 TLS 密钥加载
 		decryptedKey, err := x509.DecryptPEMBlock(keyBlock, []byte(password))
 		if err != nil {
 			return nil, common.NewError("failed to decrypt key").Base(err)
@@ -386,22 +384,21 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 
 	ctx, cancel := context.WithCancel(ctx)
 	server := &Server{
-		underlay:           underlay,
-		fallbackAddress:    fallbackAddress,
-		httpResp:           httpResp,
-		verifySNI:          cfg.TLS.VerifyHostName,
-		sni:                cfg.TLS.SNI,
-		alpn:               cfg.TLS.ALPN,
-		PreferServerCipher: cfg.TLS.PreferServerCipher,
-		sessionTicket:      cfg.TLS.ReuseSession,
-		connChan:           make(chan tunnel.Conn, 32),
-		wsChan:             make(chan tunnel.Conn, 32),
-		redir:              redirector.NewRedirector(ctx),
-		keyPair:            []tls.Certificate{*keyPair},
-		keyLogger:          keyLogger,
-		cipherSuite:        cipherSuite,
-		ctx:                ctx,
-		cancel:             cancel,
+		underlay:        underlay,
+		fallbackAddress: fallbackAddress,
+		httpResp:        httpResp,
+		verifySNI:       cfg.TLS.VerifyHostName,
+		sni:             cfg.TLS.SNI,
+		alpn:            cfg.TLS.ALPN,
+		sessionTicket:   cfg.TLS.ReuseSession,
+		connChan:        make(chan tunnel.Conn, 32),
+		wsChan:          make(chan tunnel.Conn, 32),
+		redir:           redirector.NewRedirector(ctx),
+		keyPair:         []tls.Certificate{*keyPair},
+		keyLogger:       keyLogger,
+		cipherSuite:     cipherSuite,
+		ctx:             ctx,
+		cancel:          cancel,
 	}
 
 	server.wg.Go(func() {

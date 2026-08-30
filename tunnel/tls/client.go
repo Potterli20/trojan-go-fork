@@ -11,6 +11,7 @@ import (
 
 	"net"
 	"strings"
+	"time"
 
 	utls "github.com/refraction-networking/utls"
 
@@ -39,7 +40,6 @@ type Client struct {
 	ca            *x509.CertPool
 	cipher        []uint16
 	sessionTicket bool
-	reuseSession  bool
 	fingerprint   string
 	helloID       utls.ClientHelloID
 	keyLogger     io.WriteCloser
@@ -103,7 +103,9 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		if log.ShouldLog(log.DebugLevel) {
 			log.Debug("[TLS] Dialing TCP directly to:", address.String())
 		}
-		conn, err = net.Dial("tcp", address.String())
+		// 带超时的拨号：无超时的 net.Dial 挂起时既无法取消也可能拖住调用方约 2 分钟
+		dialer := net.Dialer{Timeout: 30 * time.Second}
+		conn, err = dialer.Dial("tcp", address.String())
 		if err != nil {
 			_ = tracker.Error(err)
 			return nil, common.NewError("failed to dial TCP connection").Base(err)

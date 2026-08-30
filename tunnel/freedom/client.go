@@ -97,29 +97,43 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 		if err != nil {
 			return nil, common.NewError("freedom failed to create socks client").Base(err)
 		}
+		// socks5.Client.Close 在 TCPConn 为 nil 时会 panic，按建立阶段分别清理
+		closeSocksTCP := func() {
+			if socksClient.TCPConn != nil {
+				_ = socksClient.TCPConn.Close()
+			}
+		}
 		if err := socksClient.Negotiate(&net.TCPAddr{}); err != nil {
+			closeSocksTCP()
 			return nil, common.NewError("freedom failed to negotiate socks").Base(err)
 		}
 		a, addr, port, err := socks5.ParseAddress("1.1.1.1:53")
 		if err != nil {
+			closeSocksTCP()
 			return nil, common.NewError("freedom failed to parse address").Base(err)
 		}
 		resp, err := socksClient.Request(socks5.NewRequest(socks5.CmdUDP, a, addr, port))
 		if err != nil {
+			closeSocksTCP()
 			return nil, common.NewError("freedom failed to dial udp to socks").Base(err)
 		}
 		// TODO fix hardcoded localhost
 		packetConn, err := net.ListenPacket("udp", "0.0.0.0:0")
 		if err != nil {
+			closeSocksTCP()
 			return nil, common.NewError("freedom failed to listen udp").Base(err)
 		}
 		socksAddr, err := net.ResolveUDPAddr("udp", resp.Address())
 		if err != nil {
+			packetConn.Close()
+			closeSocksTCP()
 			return nil, common.NewError("freedom recv invalid socks bind addr").Base(err)
 		}
 		if socksAddr.IP.Equal(net.IPv4zero) {
 			ip, err := c.proxyAddr.ResolveIP()
 			if err != nil {
+				packetConn.Close()
+				closeSocksTCP()
 				return nil, common.NewError("freedom failed to resolve ip").Base(err)
 			}
 			socksAddr.IP = ip

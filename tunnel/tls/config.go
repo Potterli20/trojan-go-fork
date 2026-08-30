@@ -22,7 +22,6 @@ type TLSConfig struct {
 	KeyPath              string   `json:"key" yaml:"key"`
 	KeyPassword          string   `json:"key_password" yaml:"key-password"`
 	Cipher               string   `json:"cipher" yaml:"cipher"`
-	PreferServerCipher   bool     `json:"prefer_server_cipher" yaml:"prefer-server-cipher"`
 	SNI                  string   `json:"sni" yaml:"sni"`
 	ServerName           string   `json:"server_name" yaml:"server-name"`
 	HTTPResponseFileName string   `json:"plain_http_response" yaml:"plain-http-response"`
@@ -30,7 +29,6 @@ type TLSConfig struct {
 	FallbackPort         int      `json:"fallback_port" yaml:"fallback-port"`
 	ReuseSession         bool     `json:"reuse_session" yaml:"reuse-session"`
 	ALPN                 []string `json:"alpn" yaml:"alpn"`
-	Curves               string   `json:"curves" yaml:"curves"`
 	Fingerprint          string   `json:"fingerprint" yaml:"fingerprint"`
 	KeyLogPath           string   `json:"key_log" yaml:"key-log"`
 	CertCheckRate        int      `json:"cert_check_rate" yaml:"cert-check-rate"`

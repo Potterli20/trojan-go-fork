@@ -151,6 +151,7 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 	}
 	udpListener, err := net.ListenPacket("udp", listenAddr.String())
 	if err != nil {
+		tcpListener.Close()
 		return nil, common.NewError("failed to listen udp").Base(err)
 	}
 

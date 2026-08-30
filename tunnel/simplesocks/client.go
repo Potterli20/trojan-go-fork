@@ -53,6 +53,7 @@ func (c *Client) DialPacket(t tunnel.Tunnel) (tunnel.PacketConn, error) {
 	}
 	_, err = metadata.WriteTo(conn)
 	if err != nil {
+		conn.Close()
 		return nil, common.NewError("simplesocks failed to write udp associate").Base(err)
 	}
 	return &PacketConn{
