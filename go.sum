@@ -4,8 +4,8 @@ github.com/HyNetworks/quic-go v0.61.1-0.20260806010916-184d081eef3e h1:IWdnVU6+R
 github.com/HyNetworks/quic-go v0.61.1-0.20260806010916-184d081eef3e/go.mod h1:x7qxEvX6MCVtDuBKHj3E+88+BtrbEMuAL5qGUKItjW8=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260811213656-71847589a521 h1:y7oLi8eShVGl6+d0n+NANq807YJHNB6mQ2B2OjeCbTA=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260811213656-71847589a521/go.mod h1:DfW2OzQOJWQPD6rRNcVqrBZVZiaVJgkiQUKDdb4Z7jk=
-github.com/Potterli20/socks5-fork v0.0.0-20260901140345-751604d37b44 h1:gfA7FEfCz/j8OfKOAlXyNe9CllTheNK5kpFgDM/+Y+E=
-github.com/Potterli20/socks5-fork v0.0.0-20260901140345-751604d37b44/go.mod h1:bpbl2LpMgTbCiw6pjX1wSi5R1I4loDSe3PcWrRm6L00=
+github.com/Potterli20/socks5-fork v0.0.0-20260901181805-e2ec33577b97 h1:ioEoIXGWlR8OGJIyOUbXpBj3rBpIbQGS/o/9rY30sRQ=
+github.com/Potterli20/socks5-fork v0.0.0-20260901181805-e2ec33577b97/go.mod h1:d526oeXju13TuFYkUwv2w5BdW3lGAxXgJvEJpR+KlYw=
 github.com/Potterli20/sqlite v0.0.0-20260826192821-81c43fa35221 h1:LdB8CYst5ynp1Uy4iY67/V9koZ+d32ifZMow8ZLx9IE=
 github.com/Potterli20/sqlite v0.0.0-20260826192821-81c43fa35221/go.mod h1:2IgZ7gsTWYt3EybQfrSPRdXKgMViSGLa89OZwfK0i6M=
 github.com/andybalholm/brotli v1.2.3 h1:8H1qwOkl2LPfjf3YezB90JnCliZb6SInJ/OJkEbA5NQ=
@@ -62,8 +62,8 @@ github.com/mattn/go-isatty v0.0.24 h1:tGZZoVgT/KiqK1c8ocVLeDS8BSWMRd47J3Lbz7vsRe
 github.com/mattn/go-isatty v0.0.24/go.mod h1:nMCL3Zebbrt45jsMDgnfIwz6ydEQApk5oEI3HqDio6A=
 github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
 github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
-github.com/miekg/dns v1.1.73 h1:uhT8nJxmTrPJYClxVxTCX+CVn6qnzSiybRk72Z6DgrE=
-github.com/miekg/dns v1.1.73/go.mod h1:RW2Obtfd5NZHvOFe3zYG0W8koWOQtAzyHaLo8vASBuQ=
+github.com/miekg/dns v1.1.74-0.20260901173534-2e4905fb0302 h1:zpLxUXjhiqkQc//niMGHWBgat3zd2EPaKJ1aVBhd4qw=
+github.com/miekg/dns v1.1.74-0.20260901173534-2e4905fb0302/go.mod h1:YVxs4ZFBJDL6ZDgjMrKn9NqEdZm5TAbWoFeZ8IzbNVo=
 github.com/ncruces/go-strftime v1.0.0 h1:HMFp8mLCTPp341M/ZnA4qaf7ZlsbTc+miZjCLOFAw7w=
 github.com/ncruces/go-strftime v1.0.0/go.mod h1:Fwc5htZGVVkseilnfgOVb9mKy6w1naJmn9CehxcKcls=
 github.com/pires/go-proxyproto v0.15.0 h1:dTshmNbFm/D+0+sbrxUuddPOZ5Y0B7c5NhtsBkm6LqI=
