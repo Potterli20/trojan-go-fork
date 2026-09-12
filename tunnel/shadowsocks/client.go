@@ -28,7 +28,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 }
 
 func (c *Client) DialPacket(tunnel tunnel.Tunnel) (tunnel.PacketConn, error) {
-	panic("not supported")
+	return nil, common.NewError("shadowsocks does not support packet dial")
 }
 
 func (c *Client) Close() error {

@@ -47,7 +47,9 @@ func (o *apiController) listRecords(apiClient service.TrojanServerServiceClient)
 			return err
 		}
 		data, err := json.MarshalIndent(resp, "", "    ")
-		common.Must(err)
+		if err != nil {
+			return err
+		}
 		fmt.Println(string(data))
 	}
 }
@@ -70,7 +72,9 @@ func (o *apiController) listUsers(apiClient service.TrojanServerServiceClient) e
 		result = append(result, resp)
 	}
 	data, err := json.Marshal(result)
-	common.Must(err)
+	if err != nil {
+		return err
+	}
 	fmt.Println(string(data))
 	return nil
 }
@@ -95,7 +99,9 @@ func (o *apiController) getUsers(apiClient service.TrojanServerServiceClient) er
 		return err
 	}
 	data, err := json.Marshal(resp)
-	common.Must(err)
+	if err != nil {
+		return err
+	}
 	fmt.Print(string(data))
 	return nil
 }

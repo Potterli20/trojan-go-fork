@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 
+	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
@@ -19,7 +20,7 @@ func (t *Tunnel) NewClient(ctx context.Context, client tunnel.Client) (tunnel.Cl
 }
 
 func (t *Tunnel) NewServer(ctx context.Context, server tunnel.Server) (tunnel.Server, error) {
-	panic("not supported")
+	return nil, common.NewError("router does not support server mode")
 }
 
 func init() {

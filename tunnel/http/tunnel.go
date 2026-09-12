@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 
+	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
@@ -15,7 +16,7 @@ func (t *Tunnel) Name() string {
 }
 
 func (t *Tunnel) NewClient(ctx context.Context, client tunnel.Client) (tunnel.Client, error) {
-	panic("not supported")
+	return nil, common.NewError("http tunnel does not support client mode")
 }
 
 func (t *Tunnel) NewServer(ctx context.Context, server tunnel.Server) (tunnel.Server, error) {

@@ -56,7 +56,11 @@ func (s *Server) acceptLoop() {
 				return
 			}
 			log.Error(common.NewError("transport accept error").Base(err))
-			time.Sleep(time.Millisecond * 100)
+			select {
+			case <-time.After(time.Millisecond * 100):
+			case <-s.ctx.Done():
+				return
+			}
 			continue
 		}
 
@@ -115,7 +119,9 @@ func (s *Server) handleConnection(tcpConn net.Conn) {
 }
 
 func (s *Server) AcceptConn(overlay tunnel.Tunnel) (tunnel.Conn, error) {
-	// TODO fix import cycle
+	// 使用 overlay.Name() 字符串比较而非类型断言：
+	// tunnel/transport 导入 tunnel/websocket/tunnel/http 会形成 import cycle，
+	// 字符串比较是合理的解耦方式，无需引入新接口。
 	if overlay != nil && (overlay.Name() == "WEBSOCKET" || overlay.Name() == "HTTP") {
 		s.httpLock.Lock()
 		s.nextHTTP = true
@@ -136,7 +142,7 @@ func (s *Server) AcceptConn(overlay tunnel.Tunnel) (tunnel.Conn, error) {
 }
 
 func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
-	panic("not supported")
+	return nil, common.NewError("transport does not support packet accept")
 }
 
 // NewServer creates a transport layer server

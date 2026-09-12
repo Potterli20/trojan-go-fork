@@ -77,6 +77,8 @@ func RunClientAPI(ctx context.Context, auth statistic.Authenticator) error {
 	defer listener.Close()
 	log.Info("client-side api service is listening on", listener.Addr().String())
 	errChan := make(chan error, 1)
+	// goroutine 生命周期：server.Serve 在 listener.Close() 后返回。
+	// 函数返回时 defer listener.Close() 触发，goroutine 随即退出，不会泄漏。
 	go func() {
 		errChan <- server.Serve(listener)
 	}()

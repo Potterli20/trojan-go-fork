@@ -130,11 +130,13 @@ type Client struct {
 	user     statistic.User
 	ctx      context.Context
 	cancel   context.CancelFunc
+	wg       sync.WaitGroup
 }
 
 func (c *Client) Close() error {
 	log.Info("[Trojan] Closing client")
 	c.cancel()
+	c.wg.Wait()
 	if err := c.underlay.Close(); err != nil {
 		log.Error("[Trojan] Failed to close underlay:", err)
 		return err
@@ -181,14 +183,14 @@ func (c *Client) DialConn(addr *tunnel.Address, overlay tunnel.Tunnel) (tunnel.C
 		newConn.metadata.Command = Mux
 	}
 
-	go func(newConn *OutboundConn) {
+	c.wg.Go(func() {
 		select {
 		case <-time.After(time.Millisecond * 100):
 			newConn.WriteHeader(nil) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		case <-newConn.ctx.Done():
 			return
 		}
-	}(newConn)
+	})
 
 	return newConn, nil
 }

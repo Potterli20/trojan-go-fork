@@ -88,7 +88,12 @@ func (s *Server) packetDispatchLoop() {
 					s.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 					return
 				}
-				time.Sleep(time.Millisecond * 100)
+				// 错误退避：在 ctx 取消时立即返回，否则等待 100ms 后重试。
+				select {
+				case <-s.ctx.Done():
+					return
+				case <-time.After(time.Millisecond * 100):
+				}
 				continue
 			}
 			readErrors = 0

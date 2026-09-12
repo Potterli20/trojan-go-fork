@@ -219,7 +219,7 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 }
 
 func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
-	panic("not supported")
+	return nil, common.NewError("mux does not support packet dial")
 }
 
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {

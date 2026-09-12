@@ -3,6 +3,7 @@ package freedom
 import (
 	"context"
 
+	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
@@ -19,7 +20,7 @@ func (*Tunnel) NewClient(ctx context.Context, client tunnel.Client) (tunnel.Clie
 }
 
 func (*Tunnel) NewServer(ctx context.Context, client tunnel.Server) (tunnel.Server, error) {
-	panic("not supported")
+	return nil, common.NewError("freedom does not support server mode")
 }
 
 func init() {

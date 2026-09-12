@@ -75,9 +75,7 @@ func TestStickyConnConcurrentSessions(t *testing.T) {
 			c2.Close()
 		}
 
-		wgServer.Add(1)
-		go func(i int) {
-			defer wgServer.Done()
+		wgServer.Go(func() {
 			stream, err := serverSession.AcceptStream()
 			if err != nil {
 				serverErrs <- err
@@ -87,7 +85,7 @@ func TestStickyConnConcurrentSessions(t *testing.T) {
 			n, _ := stream.Read(buf)
 			stream.Write(buf[:n])
 			stream.Close()
-		}(i)
+		})
 	}
 
 	var wg sync.WaitGroup

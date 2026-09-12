@@ -64,7 +64,7 @@ func (s *Server) AcceptConn(overlay tunnel.Tunnel) (tunnel.Conn, error) {
 }
 
 func (s *Server) AcceptPacket(t tunnel.Tunnel) (tunnel.PacketConn, error) {
-	panic("not supported")
+	return nil, common.NewError("shadowsocks does not support packet accept")
 }
 
 func (s *Server) Close() error {

@@ -230,7 +230,7 @@ func (s *Server) AcceptConn(overlay tunnel.Tunnel) (tunnel.Conn, error) {
 }
 
 func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
-	panic("not supported")
+	return nil, common.NewError("tls does not support packet accept")
 }
 
 func (s *Server) checkKeyPairLoop(checkRate time.Duration, keyPath string, certPath string, password string) {

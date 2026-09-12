@@ -3,6 +3,7 @@ package socks
 import (
 	"context"
 
+	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
@@ -15,7 +16,7 @@ func (*Tunnel) Name() string {
 }
 
 func (*Tunnel) NewClient(context.Context, tunnel.Client) (tunnel.Client, error) {
-	panic("not supported")
+	return nil, common.NewError("socks does not support client mode")
 }
 
 func (*Tunnel) NewServer(ctx context.Context, server tunnel.Server) (tunnel.Server, error) {

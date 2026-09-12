@@ -117,7 +117,8 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 			closeSocksTCP()
 			return nil, common.NewError("freedom failed to dial udp to socks").Base(err)
 		}
-		// TODO fix hardcoded localhost
+		// 0.0.0.0:0 让内核自动选择绑定地址和端口，是 forward-proxy 模式下
+		// UDP relay 的标准做法（监听所有接口、随机端口），有意为之。
 		packetConn, err := net.ListenPacket("udp", "0.0.0.0:0")
 		if err != nil {
 			closeSocksTCP()

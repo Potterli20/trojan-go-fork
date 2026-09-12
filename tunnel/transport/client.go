@@ -46,7 +46,7 @@ func (c *Client) Close() error {
 
 func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	log.Warn("[Transport] DialPacket is not supported")
-	panic("not supported")
+	return nil, common.NewError("transport does not support packet dial")
 }
 
 // DialConn implements tunnel.Client. It will ignore the params and directly dial to the remote server

@@ -103,7 +103,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 }
 
 func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
-	panic("not supported")
+	return nil, common.NewError("mux does not support packet accept")
 }
 
 func (s *Server) Close() error {
