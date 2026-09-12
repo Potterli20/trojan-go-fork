@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260909022356-7eea5a84c904
 	github.com/Potterli20/socks5-fork v0.0.0-20260912102843-420d624e5ff5
 	github.com/Potterli20/sqlite v0.0.0-20260908230202-cf252cfeeb7e
-	github.com/apernet/quic-go v0.61.1-0.20260806010916-184d081eef3e
+	github.com/apernet/quic-go v0.62.1-0.20260912175848-73339f7edbb9
 	github.com/coder/websocket v1.8.15
 	github.com/database64128/tfo-go/v2 v2.4.1-0.20260908133757-4e2e41017204
 	github.com/go-sql-driver/mysql v1.10.1
@@ -16,7 +16,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.12.1
 	github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b
-	github.com/xtls/xray-core v1.260327.1-0.20260908222543-52a412d9e2f5
+	github.com/xtls/xray-core v1.260327.1-0.20260912200935-c412e77a9b71
 	golang.org/x/crypto v0.57.0
 	golang.org/x/net v0.59.0
 	golang.org/x/sys v0.48.0
@@ -41,7 +41,6 @@ require (
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/klauspost/compress v1.19.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
@@ -75,4 +74,5 @@ replace (
 	// 生成的伪版本（vBASE-TIMESTAMP-HASH12），由 gomod.sh 中 update_quic_go 自动计算。
 	github.com/apernet/quic-go v0.60.1-0.20260618182935-599b15a1fa26 => github.com/HyNetworks/quic-go v0.60.1-0.20260618182935-599b15a1fa26
 	github.com/apernet/quic-go v0.61.1-0.20260806010916-184d081eef3e => github.com/HyNetworks/quic-go v0.61.1-0.20260806010916-184d081eef3e
+	github.com/apernet/quic-go v0.62.1-0.20260912175848-73339f7edbb9 => github.com/HyNetworks/quic-go v0.62.1-0.20260912175848-73339f7edbb9
 )
