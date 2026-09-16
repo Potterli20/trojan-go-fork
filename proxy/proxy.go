@@ -17,6 +17,9 @@ import (
 
 const Name = "PROXY"
 
+// proxyIDKey 是 context value 的自定义 key 类型，避免使用内置 string 类型造成碰撞
+type proxyIDKey string
+
 const (
 	MaxPacketSize = 1024 * 8
 )
@@ -293,7 +296,7 @@ func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 	if err != nil {
 		return nil, common.NewError("failed to generate secure instance ID").Base(err)
 	}
-	ctx := context.WithValue(context.Background(), Name+"_ID", instanceID)
+	ctx := context.WithValue(context.Background(), proxyIDKey(Name+"_ID"), instanceID)
 	if isJSON {
 		ctx, err = config.WithJSONConfig(ctx, data)
 		if err != nil {

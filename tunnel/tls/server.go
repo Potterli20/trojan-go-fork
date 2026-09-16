@@ -299,6 +299,7 @@ func loadKeyPair(keyPath string, certPath string, password string) (*tls.Certifi
 		}
 		// DecryptPEMBlock 自 Go 1.16 起标记废弃（RFC 1423 本身不安全），但标准库无替代实现；
 		// 保留以兼容配置了 key_password 的传统 PEM 加密私钥，解密结果只用于本地 TLS 密钥加载
+		//lint:ignore SA1019 标准库无替代实现，保留兼容传统 PEM 加密私钥
 		decryptedKey, err := x509.DecryptPEMBlock(keyBlock, []byte(password))
 		if err != nil {
 			return nil, common.NewError("failed to decrypt key").Base(err)

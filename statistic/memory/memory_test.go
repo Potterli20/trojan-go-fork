@@ -24,6 +24,7 @@ var (
 	// errDatabaseIsLocked 模拟真实 sqlite busy/locked 错误字符串
 	errDatabaseIsLocked = errors.New("database is locked")
 	// errDeadlock 模拟 MySQL 死锁错误字符串
+	//lint:ignore ST1005 需要匹配 MySQL 真实错误消息的大小写
 	errDeadlock = errors.New("Deadlock found when trying to get lock; try restarting transaction")
 	// errTableMissing 模拟不可重试错误（表不存在）
 	errTableMissing = errors.New("table trojan_users does not exist")
@@ -662,12 +663,6 @@ func (p *lockableMockPersistencer) setPolicy(hash string, pol *perHashPolicy) {
 	p.perHash[hash] = pol
 }
 
-func (p *lockableMockPersistencer) setDefaultPolicy(pol *perHashPolicy) {
-	p.policyMu.Lock()
-	defer p.policyMu.Unlock()
-	p.defaultPolicy = pol
-}
-
 func (p *lockableMockPersistencer) setGlobalLockFirstNCalls(n int) {
 	p.globalLockFirstNCalls = n
 	p.globalCallCount.Store(0)
@@ -792,10 +787,9 @@ const (
 )
 
 type userSeed struct {
-	hash         string
-	profile      userTrafficProfile
-	sent, recv   uint64
-	customPolicy *perHashPolicy // 可选：该用户特有的失败策略
+	hash     string
+	profile  userTrafficProfile
+	sent, recv uint64
 }
 
 // sha256Hex6 辅助函数：用字符串的 sha256 前 6 位构造生产风格的短 hash
@@ -898,37 +892,6 @@ func seedUsersIntoAuth(auth *Authenticator, seeds []userSeed) (total int, change
 		}
 	}
 	return
-}
-
-// ============================================================================
-//  锁竞争场景 preset（对应需求"准备触发锁竞争的测试条件"）
-// ============================================================================
-
-// applyPartialLockScenario 把 users 指定比例的用户设为"前 K 次 locked，之后成功"
-// 返回被打了锁策略的用户 hash 集合
-func applyPartialLockScenario(pst *lockableMockPersistencer, users []userSeed, ratio float64, lockFirstN int) []string {
-	selected := make([]string, 0, int(float64(len(users))*ratio)+1)
-	for i, u := range users {
-		if u.profile == profStatic {
-			continue // 静态用户不会触发写库，加策略无意义
-		}
-		if float64(i)/float64(len(users)) < ratio {
-			pst.setPolicy(u.hash, &perHashPolicy{lockFirstNCalls: lockFirstN})
-			selected = append(selected, u.hash)
-		}
-	}
-	return selected
-}
-
-// applyPermanentLockScenario 对特定的用户子集设置永久 locked 或永久不可重试错误
-func applyPermanentLockScenario(pst *lockableMockPersistencer, hashes []string, nonRetryable bool) {
-	for _, h := range hashes {
-		if nonRetryable {
-			pst.setPolicy(h, &perHashPolicy{permanentErr: errTableMissing})
-		} else {
-			pst.setPolicy(h, &perHashPolicy{lockFirstNCalls: -1})
-		}
-	}
 }
 
 // ============================================================================

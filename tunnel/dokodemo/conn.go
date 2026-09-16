@@ -12,7 +12,6 @@ const MaxPacketSize = 1024 * 8
 
 type Conn struct {
 	net.Conn
-	src            *tunnel.Address
 	targetMetadata *tunnel.Metadata
 }
 

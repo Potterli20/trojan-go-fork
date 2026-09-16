@@ -9,6 +9,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// configKey 是 context value 的自定义 key 类型，避免使用内置 string 类型造成碰撞
+type configKey string
+
 var (
 	creators = make(map[string]Creator)
 	mu       sync.RWMutex
@@ -67,7 +70,7 @@ func WithJSONConfig(ctx context.Context, data []byte) (context.Context, error) {
 		return ctx, err
 	}
 	for name, config := range configs {
-		ctx = context.WithValue(ctx, name, config)
+		ctx = context.WithValue(ctx, configKey(name), config)
 	}
 	return ctx, nil
 }
@@ -80,17 +83,16 @@ func WithYAMLConfig(ctx context.Context, data []byte) (context.Context, error) {
 		return ctx, err
 	}
 	for name, config := range configs {
-		ctx = context.WithValue(ctx, name, config)
+		ctx = context.WithValue(ctx, configKey(name), config)
 	}
 	return ctx, nil
 }
 
 func WithConfig(ctx context.Context, name string, cfg any) context.Context {
-	name += "_CONFIG"
-	return context.WithValue(ctx, name, cfg)
+	return context.WithValue(ctx, configKey(name+"_CONFIG"), cfg)
 }
 
 // FromContext extracts config from a context
 func FromContext(ctx context.Context, name string) any {
-	return ctx.Value(name + "_CONFIG")
+	return ctx.Value(configKey(name + "_CONFIG"))
 }
