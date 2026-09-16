@@ -787,8 +787,8 @@ const (
 )
 
 type userSeed struct {
-	hash     string
-	profile  userTrafficProfile
+	hash       string
+	profile    userTrafficProfile
 	sent, recv uint64
 }
 
