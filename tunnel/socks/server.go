@@ -128,15 +128,15 @@ func (s *Server) Close() error {
 
 func (s *Server) handshake(conn net.Conn) (*Conn, error) {
 	version := [1]byte{}
-	if _, err := conn.Read(version[:]); err != nil {
+	if _, err := io.ReadFull(conn, version[:]); err != nil {
 		return nil, common.NewError("failed to read socks version").Base(err)
 	}
 	if version[0] != 5 {
 		return nil, common.NewErrorf("invalid socks version %d", version[0])
 	}
 	nmethods := [1]byte{}
-	if _, err := conn.Read(nmethods[:]); err != nil {
-		return nil, common.NewError("failed to read NMETHODS")
+	if _, err := io.ReadFull(conn, nmethods[:]); err != nil {
+		return nil, common.NewError("failed to read NMETHODS").Base(err)
 	}
 	if _, err := io.CopyN(io.Discard, conn, int64(nmethods[0])); err != nil {
 		return nil, common.NewError("socks failed to read methods").Base(err)
@@ -146,8 +146,8 @@ func (s *Server) handshake(conn net.Conn) (*Conn, error) {
 	}
 
 	buf := [3]byte{}
-	if _, err := conn.Read(buf[:]); err != nil {
-		return nil, common.NewError("failed to read command")
+	if _, err := io.ReadFull(conn, buf[:]); err != nil {
+		return nil, common.NewError("failed to read command").Base(err)
 	}
 
 	addr := new(tunnel.Address)

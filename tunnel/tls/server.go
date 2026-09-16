@@ -40,6 +40,7 @@ type Server struct {
 	keyPairLock     sync.RWMutex
 	httpResp        []byte
 	cipherSuite     []uint16
+	curvePrefs      []tls.CurveID
 	sessionTicket   bool
 	keyLogger       io.WriteCloser
 	connChan        chan tunnel.Conn
@@ -96,6 +97,7 @@ func (s *Server) acceptLoop() {
 
 			tlsConfig := &tls.Config{
 				CipherSuites:           s.cipherSuite,
+				CurvePreferences:       s.curvePrefs,
 				SessionTicketsDisabled: !s.sessionTicket,
 				NextProtos:             s.alpn,
 				KeyLogWriter:           s.keyLogger,
@@ -383,6 +385,8 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		cipherSuite = fingerprint.ParseCipher(strings.Split(cfg.TLS.Cipher, ":"))
 	}
 
+	curvePrefs := fingerprint.ParseCurvePreferences(cfg.TLS.CurvePreferences)
+
 	ctx, cancel := context.WithCancel(ctx)
 	server := &Server{
 		underlay:        underlay,
@@ -398,6 +402,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		keyPair:         []tls.Certificate{*keyPair},
 		keyLogger:       keyLogger,
 		cipherSuite:     cipherSuite,
+		curvePrefs:      curvePrefs,
 		ctx:             ctx,
 		cancel:          cancel,
 	}

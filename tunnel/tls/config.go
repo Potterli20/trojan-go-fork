@@ -32,6 +32,10 @@ type TLSConfig struct {
 	Fingerprint          string   `json:"fingerprint" yaml:"fingerprint"`
 	KeyLogPath           string   `json:"key_log" yaml:"key-log"`
 	CertCheckRate        int      `json:"cert_check_rate" yaml:"cert-check-rate"`
+	// CurvePreferences 指定 TLS 密钥交换机制偏好列表。
+	// 支持的值：X25519MLKEM768、SecP256r1MLKEM768、SecP384r1MLKEM1024、MLKEM1024、X25519、CurveP256、CurveP384、CurveP521
+	// 留空则使用默认值（Go 1.27 默认包含 X25519MLKEM768 等后量子混合密钥交换）
+	CurvePreferences []string `json:"curve_preferences" yaml:"curve-preferences"`
 }
 
 func init() {

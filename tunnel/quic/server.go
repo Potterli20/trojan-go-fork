@@ -12,6 +12,7 @@ import (
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	tlstunnel "github.com/Potterli20/trojan-go-fork/tunnel/tls"
+	"github.com/Potterli20/trojan-go-fork/tunnel/tls/fingerprint"
 	"github.com/apernet/quic-go"
 )
 
@@ -226,8 +227,9 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	}
 
 	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{keyPair},
-		NextProtos:   []string{cfg.QUIC.ALPN},
+		Certificates:     []tls.Certificate{keyPair},
+		NextProtos:       []string{cfg.QUIC.ALPN},
+		CurvePreferences: fingerprint.ParseCurvePreferences(tlsCfg.TLS.CurvePreferences),
 	}
 
 	quicConfig := &quic.Config{

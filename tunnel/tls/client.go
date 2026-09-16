@@ -37,17 +37,19 @@ var fingerprintsMap = map[string]utls.ClientHelloID{
 const handshakeTimeout = 30 * time.Second
 
 type Client struct {
-	verify        bool
-	sni           string
-	serverName    string
-	ca            *x509.CertPool
-	cipher        []uint16
-	sessionTicket bool
-	fingerprint   string
-	helloID       utls.ClientHelloID
-	keyLogger     io.WriteCloser
-	alpn          []string
-	underlay      tunnel.Client
+	verify          bool
+	sni             string
+	serverName      string
+	ca              *x509.CertPool
+	cipher          []uint16
+	curvePrefs      []tls.CurveID
+	utlsCurvePrefs []utls.CurveID
+	sessionTicket   bool
+	fingerprint     string
+	helloID         utls.ClientHelloID
+	keyLogger       io.WriteCloser
+	alpn            []string
+	underlay        tunnel.Client
 }
 
 func (c *Client) Close() error {
@@ -136,6 +138,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 			CipherSuites:           c.cipher,
 			SessionTicketsDisabled: !c.sessionTicket,
 			NextProtos:             c.alpn,
+			CurvePreferences:       c.utlsCurvePrefs,
 		}, c.helloID)
 
 		conn.SetDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
@@ -168,6 +171,7 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		CipherSuites:           c.cipher,
 		SessionTicketsDisabled: !c.sessionTicket,
 		NextProtos:             c.alpn,
+		CurvePreferences:       c.curvePrefs,
 	})
 
 	conn.SetDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
@@ -233,16 +237,18 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	}
 
 	client := &Client{
-		underlay:      underlay,
-		verify:        cfg.TLS.Verify,
-		sni:           cfg.TLS.SNI,
-		serverName:    cfg.TLS.ServerName,
-		cipher:        fingerprint.ParseCipher(strings.Split(cfg.TLS.Cipher, ":")),
-		sessionTicket: cfg.TLS.ReuseSession,
-		fingerprint:   cfg.TLS.Fingerprint,
-		helloID:       helloID,
-		keyLogger:     keyLogger,
-		alpn:          cfg.TLS.ALPN,
+		underlay:        underlay,
+		verify:          cfg.TLS.Verify,
+		sni:             cfg.TLS.SNI,
+		serverName:      cfg.TLS.ServerName,
+		cipher:          fingerprint.ParseCipher(strings.Split(cfg.TLS.Cipher, ":")),
+		curvePrefs:      fingerprint.ParseCurvePreferences(cfg.TLS.CurvePreferences),
+		utlsCurvePrefs:  fingerprint.ParseUTLSCurvePreferences(cfg.TLS.CurvePreferences),
+		sessionTicket:   cfg.TLS.ReuseSession,
+		fingerprint:     cfg.TLS.Fingerprint,
+		helloID:         helloID,
+		keyLogger:       keyLogger,
+		alpn:            cfg.TLS.ALPN,
 	}
 
 	if cfg.TLS.CertPath != "" {

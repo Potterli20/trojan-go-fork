@@ -11,6 +11,8 @@ import (
 	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
+	tlstunnel "github.com/Potterli20/trojan-go-fork/tunnel/tls"
+	"github.com/Potterli20/trojan-go-fork/tunnel/tls/fingerprint"
 	"github.com/apernet/quic-go"
 )
 
@@ -27,12 +29,14 @@ type Client struct {
 	quicConn       any
 	quicConnMutex  sync.RWMutex
 	keepAliveOnce  sync.Once
+	wg             sync.WaitGroup
 	ctx            context.Context
 	cancel         context.CancelFunc
 }
 
 func (c *Client) Close() error {
 	c.cancel()
+	c.wg.Wait()
 	c.quicConnMutex.Lock()
 	if c.quicConn != nil {
 		c.quicConn.(interface { //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
@@ -95,7 +99,9 @@ func (c *Client) getOrCreateConnection() (any, error) {
 	c.quicConn = quicConn
 
 	c.keepAliveOnce.Do(func() {
-		go c.keepAliveLoop()
+		c.wg.Go(func() {
+			c.keepAliveLoop()
+		})
 	})
 
 	return quicConn, nil
@@ -295,6 +301,7 @@ func (c *PacketConn) SetWriteDeadline(t time.Time) error {
 
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
+	tlsCfg := config.FromContext(ctx, "TLS").(*tlstunnel.Config)
 
 	if cfg.RemoteHost == "" {
 		return nil, common.NewError("QUIC remote address is empty")
@@ -310,6 +317,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		ServerName:         cfg.RemoteHost,
 		InsecureSkipVerify: cfg.QUIC.Insecure,
 		NextProtos:         []string{cfg.QUIC.ALPN},
+		CurvePreferences:   fingerprint.ParseCurvePreferences(tlsCfg.TLS.CurvePreferences),
 	}
 
 	quicConfig := &quic.Config{

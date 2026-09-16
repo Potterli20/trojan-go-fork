@@ -34,7 +34,7 @@ const (
 
 const MaxPacketSize = 1024 * 8
 
-func matchDomain(list []*v2geodata.Domain, target string) bool {
+func matchDomain(list []*v2geodata.Domain, regexCache map[string]*regexp.Regexp, target string) bool {
 	for _, d := range list {
 		switch d.Type {
 		case v2geodata.Domain_Full:
@@ -58,12 +58,17 @@ func matchDomain(list []*v2geodata.Domain, target string) bool {
 				return true
 			}
 		case v2geodata.Domain_Regex:
-			matched, err := regexp.Match(d.Value, []byte(target))
-			if err != nil {
-				log.Error("invalid regex", d.Value)
-				return false
+			re, ok := regexCache[d.Value]
+			if !ok {
+				var err error
+				re, err = regexp.Compile(d.Value)
+				if err != nil {
+					log.Error("invalid regex", d.Value)
+					return false
+				}
+				regexCache[d.Value] = re
 			}
-			if matched {
+			if re.MatchString(target) {
 				log.Tracef("domain %s hit regex rule: %s", target, d.Value)
 				return true
 			}
@@ -122,6 +127,7 @@ func newIPAddress(address *tunnel.Address) (*tunnel.Address, error) {
 type Client struct {
 	domains        [3][]*v2geodata.Domain
 	cidrs          [3][]*v2geodata.CIDR
+	regexCache     map[string]*regexp.Regexp
 	defaultPolicy  int
 	domainStrategy int
 	underlay       tunnel.Client
@@ -143,7 +149,7 @@ func (c *Client) Route(address *tunnel.Address) int {
 			}
 		}
 		for i := Block; i <= Proxy; i++ {
-			if matchDomain(c.domains[i], address.DomainName) {
+			if matchDomain(c.domains[i], c.regexCache, address.DomainName) {
 				return i
 			}
 		}
@@ -302,12 +308,13 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	}
 
 	client := &Client{
-		domains:  [3][]*v2geodata.Domain{},
-		cidrs:    [3][]*v2geodata.CIDR{},
-		underlay: underlay,
-		direct:   direct,
-		ctx:      ctx,
-		cancel:   cancel,
+		domains:    [3][]*v2geodata.Domain{},
+		cidrs:      [3][]*v2geodata.CIDR{},
+		regexCache: make(map[string]*regexp.Regexp),
+		underlay:   underlay,
+		direct:     direct,
+		ctx:        ctx,
+		cancel:     cancel,
 	}
 	switch strings.ToLower(cfg.Router.DomainStrategy) {
 	case "as_is", "as-is", "asis":

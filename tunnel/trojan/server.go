@@ -162,20 +162,31 @@ func (c *InboundConn) Auth() error {
 	crlf := [2]byte{}
 	_, err = io.ReadFull(c.Conn, crlf[:])
 	if err != nil {
+		c.rollbackIPLimit()
 		return err
 	}
 
 	c.metadata = &tunnel.Metadata{}
 	_, err = c.metadata.ReadFrom(c.Conn)
 	if err != nil {
+		c.rollbackIPLimit()
 		return err
 	}
 
 	_, err = io.ReadFull(c.Conn, crlf[:])
 	if err != nil {
+		c.rollbackIPLimit()
 		return err
 	}
 	return nil
+}
+
+// rollbackIPLimit 在 Auth 后续步骤失败时回滚已占用的 IP 槽，
+// 防止认证失败场景下 IP 槽泄漏导致 MaxIPNum 被耗尽
+func (c *InboundConn) rollbackIPLimit() {
+	if c.user != nil && c.ipX != "" {
+		c.user.DelIP(c.ipX)
+	}
 }
 
 func (c *InboundConn) Record() {
@@ -352,10 +363,6 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		return nil, common.NewError("trojan failed to create authenticator")
 	}
 
-	if cfg.API.Enabled {
-		go api.RunService(ctx, Name+"_SERVER", Auth)
-	}
-
 	// 仅在显式配置 record_capacity 时覆盖包级默认值（10），
 	// 否则把 Capacity 置 0 会导致 Subscribe 创建无缓冲 channel，
 	// broadcast 的 select+default 会丢弃几乎所有 Record，录制功能静默失效。
@@ -384,6 +391,12 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 			return nil, common.NewError("invalid redirect address. check your http server: " + redirAddr.String()).Base(err)
 		}
 		redirConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	}
+
+	if cfg.API.Enabled {
+		s.wg.Go(func() {
+			api.RunService(ctx, Name+"_SERVER", Auth)
+		})
 	}
 
 	s.wg.Go(func() {

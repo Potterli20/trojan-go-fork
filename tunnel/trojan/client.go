@@ -256,7 +256,6 @@ func NewClient(ctx context.Context, client tunnel.Client) (*Client, error) {
 
 	if cfg.API.Enabled {
 		log.Info("[Trojan] Starting API service")
-		go api.RunService(ctx, Name+"_CLIENT", auth)
 	}
 
 	var user statistic.User
@@ -278,10 +277,18 @@ func NewClient(ctx context.Context, client tunnel.Client) (*Client, error) {
 	log.Info("[Trojan] Using user hash:", user.GetHash())
 	log.Info("[Trojan] Client created successfully")
 
-	return &Client{
+	c := &Client{
 		underlay: client,
 		ctx:      ctx,
 		user:     user,
 		cancel:   cancel,
-	}, nil
+	}
+
+	if cfg.API.Enabled {
+		c.wg.Go(func() {
+			api.RunService(ctx, Name+"_CLIENT", auth)
+		})
+	}
+
+	return c, nil
 }

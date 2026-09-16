@@ -20,7 +20,7 @@ type Metadata struct {
 }
 
 func (r *Metadata) ReadFrom(rr io.Reader) (int64, error) {
-	byteBuf := make([]byte, 1)
+	var byteBuf [1]byte
 	n, err := io.ReadFull(rr, byteBuf[:])
 	if err != nil {
 		return int64(n), err
@@ -165,7 +165,7 @@ func NewAddressFromHostPort(network string, host string, port int) *Address {
 }
 
 func (a *Address) ReadFrom(r io.Reader) (int64, error) {
-	byteBuf := make([]byte, 1)
+	var byteBuf [1]byte
 	n, err := io.ReadFull(r, byteBuf[:])
 	if err != nil {
 		return int64(n), common.NewError("unable to read ATYP").Base(err)

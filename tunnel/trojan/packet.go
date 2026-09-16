@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"io"
 	"net"
+	"sync"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -12,6 +13,13 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 	"github.com/Potterli20/trojan-go-fork/tunnel/mux"
 )
+
+// bufPool 复用 bytes.Buffer，减少 UDP 包写入时的内存分配
+var bufPool = sync.Pool{
+	New: func() any {
+		return bytes.NewBuffer(make([]byte, 0, MaxPacketSize))
+	},
+}
 
 type PacketConn struct {
 	tunnel.Conn
@@ -33,8 +41,10 @@ func (c *PacketConn) WriteTo(payload []byte, addr net.Addr) (int, error) {
 }
 
 func (c *PacketConn) WriteWithMetadata(payload []byte, metadata *tunnel.Metadata) (int, error) {
-	packet := make([]byte, 0, MaxPacketSize)
-	w := bytes.NewBuffer(packet)
+	w := bufPool.Get().(*bytes.Buffer)
+	w.Reset()
+	defer bufPool.Put(w)
+
 	metadata.Address.WriteTo(w) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 
 	length := len(payload)
