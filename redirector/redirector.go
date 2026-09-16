@@ -135,12 +135,12 @@ func (r *Redirector) worker() {
 					return
 				}
 				defer outboundConn.Close()
-			if redirection.ClientIP != "" {
-				if err := injectForwardedHeader(redirection.InboundConn, outboundConn, redirection.ClientIP); err != nil {
-					log.Debug("failed to inject X-Forwarded-For header, closing connection:", err)
-					return
+				if redirection.ClientIP != "" {
+					if err := injectForwardedHeader(redirection.InboundConn, outboundConn, redirection.ClientIP); err != nil {
+						log.Debug("failed to inject X-Forwarded-For header, closing connection:", err)
+						return
+					}
 				}
-			}
 
 				var copyWg sync.WaitGroup
 

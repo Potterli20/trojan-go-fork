@@ -37,19 +37,19 @@ var fingerprintsMap = map[string]utls.ClientHelloID{
 const handshakeTimeout = 30 * time.Second
 
 type Client struct {
-	verify          bool
-	sni             string
-	serverName      string
-	ca              *x509.CertPool
-	cipher          []uint16
-	curvePrefs      []tls.CurveID
+	verify         bool
+	sni            string
+	serverName     string
+	ca             *x509.CertPool
+	cipher         []uint16
+	curvePrefs     []tls.CurveID
 	utlsCurvePrefs []utls.CurveID
-	sessionTicket   bool
-	fingerprint     string
-	helloID         utls.ClientHelloID
-	keyLogger       io.WriteCloser
-	alpn            []string
-	underlay        tunnel.Client
+	sessionTicket  bool
+	fingerprint    string
+	helloID        utls.ClientHelloID
+	keyLogger      io.WriteCloser
+	alpn           []string
+	underlay       tunnel.Client
 }
 
 func (c *Client) Close() error {
@@ -237,18 +237,18 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	}
 
 	client := &Client{
-		underlay:        underlay,
-		verify:          cfg.TLS.Verify,
-		sni:             cfg.TLS.SNI,
-		serverName:      cfg.TLS.ServerName,
-		cipher:          fingerprint.ParseCipher(strings.Split(cfg.TLS.Cipher, ":")),
-		curvePrefs:      fingerprint.ParseCurvePreferences(cfg.TLS.CurvePreferences),
-		utlsCurvePrefs:  fingerprint.ParseUTLSCurvePreferences(cfg.TLS.CurvePreferences),
-		sessionTicket:   cfg.TLS.ReuseSession,
-		fingerprint:     cfg.TLS.Fingerprint,
-		helloID:         helloID,
-		keyLogger:       keyLogger,
-		alpn:            cfg.TLS.ALPN,
+		underlay:       underlay,
+		verify:         cfg.TLS.Verify,
+		sni:            cfg.TLS.SNI,
+		serverName:     cfg.TLS.ServerName,
+		cipher:         fingerprint.ParseCipher(strings.Split(cfg.TLS.Cipher, ":")),
+		curvePrefs:     fingerprint.ParseCurvePreferences(cfg.TLS.CurvePreferences),
+		utlsCurvePrefs: fingerprint.ParseUTLSCurvePreferences(cfg.TLS.CurvePreferences),
+		sessionTicket:  cfg.TLS.ReuseSession,
+		fingerprint:    cfg.TLS.Fingerprint,
+		helloID:        helloID,
+		keyLogger:      keyLogger,
+		alpn:           cfg.TLS.ALPN,
 	}
 
 	if cfg.TLS.CertPath != "" {
