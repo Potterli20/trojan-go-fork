@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260909022356-7eea5a84c904
-	github.com/Potterli20/socks5-fork v0.0.0-20260917112423-d5024aab728e
+	github.com/Potterli20/socks5-fork v0.0.0-20260917211122-ade66cdceb60
 	github.com/Potterli20/sqlite v0.0.0-20260916183101-3c10d44c4b78
 	github.com/apernet/quic-go v0.62.1-0.20260912175848-73339f7edbb9
 	github.com/coder/websocket v1.8.15
@@ -22,7 +22,7 @@ require (
 	golang.org/x/sys v0.48.0
 	golang.org/x/term v0.46.0
 	golang.org/x/time v0.16.0
-	google.golang.org/grpc v1.83.2
+	google.golang.org/grpc v1.84.0
 	google.golang.org/protobuf v1.36.12
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.31.3-0.20260914162115-b3d3bf219f02
@@ -33,7 +33,6 @@ require (
 	github.com/andybalholm/brotli v1.2.4 // indirect
 	github.com/database64128/netx-go v0.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518 // indirect
 	github.com/gopherjs/gopherjs v1.21.1-0.20260727145006-490705b1d6fc // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
