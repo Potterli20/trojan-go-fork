@@ -1,6 +1,6 @@
 # Trojan-Go Fork
 
-[![Go Version](https://img.shields.io/badge/Go-%3E%3D%201.22-blue)](https://go.dev/)
+[![Go Version](https://img.shields.io/badge/Go-%3E%3D%201.27-blue)](https://go.dev/)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
 
 > **注意**：本项目已通过 AI 辅助修复和修改，当前服务端功能正常，客户端可能存在部分问题。欢迎提交 PR 协助修复。
@@ -40,6 +40,11 @@ Trojan-Go Fork 是基于 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/troj
 - [x] 修复连接转发阻塞导致 goroutine 泄露的问题
 - [x] 修复客户端 TCP 和 WebSocket 无法连接的问题
 - [x] 新增 TCP Fast Open 支持
+- [x] 加固 sniff/rewind 缓冲，增加绝对上限，防止探测阶段缓冲区无界增长
+- [x] 修复路由模块正则规则运行时并发写缓存导致的 fatal error（改为启动期预编译）
+- [x] 补全 SQLite / MySQL 统计后端的连接与句柄关闭，MySQL 使用带上下文的查询并设置连接池上限
+- [x] TLS 服务端关闭时排空待处理连接，QUIC 层改用 quic-go 具体类型消除 `any` 断言
+- [x] 新增顶层优雅关闭：`Proxy.Run` 监听 SIGINT/SIGTERM，收到信号后取消上下文并释放资源
 
 合并了以下社区贡献者的改进：[@fregie](https://github.com/fregie/trojan-go)、[@rezaf28](https://github.com/rezaf28)、[@lakwsh](https://github.com/lakwsh/trojan-go)、[@lbsystem](https://github.com/lbsystem)。
 
