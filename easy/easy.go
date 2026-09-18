@@ -121,6 +121,7 @@ func (o *easy) Handle() error {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer p.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	if err := p.Run(); err != nil {
 		log.Fatal(err)
 	}

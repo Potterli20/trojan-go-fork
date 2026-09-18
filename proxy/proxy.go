@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"os"
+	"os/signal"
 	"strings"
 	"sync"
 
@@ -74,11 +75,25 @@ func (p *boundedBufPool) Put(buf []byte) {
 	}
 }
 
-// Run starts the proxy relay loops and waits for context cancellation
+// Run starts the proxy relay loops and waits for context cancellation.
+// It also installs a signal handler so that SIGINT/SIGTERM trigger a graceful
+// shutdown: the relay loops unblock via context cancellation and Run returns,
+// letting the caller invoke Close to reclaim resources. Run never closes the
+// proxy itself, preserving the Run/Close separation relied on by tests.
 func (p *Proxy) Run() error {
 	p.relayConnLoop()
 	p.relayPacketLoop()
-	<-p.ctx.Done()
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, shutdownSignals...)
+	defer signal.Stop(sig)
+
+	select {
+	case <-p.ctx.Done():
+	case s := <-sig:
+		log.Info("received signal ", s, ", shutting down")
+		p.cancel()
+	}
 	return nil
 }
 

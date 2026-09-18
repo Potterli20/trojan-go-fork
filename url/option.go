@@ -192,6 +192,7 @@ func (u *URLOption) Handle() error {
 	if err != nil {
 		return common.NewError("failed to create proxy").Base(err)
 	}
+	defer client.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	return client.Run()
 }
 
