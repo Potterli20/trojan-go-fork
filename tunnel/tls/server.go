@@ -58,6 +58,20 @@ func (s *Server) Close() error {
 	// 先关闭底层 transport 解除 acceptLoop 的 AcceptConn 阻塞，否则 wg.Wait() 会永久死锁
 	err := s.underlay.Close()
 	s.wg.Wait()
+	// wg.Wait() 之后所有 handler 生产者已退出、不再有 channel 发送,
+	// 排空已完成握手但未被 AcceptConn 取走的连接,释放其 fd 与 TLS 状态,
+	// 否则关机瞬间 connChan/wsChan(各 cap 32)会滞留最多约 64 个连接直到进程退出。
+drain:
+	for {
+		select {
+		case c := <-s.connChan:
+			c.Close() //gosec:disable -- 关闭滞留连接,忽略 close 错误
+		case c := <-s.wsChan:
+			c.Close() //gosec:disable -- 关闭滞留连接,忽略 close 错误
+		default:
+			break drain
+		}
+	}
 	if s.keyLogger != nil {
 		s.keyLogger.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	}
