@@ -2,9 +2,11 @@ package router
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -156,4 +158,45 @@ router:
 	if err.Error() != "mockproxy" {
 		t.Fail()
 	}
+}
+
+// TestRouterConcurrentRegexRegression 验证运行期对 regexCache 的并发访问不再写 map。
+// 修复前:matchDomain 在首次命中某 regex 规则时会向 client.regexCache 写入,
+// 而 Route() 经每连接 goroutine 并发调用,可触发 "fatal error: concurrent map writes"
+// (即使不加 -race 也会崩溃)。修复后:regexCache 在 NewClient 启动阶段全部预编译,
+// 运行期只读。此测试用大量 goroutine 并发命中三类(bypass/block/proxy)regex 规则。
+func TestRouterConcurrentRegexRegression(t *testing.T) {
+	data := `
+router:
+    enabled: true
+    bypass:
+    - "regex:bypassreg(.*)"
+    block:
+    - "regexp:blockreg(.*)"
+    proxy:
+    - "regexp:proxyreg(.*)"
+`
+	ctx, err := config.WithYAMLConfig(context.Background(), []byte(data))
+	common.Must(err)
+	client, err := NewClient(ctx, &MockClient{})
+	common.Must(err)
+	defer client.Close() //gosec:disable -- 测试清理路径
+
+	var wg sync.WaitGroup
+	for i := range 200 {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			// 交替命中三种策略的 regex 规则。Route 只做策略判定、不实际拨号,
+			// 但内部 matchDomain 会读取 regexCache —— 修复前此处会在首次命中时写 map。
+			prefix := []string{"bypassreg", "blockreg", "proxyreg"}[i%3]
+			domain := fmt.Sprintf("%s%d", prefix, i)
+			_ = client.Route(&tunnel.Address{
+				AddressType: tunnel.DomainName,
+				DomainName:  domain,
+				Port:        80,
+			})
+		}(i)
+	}
+	wg.Wait()
 }

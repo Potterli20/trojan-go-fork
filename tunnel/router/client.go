@@ -60,13 +60,16 @@ func matchDomain(list []*v2geodata.Domain, regexCache map[string]*regexp.Regexp,
 		case v2geodata.Domain_Regex:
 			re, ok := regexCache[d.Value]
 			if !ok {
+				// 运行期绝不向 regexCache 写入:缓存在 NewClient 启动阶段已全部
+				// 预编译,之后 map 对所有连接 goroutine 只读,避免并发写触发
+				// "fatal error: concurrent map writes"。此处为理论上不应命中的
+				// 兜底路径(规则未预编译),临时编译但不写回缓存。
 				var err error
 				re, err = regexp.Compile(d.Value)
 				if err != nil {
 					log.Error("invalid regex", d.Value)
 					return false
 				}
-				regexCache[d.Value] = re
 			}
 			if re.MatchString(target) {
 				log.Tracef("domain %s hit regex rule: %s", target, d.Value)
@@ -468,6 +471,26 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 			Ip:     ip,
 			Prefix: uint32(prefix), //gosec:disable -- prefix 来自 ParseInt(b, 10, 32)，已限制在 int32 范围内
 		})
+	}
+
+	// 启动阶段预编译所有 regex 域名规则并填入 regexCache,使运行期对 map 的访问
+	// 为只读,避免每连接 goroutine 并发写 regexCache 触发进程崩溃。regex 规则来源:
+	// config 的 regex:/regexp:(上文已 regexp.Compile 校验)以及 geosite 加载的
+	// Domain_Regex 条目,统一在此一次性编译。
+	for i := Block; i <= Proxy; i++ {
+		for _, domain := range client.domains[i] {
+			if domain.Type != v2geodata.Domain_Regex {
+				continue
+			}
+			if _, found := client.regexCache[domain.Value]; found {
+				continue
+			}
+			if re, err := regexp.Compile(domain.Value); err == nil {
+				client.regexCache[domain.Value] = re
+			} else {
+				log.Warnf("router: invalid regex rule %q ignored: %s", domain.Value, err)
+			}
+		}
 	}
 
 	log.Info("router client created")

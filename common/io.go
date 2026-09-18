@@ -18,6 +18,15 @@ type RewindReader struct {
 	bufferSize int
 }
 
+// maxRewindBufferSize 是嗅探缓冲的绝对上限（与调用方 SetBufferSize 传入的
+// 预分配提示无关）。bufferSize 只是预分配/嗅探提示，合法 TLS 握手在 buffering
+// 期间会读入远大于它的 ClientHello，绝不能按它截断，否则回放不完整会破坏握手。
+// 这里用独立的硬上限约束累积量：防止未认证对端在嗅探完成前把 r.buf 撑到数百 MB
+// （最危险路径 tunnel/transport/server.go 明文 http.ReadRequest，Go 1.27 已无
+// header 大小上限）。64KB 远大于任何合法协议握手首包，只有异常/攻击流量才会触及，
+// 一旦超过即停止累积转直通——此时嗅探必然失败，但单连接常驻内存有界。
+const maxRewindBufferSize = 64 * 1024
+
 func (r *RewindReader) Read(p []byte) (int, error) {
 	r.mu.Lock()
 	if r.rewound {
@@ -36,9 +45,12 @@ func (r *RewindReader) Read(p []byte) (int, error) {
 
 	if buffering {
 		r.mu.Lock()
-		r.buf = append(r.buf, p[:n]...)
-		if len(r.buf) > r.bufferSize*2 {
-			log.Debug("read too many bytes!")
+		if len(r.buf)+n <= maxRewindBufferSize {
+			r.buf = append(r.buf, p[:n]...)
+		} else {
+			// 超出绝对上限：放弃缓冲转直通，不再累积，保证单连接内存有界。
+			r.buffering = false
+			log.Debug("rewind buffer exceeded hard limit, buffering disabled")
 		}
 		r.mu.Unlock()
 	}
