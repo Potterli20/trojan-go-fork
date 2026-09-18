@@ -59,7 +59,7 @@ func (a *Authenticator) syncUsers() {
 		hash := user.GetHash()
 		sent, recv := user.ResetTraffic()
 
-		s, err := a.db.Exec("UPDATE `users` SET `upload`=`upload`+?, `download`=`download`+? WHERE `password`=?;", recv, sent, hash)
+		s, err := a.db.ExecContext(a.ctx, "UPDATE `users` SET `upload`=`upload`+?, `download`=`download`+? WHERE `password`=?;", recv, sent, hash)
 		if err != nil {
 			log.Error(common.NewError("failed to update data to user table").Base(err))
 			continue
@@ -71,7 +71,7 @@ func (a *Authenticator) syncUsers() {
 	log.Info("buffered data has been written into the database")
 
 	// update memory
-	rows, err := a.db.Query("SELECT username,password,quota,download,upload,maxip FROM users")
+	rows, err := a.db.QueryContext(a.ctx, "SELECT username,password,quota,download,upload,maxip FROM users")
 	if err != nil {
 		log.Error(common.NewError("failed to pull data from the database").Base(err))
 		return
@@ -182,6 +182,12 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 	if err != nil {
 		return nil, common.NewError("Failed to connect to database server").Base(err)
 	}
+	// 限制连接池:syncUsers 由单个 updater goroutine 串行调用,默认不限最大连接数
+	// 时,MySQL 变慢/半开连接会逼出新连接,连接数与 fd 随故障时长无上限增长。
+	db.SetMaxOpenConns(5)
+	db.SetMaxIdleConns(2)
+	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetConnMaxIdleTime(time.Minute)
 	memoryAuth, err := memory.NewAuthenticator(ctx)
 	if err != nil {
 		db.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理

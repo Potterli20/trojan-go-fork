@@ -101,3 +101,14 @@ func (p *Persistencer) UpdateUserTraffic(hash string, sent, recv uint64) error {
 	u.setRecv(recv)
 	return p.db.Model(&User{Hash: hash}).Updates(u).Error
 }
+
+// Close 关闭底层数据库连接池,释放 sqlite 文件句柄与 *sql.DB 空闲连接。
+// 之前 Persistencer 无 Close,memory.Authenticator 也从不关闭 a.pst,导致
+// Authenticator.Close()(测试清理、多实例、将来热重载)时泄漏 DB/FD。
+func (p *Persistencer) Close() error {
+	sqlDB, err := p.db.DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.Close()
+}

@@ -32,3 +32,8 @@ func (p *Persistencer) ListUser(f func(hash string, u statistic.Metadata) bool) 
 func (p *Persistencer) UpdateUserTraffic(hash string, sent, recv uint64) error {
 	return nil
 }
+
+// Close 非 linux stub:无真实数据库句柄,空实现以满足 statistic.Persistencer 接口。
+func (p *Persistencer) Close() error {
+	return nil
+}

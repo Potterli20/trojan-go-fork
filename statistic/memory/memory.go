@@ -600,6 +600,13 @@ func (a *Authenticator) Close() error {
 		v.(*User).Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return true
 	})
+	// 关闭持久化后端,释放 DB 连接池/文件句柄。必须在 a.wg.Wait() 之后:
+	// batchTrafficUpdater 仍会通过 a.pst 写库,提前关闭会让它拿到已关闭的句柄。
+	if a.pst != nil {
+		if err := a.pst.Close(); err != nil {
+			log.Error(common.NewError("failed to close persistencer").Base(err))
+		}
+	}
 	return nil
 }
 

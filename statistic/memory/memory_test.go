@@ -368,6 +368,10 @@ func (m *mockPersistencer) LoadUser(string) (statistic.Metadata, error)         
 func (m *mockPersistencer) DeleteUser(string) error                              { return nil }
 func (m *mockPersistencer) ListUser(func(string, statistic.Metadata) bool) error { return nil }
 
+// Close 实现 statistic.Persistencer(io.Closer)。mock 无真实句柄,返回 nil;
+// lockableMockPersistencer 通过内嵌继承此方法。
+func (m *mockPersistencer) Close() error { return nil }
+
 func (m *mockPersistencer) UpdateUserTraffic(hash string, sent, recv uint64) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()

@@ -41,6 +41,7 @@ type User interface {
 }
 
 type Persistencer interface {
+	io.Closer
 	SaveUser(Metadata) error
 	LoadUser(hash string) (Metadata, error)
 	DeleteUser(hash string) error
