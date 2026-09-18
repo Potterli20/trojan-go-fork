@@ -26,12 +26,16 @@ type Client struct {
 	congestion     string
 	brutalUp       uint64
 	brutalDown     uint64
-	quicConn       any
-	quicConnMutex  sync.RWMutex
-	keepAliveOnce  sync.Once
-	wg             sync.WaitGroup
-	ctx            context.Context
-	cancel         context.CancelFunc
+	// quicConn 用具体类型 *quic.Conn 而非 any:此前用 any + 结构体接口断言
+	// 绕过编译,却与被 pin 的 quic-go v0.62.1 API 全面不匹配(返回 *Stream 而非
+	// Stream、ReceiveDatagram(ctx) 返回 []byte、CloseWithError 收 ApplicationErrorCode),
+	// 一旦接入即 panic。改成具体类型后编译器会真正校验这些调用。
+	quicConn      *quic.Conn
+	quicConnMutex sync.RWMutex
+	keepAliveOnce sync.Once
+	wg            sync.WaitGroup
+	ctx           context.Context
+	cancel        context.CancelFunc
 }
 
 func (c *Client) Close() error {
@@ -39,9 +43,7 @@ func (c *Client) Close() error {
 	c.wg.Wait()
 	c.quicConnMutex.Lock()
 	if c.quicConn != nil {
-		c.quicConn.(interface { //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-			CloseWithError(code uint32, reason string) error
-		}).CloseWithError(0, "client closed")
+		c.quicConn.CloseWithError(quic.ApplicationErrorCode(0), "client closed") //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		c.quicConn = nil
 	}
 	c.quicConnMutex.Unlock()
@@ -59,7 +61,7 @@ func (c *Client) applyCongestionControl(conn *quic.Conn) {
 	}, "client")
 }
 
-func (c *Client) getOrCreateConnection() (any, error) {
+func (c *Client) getOrCreateConnection() (*quic.Conn, error) {
 	c.quicConnMutex.RLock()
 	conn := c.quicConn
 	c.quicConnMutex.RUnlock()
@@ -84,7 +86,9 @@ func (c *Client) getOrCreateConnection() (any, error) {
 	log.Debugf("[QUIC] [conn=%s] Dialing to %s with congestion=%s, alpn=%v",
 		tracker.ConnID(), addrStr, c.congestion, c.tlsConfig.NextProtos)
 
-	quicConn, err := quic.DialAddr(context.Background(), addrStr, c.tlsConfig, c.quicConfig)
+	// 用 c.ctx 而非 context.Background():否则 Client.Close() 无法中断在途握手,
+	// wg.Wait() 期间握完的连接会无人关闭(泄漏 1 个 QUIC 连接及其内部 goroutine)。
+	quicConn, err := quic.DialAddr(c.ctx, addrStr, c.tlsConfig, c.quicConfig)
 	if err != nil {
 		_ = tracker.Error(err)
 		return nil, common.NewError("QUIC failed to dial").Base(err)
@@ -118,7 +122,7 @@ func (c *Client) keepAliveLoop() {
 			conn := c.quicConn
 			c.quicConnMutex.RUnlock()
 			if conn != nil {
-				conn.(interface{ SendDatagram([]byte) error }).SendDatagram([]byte{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+				conn.SendDatagram([]byte{}) //gosec:disable -- keepalive padding,错误忽略：非关键路径
 			}
 		case <-c.ctx.Done():
 			return
@@ -141,7 +145,12 @@ func (c *Client) DialPacket(tun tunnel.Tunnel) (tunnel.PacketConn, error) {
 
 	_ = tracker.Success()
 	log.Debugf("[QUIC] [conn=%s] Packet connection created successfully", tracker.ConnID())
-	return &PacketConn{conn: conn, tracker: tracker}, nil
+
+	// 派生独立可取消 ctx:ReceiveDatagram(ctx) 会阻塞等待数据报,若无此 cancel,
+	// PacketConn.Close() 无法唤醒 parked 的读 goroutine(进而拖住 proxy 有界池
+	// 借出的 buffer),每路 UDP 会话结束都会泄漏一个 goroutine。
+	packetCtx, packetCancel := context.WithCancel(c.ctx)
+	return &PacketConn{conn: conn, tracker: tracker, ctx: packetCtx, cancel: packetCancel}, nil
 }
 
 func (c *Client) DialConn(address *tunnel.Address, tun tunnel.Tunnel) (tunnel.Conn, error) {
@@ -155,16 +164,12 @@ func (c *Client) DialConn(address *tunnel.Address, tun tunnel.Tunnel) (tunnel.Co
 
 	log.Debugf("[QUIC] [conn=%s] Opening stream to %s", tracker.ConnID(), address.String())
 
-	stream, err := conn.(interface {
-		OpenStreamSync(context.Context) (quic.Stream, error)
-	}).OpenStreamSync(c.ctx)
+	stream, err := conn.OpenStreamSync(c.ctx)
 	if err != nil {
 		_ = tracker.Error(err)
 		log.Error(common.NewError("QUIC failed to open stream").Base(err))
 		c.quicConnMutex.Lock()
-		conn.(interface { //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-			CloseWithError(code uint32, reason string) error
-		}).CloseWithError(0, "stream open failed")
+		conn.CloseWithError(quic.ApplicationErrorCode(0), "stream open failed") //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		if c.quicConn == conn {
 			c.quicConn = nil
 		}
@@ -174,12 +179,12 @@ func (c *Client) DialConn(address *tunnel.Address, tun tunnel.Tunnel) (tunnel.Co
 	_ = tracker.Success()
 
 	log.Debugf("[QUIC] [conn=%s] Stream opened successfully", tracker.ConnID())
-	return &StreamConn{Stream: &stream, conn: conn, tracker: tracker}, nil
+	return &StreamConn{Stream: stream, conn: conn, tracker: tracker}, nil
 }
 
 type StreamConn struct {
 	Stream  *quic.Stream
-	conn    any
+	conn    *quic.Conn
 	tracker *log.ConnectionTracker
 }
 
@@ -188,48 +193,55 @@ func (c *StreamConn) Metadata() *tunnel.Metadata {
 }
 
 func (c *StreamConn) LocalAddr() net.Addr {
-	return c.conn.(interface{ LocalAddr() net.Addr }).LocalAddr()
+	return c.conn.LocalAddr()
 }
 
 func (c *StreamConn) RemoteAddr() net.Addr {
-	return c.conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr()
+	return c.conn.RemoteAddr()
 }
 
 func (c *StreamConn) Read(p []byte) (int, error) {
-	return (*c.Stream).Read(p)
+	return c.Stream.Read(p)
 }
 
 func (c *StreamConn) Write(p []byte) (int, error) {
-	return (*c.Stream).Write(p)
+	return c.Stream.Write(p)
 }
 
 func (c *StreamConn) Close() error {
 	if c.tracker != nil {
 		c.tracker.Destroy("closed", 0, 0)
 	}
-	return (*c.Stream).Close()
+	return c.Stream.Close()
 }
 
 func (c *StreamConn) SetDeadline(t time.Time) error {
-	return (*c.Stream).SetDeadline(t)
+	return c.Stream.SetDeadline(t)
 }
 
 func (c *StreamConn) SetReadDeadline(t time.Time) error {
-	return (*c.Stream).SetReadDeadline(t)
+	return c.Stream.SetReadDeadline(t)
 }
 
 func (c *StreamConn) SetWriteDeadline(t time.Time) error {
-	return (*c.Stream).SetWriteDeadline(t)
+	return c.Stream.SetWriteDeadline(t)
 }
 
 type PacketConn struct {
-	conn         any
+	conn         *quic.Conn
 	tracker      *log.ConnectionTracker
 	packetBuffer chan []byte
+	// ctx/cancel 用于唤醒阻塞在 ReceiveDatagram 上的读;服务端用 packetBuffer
+	// 中转时可不设置(为 nil),客户端直读路径必须设置。
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 func (c *PacketConn) WriteTo(p []byte, addr net.Addr) (int, error) {
-	return c.conn.(interface{ SendDatagram([]byte) (int, error) }).SendDatagram(p)
+	if err := c.conn.SendDatagram(p); err != nil {
+		return 0, err
+	}
+	return len(p), nil
 }
 
 func (c *PacketConn) ReadFrom(p []byte) (int, net.Addr, error) {
@@ -239,19 +251,21 @@ func (c *PacketConn) ReadFrom(p []byte) (int, net.Addr, error) {
 			return 0, nil, common.NewError("QUIC packet connection closed")
 		}
 		n := copy(p, data)
-		return n, c.conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr(), nil
+		return n, c.conn.RemoteAddr(), nil
 	}
-	n, err := c.conn.(interface {
-		ReceiveDatagram(context.Context, []byte) (int, error)
-	}).ReceiveDatagram(context.Background(), p)
+	data, err := c.conn.ReceiveDatagram(c.receiveCtx())
 	if err != nil {
 		return 0, nil, err
 	}
-	return n, c.conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr(), nil
+	n := copy(p, data)
+	return n, c.conn.RemoteAddr(), nil
 }
 
 func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error) {
-	return c.conn.(interface{ SendDatagram([]byte) (int, error) }).SendDatagram(p)
+	if err := c.conn.SendDatagram(p); err != nil {
+		return 0, err
+	}
+	return len(p), nil
 }
 
 func (c *PacketConn) ReadWithMetadata(p []byte) (int, *tunnel.Metadata, error) {
@@ -263,16 +277,27 @@ func (c *PacketConn) ReadWithMetadata(p []byte) (int, *tunnel.Metadata, error) {
 		n := copy(p, data)
 		return n, &tunnel.Metadata{}, nil
 	}
-	n, err := c.conn.(interface {
-		ReceiveDatagram(context.Context, []byte) (int, error)
-	}).ReceiveDatagram(context.Background(), p)
+	data, err := c.conn.ReceiveDatagram(c.receiveCtx())
 	if err != nil {
 		return 0, nil, err
 	}
+	n := copy(p, data)
 	return n, &tunnel.Metadata{}, nil
 }
 
+// receiveCtx 返回用于 ReceiveDatagram 的上下文;若未设置(服务端 packetBuffer 路径)
+// 回落到 context.Background(),但该路径不会走到直读分支。
+func (c *PacketConn) receiveCtx() context.Context {
+	if c.ctx != nil {
+		return c.ctx
+	}
+	return context.Background()
+}
+
 func (c *PacketConn) Close() error {
+	if c.cancel != nil {
+		c.cancel()
+	}
 	if c.tracker != nil {
 		c.tracker.Destroy("closed", 0, 0)
 	}
@@ -280,11 +305,11 @@ func (c *PacketConn) Close() error {
 }
 
 func (c *PacketConn) LocalAddr() net.Addr {
-	return c.conn.(interface{ LocalAddr() net.Addr }).LocalAddr()
+	return c.conn.LocalAddr()
 }
 
 func (c *PacketConn) RemoteAddr() net.Addr {
-	return c.conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr()
+	return c.conn.RemoteAddr()
 }
 
 func (c *PacketConn) SetDeadline(t time.Time) error {
@@ -323,6 +348,9 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	quicConfig := &quic.Config{
 		MaxIdleTimeout:     time.Second * time.Duration(cfg.QUIC.MaxIdleTimeout),
 		MaxIncomingStreams: int64(cfg.QUIC.MaxIncomingStreams),
+		// 必须开启 RFC 9221 datagram 支持,否则 ReceiveDatagram 直接返回
+		// "datagram support disabled",UDP(PacketConn)路径完全不可用。
+		EnableDatagrams: true,
 	}
 
 	log.Debug("QUIC client created with ALPN:", cfg.QUIC.ALPN)

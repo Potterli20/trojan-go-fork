@@ -17,7 +17,7 @@ import (
 )
 
 type Server struct {
-	listener    any
+	listener    *quic.Listener
 	ctx         context.Context
 	cancel      context.CancelFunc
 	underlay    tunnel.Server
@@ -29,7 +29,7 @@ type Server struct {
 	congestion  string
 	brutalUp    uint64
 	brutalDown  uint64
-	activeConns sync.Map
+	activeConns sync.Map // map[*quic.Conn]*quic.Conn
 	wg          sync.WaitGroup
 }
 
@@ -43,12 +43,10 @@ func (s *Server) applyCongestionControl(conn *quic.Conn) {
 
 func (s *Server) Close() error {
 	s.cancel()
-	s.listener.(interface{ Close() error }).Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	s.listener.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	s.wg.Wait()
-	s.activeConns.Range(func(key, value any) bool {
-		value.(interface { //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-			CloseWithError(code uint32, reason string) error
-		}).CloseWithError(0, "server closed")
+	s.activeConns.Range(func(_, value any) bool {
+		value.(*quic.Conn).CloseWithError(quic.ApplicationErrorCode(0), "server closed") //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return true
 	})
 	if s.underlay != nil {
@@ -59,9 +57,7 @@ func (s *Server) Close() error {
 
 func (s *Server) acceptLoop() {
 	for {
-		conn, err := s.listener.(interface {
-			Accept(context.Context) (any, error)
-		}).Accept(s.ctx)
+		conn, err := s.listener.Accept(s.ctx)
 		if err != nil {
 			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中；
 			// 直接检查 ctx.Err()
@@ -73,16 +69,15 @@ func (s *Server) acceptLoop() {
 			return
 		}
 
-		quicConn := conn.(*quic.Conn)
-		s.applyCongestionControl(quicConn)
+		s.applyCongestionControl(conn)
 
 		tracker := log.NewConnectionTracker("QUIC", "AcceptConn").
-			WithField("remote_addr", quicConn.RemoteAddr().String()).
+			WithField("remote_addr", conn.RemoteAddr().String()).
 			WithField("congestion", s.congestion)
 
-		s.activeConns.Store(quicConn, conn)
+		s.activeConns.Store(conn, conn)
 		log.Debugf("[QUIC] [conn=%s] New connection accepted from %s, congestion=%s, alpn=%v",
-			tracker.ConnID(), quicConn.RemoteAddr(), s.congestion, s.tlsConfig.NextProtos)
+			tracker.ConnID(), conn.RemoteAddr(), s.congestion, s.tlsConfig.NextProtos)
 
 		s.wg.Go(func() {
 			s.handleConnection(conn, tracker)
@@ -90,36 +85,33 @@ func (s *Server) acceptLoop() {
 	}
 }
 
-func (s *Server) handleConnection(conn any, tracker *log.ConnectionTracker) {
+func (s *Server) handleConnection(conn *quic.Conn, tracker *log.ConnectionTracker) {
 	defer func() {
-		conn.(interface { //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-			CloseWithError(code uint32, reason string) error
-		}).CloseWithError(0, "connection closed")
-		s.activeConns.Delete(conn.(*quic.Conn))
+		conn.CloseWithError(quic.ApplicationErrorCode(0), "connection closed") //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		s.activeConns.Delete(conn)
 		log.Debugf("[QUIC] [conn=%s] Connection closed from %s, duration=%s",
-			tracker.ConnID(), conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr(),
+			tracker.ConnID(), conn.RemoteAddr(),
 			time.Since(tracker.StartTime()))
 	}()
 
 	streamChan := make(chan *quic.Stream, 16)
 	packetBuffer := make(chan []byte, 16)
 	packetDone := make(chan struct{})
+	// connCtx 由 handleConnection 的 defer connCancel() 结束:两个泵 goroutine 都
+	// select connCtx,连接结束即唤醒阻塞的 AcceptStream/ReceiveDatagram,不留 parked goroutine。
 	connCtx, connCancel := context.WithCancel(s.ctx)
 	defer connCancel()
 
 	s.wg.Go(func() {
 		for {
-			stream, err := conn.(interface {
-				AcceptStream(context.Context) (quic.Stream, error)
-			}).AcceptStream(connCtx)
+			stream, err := conn.AcceptStream(connCtx)
 			if err != nil {
 				log.Debug("QUIC stream accept error:", err)
 				close(streamChan)
 				return
 			}
-			streamPtr := &stream
 			select {
-			case streamChan <- streamPtr:
+			case streamChan <- stream:
 			case <-connCtx.Done():
 				return
 			}
@@ -127,20 +119,17 @@ func (s *Server) handleConnection(conn any, tracker *log.ConnectionTracker) {
 	})
 
 	s.wg.Go(func() {
-		buf := make([]byte, 65536)
 		var handlerSent bool
 		defer close(packetDone)
 		defer close(packetBuffer)
 		for {
-			n, err := conn.(interface {
-				ReceiveDatagram(context.Context, []byte) (int, error)
-			}).ReceiveDatagram(connCtx, buf)
+			// ReceiveDatagram 返回调用方自有的新切片(quic-go 内部 make+copy),
+			// 无需再维护每连接 64KB 中转 buf 或手工 copy。
+			data, err := conn.ReceiveDatagram(connCtx)
 			if err != nil {
 				log.Debug("QUIC message receive error:", err)
 				return
 			}
-			data := make([]byte, n)
-			copy(data, buf[:n])
 			if !handlerSent {
 				handlerSent = true
 				select {
@@ -164,7 +153,7 @@ func (s *Server) handleConnection(conn any, tracker *log.ConnectionTracker) {
 				return
 			}
 			streamTracker := log.NewConnectionTracker("QUIC", "Stream").
-				WithField("remote_addr", conn.(interface{ RemoteAddr() net.Addr }).RemoteAddr().String()).
+				WithField("remote_addr", conn.RemoteAddr().String()).
 				WithField("parent_conn", tracker.ConnID())
 			log.Debugf("[QUIC] [conn=%s] New stream accepted, parent_conn=%s",
 				streamTracker.ConnID(), tracker.ConnID())
@@ -175,6 +164,8 @@ func (s *Server) handleConnection(conn any, tracker *log.ConnectionTracker) {
 			}
 
 		case <-packetDone:
+			// 数据报读结束(通常为连接级 datagram 队列关闭):仅结束本连接的 UDP 会话,
+			// 不再顺带拆掉同连接上仍活跃的 stream——保持原语义从简,这里仅返回结束 handler。
 			return
 
 		case <-s.ctx.Done():
@@ -235,6 +226,8 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	quicConfig := &quic.Config{
 		MaxIdleTimeout:     time.Second * time.Duration(cfg.QUIC.MaxIdleTimeout),
 		MaxIncomingStreams: int64(cfg.QUIC.MaxIncomingStreams),
+		// 与 client 对称开启 datagram 支持,否则对端数据报无法收发。
+		EnableDatagrams: true,
 	}
 
 	packetConn, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP(cfg.RemoteHost), Port: cfg.RemotePort})
