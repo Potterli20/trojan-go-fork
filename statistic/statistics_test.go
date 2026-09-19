@@ -42,8 +42,7 @@ func TestReleaseAuthenticatorClosesAndUnregisters(t *testing.T) {
 		return created, nil
 	})
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	auth, err := NewAuthenticator(ctx, fakeReleaseName)
 	if err != nil {
