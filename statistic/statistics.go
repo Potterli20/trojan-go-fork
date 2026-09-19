@@ -91,3 +91,19 @@ func NewAuthenticator(ctx context.Context, name string) (Authenticator, error) {
 	createdAuth[ctx] = auth
 	return auth, err
 }
+
+// ReleaseAuthenticator 关闭并移除 ctx 对应的认证器实例。
+// createdAuth 只增不删，不释放会让已关闭的实例（连同用户表和数据库句柄）
+// 被这个全局 map 永久持有。
+func ReleaseAuthenticator(ctx context.Context) error {
+	createdAuthLock.Lock()
+	auth, found := createdAuth[ctx]
+	if found {
+		delete(createdAuth, ctx)
+	}
+	createdAuthLock.Unlock()
+	if !found {
+		return nil
+	}
+	return auth.Close()
+}

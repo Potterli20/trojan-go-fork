@@ -28,9 +28,77 @@ import (
 var (
 	// Auth 是包级共享的认证器:多个 Server 实例(test/scenario 里反复
 	// NewServer)并发创建时,check-then-set 需要互斥保护
-	authMu sync.Mutex
-	Auth   statistic.Authenticator
+	authMu  sync.Mutex
+	Auth    statistic.Authenticator
+	current *authInstance
 )
+
+// authInstance 是包级共享认证器的引用计数包装。
+// 每个 Server 持有自己的实例指针，所以即使测试把 Auth 置 nil 触发重建，
+// 旧实例也只由创建它的那些 Server 负责关闭。
+type authInstance struct {
+	auth   statistic.Authenticator
+	ctx    context.Context // statistic.createdAuth 的键，释放时用于移除
+	cancel context.CancelFunc
+	refcnt int
+}
+
+func acquireAuth(ctx context.Context, cfg *Config) *authInstance {
+	authMu.Lock()
+	defer authMu.Unlock()
+	if Auth == nil || current == nil || current.auth != Auth {
+		// 认证器的 ctx 不能寄生在首个 Server 的 ctx 上：那个 ctx 一旦被取消，
+		// 共享认证器的后台协程（流量汇总、MySQL 轮询）会先于其他使用者退出。
+		authCtx, cancel := context.WithCancel(context.WithoutCancel(ctx))
+		var auth statistic.Authenticator
+		var err error
+		if cfg.MySQL.Enabled {
+			log.Debug("mysql enabled")
+			auth, err = statistic.NewAuthenticator(authCtx, mysql.Name)
+		} else {
+			log.Debug("auth by config file")
+			auth, err = statistic.NewAuthenticator(authCtx, memory.Name)
+		}
+		if err != nil {
+			cancel()
+			log.Error(common.NewError("failed to create authenticator").Base(err))
+			return nil
+		}
+		Auth = auth
+		current = &authInstance{auth: auth, ctx: authCtx, cancel: cancel}
+	}
+	current.refcnt++
+	return current
+}
+
+// releaseAuth 归还一次引用；只有最后一个使用者会真正关闭认证器。
+// 必须在所有 handler 和 api 服务退出之后调用，否则会有连接还在读已关闭的用户表。
+func releaseAuth(inst *authInstance) {
+	if inst == nil {
+		return
+	}
+	authMu.Lock()
+	if inst.refcnt > 0 {
+		inst.refcnt--
+	}
+	if inst.refcnt > 0 {
+		authMu.Unlock()
+		return
+	}
+	inst.cancel()
+	if current == inst {
+		current = nil
+		if Auth == inst.auth {
+			Auth = nil
+		}
+	}
+	authMu.Unlock()
+
+	// ReleaseAuthenticator 会连同 createdAuth 注册表一起移除，避免全局 map 留住已关闭实例
+	if err := statistic.ReleaseAuthenticator(inst.ctx); err != nil {
+		log.Error(common.NewError("failed to release authenticator").Base(err))
+	}
+}
 
 // authTimeout 限定读取 trojan 认证头（56 字节 hash + 地址）的时限
 const authTimeout = 10 * time.Second
@@ -201,6 +269,7 @@ func (c *InboundConn) Hash() string {
 // Server is a trojan tunnel server
 type Server struct {
 	auth         statistic.Authenticator
+	authRef      *authInstance
 	redir        *redirector.Redirector
 	redirAddr    *tunnel.Address
 	underlay     tunnel.Server
@@ -210,6 +279,7 @@ type Server struct {
 	ctx          context.Context
 	cancel       context.CancelFunc
 	wg           sync.WaitGroup
+	closeOnce    sync.Once
 	trustHeaders bool
 }
 
@@ -219,6 +289,12 @@ func (s *Server) Close() error {
 	// acceptLoop 阻塞在 underlay.AcceptConn 上，若先 wg.Wait() 会永久死锁
 	err := s.underlay.Close()
 	s.wg.Wait()
+	// wg.Wait 之后所有连接和 api 服务都已退出，此时才能安全释放共享认证器；
+	// 否则 SQLite/MySQL 句柄与流量汇总协程会一直泄露到进程结束。
+	// Close 可能被上层重复调用，引用计数只能归还一次。
+	s.closeOnce.Do(func() {
+		releaseAuth(s.authRef)
+	})
 	return err
 }
 
@@ -345,23 +421,12 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
 	ctx, cancel := context.WithCancel(ctx)
 
-	authMu.Lock()
-	var err error
-	if Auth == nil {
-		if cfg.MySQL.Enabled {
-			log.Debug("mysql enabled")
-			Auth, err = statistic.NewAuthenticator(ctx, mysql.Name)
-		} else {
-			log.Debug("auth by config file")
-			Auth, err = statistic.NewAuthenticator(ctx, memory.Name)
-		}
-	}
-	auth := Auth
-	authMu.Unlock()
-	if err != nil {
+	ref := acquireAuth(ctx, cfg)
+	if ref == nil {
 		cancel()
 		return nil, common.NewError("trojan failed to create authenticator")
 	}
+	auth := ref.auth
 
 	// 仅在显式配置 record_capacity 时覆盖包级默认值（10），
 	// 否则把 Capacity 置 0 会导致 Subscribe 创建无缓冲 channel，
@@ -374,6 +439,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	s := &Server{
 		underlay:     underlay,
 		auth:         auth,
+		authRef:      ref,
 		redirAddr:    redirAddr,
 		connChan:     make(chan tunnel.Conn, 64),       // 增加连接池大小
 		muxChan:      make(chan tunnel.Conn, 64),       // 增加连接池大小
@@ -388,6 +454,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		redirConn, err := net.Dial("tcp", redirAddr.String())
 		if err != nil {
 			cancel()
+			releaseAuth(ref)
 			return nil, common.NewError("invalid redirect address. check your http server: " + redirAddr.String()).Base(err)
 		}
 		redirConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
@@ -395,7 +462,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 
 	if cfg.API.Enabled {
 		s.wg.Go(func() {
-			api.RunService(ctx, Name+"_SERVER", Auth)
+			api.RunService(ctx, Name+"_SERVER", auth)
 		})
 	}
 
