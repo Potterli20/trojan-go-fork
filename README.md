@@ -14,15 +14,25 @@ Trojan-Go Fork 是基于 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/troj
 - [与原版的差异](#与原版的差异)
 - [Docker 部署](#docker-部署)
 - [快速开始](#快速开始)
+  - [简易模式（命令行参数）](#简易模式命令行参数)
+  - [配置文件模式](#配置文件模式)
+  - [URL 模式（客户端）](#url 模式客户端)
 - [特性介绍](#特性介绍)
   - [可移植性](#可移植性)
   - [简易配置](#简易配置)
   - [WebSocket](#websocket)
+  - [HTTP/2 TLS 隧道](#http2-tls 隧道)
+  - [HTTP/3 QUIC 隧道](#http3-quic 隧道)
   - [多路复用](#多路复用)
   - [路由模块](#路由模块)
   - [AEAD 加密](#aead-加密)
   - [传输层插件](#传输层插件)
+- [配置示例](#配置示例)
+  - [Cloudflare HTTP/3 配置](#cloudflare-http3-配置)
+  - [CDN 中转配置](#cdn 中转配置)
+  - [IPv6 专用配置](#ipv6 专用配置)
 - [构建指南](#构建指南)
+- [故障排查](#故障排查)
 - [图形界面客户端](#图形界面客户端)
 - [致谢](#致谢)
 
@@ -211,6 +221,66 @@ Trojan-Go Fork 支持 TLS + WebSocket 承载 Trojan 协议，可利用 CDN 进�
 
 > 注意：标准 Trojan 不支持 WebSocket。如需使用 WebSocket 承载流量，请确保通信双方均使用 Trojan-Go Fork。
 
+### HTTP/2 TLS 隧道
+
+Trojan-Go Fork 支持基于 HTTP/2 协议的 TLS 隧道，提供更好的多路复用性能和兼容性。
+
+启用 HTTP/2 隧道：
+
+```json
+"http2": {
+    "enabled": true,
+    "host": "www.your-awesome-domain-name.com",
+    "path": "/h2-tunnel"
+}
+```
+
+HTTP/2 隧道特点：
+- **原生多路复用**：单个连接可并发多个请求，避免队头阻塞
+- **头部压缩**：HPACK 算法减少传输开销
+- **服务器推送**：支持服务端主动推送资源（需配合应用层实现）
+- **二进制分帧**：更高效的数据传输格式
+
+> 启用 HTTP/2 隧道后，建议使用支持 ALPN 的负载均衡器或 CDN（如 Cloudflare、AWS ALB）。
+
+### HTTP/3 QUIC 隧道
+
+Trojan-Go Fork 支持基于 QUIC 协议的 HTTP/3 隧道，提供卓越的弱网性能和连接速度。
+
+启用 QUIC 隧道：
+
+```json
+"quic": {
+    "enabled": true,
+    "max_idle_timeout": 30,
+    "max_incoming_streams": 100,
+    "initial_stream_window": 65535,
+    "initial_conn_window": 65535,
+    "alpn": "hq-29",
+    "congestion": "bbr"
+}
+```
+
+QUIC 隧道优势：
+- **零 RTT 连接恢复**：已建立连接的客户端可立即发送数据
+- **改进的拥塞控制**：支持 BBR、CUBIC 等算法
+- **弱网优化**：在高延迟、高丢包环境下表现优异
+- **内置加密**：TLS 1.3 深度集成，所有流量默认加密
+
+高级配置选项：
+```json
+"quic": {
+    "enabled": true,
+    "brutal_up": 10,      // 上行限速 (Mbps)
+    "brutal_down": 50,    // 下行限速 (Mbps)
+    "insecure": false     // 是否跳过证书验证
+}
+```
+
+> **注意**：QUIC 基于 UDP 协议，某些网络环境可能限制 UDP 流量。Brutal 加速仅在 `cubic` 拥塞控制下有效，BBR 自带速率控制。
+
+详细配置指南请参考 [QUIC 使用文档](docs/quic_usage.md)。
+
 ### 多路复用
 
 Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复用，通过单条 TLS 连接承载多条 TCP 连接，减少 TLS 握手延迟，提升高并发场景下的性能。
@@ -329,6 +399,165 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
 
 ---
 
+## 配置示例
+
+### Cloudflare HTTP/3 配置
+
+针对 Cloudflare CDN 优化的 QUIC 配置，提供最佳性能：
+
+**客户端配置 (`client.yaml`)**：
+
+```yaml
+run-type: client
+local-addr: 127.0.0.1
+local-port: 10808
+remote-addr: your-domain.com
+remote-port: 443
+
+quic:
+  enabled: true
+  max-idle-timeout: 30
+  max-incoming-streams: 100
+  initial-stream-window: 65535
+  initial-conn-window: 65535
+  alpn: hq-29
+  congestion: bbr
+  insecure: false
+
+ssl:
+  verify-hostname: true
+  sni: your-domain.com
+  key: /path/to/key.pem
+  cert: /path/to/cert.pem
+
+password:
+  - your-strong-password
+```
+
+**服务端配置 (`server.yaml`)**：
+
+```yaml
+run-type: server
+local-addr: 0.0.0.0
+local-port: 443
+password:
+  - your-strong-password
+
+quic:
+  enabled: true
+  max-idle-timeout: 30
+  max-incoming-streams: 100
+  initial-stream-window: 65535
+  initial-conn-window: 65535
+  alpn: hq-29
+  congestion: bbr
+
+ssl:
+  verify-hostname: false
+  key: /path/to/server.key
+  cert: /path/to/server.crt
+  sni: your-domain.com
+```
+
+详细配置请参考 `config/cloudflare_quic_client.yaml` 和 `config/cloudflare_quic_server.yaml`。
+
+### CDN 中转配置
+
+通过 WebSocket + CDN 实现流量中转，隐藏真实 IP：
+
+**服务端配置**：
+
+```json
+{
+  "run_type": "server",
+  "local_addr": "0.0.0.0",
+  "local_port": 443,
+  "remote_addr": "127.0.0.1",
+  "remote_port": 80,
+  "password": ["your_password"],
+  "ssl": {
+    "cert": "fullchain.pem",
+    "key": "privkey.pem",
+    "sni": "your-domain.com"
+  },
+  "websocket": {
+    "enabled": true,
+    "path": "/trojan-ws",
+    "host": "your-domain.com"
+  },
+  "shadowsocks": {
+    "enabled": true,
+    "method": "AES-128-GCM",
+    "password": "ws-password"
+  }
+}
+```
+
+**Nginx CDN 配置示例**：
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+
+    ssl_certificate /path/to/fullchain.pem;
+    ssl_certificate_key /path/to/privkey.pem;
+
+    location /trojan-ws {
+        proxy_pass http://127.0.0.1:443;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_ssl_server_name on;
+    }
+}
+```
+
+### IPv6 专用配置
+
+针对纯 IPv6 网络环境的优化配置：
+
+**服务端配置**：
+
+```json
+{
+  "run_type": "server",
+  "local_addr": "::",
+  "local_port": 443,
+  "remote_addr": "::1",
+  "remote_port": 80,
+  "password": ["your_password"],
+  "ssl": {
+    "cert": "fullchain.pem",
+    "key": "privkey.pem",
+    "sni": "[::1]"
+  },
+  "tcp": {
+    "fast_open": true
+  }
+}
+```
+
+**客户端配置**：
+
+```json
+{
+  "run_type": "client",
+  "local_addr": "::1",
+  "local_port": 1080,
+  "remote_addr": "example.com",
+  "remote_port": 443,
+  "password": ["your_password"],
+  "outbound_local_addr": "::",
+  "tcp": {
+    "fast_open": true
+  }
+}
+```
+
+---
+
 ## 构建指南
 
 > 要求 Go 版本 >= 1.27
@@ -369,6 +598,138 @@ CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -tags "full"
 # 64 位 Linux
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags "full"
 ```
+
+---
+
+## 故障排查
+
+### 连接失败
+
+**症状**：客户端无法连接到服务端
+
+**排查步骤**：
+
+1. **检查端口监听**：
+   ```bash
+   netstat -tlnp | grep trojan
+   # 或
+   ss -tlnp | grep trojan
+   ```
+
+2. **验证证书配置**：
+   - 确保 `ssl.cert` 和 `ssl.key` 路径正确
+   - 检查证书域名与 SNI 是否匹配
+   - 测试证书有效性：`openssl x509 -in cert.pem -text`
+
+3. **检查防火墙规则**：
+   ```bash
+   # Linux
+   sudo ufw status
+   sudo iptables -L -n
+
+   # 确保 UDP 443 端口开放（如启用 QUIC）
+   ```
+
+4. **查看日志**：
+   ```json
+   {
+     "log-level": 0,  // AllLevel - 显示所有日志
+     "access-log": "/var/log/trojan-access.log"
+   }
+   ```
+
+### QUIC 连接问题
+
+**症状**：QUIC 隧道无法建立
+
+**解决方案**：
+
+1. **确认 UDP 443 端口可用**：
+   ```bash
+   nc -uvz your-domain.com 443
+   ```
+
+2. **切换拥塞控制算法**：
+   ```yaml
+   quic:
+     congestion: cubic  # 从 bbr 切换到 cubic
+   ```
+
+3. **禁用 Brutal 加速**（BBR 自带速率控制）：
+   ```yaml
+   quic:
+     brutal-up: 0
+     brutal-down: 0
+   ```
+
+4. **检查 ALPN 协商**：
+   ```bash
+   openssl s_client -connect your-domain.com:443 -alpn hq-29
+   ```
+
+### WebSocket 访问无效
+
+**症状**：添加用户后 WebSocket 无法连接
+
+**原因**：已修复（v0.12.0+），确保使用最新版本
+
+**临时方案**：
+```json
+{
+  "websocket": {
+    "enabled": true,
+    "path": "/ws",
+    "host": "your-domain.com"
+  },
+  "ssl": {
+    "fallback_addr": "127.0.0.1",  // HTTP/1.1 回退地址
+    "fallback_port": 80
+  }
+}
+```
+
+### 性能不佳
+
+**症状**：速度慢、延迟高
+
+**优化建议**：
+
+1. **启用 TCP Fast Open**：
+   ```json
+   "tcp": {
+     "fast_open": true
+   }
+   ```
+
+2. **调整 QUIC 窗口大小**（高带宽低延迟网络）：
+   ```yaml
+   quic:
+     initial-stream-window: 262144   # 256KB
+     initial-conn-window: 262144
+   ```
+
+3. **启用多路复用**（高并发场景）：
+   ```json
+   "mux": {
+     "enabled": true,
+     "idle_timeout": 30,
+     "concurrency": 8
+   }
+   ```
+
+4. **使用 BBR 拥塞控制**：
+   ```yaml
+   quic:
+     congestion: bbr
+   ```
+
+### 优雅关闭超时
+
+**症状**：服务停止需要数秒才能完全退出
+
+**说明**：这是预期行为，每个环节受 5 秒超时兜底
+
+**优化**：减少空闲连接数量，或使用 QUIC 的零 RTT 特性
 
 ---
 
