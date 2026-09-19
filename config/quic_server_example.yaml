@@ -1,0 +1,26 @@
+# QUIC 服务端配置示例
+run-type: server
+local-addr: 0.0.0.0
+local-port: 443
+password:
+  - your-secure-password-here
+
+# QUIC 配置（启用 HTTP/3）
+quic:
+  enabled: true                    # 启用 QUIC
+  max-idle-timeout: 30            # 最大空闲超时（秒）
+  max-incoming-streams: 100       # 最大入站流数
+  initial-stream-window: 65535    # 初始流窗口大小
+  initial-conn-window: 65535      # 初始连接窗口大小
+  alpn: hq-29                     # ALPN 标识
+  congestion: bbr                 # 拥塞控制算法 (bbr/cubic)
+  brutal-up: 0                    # Brutal 上行限速 (Mbps, 0=禁用)
+  brutal-down: 0                  # Brutal 下行限速 (Mbps, 0=禁用)
+
+ssl:
+  verify-hostname: false          # 测试环境可设为 false，生产环境建议设为 true
+  key: /path/to/server.key
+  cert: /path/to/server.crt
+  sni: example.com
+
+log-level: 0                      # 显示所有日志级别
