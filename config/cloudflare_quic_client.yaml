@@ -1,0 +1,88 @@
+# trojan-go-fork + Cloudflare HTTP/3 (QUIC) 推荐配置
+# =====================================================
+# 此配置针对 Cloudflare CDN 优化，启用 QUIC/HTTP3 协议以获得最佳性能
+# 
+# ⚠️ 使用前请修改以下配置项：
+#   1. remote-addr: 你的 Cloudflare 域名
+#   2. ssl.sni: 必须与域名一致
+#   3. password: 你的 Trojan 认证密码
+#   4. 证书路径（如使用自定义证书）
+
+run-type: client
+log-level: info
+# 本地代理端口（根据需求调整）
+local-addr: 127.0.0.1
+local-port: 10808
+
+# Cloudflare CDN 地址 - 【需要修改】改为你的域名
+remote-addr: example.com
+remote-port: 443
+
+# ==================== QUIC/HTTP3 配置 ====================
+quic:
+  enabled: true                    # 启用 QUIC (HTTP/3)
+  
+  # 超时设置
+  max-idle-timeout: 30            # 最大空闲超时（秒），Cloudflare 默认 30s
+  
+  # 并发控制
+  max-incoming-streams: 100       # 最大入站流数（并发连接数）
+  
+  # 流控窗口（字节）
+  initial-stream-window: 65535    # 初始流窗口大小
+  initial-conn-window: 65535      # 初始连接窗口大小
+  
+  # 协议协商
+  alpn: hq-29                     # HTTP/3 draft-29（Cloudflare 支持）
+  
+  # 安全性（生产环境务必设为 false）
+  insecure: false                 # 是否跳过证书验证
+  
+  # 拥塞控制（BBR 在 Cloudflare 网络上表现最佳）
+  congestion: bbr                 # 可选：bbr, cubic
+  
+  # Brutal 加速（Cloudflare 已优化，通常不需要）
+  brutal-up: 0                    # 上行限速 (Mbps, 0=禁用)
+  brutal-down: 0                  # 下行限速 (Mbps, 0=禁用)
+
+# ==================== SSL/TLS 配置 ====================
+ssl:
+  # 证书验证
+  verify-hostname: true           # 必须与 sni 匹配
+  verify-cert: true               # 验证证书链
+  insecure: false                 # 生产环境必须为 false
+  
+  # 证书路径（使用系统证书可省略，仅当需要自定义证书时取消注释）
+  # key: /etc/letsencrypt/live/example.com/privkey.pem
+  # cert: /etc/letsencrypt/live/example.com/fullchain.pem
+  
+  # SNI（必须与你的域名一致）【需要修改】
+  sni: example.com
+  
+  # ALPN（让 quic-go 自动处理，这里可不设）
+  # alpn: hq-29
+
+# ==================== 其他配置 ====================
+# 认证密码【需要修改】- 建议使用强密码（至少 16 位随机字符）
+password:
+  - change-this-to-a-strong-password
+
+# API 管理接口（可选，用于监控和统计）
+api:
+  enabled: false
+  addr: 127.0.0.1
+  port: 9999
+  user: admin
+  passwd: admin-password
+
+# 统计后端（可选）
+statistic:
+  type: "memory"                  # 可选：memory, sqlite, mysql
+  # 使用 SQLite 持久化（仅 Linux x86_64/arm64）
+  # type: "sqlite"
+  # db-path: "/var/lib/trojan/trojan.db"
+
+# DNS 设置（可选，使用系统默认）
+# dns:
+#   strategy: "prefer_ipv4"       # 可选：prefer_ipv4, prefer_ipv6, ipv4_first, ipv6_first
+#   timeout: "5s"

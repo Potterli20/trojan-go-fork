@@ -1,0 +1,45 @@
+# trojan-go-fork + Cloudflare TCP 降级配置（备用）
+# =====================================================
+# 当 QUIC/HTTP3 被阻断时的回退方案
+# 使用传统的 TCP + TLS 连接
+
+run-type: client
+log-level: info
+
+local-addr: 127.0.0.1
+local-port: 10808
+
+remote-addr: example.com          # 【需要修改】改为你的域名
+remote-port: 443
+
+# ==================== QUIC 禁用 ====================
+quic:
+  enabled: false                  # 禁用 QUIC，回退到 TCP+TLS
+
+# ==================== SSL/TLS 配置 ====================
+ssl:
+  verify-hostname: true           # 必须与 sni 匹配
+  verify-cert: true               # 验证证书链
+  insecure: false                 # 生产环境必须为 false
+  
+  # 证书路径（使用系统证书可省略）
+  # key: /etc/letsencrypt/live/example.com/privkey.pem
+  # cert: /etc/letsencrypt/live/example.com/fullchain.pem
+  
+  sni: example.com                # 【需要修改】必须与域名一致
+
+# ==================== 认证配置 ====================
+password:
+  - change-this-to-a-strong-password
+
+# ==================== API 管理接口 ====================
+api:
+  enabled: false
+  addr: 127.0.0.1
+  port: 9999
+  user: admin
+  passwd: admin-password
+
+# ==================== 统计后端 ====================
+statistic:
+  type: "memory"

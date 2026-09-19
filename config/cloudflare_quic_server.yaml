@@ -1,0 +1,85 @@
+# trojan-go-fork + Cloudflare HTTP/3 (QUIC) 服务端配置
+# =====================================================
+# 此配置作为自建服务器，通过 QUIC/HTTP3 提供代理服务
+# 
+# ⚠️ 使用前请修改以下配置项：
+#   1. ssl.key/cert: 证书和私钥路径
+#   2. ssl.sni: 必须与域名一致
+#   3. password: Trojan 认证密码
+#   4. api.passwd: API 管理密码
+
+run-type: server
+log-level: info
+
+# 监听地址（UDP 443）
+local-addr: 0.0.0.0
+local-port: 443
+
+# ==================== QUIC 配置 ====================
+quic:
+  enabled: true                    # 启用 QUIC
+  
+  # 超时设置
+  max-idle-timeout: 30            # 最大空闲超时（秒）
+  
+  # 并发控制
+  max-incoming-streams: 100       # 最大入站流数
+  
+  # 流控窗口（字节）
+  initial-stream-window: 65535    # 初始流窗口大小
+  initial-conn-window: 65535      # 初始连接窗口大小
+  
+  # 协议协商
+  alpn: hq-29                     # HTTP/3 draft-29
+  
+  # 拥塞控制
+  congestion: bbr                 # 推荐 BBR
+  
+  # Brutal 加速（根据带宽调整）
+  brutal-up: 0                    # 上行限速 (Mbps, 0=禁用)
+  brutal-down: 0                  # 下行限速 (Mbps, 0=禁用)
+
+# ==================== SSL/TLS 配置 ====================
+ssl:
+  # 证书验证（服务端通常不需要验证客户端）
+  verify-hostname: false
+  verify-cert: false
+  insecure: false
+  
+  # 证书路径【需要修改】- 必须提供有效证书
+  key: /etc/letsencrypt/live/example.com/privkey.pem
+  cert: /etc/letsencrypt/live/example.com/fullchain.pem
+  
+  # SNI【需要修改】
+  sni: example.com
+  
+  # ALPN
+  # alpn: hq-29
+
+# ==================== 认证配置 ====================
+password:
+  - change-this-to-a-strong-password
+
+# 多密码支持（可选）
+# password:
+#   - password1
+#   - password2
+#   - password3
+
+# ==================== API 管理接口 ====================
+api:
+  enabled: true
+  addr: 127.0.0.1
+  port: 9999
+  user: admin
+  passwd: change-this-api-password
+
+# ==================== 统计后端 ====================
+statistic:
+  type: "sqlite"                  # 使用 SQLite 持久化流量统计
+  # db-path: "/var/lib/trojan/trojan.db"
+
+# ==================== DNS 设置 ====================
+dns:
+  strategy: "prefer_ipv4"         # IPv4 优先
+  timeout: "5s"
