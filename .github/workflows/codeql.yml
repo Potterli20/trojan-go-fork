@@ -77,11 +77,9 @@ jobs:
             - '**/generated'
           query-filters:
             - exclude:
-                queries:
-                  - go/log-injection
+                id: go/log-injection
             - exclude:
-                queries:
-                  - go/weak-sensitive-data-hashing
+                id: go/weak-sensitive-data-hashing
 
     # Autobuild attempts to build any compiled languages  (C/C++, C#, Go, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
