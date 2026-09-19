@@ -183,7 +183,10 @@ func (s *Server) acceptLoop() {
 			// we use a real http header parser to mimic a real http server
 			rewindConn := common.NewRewindConn(tlsConn)
 			rewindConn.SetBufferSize(1024)
-			r := bufio.NewReader(rewindConn)
+			// 读取侧独立限幅：http.ReadRequest 自身没有 header 上限，未认证对端
+			// 可以只用请求头把单连接内存推到数百 MB。读走的字节仍会被 rewindConn
+			// 记录并可回放，截断只影响嗅探结果。
+			r := bufio.NewReader(io.LimitReader(rewindConn, common.MaxSniffRequestBytes))
 			httpReq, err := http.ReadRequest(r)
 			rewindConn.Rewind()
 			rewindConn.StopBuffering()

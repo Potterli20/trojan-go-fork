@@ -70,10 +70,16 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		err := common.NewError("websocket is disabled. redirecting http request from " + conn.RemoteAddr().String())
 		return nil, s.cleanupFailedHandshake(conn, tracker, err)
 	}
-	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
+	// rw 会被 websocket 库继续用来读升级后的帧，所以这里用可解除的限幅：
+	// 只在解析升级请求的窗口内限制读取量（http.ReadRequest 自身没有 header 上限），
+	// 解析一结束就交还，不影响后续数据流。
+	bounded := common.NewBoundedReader(conn)
+	bounded.Limit(common.MaxSniffRequestBytes)
+	rw := bufio.NewReadWriter(bufio.NewReader(bounded), bufio.NewWriter(conn))
 	// 等待 WebSocket 升级请求限时:对端静默时不让本调用永久阻塞
 	conn.SetReadDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	req, err := http.ReadRequest(rw.Reader)
+	bounded.Unlimited()
 	conn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	if err != nil {
 		log.Debug("invalid http request")

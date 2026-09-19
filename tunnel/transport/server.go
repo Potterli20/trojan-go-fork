@@ -3,6 +3,7 @@ package transport
 import (
 	"bufio"
 	"context"
+	"io"
 	"net"
 	"net/http"
 	"os"
@@ -96,7 +97,10 @@ func (s *Server) handleConnection(tcpConn net.Conn) {
 
 		// 对端静默时不设截止时间会让 handler 永久阻塞，Close() 的 wg.Wait() 随之挂起
 		tcpConn.SetDeadline(time.Now().Add(firstByteTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-		r := bufio.NewReader(rewindConn)
+		// 读取侧独立限幅：http.ReadRequest 自身没有 header 上限，未认证对端可以
+		// 只用请求头就把单连接内存推到数百 MB。这里读走的字节仍会被 rewindConn
+		// 记录并可回放，所以截断只影响嗅探结果，不会丢正常握手的数据。
+		r := bufio.NewReader(io.LimitReader(rewindConn, common.MaxSniffRequestBytes))
 		httpReq, err := http.ReadRequest(r)
 		rewindConn.Rewind()
 		rewindConn.StopBuffering()

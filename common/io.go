@@ -27,6 +27,48 @@ type RewindReader struct {
 // 一旦超过即停止累积转直通——此时嗅探必然失败，但单连接常驻内存有界。
 const maxRewindBufferSize = 64 * 1024
 
+// MaxSniffRequestBytes 限制嗅探阶段解析单个 HTTP 请求时读取的字节数。
+// http.ReadRequest 走的是客户端解析路径，Go 1.21 之后 header 上限是 math.MaxInt64，
+// 未认证对端只靠请求头就能让单连接分配数百 MB；maxRewindBufferSize 只管住
+// RewindReader 自己的累积量，管不住解析侧的分配，所以读取侧还要独立设限。
+// 32KB 覆盖带长 cookie/URL 的真实请求，同时小于 maxRewindBufferSize，
+// 保证被读走的字节仍完整可回放。
+const MaxSniffRequestBytes = 32 * 1024
+
+// BoundedReader 给一个长期存活的 reader 临时设读取上限，嗅探结束后必须调用
+// Unlimited 交还。用于 bufio 会被后续协议复用、不能一次性截断的场景
+// （tunnel/websocket 的升级请求解析）。嗅探完即丢弃的 reader 直接用 io.LimitReader。
+type BoundedReader struct {
+	raw       io.Reader
+	remaining int64 // < 0 表示不限制
+}
+
+func NewBoundedReader(raw io.Reader) *BoundedReader {
+	return &BoundedReader{raw: raw, remaining: -1}
+}
+
+func (b *BoundedReader) Limit(n int64) {
+	b.remaining = n
+}
+
+func (b *BoundedReader) Unlimited() {
+	b.remaining = -1
+}
+
+func (b *BoundedReader) Read(p []byte) (int, error) {
+	if b.remaining == 0 {
+		return 0, io.EOF
+	}
+	if b.remaining > 0 && int64(len(p)) > b.remaining {
+		p = p[:b.remaining]
+	}
+	n, err := b.raw.Read(p)
+	if b.remaining > 0 {
+		b.remaining -= int64(n)
+	}
+	return n, err
+}
+
 func (r *RewindReader) Read(p []byte) (int, error) {
 	r.mu.Lock()
 	if r.rewound {
@@ -37,6 +79,12 @@ func (r *RewindReader) Read(p []byte) (int, error) {
 			return n, nil
 		}
 		r.rewound = false
+		if !r.buffering {
+			// 回放完毕且不再缓冲：立即释放嗅探期间的缓冲。否则最多 64KB 会一直
+			// 挂在这条连接的生命周期上，一条连接叠几层 RewindConn 就是几百 KB。
+			r.buf = nil
+			r.bufReadIdx = 0
+		}
 	}
 	buffering := r.buffering
 	r.mu.Unlock()
