@@ -26,19 +26,25 @@ const (
 )
 
 type Proxy struct {
-	sources []tunnel.Server
-	sink    tunnel.Client
-	ctx     context.Context
-	cancel  context.CancelFunc
-	bufSize int
-	bufPool *boundedBufPool
-	wg      sync.WaitGroup
-	logFile *os.File
+	sources    []tunnel.Server
+	sink       tunnel.Client
+	ctx        context.Context
+	cancel     context.CancelFunc
+	bufPool    *boundedBufPool
+	packetPool *boundedBufPool
+	wg         sync.WaitGroup
+	logFile    *os.File
 }
 
 // boundedBufPool 带驻留数量上限的转发 buffer 池：
 // 池内最多驻留 limit 个 buffer（limit<=0 时不池化），池空或池满时临时分配/直接丢弃，
 // 由 GC 回收，从而限制转发层的常驻内存占用。
+//
+// 注意 limit 约束的是「池内驻留量」而不是「并发借用量」：一个 buffer 被借出后不再
+// 计入驻留量，池空时 Get 会照常新分配。所以峰值内存 = 活跃转发方向数 × size，
+// 与 limit 无关；limit 的作用是把空闲期回收的 buffer 数量压住，避免转发高峰期
+// 之后长期占着 count × size 的内存。这里不做并发上限：中继 goroutine 可能因对端
+// 卡死而长期持有 buffer，一旦 Get 阻塞，新连接会在全局限流上排队放大成整站不可用。
 type boundedBufPool struct {
 	size  int
 	limit int
@@ -213,21 +219,21 @@ func (p *Proxy) relayPacketLoop() {
 
 					p.wg.Go(func() {
 						for {
-							buf := p.bufPool.Get()
+							buf := p.packetPool.Get()
 							n, metadata, err := inbound.ReadWithMetadata(buf)
 							if err != nil {
-								p.bufPool.Put(buf)
+								p.packetPool.Put(buf)
 								log.Debug(err)
 								closeDone()
 								return
 							}
 							if n == 0 {
-								p.bufPool.Put(buf)
+								p.packetPool.Put(buf)
 								closeDone()
 								return
 							}
 							_, err = outbound.WriteWithMetadata(buf[:n], metadata)
-							p.bufPool.Put(buf)
+							p.packetPool.Put(buf)
 							if err != nil {
 								log.Debug(err)
 								closeDone()
@@ -238,21 +244,21 @@ func (p *Proxy) relayPacketLoop() {
 
 					p.wg.Go(func() {
 						for {
-							buf := p.bufPool.Get()
+							buf := p.packetPool.Get()
 							n, metadata, err := outbound.ReadWithMetadata(buf)
 							if err != nil {
-								p.bufPool.Put(buf)
+								p.packetPool.Put(buf)
 								log.Debug(err)
 								closeDone()
 								return
 							}
 							if n == 0 {
-								p.bufPool.Put(buf)
+								p.packetPool.Put(buf)
 								closeDone()
 								return
 							}
 							_, err = inbound.WriteWithMetadata(buf[:n], metadata)
-							p.bufPool.Put(buf)
+							p.packetPool.Put(buf)
 							if err != nil {
 								log.Debug(err)
 								closeDone()
@@ -284,13 +290,22 @@ func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.S
 			bufCount = cfg.RelayBufferCount
 		}
 	}
+	// UDP 包必须整包读进 buffer：tunnel/trojan 的 ReadWithMetadata 在
+	// len(payload) < 包长 时直接返回错误，中继会就此断开整条 packet 流。
+	// 所以即便把 relay_buffer_size 调小，包路径也要留够 MaxPacketSize；
+	// 尺寸够用时复用同一个池，避免常驻内存翻倍。
+	bufPool := newBoundedBufPool(bufSize, bufCount)
+	packetPool := bufPool
+	if bufSize < MaxPacketSize {
+		packetPool = newBoundedBufPool(MaxPacketSize, bufCount)
+	}
 	return &Proxy{
-		sources: sources,
-		sink:    sink,
-		ctx:     ctx,
-		cancel:  cancel,
-		bufSize: bufSize,
-		bufPool: newBoundedBufPool(bufSize, bufCount),
+		sources:    sources,
+		sink:       sink,
+		ctx:        ctx,
+		cancel:     cancel,
+		bufPool:    bufPool,
+		packetPool: packetPool,
 	}
 }
 

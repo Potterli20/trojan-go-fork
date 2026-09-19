@@ -33,7 +33,13 @@ README 中列出的 8 项社区改进（@fregie 等）在后续大规模重构�
   memory 认证器经 `sqlite` 配置项启用，批量流量回写（batchTrafficUpdater）带指数退避重试。windows/darwin 交叉编译通过。
 - **buffer 大小及数量限制**：大小限制（`relay_buffer_size`）在位；数量限制此前丢失，已补回：
   `relay_buffer_count`（默认 1024）+ `proxy.boundedBufPool`（channel 池，池满丢弃、池空临时分配），
-  限制转发层常驻内存上限。
+  限制转发层常驻内存上限。注意 count 限制的是**池内驻留量**而非并发借用量：峰值内存由
+  「活跃转发方向数 × relay_buffer_size」决定，count 只压住空闲期长期占用的 count × size。
+  刻意不做并发借用上限：中继 goroutine 可能因对端卡死长期持有 buffer，Get 一旦阻塞会把
+  个别坏连接放大成整站排队。
+  同轮修复：`relay_buffer_size` 小于 8192 时 UDP 会被 `trojan.PacketConn.ReadWithMetadata`
+  判为「包过大」并直接断掉整条 packet 流，现在 UDP 路径使用独立的 `packetPool`
+  （至少 `MaxPacketSize`，buffer 足够大时与转发池复用同一个）。
 - **上行限速**：`tunnel/trojan/server.go` 的流量方向映射在 2026-04 被错误对调
   （Write→RecvLimiter、Read→SendLimiter），与 API 契约（Sent=DownloadTraffic、SendLimiter=下行、RecvLimiter=上行）相反，
   导致 API 的上行限速实际作用于下行。已恢复 fregie/上游语义：Write→AddSentTraffic，Read→AddRecvTraffic。
