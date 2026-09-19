@@ -32,9 +32,21 @@ type Server struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
 	wg          sync.WaitGroup
+	// closeOnce/closeErr：服务端栈里多个端点会共用同一个 transport 实例
+	// （tls 层之下），Close 因此可能被调用多次。整个关闭流程只跑一次，
+	// 后续调用复用首次结果。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 func (s *Server) Close() error {
+	s.closeOnce.Do(func() {
+		s.closeErr = s.close()
+	})
+	return s.closeErr
+}
+
+func (s *Server) close() error {
 	log.Info("[Transport Server] Closing transport server")
 	s.cancel()
 	err := s.tcpListener.Close()

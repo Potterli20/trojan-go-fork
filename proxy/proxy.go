@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"errors"
 	"io"
 	"math"
 
@@ -9,6 +10,7 @@ import (
 	"os/signal"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -34,6 +36,11 @@ type Proxy struct {
 	packetPool *boundedBufPool
 	wg         sync.WaitGroup
 	logFile    *os.File
+	// sigChan 在 NewProxy 里就分配好：Run 与 Close 常常跑在不同 goroutine 上，
+	// 惰性创建会与 Close 的读取竞争。Notify 由 Run 挂上、Close 结束时才卸载，
+	// 跨住 Run→Close 的间隙，避免清理阶段再收到信号时被默认处置直接杀进程。
+	sigChan chan os.Signal
+	sigOnce sync.Once
 }
 
 // boundedBufPool 带驻留数量上限的转发 buffer 池：
@@ -81,6 +88,46 @@ func (p *boundedBufPool) Put(buf []byte) {
 	}
 }
 
+// shutdownTimeout 是关闭阶段单个环节的最长等待时间（等中继 goroutine 退出、
+// 等底层 tunnel 关闭各算一次）。io.CopyBuffer 不感知 ctx，且每个 tunnel Server
+// 的 Close 内部还有自己的 wg.Wait：对端半开、mux/QUIC 会话卡死时这些等待都可能
+// 永久挂住，无上限就会让进程永远退不出去。
+var shutdownTimeout = 5 * time.Second
+
+// waitBounded 在后台执行 fn 并最多等待 timeout；sig 非 nil 时收到信号也立即结束等待。
+// 返回 false 表示没等满（超时或提前收到信号），此时 fn 可能仍在后台运行。
+// 进程即将退出，遗留的 goroutine 由 runtime 回收；对分步调用的库使用方，
+// 走到这一步说明底层已经卡死，继续挂住比留下一个未退出的 goroutine 更糟。
+func waitBounded(timeout time.Duration, sig <-chan os.Signal, what string, fn func()) bool {
+	done := make(chan struct{})
+	go func() {
+		fn()
+		close(done)
+	}()
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
+	select {
+	case <-done:
+		return true
+	case s := <-sig:
+		log.Warn("received signal ", s, " while trying to ", what, "; skipping the remaining wait")
+		return false
+	case <-timer.C:
+		log.Warn("timed out after ", timeout, " while trying to ", what)
+		return false
+	}
+}
+
+// watchShutdownSignal 安装 SIGINT/SIGTERM 处理，幂等。
+// 句柄由 Run 安装、Close 结束时才卸载，中间不留空窗：之前在 Run 返回处
+// 就 signal.Stop，紧随其后的清理阶段再收到信号会被默认处置直接杀进程。
+func (p *Proxy) watchShutdownSignal() chan os.Signal {
+	p.sigOnce.Do(func() {
+		signal.Notify(p.sigChan, shutdownSignals...)
+	})
+	return p.sigChan
+}
+
 // Run starts the proxy relay loops and waits for context cancellation.
 // It also installs a signal handler so that SIGINT/SIGTERM trigger a graceful
 // shutdown: the relay loops unblock via context cancellation and Run returns,
@@ -90,10 +137,7 @@ func (p *Proxy) Run() error {
 	p.relayConnLoop()
 	p.relayPacketLoop()
 
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, shutdownSignals...)
-	defer signal.Stop(sig)
-
+	sig := p.watchShutdownSignal()
 	select {
 	case <-p.ctx.Done():
 	case s := <-sig:
@@ -103,20 +147,64 @@ func (p *Proxy) Run() error {
 	return nil
 }
 
-// Close shuts down the proxy gracefully
+// RunAndClose runs the relay loops, then closes the proxy and reports the error
+// from either step. Callers must not drop the Close error: main only exits 0 when
+// the option handler returns nil, so a tunnel that failed to close would otherwise
+// look like a clean shutdown.
+func (p *Proxy) RunAndClose() error {
+	return errors.Join(p.Run(), p.Close())
+}
+
+// releaseTunnels 关闭出站与全部入站 tunnel，并汇总各自的错误。
+// 之前这些错误被无条件丢弃，调用方（option handler → main）无法区分
+// 「干净退出」和「有端口/句柄没关掉」，退出码永远是 0。
+func (p *Proxy) releaseTunnels() error {
+	var errs []error
+	if err := p.sink.Close(); err != nil {
+		errs = append(errs, common.NewError("failed to close the outbound tunnel").Base(err))
+	}
+	for _, source := range p.sources {
+		if err := source.Close(); err != nil {
+			errs = append(errs, common.NewError("failed to close an inbound tunnel").Base(err))
+		}
+	}
+	return errors.Join(errs...)
+}
+
+// Close shuts down the proxy gracefully. Both phases are bounded by
+// shutdownTimeout so that a wedged peer can never keep the process alive:
+// the relay wait gives up first, and the resource release can give up too,
+// because every tunnel Server.Close does its own unbounded wg.Wait internally.
+// The returned error reports tunnels that failed to close; a plain
+// signal-triggered shutdown still returns nil.
 func (p *Proxy) Close() error {
 	p.cancel()
-	p.wg.Wait()
-	p.sink.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-	for _, source := range p.sources {
-		source.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	defer signal.Stop(p.sigChan)
+	// Run 已经消费掉第一次关闭信号；这里丢掉清理开始前积压的信号，
+	// 只把等待期间新到达的信号当作「等不及」的二次信号。
+	select {
+	case <-p.sigChan:
+	default:
+	}
+	if !waitBounded(shutdownTimeout, p.sigChan, "wait for relay loops to finish", p.wg.Wait) {
+		// 没等空也继续往下走：关闭 source/sink 会让滞留的读写报错退出，
+		// 总比带着未关闭的监听端口和文件句柄永久挂住要好。
+		log.Warn("graceful shutdown did not complete; forcing resource release")
+	}
+	var errs []error
+	released := make(chan error, 1) // 带缓冲：后台 goroutine 在等待者放弃后也能写入并退出
+	if waitBounded(shutdownTimeout, p.sigChan, "close tunnels", func() { released <- p.releaseTunnels() }) {
+		// 只有确认后台跑完了才读结果，超时放弃时它可能仍在运行
+		if err := <-released; err != nil {
+			errs = append(errs, err)
+		}
 	}
 	if p.logFile != nil {
 		if err := p.logFile.Close(); err != nil {
 			log.Error(common.NewError("failed to close log file").Base(err))
 		}
 	}
-	return nil
+	return errors.Join(errs...)
 }
 
 var (
@@ -306,6 +394,7 @@ func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.S
 		cancel:     cancel,
 		bufPool:    bufPool,
 		packetPool: packetPool,
+		sigChan:    make(chan os.Signal, 1),
 	}
 }
 
