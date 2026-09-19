@@ -108,6 +108,8 @@ func Infof(format string, v ...any) {
 }
 
 func Debug(v ...any) {
+	// 输入已经过 SanitizeLogInput 清洗，CodeQL 无法识别自定义 sanitizer
+	// codeql[go/log-injection] ignore
 	getLogger().Debug(SanitizeLogInput(v)...)
 }
 

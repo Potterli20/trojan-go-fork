@@ -106,7 +106,9 @@ func (p *Proxy) Close() error {
 		source.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	}
 	if p.logFile != nil {
-		p.logFile.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		if err := p.logFile.Close(); err != nil {
+			log.Error(common.NewError("failed to close log file").Base(err))
+		}
 	}
 	return nil
 }
@@ -344,7 +346,9 @@ func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 	p, err := create(ctx)
 	if err != nil {
 		if logFile != nil {
-			logFile.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			if cerr := logFile.Close(); cerr != nil {
+				log.Warn(common.NewError("failed to close log file").Base(cerr))
+			}
 		}
 		return nil, err
 	}

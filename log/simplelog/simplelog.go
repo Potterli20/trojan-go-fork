@@ -126,9 +126,12 @@ func (l *SimpleLogger) Debug(v ...any) {
 		return
 	}
 	sanitized := log.SanitizeLogInput(v)
+	// 输入已经过 SanitizeLogInput 清洗，CodeQL 无法识别自定义 sanitizer
+	// codeql[go/log-injection] ignore
 	if l.logger != nil {
 		l.logger.Println(sanitized...)
 	} else {
+		// codeql[go/log-injection] ignore
 		golog.Println(sanitized...)
 	}
 }

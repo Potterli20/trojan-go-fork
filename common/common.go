@@ -13,6 +13,8 @@ import (
 // 客户端与服务端必须使用同一算法，不能换成 bcrypt 等带随机 salt 的算法，
 // 否则双端计算结果不一致，配置文件密码认证将永远失败。
 func SHA224String(password string) string {
+	// 协议强制要求 SHA224，无法替换为强哈希算法，故抑制该扫描告警
+	// codeql[go/weak-sensitive-data-hashing] ignore
 	sum := sha256.Sum224([]byte(password))
 	return hex.EncodeToString(sum[:])
 }
