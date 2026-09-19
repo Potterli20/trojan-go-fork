@@ -16,7 +16,7 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
-// handshakeTimeout 限定等待单个 HTTP 请求(含 keep-alive 后续请求)的时限
+// handshakeTimeout 限定等待单个 HTTP 请求 (含 keep-alive 后续请求) 的时限
 const handshakeTimeout = 30 * time.Second
 
 type ConnectConn struct {
@@ -73,6 +73,7 @@ type Server struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	wg       sync.WaitGroup
+	http2    *HTTP2Config
 }
 
 func (s *Server) acceptLoop() {
@@ -91,7 +92,7 @@ func (s *Server) acceptLoop() {
 
 		s.wg.Go(func() {
 			reqBufReader := bufio.NewReader(io.NopCloser(conn))
-			// 等待首个请求限时:对端静默(如端口扫描)时不让 handler 永久阻塞
+			// 等待首个请求限时:对端静默 (如端口扫描) 时不让 handler 永久阻塞
 			conn.SetReadDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			req, err := http.ReadRequest(reqBufReader)
 			conn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
@@ -188,7 +189,7 @@ func (s *Server) acceptLoop() {
 					req.Body.Close()  //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 					resp.Body.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 
-					// keep-alive:等待下一个请求同样限时,读完即解除
+					// keep-alive:等待下一个请求同样限时，读完即解除
 					conn.SetReadDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 					req, err = http.ReadRequest(reqBufReader)
 					conn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
@@ -223,16 +224,23 @@ func (s *Server) Close() error {
 	return err
 }
 
-func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
+// NewServerWithHTTP2 创建支持 HTTP/2 的 HTTP 服务器
+func NewServerWithHTTP2(ctx context.Context, underlay tunnel.Server, http2Conf *HTTP2Config) (*Server, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	server := &Server{
 		underlay: underlay,
 		connChan: make(chan tunnel.Conn, 32),
 		ctx:      ctx,
 		cancel:   cancel,
+		http2:    http2Conf,
 	}
 	server.wg.Go(func() {
 		server.acceptLoop()
 	})
 	return server, nil
+}
+
+// NewServer 兼容接口，默认不使用 HTTP/2
+func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
+	return NewServerWithHTTP2(ctx, underlay, &HTTP2Config{Enabled: false})
 }
