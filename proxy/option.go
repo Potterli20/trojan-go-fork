@@ -79,8 +79,9 @@ func (o *Option) Handle() error {
 	if err != nil {
 		return common.NewError("failed to create proxy").Base(err)
 	}
-	defer proxy.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-	return proxy.Run()
+	// RunAndClose 会把 Close 的错误一起带回去：main 只在 Handle 返回 nil 时
+	// 以退出码 0 结束，单独丢弃 Close 错误会让「端口没关掉」看起来也是干净退出。
+	return proxy.RunAndClose()
 }
 
 func (o *Option) Priority() int {
@@ -130,8 +131,9 @@ func (o *StdinOption) Handle() error {
 	if err != nil {
 		return common.NewError("failed to create proxy").Base(err)
 	}
-	defer proxy.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-	return proxy.Run()
+	// RunAndClose 会把 Close 的错误一起带回去：main 只在 Handle 返回 nil 时
+	// 以退出码 0 结束，单独丢弃 Close 错误会让「端口没关掉」看起来也是干净退出。
+	return proxy.RunAndClose()
 }
 
 func (o *StdinOption) Priority() int {

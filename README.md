@@ -44,7 +44,7 @@ Trojan-Go Fork 是基于 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/troj
 - [x] 修复路由模块正则规则运行时并发写缓存导致的 fatal error（改为启动期预编译）
 - [x] 补全 SQLite / MySQL 统计后端的连接与句柄关闭，MySQL 使用带上下文的查询并设置连接池上限
 - [x] TLS 服务端关闭时排空待处理连接，QUIC 层改用 quic-go 具体类型消除 `any` 断言
-- [x] 新增顶层优雅关闭：`Proxy.Run` 监听 SIGINT/SIGTERM，收到信号后取消上下文并释放资源
+- [x] 新增顶层优雅关闭：`Proxy.Run` 监听 SIGINT/SIGTERM，收到信号后取消上下文并释放资源。关闭的每个环节（等中继 goroutine 退出、等隧道关闭）各受 5 秒超时兜底，超时或收到二次信号都立即跳过等待继续释放，底层卡死也不会让进程退不出去；关闭错误会经 `RunAndClose` 冒泡到退出码，同一 `transport.Server` 被多个端点共用时 `Close` 幂等只跑一次
 
 合并了以下社区贡献者的改进：[@fregie](https://github.com/fregie/trojan-go)、[@rezaf28](https://github.com/rezaf28)、[@lakwsh](https://github.com/lakwsh/trojan-go)、[@lbsystem](https://github.com/lbsystem)。
 

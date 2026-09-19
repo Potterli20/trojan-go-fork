@@ -121,8 +121,8 @@ func (o *easy) Handle() error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer p.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-	if err := p.Run(); err != nil {
+	// RunAndClose 会把关闭阶段的错误一起带回来，避免端口没释放也以退出码 0 结束
+	if err := p.RunAndClose(); err != nil {
 		log.Fatal(err)
 	}
 	return nil

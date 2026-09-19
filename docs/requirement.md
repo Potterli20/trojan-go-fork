@@ -185,6 +185,38 @@ README 中列出的 8 项社区改进（@fregie 等）在后续大规模重构�
 - **验证**：go build/vet（full 标签）、staticcheck（仅剩既知保留项）、-race 全量 28 包、
   windows/amd64、darwin/arm64、linux/386、linux/arm64 交叉编译通过。
 
+### 2026-09-19 追加修复（顶层优雅关闭的兜底与退出码）
+- **关闭无超时上限**：`Proxy.Close` 此前无条件 `wg.Wait()` 后直接关隧道，而 `io.CopyBuffer`
+  不感知 ctx、每个 tunnel Server 的 `Close` 内部还有自己的无界 `wg.Wait`，对端半开时
+  进程可能永远退不出去。现拆成两个环节（等中继 goroutine 退出 / 关隧道），各由
+  `shutdownTimeout`（5s）兜底；超时只记 Warn 并继续释放资源，不带句柄永久挂住。
+- **二次信号无效**：清理阶段再次收到 SIGINT/SIGTERM 应当立即放弃等待。此前 `Run` 在
+  返回处就 `signal.Stop`，紧随其后的清理阶段收到信号会被默认处置直接杀进程（句柄全漏）。
+  现改为 Notify 在 `Run` 安装、`Close` 结束才卸载，跨住 Run→Close 间隙；`Close` 先丢弃
+  清理开始前积压的信号，只把等待期间新到达的当作「等不及」的二次信号，命中即刻跳过剩余等待。
+- **关闭错误不影响退出码**：`main` 只在 `Handle()` 返回 nil 时以 0 退出，此前各入口
+  （proxy/option、url/option、easy）都是 `defer Close(); return Run()`，端口没关掉也表现为
+  干净退出。新增 `Proxy.RunAndClose()`（`errors.Join(Run(), Close())`），四个入口统一改用；
+  同时约束「正常停机必须返回 nil」，否则每次关闭都会误报非 0 退出码。
+- **transport.Close 不幂等导致误报错误**：实测一个 `run-type: server` 配置会产生 4 个不同的
+  trojan 服务端点指针，但它们在 tls 层之下共用同一个 `transport.Server` 实例，`Proxy.Close`
+  会对同一实例调用 4 次 `Close`，第 2~4 次返回 `use of closed network connection`，
+  经 `releaseTunnels` 冒泡后让正常 SIGTERM 停机以退出码 1 结束。改为 `closeOnce` +
+  `closeErr`：整个关闭只跑一次，后续调用复用首次结果（真正失败时仍会带到退出码）。
+- **data race**：`sigChan` 若惰性创建，`Run`（常在另一 goroutine）与 `Close` 会竞争该字段；
+  改为 `NewProxy` 里预分配，`watchShutdownSignal` 只做 `signal.Notify`（`sigOnce` 保证幂等）。
+- **已定位的残留延迟（本轮不改）**：带一条「已连上但没发首字节」的空闲 TCP 连接时，
+  SIGTERM 用满 5s 才退出（退出码 0，日志 `timed out after 5s while trying to close tunnels`）。
+  逐层核对后确认卡点在 `tls.Server.Close` 的 `s.wg.Wait()`：握手 goroutine 阻塞在
+  `tls.Handshake` 读 ClientHello，该读没有截止时间、关闭时也没人回收这条 conn（transport 层
+  已立即关完）。彻底解决需要在 tls 服务端跟踪在途握手连接并在 `Close` 时主动断开，
+  属于新的改动范围；当前 5s 上限已保证「一定退得出」，故只记录不动手。
+- **验证**：`go test -count=1 -race -tags full ./...` 全绿（proxy 与 test/scenario 另跑
+  `-count=20`）；新增 `proxy/proxy_test.go` 的 `waitBounded`/超时/二次信号/错误冒泡用例与
+  `test/scenario/shutdown_test.go::TestCleanShutdownHasNoError`（真实配置端到端校验
+  Close 返回 nil、Run 返回、端口可重新绑定、重复 Close 仍为 nil）；真实二进制空载
+  SIGTERM `exit_code=0`（约 3ms），带空闲连接 `exit_code=0`（5.03s）。
+
 ## 1. 指定local IP
 需要能在配置文件中指定代理使用的local ip,只需要指定由本服务和需要代理的目标之间所建立的tcp或udp所使用的本地ip是什么,主要用于能够使用策略路由控制实际的出口接口.
 
