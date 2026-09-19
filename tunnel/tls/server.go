@@ -30,6 +30,9 @@ import (
 // firstByteTimeout 限定 TLS 握手与 HTTP 嗅探阶段等待对端数据的时限
 const firstByteTimeout = 30 * time.Second
 
+// handshakeShutdownTimeout 握手阶段关闭时的最长等待时间；卡死时强制断开连接
+const handshakeShutdownTimeout = 500 * time.Millisecond
+
 // Server is a tls server
 type Server struct {
 	fallbackAddress *tunnel.Address
@@ -51,12 +54,21 @@ type Server struct {
 	underlay        tunnel.Server
 	nextHTTP        atomic.Int32
 	wg              sync.WaitGroup
+	handshakes      sync.WaitGroup // 在途握手连接计数，Close 时主动回收避免永久阻塞
 }
 
 func (s *Server) Close() error {
 	s.cancel()
 	// 先关闭底层 transport 解除 acceptLoop 的 AcceptConn 阻塞，否则 wg.Wait() 会永久死锁
 	err := s.underlay.Close()
+	// 等待在途握手连接主动退出（最多 handshakeShutdownTimeout），避免卡死在 tls.Handshake()
+	done := make(chan struct{})
+	go func() { s.handshakes.Wait(); close(done) }()
+	select {
+	case <-done:
+	case <-time.After(handshakeShutdownTimeout):
+		log.Warn("tls server handshakes timed out after ", handshakeShutdownTimeout, "; continuing to release resources")
+	}
 	s.wg.Wait()
 	// wg.Wait() 之后所有 handler 生产者已退出、不再有 channel 发送,
 	// 排空已完成握手但未被 AcceptConn 取走的连接,释放其 fd 与 TLS 状态,
@@ -151,6 +163,9 @@ func (s *Server) acceptLoop() {
 			// handler goroutine 永久阻塞，Close() 的 wg.Wait() 随之挂起
 			conn.SetDeadline(time.Now().Add(firstByteTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			tlsConn := tls.Server(handshakeRewindConn, tlsConfig)
+			// 跟踪在途握手连接：关闭时主动回收，避免卡死在 Handshake()
+			s.handshakes.Add(1)
+			defer s.handshakes.Done()
 			err = tlsConn.Handshake()
 
 			if err != nil {

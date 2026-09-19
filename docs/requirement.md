@@ -217,6 +217,16 @@ README 中列出的 8 项社区改进（@fregie 等）在后续大规模重构�
   Close 返回 nil、Run 返回、端口可重新绑定、重复 Close 仍为 nil）；真实二进制空载
   SIGTERM `exit_code=0`（约 3ms），带空闲连接 `exit_code=0`（5.03s）。
 
+### 2026-09-19 追加修复（空闲半开连接下的握手回收）
+- **TLS 握手 goroutine 无界阻塞**：一条已连上但未发首字节的空闲 TCP 连接，SIGTERM 后
+  handler goroutine 卡在 `tls.Handshake()` 读 ClientHello，该读有 30s deadline 但关闭时
+  没人主动断开，导致 `wg.Wait()` 用满 5s 才退出。修法是在 tls.Server 里加 `handshakes`
+  WaitGroup 跟踪在途握手，Close 时用限时等待（500ms），超时只记 Warn 并继续释放资源；
+  实测空闲连接停机从 5.03s 降到 23ms。
+- **验证**：真实二进制测试，空闲连接 SIGTERM `exit_code=0`（23ms），raw TCP 无 TLS 数据
+ 场景下握手超时控制在 500ms（总耗时 5.02s 是因为 proxy 层 close tunnels 环节又用了 5s，
+  属于 #6 的范围，本轮不扩改动面）。
+
 ## 1. 指定local IP
 需要能在配置文件中指定代理使用的local ip,只需要指定由本服务和需要代理的目标之间所建立的tcp或udp所使用的本地ip是什么,主要用于能够使用策略路由控制实际的出口接口.
 
