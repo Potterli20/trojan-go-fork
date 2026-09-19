@@ -38,6 +38,20 @@ func (s *Server) Close() error {
 	s.cancel()
 	err := s.tcpListener.Close()
 	s.wg.Wait()
+	// wg.Wait() 之后 acceptLoop 和 handler 都已退出、不再向 channel 发送,
+	// 排空已完成但未被 AcceptConn 取走的连接,否则 connChan/wsChan(各 cap 32)
+	// 里的连接会带着 fd 一直滞留到进程结束(与 tls 层同型问题)
+drain:
+	for {
+		select {
+		case c := <-s.connChan:
+			c.Close() //gosec:disable -- 关闭滞留连接,忽略 close 错误
+		case c := <-s.wsChan:
+			c.Close() //gosec:disable -- 关闭滞留连接,忽略 close 错误
+		default:
+			break drain
+		}
+	}
 	if s.cmd != nil && s.cmd.Process != nil {
 		log.Debug("[Transport Server] Killing transport plugin process")
 		s.cmd.Process.Kill() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理

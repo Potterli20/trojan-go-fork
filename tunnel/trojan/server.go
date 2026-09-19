@@ -289,6 +289,21 @@ func (s *Server) Close() error {
 	// acceptLoop 阻塞在 underlay.AcceptConn 上，若先 wg.Wait() 会永久死锁
 	err := s.underlay.Close()
 	s.wg.Wait()
+	// wg.Wait 之后 acceptLoop 已退出、不再向 channel 发送，排空已完成握手但还没
+	// 被上层取走的连接，否则这些连接会带着 fd 和已认证的用户身份滞留到进程结束
+drain:
+	for {
+		select {
+		case c := <-s.connChan:
+			c.Close() //gosec:disable -- 关闭滞留连接,忽略 close 错误
+		case c := <-s.muxChan:
+			c.Close() //gosec:disable -- 关闭滞留连接,忽略 close 错误
+		case p := <-s.packetChan:
+			p.Close() //gosec:disable -- 关闭滞留连接,忽略 close 错误
+		default:
+			break drain
+		}
+	}
 	// wg.Wait 之后所有连接和 api 服务都已退出，此时才能安全释放共享认证器；
 	// 否则 SQLite/MySQL 句柄与流量汇总协程会一直泄露到进程结束。
 	// Close 可能被上层重复调用，引用计数只能归还一次。
