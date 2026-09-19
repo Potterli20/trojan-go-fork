@@ -29,8 +29,12 @@ README 中列出的 8 项社区改进（@fregie 等）在后续大规模重构�
   - 全量 `go test -race -tags full ./...` 通过。
 - **WebSocket 添加用户**：共享认证器机制（`trojan.Auth` 包级变量 + `statistic.NewAuthenticator` 按 ctx 缓存）在位，
   TLS 子树与 WebSocket 子树的 trojan 服务端共用同一实例，API AddUser 对两条链路同时生效。api/service 测试通过。
-- **SQLite 持久化**：`statistic/sqlite`（`linux && (amd64||386||arm||arm64)` 真实现，其余平台 no-op 桩）在位，
-  memory 认证器经 `sqlite` 配置项启用，批量流量回写（batchTrafficUpdater）带指数退避重试。windows/darwin 交叉编译通过。
+- **SQLite 持久化**：`statistic/sqlite`（`linux && (amd64||386||arm||arm64)` 真实现，纯 Go 驱动、无需 CGO，
+  也无需 `-tags sqlite`——由 `statistic/memory` 无条件导入、按 `sqlite` 配置项启用），
+  memory 认证器批量流量回写（batchTrafficUpdater）带指数退避重试。
+  其余平台的 no-op 桩原先返回「可用但什么都不写」的实例，还会打出「已启用持久化后端」的 Info 日志，
+  用户误以为已落盘、重启即全丢；现改为启动阶段直接报错，错误信息里带上出问题的配置项。
+  windows/darwin 交叉编译通过。
 - **buffer 大小及数量限制**：大小限制（`relay_buffer_size`）在位；数量限制此前丢失，已补回：
   `relay_buffer_count`（默认 1024）+ `proxy.boundedBufPool`（channel 池，池满丢弃、池空临时分配），
   限制转发层常驻内存上限。注意 count 限制的是**池内驻留量**而非并发借用量：峰值内存由

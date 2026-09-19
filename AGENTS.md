@@ -64,7 +64,7 @@ Set via `go build -tags "..."`. Selection happens entirely through `component/*.
 - `mini` — trojan core only (no forward/nat/api/mysql)
 - `client`, `server`, `forward`, `nat`, `custom` — mode-specific subsets
 - `api` — gRPC API server
-- `mysql`, `sqlite` (linux+cgo only) — auth backends
+- `mysql` — extra auth backend (`statistic/mysql`, registered only under this tag). The sqlite persistence backend needs **no tag**: it is imported unconditionally by `statistic/memory` and gated by platform build tags inside `statistic/sqlite` (linux amd64/386/arm/arm64; other platforms get a stub that refuses to start)
 - Platform: `tproxy` and `nat` proxy are Linux-only (`tunnel/tproxy/`, `proxy/nat/nat.go`)
 
 ## Commands

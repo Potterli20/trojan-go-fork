@@ -2,14 +2,24 @@
 
 package sqlite
 
-import "github.com/Potterli20/trojan-go-fork/statistic"
+import (
+	"errors"
+
+	"github.com/Potterli20/trojan-go-fork/statistic"
+)
 
 const Name = "sqlite"
 
+// Persistencer 在不支持的平台上是空实现，仅保证跨平台编译通过。
+// 见 NewSqlitePersistencer：这里不会返回可用实例，所有方法都不应被调用。
 type Persistencer struct{}
 
-func NewSqlitePersistencer(path string) (*Persistencer, error) {
-	return &Persistencer{}, nil
+// NewSqlitePersistencer 在不支持的平台直接失败。
+// 旧实现返回一个空的 Persistencer 且 error 为 nil，memory 认证器会照常打出
+// 「已启用持久化后端」的日志，用户以为流量和用户已经落盘，实际全部写入空实现、
+// 进程重启即丢失。宁可在启动阶段明确失败，也不静默降级。
+func NewSqlitePersistencer(_ string) (*Persistencer, error) {
+	return nil, errors.New("sqlite persistence is only supported on linux amd64/386/arm/arm64; current build does not include the driver")
 }
 
 func (p *Persistencer) SaveUser(u statistic.Metadata) error {

@@ -39,9 +39,10 @@ Registered via `RegisterAuthenticatorCreator(name, fn)`.
 |---|---|---|
 | `memory/` | always (base) | Static password list from config; no runtime changes except via gRPC |
 | `mysql/` | `mysql` | Polls DB every N seconds; syncs users; writes traffic back |
-| `sqlite/` | `sqlite` + linux + (amd64\|386\|arm\|arm64) + CGO | Uses `mattn/go-sqlite3`, requires CGO_ENABLED=1 |
+| `sqlite/` | no build tag; platform-gated: linux + (amd64\|386\|arm\|arm64) | Pure-Go driver (`Potterli20/sqlite` + `modernc.org/sqlite`), no CGO needed. Enabled by the `sqlite` field of the memory config, not by a tag |
 
-SQLite is linux-only because mattn/go-sqlite3 cross-compilation is painful and the Makefile doesn't bother.
+SQLite is linux-only because the platform build tags in `statistic/sqlite` restrict it; on every other platform
+`NewSqlitePersistencer` returns an error at startup rather than a silent no-op.
 
 ## Authentication flow
 

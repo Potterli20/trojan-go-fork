@@ -672,7 +672,7 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 		a.pst, err = sqlite.NewSqlitePersistencer(cfg.Sqlite)
 		if err != nil {
 			cancel()
-			return nil, err
+			return nil, common.NewError(`failed to open the sqlite persistencer (check the "sqlite" config field)`).Base(err)
 		}
 	}
 	if a.pst != nil {
