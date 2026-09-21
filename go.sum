@@ -78,8 +78,8 @@ github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b h1:7bFUKsVEo0LmiYfbE
 github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20260908062103-8cdf7bf9c7f0 h1:rb+fKQFhz+5I2PPuQsNYxI5mUU840XWYtRF0ZBjvkws=
 github.com/xtls/reality v0.0.0-20260908062103-8cdf7bf9c7f0/go.mod h1:DsJblcWDGt76+FVqBVwbwRhxyyNJsGV48gJLch0OOWI=
-github.com/xtls/xray-core v1.260327.1-0.20260920200754-dbb1ea30ba71 h1:jUGrQ6RnBkseVV0JfEilliBenExqkS94SAGal6yb8G0=
-github.com/xtls/xray-core v1.260327.1-0.20260920200754-dbb1ea30ba71/go.mod h1:yaXgo0CQdiqiH7EpTim74mXwzCDShYE+tQaPr3fi4R0=
+github.com/xtls/xray-core v1.260327.1-0.20260920225103-d562d8947d31 h1:rp/SX/vK2vF9kY1tfwlH1ZM5fJsm6NQk+e2SOxboSp4=
+github.com/xtls/xray-core v1.260327.1-0.20260920225103-d562d8947d31/go.mod h1:yaXgo0CQdiqiH7EpTim74mXwzCDShYE+tQaPr3fi4R0=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 h1:SpG238mmCez9TdHDu0Qba+ol57R+/pUxvJsDXT22Fug=
