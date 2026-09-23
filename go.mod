@@ -10,7 +10,7 @@ require (
 	github.com/Potterli20/sqlite v0.0.0-20260922182304-2405c1a79a6e
 	github.com/apernet/quic-go v0.62.1-0.20260912175848-73339f7edbb9
 	github.com/coder/websocket v1.8.15
-	github.com/database64128/tfo-go/v2 v2.4.1-0.20260908133757-4e2e41017204
+	github.com/database64128/tfo-go/v2 v2.4.1-0.20260923202744-c31e7d4736cd
 	github.com/go-sql-driver/mysql v1.10.1
 	github.com/refraction-networking/utls v1.8.3-0.20260802151714-23b1dac19c06
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
