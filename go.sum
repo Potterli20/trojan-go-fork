@@ -16,8 +16,8 @@ github.com/coder/websocket v1.8.15 h1:6B2JPeOGlpff2Uz6vOEH1Vzpi0iUz20A+lPVhPHtNU
 github.com/coder/websocket v1.8.15/go.mod h1:NX3SzP+inril6yawo5CQXx8+fk145lPDC6pumgx0mVg=
 github.com/database64128/netx-go v0.1.1 h1:dT5LG7Gs7zFZBthFBbzWE6K8wAHjSNAaK7wCYZT7NzM=
 github.com/database64128/netx-go v0.1.1/go.mod h1:LNlYVipaYkQArRFDNNJ02VkNV+My9A5XR/IGS7sIBQc=
-github.com/database64128/tfo-go/v2 v2.4.1-0.20260923202744-c31e7d4736cd h1:5uZ5elRLg+o7EiwKLHEvDSqUhKtXOrsuH7Ft55TY9xA=
-github.com/database64128/tfo-go/v2 v2.4.1-0.20260923202744-c31e7d4736cd/go.mod h1:748Yw337v3+RMTbvBqu2wYWN70D8QemftOPbdRT7Eec=
+github.com/database64128/tfo-go/v2 v2.4.1-0.20260924102110-6eb76a98c5a6 h1:TiWht+Ii4eE9Q22eTb1hetBIxngQGoqzKI4zLHbTvWM=
+github.com/database64128/tfo-go/v2 v2.4.1-0.20260924102110-6eb76a98c5a6/go.mod h1:748Yw337v3+RMTbvBqu2wYWN70D8QemftOPbdRT7Eec=
 github.com/dustin/go-humanize v1.1.0 h1:dbKTrvD0klcbBV/h4AWJdMuZogJACoMlvWIWZ5b2xWg=
 github.com/dustin/go-humanize v1.1.0/go.mod h1:hc1CvRkJMsgxqjmjMQF3QNRAZBwY8AXBAzKYoSX9sFI=
 github.com/go-sql-driver/mysql v1.10.1 h1:arlSnNLq6a5yxGxV7qg9lF4j0C+KwD6NbQyKr9QL6ME=
@@ -60,8 +60,8 @@ github.com/pires/go-proxyproto v0.15.0 h1:dTshmNbFm/D+0+sbrxUuddPOZ5Y0B7c5NhtsBk
 github.com/pires/go-proxyproto v0.15.0/go.mod h1:OXsCrKwrK2tXS9YrI5tkHx5xaQlO8FH3lFW76orFh24=
 github.com/quic-go/go-ossfuzz-seeds v0.1.0 h1:APacT+iIaNF6fd8AGEiN3bT/Jtkd2jz4v4TzM7MFjy0=
 github.com/quic-go/go-ossfuzz-seeds v0.1.0/go.mod h1:3IOHRbJIc+L6YKMwfDtJAM9Vj9k0YY4muhuyUYk5tbk=
-github.com/refraction-networking/utls v1.8.3-0.20260802151714-23b1dac19c06 h1:pFxVvH10NuenLiYsgqTqQBR8SaWbf/TCa8z51k68t70=
-github.com/refraction-networking/utls v1.8.3-0.20260802151714-23b1dac19c06/go.mod h1:jkSOEkLqn+S/jtpEHPOsVv/4V4EVnelwbMQl4vCWXAM=
+github.com/refraction-networking/utls v1.8.3-0.20260924071514-88ba76ae4ee3 h1:aYZqyYYQl6nw0VxT+S8PZXLhhGkiWZbJnR3s+3t2w4c=
+github.com/refraction-networking/utls v1.8.3-0.20260924071514-88ba76ae4ee3/go.mod h1:2+hHNbC/xcJcoojPcLtE0/qrmBbd2mrE5dd9t0DLzAI=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94icq4NjY3clb7Lk8O1qJ8BdBEF8z0ibU0rE=
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 h1:f/FNXud6gA3MNr8meMVVGxhp+QBTqY91tM8HjEuMjGg=
@@ -78,8 +78,8 @@ github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b h1:7bFUKsVEo0LmiYfbE
 github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20260908062103-8cdf7bf9c7f0 h1:rb+fKQFhz+5I2PPuQsNYxI5mUU840XWYtRF0ZBjvkws=
 github.com/xtls/reality v0.0.0-20260908062103-8cdf7bf9c7f0/go.mod h1:DsJblcWDGt76+FVqBVwbwRhxyyNJsGV48gJLch0OOWI=
-github.com/xtls/xray-core v1.260327.1-0.20260924021337-7d3e44fee267 h1:FOkA7nGaobSbWqvPxboouocuWx8vGYSrfooQ6ytP3PI=
-github.com/xtls/xray-core v1.260327.1-0.20260924021337-7d3e44fee267/go.mod h1:LEkRTaOOLbnj5OX+NQLDN8BaJpmzdmaPKXLjnjGuws0=
+github.com/xtls/xray-core v1.260327.1-0.20260924054626-60e2a0c502d3 h1:a+kBU6fJvmq/3JoVIMF4ZZ7EpWAPYUtr2NBRSXTFvds=
+github.com/xtls/xray-core v1.260327.1-0.20260924054626-60e2a0c502d3/go.mod h1:LEkRTaOOLbnj5OX+NQLDN8BaJpmzdmaPKXLjnjGuws0=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 h1:SpG238mmCez9TdHDu0Qba+ol57R+/pUxvJsDXT22Fug=
