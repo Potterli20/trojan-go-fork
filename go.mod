@@ -6,9 +6,9 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260909022356-7eea5a84c904
-	github.com/Potterli20/socks5-fork v0.0.0-20260930175318-22105f634615
+	github.com/Potterli20/socks5-fork v0.0.0-20260930220543-9a77b80e2fb3
 	github.com/Potterli20/sqlite v0.0.0-20260929213527-05ce61b945fc
-	github.com/apernet/quic-go v0.62.1-0.20260912175848-73339f7edbb9
+	github.com/apernet/quic-go v0.62.1-0.20260930232021-7db5088b9d5c
 	github.com/coder/websocket v1.8.15
 	github.com/database64128/tfo-go/v2 v2.4.1
 	github.com/go-sql-driver/mysql v1.10.1
@@ -74,4 +74,5 @@ replace (
 	github.com/apernet/quic-go v0.60.1-0.20260618182935-599b15a1fa26 => github.com/HyNetworks/quic-go v0.60.1-0.20260618182935-599b15a1fa26
 	github.com/apernet/quic-go v0.61.1-0.20260806010916-184d081eef3e => github.com/HyNetworks/quic-go v0.61.1-0.20260806010916-184d081eef3e
 	github.com/apernet/quic-go v0.62.1-0.20260912175848-73339f7edbb9 => github.com/HyNetworks/quic-go v0.62.1-0.20260912175848-73339f7edbb9
+	github.com/apernet/quic-go v0.62.1-0.20260930232021-7db5088b9d5c => github.com/HyNetworks/quic-go v0.62.1-0.20260930232021-7db5088b9d5c
 )
