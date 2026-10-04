@@ -1,7 +1,7 @@
 filippo.io/edwards25519 v1.2.0 h1:crnVqOiS4jqYleHd9vaKZ+HKtHfllngJIiOpNpoJsjo=
 filippo.io/edwards25519 v1.2.0/go.mod h1:xzAOLCNug/yB62zG1bQ8uziwrIqIuxhctzJT18Q77mc=
-github.com/HyNetworks/quic-go v0.62.1-0.20260930232021-7db5088b9d5c h1:YBJ1i5fMMk8XMfyOjFAXEOwz5cDhCtybjNdjO5JrdBQ=
-github.com/HyNetworks/quic-go v0.62.1-0.20260930232021-7db5088b9d5c/go.mod h1:J7UZVOMF2M1LiE3iiUZWPuy8YCPAcLJOwVURrfJCvc0=
+github.com/HyNetworks/quic-go v0.63.1-0.20261004002722-c6dc26bdb68f h1:YkmOpbR/RkCkTnmP+RqfW7Sb/WoAzkX05L/96glyJyE=
+github.com/HyNetworks/quic-go v0.63.1-0.20261004002722-c6dc26bdb68f/go.mod h1:J7UZVOMF2M1LiE3iiUZWPuy8YCPAcLJOwVURrfJCvc0=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260909022356-7eea5a84c904 h1:AEFItjgNhsk5xTPzCBlU2BmESM75x8tyOzrufLbMNZ4=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260909022356-7eea5a84c904/go.mod h1:cQvZWVU727VX21nlz3CtQGJUdwGeSw8nB8/fIr+6Qq0=
 github.com/Potterli20/socks5-fork v0.0.0-20261003045146-d7d42241662f h1:QDR3FLerqmFATzYlUXn5HnLXYLgSw3WUxMnNxsS2SEs=
