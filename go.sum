@@ -1,7 +1,7 @@
 filippo.io/edwards25519 v1.2.0 h1:crnVqOiS4jqYleHd9vaKZ+HKtHfllngJIiOpNpoJsjo=
 filippo.io/edwards25519 v1.2.0/go.mod h1:xzAOLCNug/yB62zG1bQ8uziwrIqIuxhctzJT18Q77mc=
-github.com/HyNetworks/quic-go v0.63.1-0.20261004002722-c6dc26bdb68f h1:YkmOpbR/RkCkTnmP+RqfW7Sb/WoAzkX05L/96glyJyE=
-github.com/HyNetworks/quic-go v0.63.1-0.20261004002722-c6dc26bdb68f/go.mod h1:J7UZVOMF2M1LiE3iiUZWPuy8YCPAcLJOwVURrfJCvc0=
+github.com/HyNetworks/quic-go v0.63.1-0.20261004180939-a10df75c260c h1:spAvK8TcuHYjr5xcXxYQpADd1XBz7P12fZAPBetLwq8=
+github.com/HyNetworks/quic-go v0.63.1-0.20261004180939-a10df75c260c/go.mod h1:J7UZVOMF2M1LiE3iiUZWPuy8YCPAcLJOwVURrfJCvc0=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260909022356-7eea5a84c904 h1:AEFItjgNhsk5xTPzCBlU2BmESM75x8tyOzrufLbMNZ4=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20260909022356-7eea5a84c904/go.mod h1:cQvZWVU727VX21nlz3CtQGJUdwGeSw8nB8/fIr+6Qq0=
 github.com/Potterli20/socks5-fork v0.0.0-20261003045146-d7d42241662f h1:QDR3FLerqmFATzYlUXn5HnLXYLgSw3WUxMnNxsS2SEs=
@@ -78,8 +78,8 @@ github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b h1:7bFUKsVEo0LmiYfbE
 github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20260908062103-8cdf7bf9c7f0 h1:rb+fKQFhz+5I2PPuQsNYxI5mUU840XWYtRF0ZBjvkws=
 github.com/xtls/reality v0.0.0-20260908062103-8cdf7bf9c7f0/go.mod h1:DsJblcWDGt76+FVqBVwbwRhxyyNJsGV48gJLch0OOWI=
-github.com/xtls/xray-core v1.260327.1-0.20260930074004-b26a91de4f32 h1:Bxo6+07IvdWlqxugsn2/sQrFbR7hjrxRRDMjbOInRho=
-github.com/xtls/xray-core v1.260327.1-0.20260930074004-b26a91de4f32/go.mod h1:FAjlDAzHXXyki7R1BxruCHFx19B3i8TvQGEy+wsqZWU=
+github.com/xtls/xray-core v1.260327.1-0.20261005035322-5121c28b855c h1:CxTvP6w4H/sP9BTDQS6OtekJbSD96LuBQmAIBDeYA20=
+github.com/xtls/xray-core v1.260327.1-0.20261005035322-5121c28b855c/go.mod h1:FAjlDAzHXXyki7R1BxruCHFx19B3i8TvQGEy+wsqZWU=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=
 github.com/xyproto/randomstring v1.0.5/go.mod h1:rgmS5DeNXLivK7YprL0pY+lTuhNQW3iGxZ18UQApw/E=
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 h1:SpG238mmCez9TdHDu0Qba+ol57R+/pUxvJsDXT22Fug=

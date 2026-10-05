@@ -8,7 +8,7 @@ require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20260909022356-7eea5a84c904
 	github.com/Potterli20/socks5-fork v0.0.0-20261003045146-d7d42241662f
 	github.com/Potterli20/sqlite v0.0.0-20260929213527-05ce61b945fc
-	github.com/apernet/quic-go v0.63.1-0.20261004002722-c6dc26bdb68f
+	github.com/apernet/quic-go v0.63.1-0.20261004180939-a10df75c260c
 	github.com/coder/websocket v1.8.15
 	github.com/database64128/tfo-go/v2 v2.4.1
 	github.com/go-sql-driver/mysql v1.10.1
@@ -16,7 +16,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.12.1
 	github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b
-	github.com/xtls/xray-core v1.260327.1-0.20260930074004-b26a91de4f32
+	github.com/xtls/xray-core v1.260327.1-0.20261005035322-5121c28b855c
 	golang.org/x/crypto v0.57.0
 	golang.org/x/net v0.59.0
 	golang.org/x/sys v0.48.0
@@ -76,4 +76,5 @@ replace (
 	github.com/apernet/quic-go v0.62.1-0.20260912175848-73339f7edbb9 => github.com/HyNetworks/quic-go v0.62.1-0.20260912175848-73339f7edbb9
 	github.com/apernet/quic-go v0.62.1-0.20260930232021-7db5088b9d5c => github.com/HyNetworks/quic-go v0.62.1-0.20260930232021-7db5088b9d5c
 	github.com/apernet/quic-go v0.63.1-0.20261004002722-c6dc26bdb68f => github.com/HyNetworks/quic-go v0.63.1-0.20261004002722-c6dc26bdb68f
+	github.com/apernet/quic-go v0.63.1-0.20261004180939-a10df75c260c => github.com/HyNetworks/quic-go v0.63.1-0.20261004180939-a10df75c260c
 )
