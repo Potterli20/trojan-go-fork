@@ -215,6 +215,13 @@ func (s *Server) packetDispatchLoop() {
 				PacketConn: s.listenPacketConn,
 				src:        src,
 			}
+			// 必须先登记再启协程。协程可能立刻走超时或 ctx.Done 分支去 delete，
+			// 那时 delete 打空，随后的插入就留下一个永不释放的 stale 条目：
+			// 既占着内存，又让该源 IP 之后永远命中这个死会话、再也建不起 UDP
+			s.mappingLock.Lock()
+			s.mapping[src.String()] = conn
+			s.mappingLock.Unlock()
+
 			s.wg.Go(func() {
 				defer conn.Close()
 				// UDP 会话空闲超时与 dokodemo/tproxy 对齐,取配置的 UDPTimeout(默认 60s)
@@ -259,10 +266,6 @@ func (s *Server) packetDispatchLoop() {
 					}
 				}
 			})
-
-			s.mappingLock.Lock()
-			s.mapping[src.String()] = conn
-			s.mappingLock.Unlock()
 
 			select {
 			case s.packetChan <- conn:
