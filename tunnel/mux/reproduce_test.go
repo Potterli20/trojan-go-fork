@@ -1,13 +1,18 @@
 package mux
 
 import (
+	"context"
+	"io"
 	"net"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/xtaci/smux"
 
+	"github.com/Potterli20/trojan-go-fork/common"
+	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
@@ -139,5 +144,92 @@ func TestStickyConnConcurrentSessions(t *testing.T) {
 
 	for _, f := range closes {
 		f()
+	}
+}
+
+// trackedTunnelConn 记录 Close 是否被调用，用来断言会话真的被回收
+type trackedTunnelConn struct {
+	net.Conn
+	closed atomic.Bool
+}
+
+func (c *trackedTunnelConn) Metadata() *tunnel.Metadata { return &tunnel.Metadata{} }
+
+func (c *trackedTunnelConn) Close() error {
+	c.closed.Store(true)
+	return c.Conn.Close()
+}
+
+// blockingUnderlay 的 DialConn 停在 release 上，让测试能把「Close 已排空池」与
+// 「拨号刚返回」这两件事的先后顺序固定下来，复现原本需要运气才撞得出的交错
+type blockingUnderlay struct {
+	entered chan struct{}
+	release chan struct{}
+	conn    tunnel.Conn
+	once    sync.Once
+}
+
+func (u *blockingUnderlay) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
+	u.once.Do(func() { close(u.entered) })
+	<-u.release
+	return u.conn, nil
+}
+
+func (u *blockingUnderlay) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
+	return nil, common.NewError("not supported")
+}
+
+func (u *blockingUnderlay) Close() error { return nil }
+
+// TestMuxDialDuringCloseDoesNotStrandSession 回归：newMuxClient 在锁外拨号，
+// 回锁后若不检查 ctx，这条会话就会插进一个已被 Close（或 cleanLoop 的 ctx.Done 分支）
+// 排空过的池里。此后没有任何东西会再回收它：stickyConn 的 fd 与 smux 的
+// readLoop/writeLoop 永久残留，每撞一次漏一次。
+func TestMuxDialDuringCloseDoesNotStrandSession(t *testing.T) {
+	muxSide, farSide := net.Pipe()
+	// 对端必须持续收取，否则 smux 的写循环和 Close 的 padding 写都会阻塞在 net.Pipe 上
+	go io.Copy(io.Discard, farSide) //gosec:disable -- 错误忽略：测试用排空通道
+	defer farSide.Close()           //gosec:disable -- 错误忽略：测试清理
+	tracked := &trackedTunnelConn{Conn: muxSide}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctx = config.WithConfig(ctx, Name, &Config{
+		Mux: MuxConfig{Enabled: true, IdleTimeout: 30, Concurrency: 8},
+	})
+	underlay := &blockingUnderlay{
+		entered: make(chan struct{}),
+		release: make(chan struct{}),
+		conn:    tracked,
+	}
+	client, err := NewClient(ctx, underlay)
+	if err != nil {
+		t.Fatalf("NewClient failed: %v", err)
+	}
+
+	dialErr := make(chan error, 1)
+	go func() {
+		_, err := client.DialConn(&tunnel.Address{DomainName: "MUX_CONN", AddressType: tunnel.DomainName}, &Tunnel{})
+		dialErr <- err
+	}()
+
+	// 先确认拨号已经进去（必然还没返回），再关停：这样池的排空一定发生在拨号之前
+	<-underlay.entered
+	if err := client.Close(); err != nil {
+		t.Fatalf("Close failed: %v", err)
+	}
+	close(underlay.release)
+
+	select {
+	case err := <-dialErr:
+		if err == nil {
+			t.Fatal("关停期间的 DialConn 竟然成功：会话被插进已排空的池，fd 与 goroutine 永久残留")
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("DialConn 没有返回")
+	}
+
+	if !tracked.closed.Load() {
+		t.Fatal("竞态窗口里建立的会话没有被 Close：underlayConn 的 fd 仍在泄漏")
 	}
 }

@@ -164,12 +164,24 @@ func (c *Client) newMuxClient() (*smuxClientInfo, error) {
 	}
 	info.lastActiveTime.Store(time.Now().UnixNano())
 	c.clientPoolLock.Lock()
+	// Close/cleanLoop 的 ctx.Done 分支排空池后就退出，之后没有任何东西会再回收
+	// 池里的条目；此处若不检查 ctx，这条刚建好的会话就会落在排空之后，
+	// 连同 stickyConn 的 fd 和 smux 的 readLoop/writeLoop 永久残留
+	if err := c.ctx.Err(); err != nil {
+		c.clientPoolLock.Unlock()
+		client.Close() //gosec:disable -- 错误忽略：关停路径，尽力回收
+		conn.Close()   //gosec:disable -- 错误忽略：关停路径，尽力回收
+		return nil, common.NewError("mux client is shutting down").Base(err)
+	}
 	c.clientPool[id] = info
 	c.clientPoolLock.Unlock()
 	return info, nil
 }
 
 func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
+	if err := c.ctx.Err(); err != nil {
+		return nil, common.NewError("mux client is shutting down").Base(err)
+	}
 	createNewConn := func(info *smuxClientInfo, streamTracker *log.ConnectionTracker) (tunnel.Conn, error) {
 		rwc, err := info.client.OpenStream()
 		info.lastActiveTime.Store(time.Now().UnixNano())
