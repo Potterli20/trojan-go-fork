@@ -24,6 +24,14 @@ type stickyConn struct {
 }
 
 func (c *stickyConn) stickToPayload(p []byte) []byte {
+	// 快路径：没有帧头要粘连时原样发出。数据写是中继热路径（mux 开启时
+	// proxy 每搬一个 chunk 走到这里一次），先前无条件 make+copy，
+	// 实测 9472 B/op、1 alloc/op；两个队列的长度用 len(chan) 读，
+	// 对 channel 的 len 是并发安全的，且这里只需要「非空就走慢路径」的提示作用
+	if len(c.synQueue) == 0 && len(c.finQueue) == 0 {
+		return p
+	}
+
 	buf := make([]byte, 0, len(p)+16)
 	for {
 		select {
