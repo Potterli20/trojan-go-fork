@@ -3,6 +3,7 @@ package freedom
 import (
 	"bytes"
 	"net"
+	"sync"
 
 	"github.com/Potterli20/socks5-fork"
 
@@ -12,6 +13,27 @@ import (
 )
 
 const MaxPacketSize = 1024 * 8
+
+// socksPacketBufPool 复用 SOCKS5 UDP 中继的每包缓冲：两个方向此前每搬一个包
+// 就 make 一次 8KB，分配次数与包数同阶。这里的 buffer 不逃出函数作用域，
+// 所以归还点就在同一个函数里，不需要跨 goroutine 的借用协议。
+var socksPacketBufPool = sync.Pool{
+	New: func() any {
+		buf := make([]byte, MaxPacketSize)
+		return &buf
+	},
+}
+
+func getSocksPacketBuf() []byte { return *socksPacketBufPool.Get().(*[]byte) }
+
+func putSocksPacketBuf(buf []byte) {
+	if cap(buf) != MaxPacketSize {
+		return
+	}
+	// 借出方可能拿着 buf[:n] 归还，必须还原成全长再入池
+	whole := buf[:cap(buf)]
+	socksPacketBufPool.Put(&whole)
+}
 
 type Conn struct {
 	net.Conn
@@ -66,7 +88,9 @@ type SocksPacketConn struct {
 }
 
 func (c *SocksPacketConn) WriteWithMetadata(payload []byte, metadata *tunnel.Metadata) (int, error) {
-	buf := bytes.NewBuffer(make([]byte, 0, MaxPacketSize))
+	scratch := getSocksPacketBuf()
+	defer putSocksPacketBuf(scratch)
+	buf := bytes.NewBuffer(scratch[:0])
 	buf.Write([]byte{0, 0, 0}) // RSV, FRAG
 	_, err := metadata.Address.WriteTo(buf)
 	if err != nil {
@@ -82,7 +106,8 @@ func (c *SocksPacketConn) WriteWithMetadata(payload []byte, metadata *tunnel.Met
 }
 
 func (c *SocksPacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadata, error) {
-	buf := make([]byte, MaxPacketSize)
+	buf := getSocksPacketBuf()
+	defer putSocksPacketBuf(buf)
 	n, from, err := c.PacketConn.ReadFrom(buf)
 	if err != nil {
 		return 0, nil, err

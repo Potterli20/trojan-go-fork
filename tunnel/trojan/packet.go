@@ -43,7 +43,14 @@ func (c *PacketConn) WriteTo(payload []byte, addr net.Addr) (int, error) {
 func (c *PacketConn) WriteWithMetadata(payload []byte, metadata *tunnel.Metadata) (int, error) {
 	w := bufPool.Get().(*bytes.Buffer)
 	w.Reset()
-	defer bufPool.Put(w)
+	// Reset 不缩容：metadata + 4 + 最长 8192 的 payload 会把底层数组撑到 16KB，
+	// 不加尺寸闸的话池里会长期驻留双倍容量的对象（对照 proxy.boundedBufPool 的
+	// cap 检查）；超限就交给 GC 回收，下一个 Get 重新造 8KB 的
+	defer func() {
+		if w.Cap() <= MaxPacketSize {
+			bufPool.Put(w)
+		}
+	}()
 
 	metadata.Address.WriteTo(w) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 

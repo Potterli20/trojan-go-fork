@@ -18,6 +18,29 @@ type packetInfo struct {
 	payload []byte
 }
 
+// packetBufPool 复用 UDP 包缓冲：两个方向的循环此前每收一个包就
+// make([]byte, MaxPacketSize) 一次，分配次数与包数同阶（DNS、QUIC 中继这类
+// 小包高频路径上尤其明显）。借用权随 packetInfo 交给消费端，由消费端
+// copy 完之后归还；每个在途包各持一个 buffer，所以不存在提前复用。
+var packetBufPool = sync.Pool{
+	New: func() any {
+		buf := make([]byte, MaxPacketSize)
+		return &buf
+	},
+}
+
+func getPacketBuf() []byte { return *packetBufPool.Get().(*[]byte) }
+
+func putPacketBuf(buf []byte) {
+	if cap(buf) != MaxPacketSize {
+		return
+	}
+	// 消费端拿到的是 buf[:n]，归还时必须还原成全长，
+	// 否则下一个 Get 会拿到一个 len 被削小的 buffer
+	whole := buf[:cap(buf)]
+	packetBufPool.Put(&whole)
+}
+
 type PacketConn struct {
 	proxy tunnel.PacketConn
 	net.PacketConn
@@ -42,9 +65,10 @@ func (c *PacketConn) packetLoop() {
 			if c.ctx.Err() != nil {
 				return
 			}
-			buf := make([]byte, MaxPacketSize)
+			buf := getPacketBuf()
 			n, addr, err := c.proxy.ReadWithMetadata(buf)
 			if err != nil {
+				putPacketBuf(buf)
 				if errors.Is(err, io.EOF) {
 					return
 				}
@@ -71,6 +95,7 @@ func (c *PacketConn) packetLoop() {
 				payload: buf[:n],
 			}:
 			case <-c.ctx.Done():
+				putPacketBuf(buf)
 				return
 			}
 		}
@@ -81,9 +106,10 @@ func (c *PacketConn) packetLoop() {
 			if c.ctx.Err() != nil {
 				return
 			}
-			buf := make([]byte, MaxPacketSize)
+			buf := getPacketBuf()
 			n, addr, err := c.PacketConn.ReadFrom(buf)
 			if err != nil {
+				putPacketBuf(buf)
 				if errors.Is(err, io.EOF) {
 					return
 				}
@@ -112,6 +138,7 @@ func (c *PacketConn) packetLoop() {
 				payload: buf[:n],
 			}:
 			case <-c.ctx.Done():
+				putPacketBuf(buf)
 				return
 			}
 		}
@@ -133,6 +160,7 @@ func (c *PacketConn) ReadFrom(p []byte) (n int, addr net.Addr, err error) {
 	select {
 	case info := <-c.packetChan:
 		n := copy(p, info.payload)
+		putPacketBuf(info.payload)
 		return n, info.src.Address, nil
 	case <-c.ctx.Done():
 		return 0, nil, io.EOF
@@ -179,6 +207,7 @@ func (c *PacketConn) ReadWithMetadata(p []byte) (int, *tunnel.Metadata, error) {
 	select {
 	case info := <-c.packetChan:
 		n := copy(p, info.payload)
+		putPacketBuf(info.payload)
 		return n, info.src, nil
 	case <-c.ctx.Done():
 		return 0, nil, io.EOF
