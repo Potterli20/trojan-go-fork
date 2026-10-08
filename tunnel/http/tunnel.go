@@ -27,8 +27,10 @@ func (t *Tunnel) NewClient(ctx context.Context, client tunnel.Client) (tunnel.Cl
 }
 
 func (t *Tunnel) NewServer(ctx context.Context, server tunnel.Server) (tunnel.Server, error) {
-	http2Conf := config.FromContext(ctx, Name).(*HTTP2Config)
-	if http2Conf == nil {
+	// HTTP 没有注册 config creator，FromContext 恒为 nil；必须用 comma-ok，
+	// 否则裸断言在栈构建阶段直接 panic（http 在所有 client 模式的入站栈里）
+	http2Conf, ok := config.FromContext(ctx, Name).(*HTTP2Config)
+	if !ok || http2Conf == nil {
 		http2Conf = &HTTP2Config{Enabled: false}
 	}
 	return NewServerWithHTTP2(ctx, server, http2Conf)
