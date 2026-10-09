@@ -44,13 +44,13 @@ clean:
 	rm -rf $(BUILD_DIR) *.zip *.dat
 
 geoip.dat:
-	wget https://github.com/v2fly/geoip/raw/release/geoip.dat -O geoip.dat
+	sh scripts/fetch-geo.sh . geoip.dat
 
 geoip-only-cn-private.dat:
-	wget https://github.com/v2fly/geoip/raw/release/geoip-only-cn-private.dat -O geoip-only-cn-private.dat
+	sh scripts/fetch-geo.sh . geoip-only-cn-private.dat
 
 geosite.dat:
-	wget https://github.com/v2fly/domain-list-community/raw/release/dlc.dat -O geosite.dat
+	sh scripts/fetch-geo.sh . geosite.dat
 
 test:
 	# Disable Bloomfilter when testing
