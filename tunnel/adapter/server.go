@@ -28,6 +28,13 @@ type Server struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
 	wg          sync.WaitGroup
+	// closeOnce/closeErr：client 模式里 socks 与 http 两个端点共用同一个
+	// adapter 实例（proxy/client/client.go:61），而 releaseTunnels 会逐个关
+	// source，于是 Close 必然被调用两次。第二次 udpListener.Close() 返回
+	// "use of closed network connection"，一路冒到 main 变成 FATAL 与非零退出码。
+	// 与 tunnel/transport/server.go 同型问题，照同一套路子：整个关闭只跑一次。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 func (s *Server) acceptConnLoop() {
@@ -116,6 +123,13 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (s *Server) Close() error {
+	s.closeOnce.Do(func() {
+		s.closeErr = s.close()
+	})
+	return s.closeErr
+}
+
+func (s *Server) close() error {
 	s.cancel()
 	// 先关闭监听解除 acceptConnLoop 的 Accept 阻塞，否则 wg.Wait() 会永久死锁
 	s.tcpListener.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
