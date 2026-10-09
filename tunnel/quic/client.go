@@ -100,7 +100,10 @@ func (c *Client) getOrCreateConnection() (*quic.Conn, error) {
 
 	c.applyCongestionControl(quicConn)
 
-	c.quicConn = quicConn
+	// 必须走加锁的 setter：keepAliveLoop 与 Close 都在 quicConnMutex 下读这个字段，
+	// 这里原先是裸赋值，-race 下会报 DATA RACE。quic 只有 custom 运行类型能走到，
+	// 测试从不覆盖，所以一直没被发现。
+	c.setQuicConn(quicConn)
 
 	c.keepAliveOnce.Do(func() {
 		c.wg.Go(func() {
@@ -111,6 +114,20 @@ func (c *Client) getOrCreateConnection() (*quic.Conn, error) {
 	return quicConn, nil
 }
 
+// setQuicConn/getQuicConn 是 quicConn 字段的唯一加锁出入口：拨号写、keepalive 读、
+// 关停读，三者跑在不同 goroutine 上。
+func (c *Client) setQuicConn(conn *quic.Conn) {
+	c.quicConnMutex.Lock()
+	c.quicConn = conn
+	c.quicConnMutex.Unlock()
+}
+
+func (c *Client) getQuicConn() *quic.Conn {
+	c.quicConnMutex.RLock()
+	defer c.quicConnMutex.RUnlock()
+	return c.quicConn
+}
+
 func (c *Client) keepAliveLoop() {
 	ticker := time.NewTicker(time.Second * time.Duration(10))
 	defer ticker.Stop()
@@ -118,9 +135,7 @@ func (c *Client) keepAliveLoop() {
 	for {
 		select {
 		case <-ticker.C:
-			c.quicConnMutex.RLock()
-			conn := c.quicConn
-			c.quicConnMutex.RUnlock()
+			conn := c.getQuicConn()
 			if conn != nil {
 				conn.SendDatagram([]byte{}) //gosec:disable -- keepalive padding,错误忽略：非关键路径
 			}

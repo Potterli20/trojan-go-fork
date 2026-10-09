@@ -29,7 +29,8 @@ type Server struct {
 	congestion  string
 	brutalUp    uint64
 	brutalDown  uint64
-	activeConns sync.Map // map[*quic.Conn]*quic.Conn
+	activeConns sync.Map       // map[*quic.Conn]*quic.Conn
+	packetConn  net.PacketConn // 我们自己 ListenUDP 出来的 socket，必须自己关
 	wg          sync.WaitGroup
 }
 
@@ -44,6 +45,13 @@ func (s *Server) applyCongestionControl(conn *quic.Conn) {
 func (s *Server) Close() error {
 	s.cancel()
 	s.listener.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	// quic.Listen 用的是我们传进去的 PacketConn，而 Transport 只在 createdConn
+	// 为真时才关它（quic-go transport.go:488，否则只设一次读截止把读循环叫醒），
+	// 所以这个 UDP socket 必须由本层释放：否则每个 Server 实例漏一个 fd，端口也
+	// 一直被占，同进程里重建监听会 bind 失败。
+	if s.packetConn != nil {
+		s.packetConn.Close() //gosec:disable -- 错误忽略：关停路径，尽力释放
+	}
 	s.wg.Wait()
 	s.activeConns.Range(func(_, value any) bool {
 		value.(*quic.Conn).CloseWithError(quic.ApplicationErrorCode(0), "server closed") //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
@@ -250,6 +258,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	server := &Server{
 		listener:   listener,
+		packetConn: packetConn,
 		ctx:        ctx,
 		cancel:     cancel,
 		underlay:   underlay,
