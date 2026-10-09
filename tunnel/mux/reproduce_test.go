@@ -1,7 +1,6 @@
 package mux
 
 import (
-	"context"
 	"io"
 	"net"
 	"sync"
@@ -192,8 +191,7 @@ func TestMuxDialDuringCloseDoesNotStrandSession(t *testing.T) {
 	defer farSide.Close()           //gosec:disable -- 错误忽略：测试清理
 	tracked := &trackedTunnelConn{Conn: muxSide}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ctx = config.WithConfig(ctx, Name, &Config{
 		Mux: MuxConfig{Enabled: true, IdleTimeout: 30, Concurrency: 8},
 	})

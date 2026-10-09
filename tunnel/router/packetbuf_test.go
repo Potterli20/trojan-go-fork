@@ -118,7 +118,7 @@ func TestRouterPacketConnBufferReuseKeepsPacketsIntact(t *testing.T) {
 	defer conn.Close() //gosec:disable -- 错误忽略：测试清理
 
 	buf := make([]byte, MaxPacketSize)
-	for i := 0; i < packetCount; i++ {
+	for i := range packetCount {
 		n, meta, err := conn.ReadWithMetadata(buf)
 		if err != nil {
 			t.Fatalf("第 %d 个包读取失败: %v", i, err)

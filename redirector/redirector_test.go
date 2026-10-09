@@ -281,8 +281,7 @@ func TestRedirectorIdleTeardown(t *testing.T) {
 // 中继永不苏醒。只断言「Close 返回了」并不够——有界排空本身就保证它会返回，
 // 真正的泄露是返回之后仍挂着的中继 goroutine 和两个 fd，所以必须验证连接被回收。
 func TestRedirectorCloseWithSilentPeer(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	redir := NewRedirector(ctx)
 
 	client, peer := net.Pipe()
