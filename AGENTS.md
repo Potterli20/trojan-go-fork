@@ -77,7 +77,7 @@ make release     # cross-compile matrix + zip (see Makefile)
 ./build/trojan-go -config config.json
 ```
 
-CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`gofmt -r 'interface{} -> any'`, `go fix`, `go mod tidy -compat=1.27`, `gomod/gomod.sh`, then force-push); `main.yml` runs the weekly cross-compile release matrix; `codeql.yml` security analysis; `docker-build.yml` image build; `dependency-review.yml` dependency review on PRs. Note: no workflow runs the test suite — run `make test` / `make test-race` locally.
+CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`gofmt -r 'interface{} -> any'`, `go fix`, `go mod tidy -compat=1.27`, `gomod/gomod.sh`, then force-push); `test.yml` runs `make test` on push/PR to master (note: `make test` has no `-tags full`); `main.yml` runs the weekly cross-compile release matrix; `codeql.yml` security analysis; `docker-build.yml` image build; `dependency-review.yml` dependency review on PRs. All jobs pin `runs-on: ubuntu-24.04` — do not revert to `ubuntu-latest`, which migrates to Ubuntu 26 on 2026-10-19. Actions still float on `@main`. No workflow runs `-race`; use `make test-race` locally. `.github/dependabot.yml` exists but is intentionally not committed (enabling it starts opening automated PRs) — ask before adding it.
 
 ## Notes
 

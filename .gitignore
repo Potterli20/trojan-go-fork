@@ -29,7 +29,6 @@ trojan-go
 # Visual studio code workspace files
 .vscode
 .kiro
-.github
 .omo
 .opencode
 

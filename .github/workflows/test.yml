@@ -1,0 +1,22 @@
+name: test
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@main
+
+      - name: Setup Go
+        uses: actions/setup-go@main
+        with:
+          go-version: ^1.27
+
+      - name: Run tests
+        env:
+          SHADOWSOCKS_SF_CAPACITY: "-1"
+        run: make test
