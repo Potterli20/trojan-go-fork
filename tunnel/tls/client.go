@@ -233,7 +233,11 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	keyLoggerOwned := false
 	defer func() {
 		if !keyLoggerOwned && keyLogger != nil {
-			keyLogger.Close() //gosec:disable -- 错误忽略：失败回收路径
+			// 可写句柄的失败往往只在 Close 时才暴露（缓冲未落盘就丢数据），
+			// 所以这里的错误不能丢——CodeQL go/unhandled-writable-file-close 正是指它。
+			if err := keyLogger.Close(); err != nil {
+				log.Warn("[TLS] Failed to close key log file:", err)
+			}
 		}
 	}()
 	if cfg.TLS.KeyLogPath != "" {

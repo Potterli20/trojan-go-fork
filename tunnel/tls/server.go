@@ -118,7 +118,10 @@ drain:
 		}
 	}
 	if s.keyLogger != nil {
-		s.keyLogger.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		// 同 client.go：可写句柄的写错误可能只在 Close 时才出现，丢弃就等于静默丢数据
+		if err := s.keyLogger.Close(); err != nil {
+			log.Warn("[TLS] Failed to close key log file:", err)
+		}
 	}
 	return err
 }
