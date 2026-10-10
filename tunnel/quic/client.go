@@ -32,15 +32,12 @@ type Client struct {
 	// 一旦接入即 panic。改成具体类型后编译器会真正校验这些调用。
 	quicConn      *quic.Conn
 	quicConnMutex sync.RWMutex
-	keepAliveOnce sync.Once
-	wg            sync.WaitGroup
 	ctx           context.Context
 	cancel        context.CancelFunc
 }
 
 func (c *Client) Close() error {
 	c.cancel()
-	c.wg.Wait()
 	c.quicConnMutex.Lock()
 	if c.quicConn != nil {
 		c.quicConn.CloseWithError(quic.ApplicationErrorCode(0), "client closed") //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
@@ -105,12 +102,6 @@ func (c *Client) getOrCreateConnection() (*quic.Conn, error) {
 	// 重入，会当场自锁死（第一版就犯了这个错，是拨号路径的集成测试炸出来的）。
 	c.quicConn = quicConn
 
-	c.keepAliveOnce.Do(func() {
-		c.wg.Go(func() {
-			c.keepAliveLoop()
-		})
-	})
-
 	return quicConn, nil
 }
 
@@ -118,23 +109,6 @@ func (c *Client) getQuicConn() *quic.Conn {
 	c.quicConnMutex.RLock()
 	defer c.quicConnMutex.RUnlock()
 	return c.quicConn
-}
-
-func (c *Client) keepAliveLoop() {
-	ticker := time.NewTicker(time.Second * time.Duration(10))
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			conn := c.getQuicConn()
-			if conn != nil {
-				conn.SendDatagram([]byte{}) //gosec:disable -- keepalive padding,错误忽略：非关键路径
-			}
-		case <-c.ctx.Done():
-			return
-		}
-	}
 }
 
 func (c *Client) DialPacket(tun tunnel.Tunnel) (tunnel.PacketConn, error) {
@@ -260,12 +234,20 @@ func (c *PacketConn) ReadFrom(p []byte) (int, net.Addr, error) {
 		n := copy(p, data)
 		return n, c.conn.RemoteAddr(), nil
 	}
-	data, err := c.conn.ReceiveDatagram(c.receiveCtx())
-	if err != nil {
-		return 0, nil, err
+	// 零长度数据报在这里丢弃，绝不上交：它不含任何应用内容，一旦被当作一次读，
+	// 上层（trojan/packet.go:81、proxy.go:318）就会判定这条 UDP 会话结束。
+	// 即使客户端已改用 PING 保活，对端或旧版本仍可能发来空数据报。
+	for {
+		data, err := c.conn.ReceiveDatagram(c.receiveCtx())
+		if err != nil {
+			return 0, nil, err
+		}
+		if len(data) == 0 {
+			continue
+		}
+		n := copy(p, data)
+		return n, c.conn.RemoteAddr(), nil
 	}
-	n := copy(p, data)
-	return n, c.conn.RemoteAddr(), nil
 }
 
 func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error) {
@@ -355,6 +337,13 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	quicConfig := &quic.Config{
 		MaxIdleTimeout:     time.Second * time.Duration(cfg.QUIC.MaxIdleTimeout),
 		MaxIncomingStreams: int64(cfg.QUIC.MaxIncomingStreams),
+		// 保活改用 QUIC 自己的 PING 控制帧（quic-go connection.go:704
+		// QueueControlFrame(&wire.PingFrame{})），对应用数据完全不可见；quic-go 会
+		// 自动收紧到 min(KeepAlivePeriod, MaxIdleTimeout/2)。原先这里是自建循环每 10s
+		// 发一个真实的空数据报，而空数据报会被对端当作一次正常的包读交给上层：
+		// trojan 在 packet.go:81 解析地址失败就关闭这条 UDP 会话，proxy.go:318/343
+		// 也把 n==0 判为会话结束——等于每 10s 杀一次同连接上存活的 UDP 会话。
+		KeepAlivePeriod: time.Second * time.Duration(cfg.QUIC.MaxIdleTimeout/2),
 		// 必须开启 RFC 9221 datagram 支持,否则 ReceiveDatagram 直接返回
 		// "datagram support disabled",UDP(PacketConn)路径完全不可用。
 		EnableDatagrams: true,

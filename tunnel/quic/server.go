@@ -138,6 +138,10 @@ func (s *Server) handleConnection(conn *quic.Conn, tracker *log.ConnectionTracke
 				log.Debug("QUIC message receive error:", err)
 				return
 			}
+			// 空数据报不上交：详见 client.go 里同名的过滤点
+			if len(data) == 0 {
+				continue
+			}
 			if !handlerSent {
 				handlerSent = true
 				select {
