@@ -21,7 +21,7 @@ Trojan-Go Fork 是基于 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/troj
   - [可移植性](#可移植性)
   - [简易配置](#简易配置)
   - [WebSocket](#websocket)
-  - [HTTP/2 TLS 隧道](#http2-tls 隧道)
+  - [HTTP/2 隧道（未实现）](#http2-隧道未实现)
   - [HTTP/3 QUIC 隧道](#http3-quic 隧道)
   - [多路复用](#多路复用)
   - [路由模块](#路由模块)
@@ -221,27 +221,27 @@ Trojan-Go Fork 支持 TLS + WebSocket 承载 Trojan 协议，可利用 CDN 进�
 
 > 注意：标准 Trojan 不支持 WebSocket。如需使用 WebSocket 承载流量，请确保通信双方均使用 Trojan-Go Fork。
 
-### HTTP/2 TLS 隧道
+### HTTP/2 隧道（未实现）
 
-Trojan-Go Fork 支持基于 HTTP/2 协议的 TLS 隧道，提供更好的多路复用性能和兼容性。
+**HTTP/2 承载目前没有实现**，本节此前给出的 `"http2": { "enabled": true, ... }` 是错的，
+现已更正。可核对的事实：
 
-启用 HTTP/2 隧道：
+- `tunnel/http` 从未注册 config creator（已注册的是 TLS/WebSocket/MUX/ROUTER/
+  SHADOWSOCKS/QUIC/adapter/socks/dokodemo/freedom/trojan/transport/tproxy/api/统计后端等），
+  因此配置里的 `http2` 段根本不会被解析；
+- 全仓没有导入 `golang.org/x/net/http2`，没有任何 HTTP/2 分帧、HPACK 或推送实现；
+- `tunnel/http` 里剩下的只有 `HTTP2Config` 这层脚手架，`Server` 存下它就再没读过。
 
-```json
-"http2": {
-    "enabled": true,
-    "host": "www.your-awesome-domain-name.com",
-    "path": "/h2-tunnel"
-}
-```
+`ssl` 段的 `alpn` 列表倒是真的会透传给 `crypto/tls`，但**不要**把它设成 `["h2"]`：
+本实现没有 h2 帧处理，协商成功也只会把流量送进一个没人解析的分支。
 
-HTTP/2 隧道特点：
-- **原生多路复用**：单个连接可并发多个请求，避免队头阻塞
-- **头部压缩**：HPACK 算法减少传输开销
-- **服务器推送**：支持服务端主动推送资源（需配合应用层实现）
-- **二进制分帧**：更高效的数据传输格式
+需要单连接并发（避免队头阻塞）请改用下面两节之一：
 
-> 启用 HTTP/2 隧道后，建议使用支持 ALPN 的负载均衡器或 CDN（如 Cloudflare、AWS ALB）。
+- [多路复用](#多路复用)：`mux`，在一条 TCP/TLS 连接上跑多个流；
+- [HTTP/3 QUIC 隧道](#http3-quic 隧道)：QUIC 原生多流，且 `quic` 配置确实已注册、会生效。
+
+> 若将来真要上 HTTP/2 承载，需要连着 `tunnel/http` 的 `HTTP2Config`/`NewServerWithHTTP2`
+> 脚手架一起实现，并给 HTTP 模块注册 config creator——否则配置项依旧是一句空话。
 
 ### HTTP/3 QUIC 隧道
 
