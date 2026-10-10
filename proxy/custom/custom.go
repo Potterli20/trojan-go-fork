@@ -43,8 +43,20 @@ func init() {
 
 		ctx, cancel := context.WithCancel(ctx)
 		success := false
+		// root 与 client 提前声明，失败时的统一回收才能看到这个 defer
+		var root *proxy.Node
+		var client tunnel.Client
 		defer func() {
 			if !success {
+				// cancel() 不关闭任何东西：custom 模式下入站树可能已经绑好监听、
+				// 出站链可能已经建好，失败时不显式回收就会每来一次配置错误就漏一份
+				// fd + goroutine（root 的 CloseAll 与 client 的 Close 都会级联）
+				if root != nil {
+					root.CloseAll()
+				}
+				if client != nil {
+					client.Close() //gosec:disable -- 错误忽略：失败回收路径
+				}
 				cancel()
 			}
 		}()
@@ -54,8 +66,7 @@ func init() {
 			return nil, err
 		}
 
-		var root *proxy.Node
-		// build server tree
+		// build server tree（root 已在前面声明，失败回收的 defer 需要看得到它）
 		for _, path := range cfg.Inbound.Path {
 			var lastNode *proxy.Node
 			for _, tag := range path {
@@ -102,7 +113,6 @@ func init() {
 		}
 
 		// build client stack
-		var client tunnel.Client
 		for _, tag := range cfg.Outbound.Path[0] {
 			if _, found := nodes[tag]; !found {
 				return nil, common.NewError("invalid node tag: " + tag)
@@ -111,10 +121,13 @@ func init() {
 			if err != nil {
 				return nil, common.NewError("invalid tunnel name").Base(err)
 			}
-			client, err = t.NewClient(nodes[tag].Context, client)
+			// 先接 next 再赋值：出错时原先的写法会把已建好的内层链覆盖成 nil，
+			// 之后谁也关不掉它
+			next, err := t.NewClient(nodes[tag].Context, client)
 			if err != nil {
 				return nil, common.NewError("failed to create client").Base(err)
 			}
+			client = next
 		}
 
 		success = true

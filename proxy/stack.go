@@ -3,6 +3,7 @@ package proxy
 import (
 	"context"
 
+	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
@@ -91,12 +92,17 @@ func CreateClientStack(ctx context.Context, clientStack []string) (tunnel.Client
 	for _, name := range clientStack {
 		t, err := tunnel.GetTunnel(name)
 		if err != nil {
+			closeTunnel(client, nil)
 			return nil, err
 		}
-		client, err = t.NewClient(ctx, client)
+		// 先接到 next 再赋值：原先写成 client, err = t.NewClient(...)，出错时
+		// client 会被这次调用的 nil 覆盖掉，已经建好的内层就再也关不掉了
+		next, err := t.NewClient(ctx, client)
 		if err != nil {
+			closeTunnel(client, nil)
 			return nil, err
 		}
+		client = next
 	}
 	return client, nil
 }
@@ -107,12 +113,48 @@ func CreateServerStack(ctx context.Context, serverStack []string) (tunnel.Server
 	for _, name := range serverStack {
 		t, err := tunnel.GetTunnel(name)
 		if err != nil {
+			closeTunnel(nil, server)
 			return nil, err
 		}
-		server, err = t.NewServer(ctx, server)
+		next, err := t.NewServer(ctx, server)
 		if err != nil {
+			closeTunnel(nil, server)
 			return nil, err
 		}
+		server = next
 	}
 	return server, nil
+}
+
+// closeTunnel 回收构建中途失败的 tunnel 链。栈是内层先建的，变量里存的是最外面
+// 那一个，而每个 tunnel 的 Close 都会级联关自己的下层，所以关一次就覆盖整条链。
+// 入站 server 会绑定监听端口，漏掉就是 fd + 端口 + 后台 goroutine 常驻；
+// 重复关闭由各 tunnel 的幂等 Close 兜住（transport/adapter/quic 已处理）。
+func closeTunnel(client tunnel.Client, server tunnel.Server) {
+	if client != nil {
+		if err := client.Close(); err != nil {
+			log.Debug("failed to close the partially built client stack:", err)
+		}
+	}
+	if server != nil {
+		if err := server.Close(); err != nil {
+			log.Debug("failed to close the partially built server stack:", err)
+		}
+	}
+}
+
+// CloseAll 关闭以 n 为根的入站树，供构建失败的回收路径使用。n 为 nil 时直接返回：
+// 回收路径自己 panic 会比泄露更难查。
+// cancel() 不会关闭任何已经建立的监听，所以每个提前返回都必须显式回收。
+// 树里父节点会被多个子节点共用（如 client 模式的 adapter 同时是 socks 与 http 的
+// 下层），FindAllEndpoints 因此可能重复命中同一个下层——这依赖各 tunnel 的幂等 Close。
+func (n *Node) CloseAll() {
+	if n == nil {
+		return
+	}
+	for _, s := range FindAllEndpoints(n) {
+		if err := s.Close(); err != nil {
+			log.Debug("failed to close a tunnel while unwinding the inbound tree:", err)
+		}
+	}
 }

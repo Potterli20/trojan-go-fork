@@ -63,12 +63,16 @@ func init() {
 
 		httpNode, err := root.BuildNext(http.Name)
 		if err != nil {
+			// 已建立的入站监听（adapter 绑了 TCP+UDP）不会被 cancel() 关掉
+			root.CloseAll()
 			cancel()
 			return nil, err
 		}
 		httpNode.IsEndpoint = true
 		socksNode, err := root.BuildNext(socks.Name)
 		if err != nil {
+			// 已建立的入站监听（adapter 绑了 TCP+UDP）不会被 cancel() 关掉
+			root.CloseAll()
 			cancel()
 			return nil, err
 		}
@@ -77,6 +81,8 @@ func init() {
 		clientStack := GenerateClientTree(cfg.TransportPlugin.Enabled, cfg.Mux.Enabled, cfg.Websocket.Enabled, cfg.Shadowsocks.Enabled, cfg.Router.Enabled)
 		c, err := proxy.CreateClientStack(ctx, clientStack)
 		if err != nil {
+			// 已建立的入站监听（adapter 绑了 TCP+UDP）不会被 cancel() 关掉
+			root.CloseAll()
 			cancel()
 			return nil, err
 		}

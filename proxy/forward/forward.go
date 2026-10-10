@@ -25,6 +25,10 @@ func init() {
 		}
 		s, err := proxy.CreateServerStack(ctx, serverStack)
 		if err != nil {
+			// 出站链已经建好，cancel() 不会关掉它（Close 会级联到内层）
+			if c != nil {
+				c.Close() //gosec:disable -- 错误忽略：失败回收路径
+			}
 			cancel()
 			return nil, err
 		}

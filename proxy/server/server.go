@@ -33,18 +33,24 @@ func init() {
 			clientStack = []string{freedom.Name, router.Name}
 		}
 
-		root := &proxy.Node{
+		// tree 始终指向最初的 transport 节点：下面会把 root 重新赋值成子节点
+		// (root, err = root.BuildNext(...))，失败时那句赋值还会把 root 覆成 nil，
+		// 所以回收点统一用 tree，不用 root
+		tree := &proxy.Node{
 			Name:       transport.Name,
 			Next:       make(map[string]*proxy.Node),
 			IsEndpoint: false,
 			Context:    ctx,
 			Server:     transportServer,
 		}
+		root := tree
 
 		if !cfg.TransportPlugin.Enabled {
 			var err error
 			root, err = root.BuildNext(tls.Name)
 			if err != nil {
+				// 已建立的监听不会被 cancel() 关掉，必须显式回收
+				tree.CloseAll()
 				cancel()
 				return nil, err
 			}
@@ -55,6 +61,8 @@ func init() {
 			var err error
 			trojanSubTree, err = trojanSubTree.BuildNext(shadowsocks.Name)
 			if err != nil {
+				// 已建立的监听不会被 cancel() 关掉，必须显式回收
+				tree.CloseAll()
 				cancel()
 				return nil, err
 			}
@@ -63,12 +71,16 @@ func init() {
 		// 自身与子树端点,否则 mux 连接会滞留在 simplesocks 的 connChan 中
 		simplesocksNode, err := trojanSubTree.BuildChain(trojan.Name, mux.Name, simplesocks.Name)
 		if err != nil {
+			// 已建立的监听不会被 cancel() 关掉，必须显式回收
+			tree.CloseAll()
 			cancel()
 			return nil, err
 		}
 		simplesocksNode.IsEndpoint = true
 		trojanNode, err := trojanSubTree.BuildNext(trojan.Name)
 		if err != nil {
+			// 已建立的监听不会被 cancel() 关掉，必须显式回收
+			tree.CloseAll()
 			cancel()
 			return nil, err
 		}
@@ -76,24 +88,32 @@ func init() {
 
 		wsSubTree, err := root.BuildNext(websocket.Name)
 		if err != nil {
+			// 已建立的监听不会被 cancel() 关掉，必须显式回收
+			tree.CloseAll()
 			cancel()
 			return nil, err
 		}
 		if cfg.Shadowsocks.Enabled {
 			wsSubTree, err = wsSubTree.BuildNext(shadowsocks.Name)
 			if err != nil {
+				// 已建立的监听不会被 cancel() 关掉，必须显式回收
+				tree.CloseAll()
 				cancel()
 				return nil, err
 			}
 		}
 		wsSimplesocksNode, err := wsSubTree.BuildChain(trojan.Name, mux.Name, simplesocks.Name)
 		if err != nil {
+			// 已建立的监听不会被 cancel() 关掉，必须显式回收
+			tree.CloseAll()
 			cancel()
 			return nil, err
 		}
 		wsSimplesocksNode.IsEndpoint = true
 		wsTrojanNode, err := wsSubTree.BuildNext(trojan.Name)
 		if err != nil {
+			// 已建立的监听不会被 cancel() 关掉，必须显式回收
+			tree.CloseAll()
 			cancel()
 			return nil, err
 		}
@@ -102,6 +122,8 @@ func init() {
 		serverList := proxy.FindAllEndpoints(root)
 		clientList, err := proxy.CreateClientStack(ctx, clientStack)
 		if err != nil {
+			// 已建立的监听不会被 cancel() 关掉，必须显式回收
+			tree.CloseAll()
 			cancel()
 			return nil, err
 		}
