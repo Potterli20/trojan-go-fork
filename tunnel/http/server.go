@@ -146,7 +146,24 @@ func (s *Server) acceptLoop() {
 					return
 				}
 			} else { // GET, POST, PUT...
-				defer conn.Close()
+				// 这条裸连接由本 goroutine 独占（转发读写都走 io.Pipe，不碰它），
+				// 所以关闭统一经由 closeRawConn，保证一次连接只关一次。
+				closeRawConn := sync.OnceFunc(func() {
+					conn.Close() //gosec:disable -- 错误忽略：关停唤醒路径，错误无处可报
+				})
+				defer closeRawConn()
+				// 关停唤醒：handler 可能停在「把响应写回客户端」上——对端不再读取时
+				// 那一句会无限阻塞，而 Close 里的 wg.Wait 没有上限；空闲的 keep-alive
+				// 读也要等满 handshakeTimeout 才返回。s.ctx 取消时直接关掉裸连接，
+				// 让在途读写立刻报错返回。
+				// 只监听 s.ctx：单个请求结束时的 newConn.Close() 只关管道，绝不能关裸
+				// 连接，否则 keep-alive 退化成一条连接只服务一个请求。
+				// 这里的 wg.Go 是合法的：本 goroutine 自身还占着一个计数，所以 Add 时
+				// 计数必然 >0，Close 的 Wait 也必然等到这个 watcher 退出。
+				s.wg.Go(func() {
+					<-s.ctx.Done()
+					closeRawConn()
+				})
 				for {
 					reqReader, reqWriter := io.Pipe()
 					respReader, respWriter := io.Pipe()
