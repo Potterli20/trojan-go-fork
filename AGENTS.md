@@ -46,7 +46,7 @@ All modules self-register in `init()`. Nothing is wired explicitly in `main.go` 
 - **Errors**: use `common.NewError(msg)` and `.Base(err)` — concatenates `" | " + err.Error()`. No `Unwrap` chain. `errors.Is`/`errors.As` DO NOT WORK across `.Base()` boundaries. 见 `common/error.go` 里的 `NewError` 与 `(*Error).Base`。
 - **Panics via `Must`**: `common.Must(err)`, `common.Must2(x, err)` panic on non-nil err. 用于启动期不可恢复的接线（`common/error.go` 的 `Must`/`Must2`）。
 - **Log levels are INVERTED**: `0=AllLevel, 1=InfoLevel, 2=WarnLevel, 3=ErrorLevel, 4=FatalLevel, 5=OffLevel`，另有 `TraceLevel = -1` 与 `DebugLevel == AllLevel == 0`（见 `log/log.go` 的级别常量块）。Lower = more verbose.
-- **实例 ID：目前只写不读**。`NewProxyFromConfigData` 用 `common.SecureRandInt` 生成一个 ID，以 `proxyIDKey("PROXY_ID")` 存入 ctx（`proxyIDKey` 是私有 key 类型，避免与内置 string key 碰撞）。**没有任何 tunnel 读取 `*_ID`**，所以“每个 creator 各打一个 ID、支持同 tunnel 多实例并存”的旧说法已不成立；要按会话区分实例需另想机制。
+- **No per-instance ID.** 曾经在 `NewProxyFromConfigData` 里写入过一个 `proxyIDKey("PROXY_ID")`，但 key 类型是包内私有的——包外**无法构造**同一个 key 去读，包内也没有读者，所以它已被删除。旧文档说的“每个 creator 各自 `context.WithValue(ctx, Name+"_ID", …)`、靠它支持同 tunnel 多实例并存”**在代码里从来不存在**（没有任何 tunnel 读 `NAME_ID`）；要按会话区分实例需另想机制。
 - **Context cancel is the shutdown primitive**: `proxy/proxy.go` 的 `relayConnLoop`/`relayPacketLoop` 在 select 里带上 `ctx.Done()` to exit `Accept` blocking calls. All `Tunnel.NewClient/NewServer` implementations must respect `ctx`.
 
 ## Anti-patterns (project-specific)

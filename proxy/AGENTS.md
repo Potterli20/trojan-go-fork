@@ -21,14 +21,10 @@ Iterates names left-to-right. For each name: `tunnel.GetTunnel(name).NewClient(c
 
 ## Per-instance ID
 
-`NewProxyFromConfigData`（`proxy/proxy.go`）里：
-```go
-ctx := context.WithValue(context.Background(), proxyIDKey(Name+"_ID"), instanceID)
-```
-`instanceID` 来自 `common.SecureRandInt`（不是 `math/rand`）；`proxyIDKey` 是私有
-string 类型，避免与包外 key 碰撞。**注意现实：只有这一处写入，key 固定是
-`"PROXY_ID"`，且没有任何 tunnel 读取 `*_ID`** —— 旧文档说的“每个 creator 各打一个、
-下游按 per-session stats 读取、同类型多实例靠它区分”都已不成立。
+该机制**已删除**（曾经在 `NewProxyFromConfigData` 里写入 `proxyIDKey(Name+"_ID")`）：
+`proxyIDKey` 是包内私有类型，包外无法构造同一个 key 去读，包内也没有读者，所以它从来没有作用
+（`common.SecureRandInt` 仍被 `tunnel/mux` 的 padding 使用，未受影响）。
+若将来要支持同类型 tunnel 多实例并存，需要重新设计一个包外可读的 key。
 
 ## Relay loops
 

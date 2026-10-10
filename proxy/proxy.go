@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"math"
 
 	"os"
 	"os/signal"
@@ -19,9 +18,6 @@ import (
 )
 
 const Name = "PROXY"
-
-// proxyIDKey 是 context value 的自定义 key 类型，避免使用内置 string 类型造成碰撞
-type proxyIDKey string
 
 const (
 	MaxPacketSize = 1024 * 8
@@ -457,12 +453,8 @@ func RegisterProxyCreator(name string, creator Creator) {
 }
 
 func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
-	// 使用 crypto/rand 生成实例 ID，避免 math/rand 的可预测性
-	instanceID, err := common.SecureRandInt(math.MaxInt)
-	if err != nil {
-		return nil, common.NewError("failed to generate secure instance ID").Base(err)
-	}
-	ctx := context.WithValue(context.Background(), proxyIDKey(Name+"_ID"), instanceID)
+	ctx := context.Background()
+	var err error
 	if isJSON {
 		ctx, err = config.WithJSONConfig(ctx, data)
 		if err != nil {

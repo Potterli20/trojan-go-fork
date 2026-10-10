@@ -50,7 +50,7 @@ type Tunnel interface {
 
 - Config retrieved via `config.FromContext(ctx, Name).(*XxxConfig)` — never read JSON directly.
 - Tunnel `Name()` MUST equal the config-registry name and the stack-list name. String identity matters.
-- 实例 ID 目前**只写不读**：`proxy.NewProxyFromConfigData` 只塞一个 `proxyIDKey("PROXY_ID")`，没有 tunnel 去读 `NAME_ID`。别假设 `ctx.Value(Name+"_ID")` 会有值；要按会话区分实例需要另想机制。
+- **没有** per-tunnel 实例 ID：`ctx.Value(Name+"_ID")` 永远取不到值（原先唯一的写入点已删除，且它的 key 类型是包内私有的、别人根本读不到）。需要按会话区分实例请另想机制。
 - `Conn.Metadata()` returns negotiated `*Metadata` on inbound conns; outbound conns use `Metadata` passed to `DialConn`.
 
 ## Anti-patterns
