@@ -28,7 +28,7 @@ Server reciprocates. Both sides must enable mux — mismatched config = broken s
 
 ## Header handling
 
-**CRITICAL (`conn.go:54`):**
+**CRITICAL（见 `tunnel/mux/conn.go` 中 `ReadFrom` 循环里的原注释）:**
 > `// NEVER STORE THE POINTER TO HEADER, COPY THE HEADER INSTEAD`
 
 smux stream headers are reused across streams by the library. Storing the pointer = later writes clobber earlier stored state. **Always `copy()` before retaining.** Applies to any field on `smux.Stream`'s header struct.
