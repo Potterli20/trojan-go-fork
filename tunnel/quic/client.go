@@ -100,10 +100,10 @@ func (c *Client) getOrCreateConnection() (*quic.Conn, error) {
 
 	c.applyCongestionControl(quicConn)
 
-	// 必须走加锁的 setter：keepAliveLoop 与 Close 都在 quicConnMutex 下读这个字段，
-	// 这里原先是裸赋值，-race 下会报 DATA RACE。quic 只有 custom 运行类型能走到，
-	// 测试从不覆盖，所以一直没被发现。
-	c.setQuicConn(quicConn)
+	// 直接赋值即可：本函数在 :73 已持有 quicConnMutex.Lock()（defer 释放），
+	// 所以这个写是被保护的。此处绝不能再调用加锁的 setter —— sync.RWMutex 不可
+	// 重入，会当场自锁死（第一版就犯了这个错，是拨号路径的集成测试炸出来的）。
+	c.quicConn = quicConn
 
 	c.keepAliveOnce.Do(func() {
 		c.wg.Go(func() {
@@ -112,14 +112,6 @@ func (c *Client) getOrCreateConnection() (*quic.Conn, error) {
 	})
 
 	return quicConn, nil
-}
-
-// setQuicConn/getQuicConn 是 quicConn 字段的唯一加锁出入口：拨号写、keepalive 读、
-// 关停读，三者跑在不同 goroutine 上。
-func (c *Client) setQuicConn(conn *quic.Conn) {
-	c.quicConnMutex.Lock()
-	c.quicConn = conn
-	c.quicConnMutex.Unlock()
 }
 
 func (c *Client) getQuicConn() *quic.Conn {

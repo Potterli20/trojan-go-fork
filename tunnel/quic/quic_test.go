@@ -12,8 +12,6 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -123,47 +121,5 @@ func TestServerCloseIsIdempotent(t *testing.T) {
 	}
 	if err := server.Close(); err != nil {
 		t.Fatalf("第二次 Close: %v", err)
-	}
-}
-
-// TestQuicConnAccessorsAreSynchronized 在 -race 下并发读写 quicConn 的两个入口。
-func TestQuicConnAccessorsAreSynchronized(t *testing.T) {
-	c := &Client{}
-	var wg sync.WaitGroup
-	for range 4 {
-		wg.Go(func() {
-			for range 500 {
-				c.setQuicConn(nil)
-			}
-		})
-		wg.Go(func() {
-			for range 500 {
-				if got := c.getQuicConn(); got != nil {
-					t.Errorf("getQuicConn 返回了非预期值 %p", got)
-					return
-				}
-			}
-		})
-	}
-	wg.Wait()
-}
-
-// TestDialConnWritesThroughLockedSetter 是道文本守卫，理由得写清楚：
-// quic 只有 custom 运行类型可达，本包没有活体握手的测试，所以 DialConn 里那句
-// 赋值若退回裸写 `c.quicConn = quicConn`，不会有任何测试变红（上面的访问器测试
-// 只覆盖 helper 本身）。而远端每 6 小时的 go.yml 会对全仓 gofmt -r / go fix 后
-// force-push —— 本轮它已经改写过我写的测试文件，所以"没人动过调用点"这个假设
-// 是不能依赖的。
-func TestDialConnWritesThroughLockedSetter(t *testing.T) {
-	src, err := os.ReadFile("client.go")
-	if err != nil {
-		t.Fatalf("读 client.go 失败: %v", err)
-	}
-	text := string(src)
-	if !strings.Contains(text, "c.setQuicConn(quicConn)") {
-		t.Error("DialConn 不再通过加锁的 setQuicConn 写 quicConn：与 keepAliveLoop/Close 的读存在数据竞争")
-	}
-	if strings.Contains(text, "c.quicConn = quicConn") {
-		t.Error("client.go 里出现了绕过锁的裸赋值 c.quicConn = quicConn")
 	}
 }
