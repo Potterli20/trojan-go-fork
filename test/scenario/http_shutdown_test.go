@@ -2,6 +2,7 @@ package scenario
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"net"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/proxy"
+	"github.com/Potterli20/trojan-go-fork/test/util"
 	"github.com/Potterli20/trojan-go-fork/tunnel/trojan"
 )
 
@@ -167,11 +169,14 @@ func TestHTTPProxyServesKeepAliveOverRealStack(t *testing.T) {
 	}
 
 	start := time.Now()
-	client.Close() //gosec:disable -- 错误忽略：耗时才是本用例的重点
+	client.Close() //gosec:disable -- 错误忽略：耗时才是本用例的另一半
 	elapsed := time.Since(start)
-	t.Logf("对照：没有在途响应时的关停耗时 %v", elapsed)
+	t.Logf("对照：空闲 keep-alive（无在途响应）时的关停耗时 %v", elapsed)
+	// 这条不只是"时限自证"，它守的是一个真实缺陷：入站连接停在 keep-alive 读上时，
+	// handler 醒不来，Server.Close 的 wg.Wait 只能等 Proxy.Close 的 5s 兜底掐断。
+	// 实测去掉关停唤醒的 watcher 后，这里正好是 5.001s（有 watcher 时约 1ms）。
 	if elapsed > 3*time.Second {
-		t.Fatalf("正常关停也要 %v：时限选得太松，那条在途响应用例会跟着失去意义", elapsed)
+		t.Fatalf("空闲 keep-alive 的关停也要 %v：每条挂着的入站连接都要白等一轮兜底超时", elapsed)
 	}
 }
 
@@ -217,7 +222,7 @@ func TestHTTPShutdownIsNotStalledByInflightResponse(t *testing.T) {
 	case elapsed := <-done:
 		t.Logf("带在途响应时的关停耗时：%v", elapsed)
 		if elapsed > 3*time.Second {
-			t.Fatalf("关停耗时 %v：仍被一个在途 HTTP 响应拖住（修复前要靠两段 5s 兜底才能退出）", elapsed)
+			t.Fatalf("关停耗时 %v：仍被一个在途 HTTP 响应拖住（实测没有唤醒时要等满 5s 兜底）", elapsed)
 		}
 	case <-time.After(20 * time.Second):
 		t.Fatal("关停 20s 仍未返回：入站 handler 卡在写响应上，无人唤醒")
@@ -246,4 +251,46 @@ func waitForClog(o *origin, settle time.Duration) bool {
 		time.Sleep(100 * time.Millisecond)
 	}
 	return !o.finished.Load()
+}
+
+// TestHTTPProxyConnectOverRealStack 补上 http 入站的另一半：CONNECT 隧道。
+// 上一轮的 GET 缺陷正是因为"入站 http 从未在真实栈上跑过"而长期潜伏；CONNECT 走的是
+// 另一条代码路径（不经 io.Pipe，直接把裸连接交给 relay），所以要单独钉住：
+// 200 建隧 + 载荷原样往返。
+func TestHTTPProxyConnectOverRealStack(t *testing.T) {
+	o := startOrigin(t, 1) // CONNECT 不需要源站，只为复用 startPair 的配置
+	defer o.stop()
+	client, server, localPort := startPair(t, o)
+	defer server.Close() //gosec:disable -- 错误忽略：测试清理
+	defer client.Close() //gosec:disable -- 错误忽略：测试清理
+
+	conn := dialProxy(t, localPort)
+	defer conn.Close() //gosec:disable -- 错误忽略：测试清理
+
+	req := fmt.Sprintf("CONNECT %s HTTP/1.1\r\nHost: %s\r\n\r\n", util.EchoAddr, util.EchoAddr)
+	if _, err := conn.Write([]byte(req)); err != nil {
+		t.Fatalf("发送 CONNECT 失败: %v", err)
+	}
+	_ = conn.SetReadDeadline(time.Now().Add(20 * time.Second))
+	head := make([]byte, 64)
+	n, err := conn.Read(head)
+	if err != nil {
+		t.Fatalf("读取建隧响应失败: %v", err)
+	}
+	if !strings.Contains(string(head[:n]), "200") {
+		t.Fatalf("CONNECT 没有拿到 200，实际响应：%q", string(head[:n]))
+	}
+
+	const payloadSize = 1024
+	payload := util.GeneratePayload(payloadSize)
+	if _, err := conn.Write(payload); err != nil {
+		t.Fatalf("写入隧道载荷失败: %v", err)
+	}
+	got := make([]byte, payloadSize)
+	if _, err := io.ReadFull(conn, got); err != nil {
+		t.Fatalf("读回隧道载荷失败: %v", err)
+	}
+	if !bytes.Equal(payload, got) {
+		t.Fatal("CONNECT 隧道里的载荷被改坏了")
+	}
 }

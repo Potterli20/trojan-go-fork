@@ -159,9 +159,10 @@ func (s *Server) acceptLoop() {
 				})
 				defer closeRawConn()
 				// 关停唤醒：handler 可能停在「把响应写回客户端」上——对端不再读取时
-				// 那一句会无限阻塞，而 Close 里的 wg.Wait 没有上限；空闲的 keep-alive
-				// 读也要等满 handshakeTimeout 才返回。s.ctx 取消时直接关掉裸连接，
-				// 让在途读写立刻报错返回。
+				// 那一句会无限阻塞；也可能停在 keep-alive 的下一个请求读上（要等满
+				// handshakeTimeout=30s）。两种都会让 Close 里的 wg.Wait 收不了尾，只能靠
+				// Proxy.Close 的 5s 兜底掐断——实测空闲 keep-alive 场景关停正好 5.001s。
+				// 所以 s.ctx 取消时直接关掉裸连接，让在途读写立刻报错返回（修复后约 1ms）。
 				// 只监听 s.ctx：单个请求结束时的 newConn.Close() 只关管道，绝不能关裸
 				// 连接，否则 keep-alive 退化成一条连接只服务一个请求。
 				// 这里的 wg.Go 是合法的：本 goroutine 自身还占着一个计数，所以 Add 时
