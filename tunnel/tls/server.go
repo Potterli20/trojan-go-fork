@@ -30,9 +30,6 @@ import (
 // firstByteTimeout 限定 TLS 握手与 HTTP 嗅探阶段等待对端数据的时限
 const firstByteTimeout = 30 * time.Second
 
-// handshakeShutdownTimeout 握手阶段关闭时的最长等待时间；卡死时强制断开连接
-const handshakeShutdownTimeout = 500 * time.Millisecond
-
 // Server is a tls server
 type Server struct {
 	fallbackAddress *tunnel.Address
@@ -54,21 +51,57 @@ type Server struct {
 	underlay        tunnel.Server
 	nextHTTP        atomic.Int32
 	wg              sync.WaitGroup
-	handshakes      sync.WaitGroup // 在途握手连接计数，Close 时主动回收避免永久阻塞
+	// 在途握手的裸连接登记表。Close 会主动关掉它们，把卡在 Handshake 里的 handler
+	// 叫醒。原先是一个 handshakes 计数 + 500ms 有界等待，但那两头都不成立：
+	// handler 本身就是 wg 成员，握手的读时限长达 firstByteTimeout(30s)，紧随其后的
+	// 无界 wg.Wait() 会把 500ms 上限完全抵消；而 Add 写在 wg.Go 闭包内部，与 Close 的
+	// Wait 并发属于 WaitGroup 的非法用法（计数器从 0 开始 Wait 之后又出现 Add）。
+	pendingMutex sync.Mutex
+	pendingConns map[tunnel.Conn]struct{}
+	closing      bool
+}
+
+// trackPending 登记一条尚在握手里的裸连接，返回 false 表示服务已进入关停、
+// 调用方应立刻关闭该连接并退出（closing 与登记在同一把锁下判定，避免与 closePending 竞态）。
+func (s *Server) trackPending(conn tunnel.Conn) bool {
+	s.pendingMutex.Lock()
+	defer s.pendingMutex.Unlock()
+	if s.closing {
+		return false
+	}
+	s.pendingConns[conn] = struct{}{}
+	return true
+}
+
+func (s *Server) untrackPending(conn tunnel.Conn) {
+	s.pendingMutex.Lock()
+	delete(s.pendingConns, conn)
+	s.pendingMutex.Unlock()
+}
+
+// closePending 置 closing 并关掉所有在途握手的连接。关闭在锁外进行，避免与
+// 被叫醒的 handler 里 untrackPending 的加锁互相等待。
+func (s *Server) closePending() {
+	s.pendingMutex.Lock()
+	s.closing = true
+	pending := make([]tunnel.Conn, 0, len(s.pendingConns))
+	for c := range s.pendingConns {
+		pending = append(pending, c)
+	}
+	s.pendingMutex.Unlock()
+
+	for _, c := range pending {
+		c.Close() //gosec:disable -- 错误忽略：关停路径叫醒 handler
+	}
 }
 
 func (s *Server) Close() error {
 	s.cancel()
 	// 先关闭底层 transport 解除 acceptLoop 的 AcceptConn 阻塞，否则 wg.Wait() 会永久死锁
 	err := s.underlay.Close()
-	// 等待在途握手连接主动退出（最多 handshakeShutdownTimeout），避免卡死在 tls.Handshake()
-	done := make(chan struct{})
-	go func() { s.handshakes.Wait(); close(done) }()
-	select {
-	case <-done:
-	case <-time.After(handshakeShutdownTimeout):
-		log.Warn("tls server handshakes timed out after ", handshakeShutdownTimeout, "; continuing to release resources")
-	}
+	// 主动关掉仍在握手里的裸连接：只靠 firstByteTimeout(30s) 的读时限退出的话，
+	// Close 就要白等半分钟，真实进程里只会被 proxy 的 5s 兜底遮住而看似"停机慢一点"。
+	s.closePending()
 	s.wg.Wait()
 	// wg.Wait() 之后所有 handler 生产者已退出、不再有 channel 发送,
 	// 排空已完成握手但未被 AcceptConn 取走的连接,释放其 fd 与 TLS 状态,
@@ -163,9 +196,12 @@ func (s *Server) acceptLoop() {
 			// handler goroutine 永久阻塞，Close() 的 wg.Wait() 随之挂起
 			conn.SetDeadline(time.Now().Add(firstByteTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			tlsConn := tls.Server(handshakeRewindConn, tlsConfig)
-			// 跟踪在途握手连接：关闭时主动回收，避免卡死在 Handshake()
-			s.handshakes.Add(1)
-			defer s.handshakes.Done()
+			// 跟踪在途握手连接：Close 会主动关掉它，使下面的 Handshake 立刻返回错误
+			if !s.trackPending(conn) {
+				conn.Close() //gosec:disable -- 错误忽略：服务已进入关停
+				return
+			}
+			defer s.untrackPending(conn)
 			err = tlsConn.Handshake()
 
 			if err != nil {
@@ -430,6 +466,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		sessionTicket:   cfg.TLS.ReuseSession,
 		connChan:        make(chan tunnel.Conn, 32),
 		wsChan:          make(chan tunnel.Conn, 32),
+		pendingConns:    make(map[tunnel.Conn]struct{}),
 		redir:           redirector.NewRedirector(ctx),
 		keyPair:         []tls.Certificate{*keyPair},
 		keyLogger:       keyLogger,
