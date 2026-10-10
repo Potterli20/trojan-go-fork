@@ -133,10 +133,18 @@ type Conn struct {
 	tunnel.Conn
 	lastActiveTime *atomic.Int64
 	tracker        *log.ConnectionTracker
+	// 只给关停时那行 tracker.Destroy 用的字节数。此前 Destroy 传的是写死的 0,0,
+	// 于是每条流的日志恒为 sent=0 recv=0 —— 那不是"没流量"，是没接线，
+	// 排查时会被当成"流建好却没搬数据"的现场证据（本会话就被它误导过一次）。
+	sent atomic.Int64
+	recv atomic.Int64
 }
 
 func (c *Conn) Read(p []byte) (int, error) {
 	n, err := c.rwc.Read(p)
+	if n > 0 {
+		c.recv.Add(int64(n))
+	}
 	if c.lastActiveTime != nil {
 		c.lastActiveTime.Store(time.Now().UnixNano())
 	}
@@ -145,6 +153,9 @@ func (c *Conn) Read(p []byte) (int, error) {
 
 func (c *Conn) Write(p []byte) (int, error) {
 	n, err := c.rwc.Write(p)
+	if n > 0 {
+		c.sent.Add(int64(n))
+	}
 	if c.lastActiveTime != nil {
 		c.lastActiveTime.Store(time.Now().UnixNano())
 	}
@@ -153,7 +164,7 @@ func (c *Conn) Write(p []byte) (int, error) {
 
 func (c *Conn) Close() error {
 	if c.tracker != nil {
-		c.tracker.Destroy("closed", 0, 0)
+		c.tracker.Destroy("closed", uint64(c.sent.Load()), uint64(c.recv.Load()))
 	}
 	return c.rwc.Close()
 }

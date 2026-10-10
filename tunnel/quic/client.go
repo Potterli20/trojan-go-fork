@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Potterli20/trojan-go-fork/common"
@@ -167,6 +168,8 @@ type StreamConn struct {
 	Stream  *quic.Stream
 	conn    *quic.Conn
 	tracker *log.ConnectionTracker
+	sent    atomic.Int64 // 仅供关停那行 Destroy 用；原先写死 0,0 会让日志恒为“零流量”
+	recv    atomic.Int64
 }
 
 func (c *StreamConn) Metadata() *tunnel.Metadata {
@@ -182,16 +185,24 @@ func (c *StreamConn) RemoteAddr() net.Addr {
 }
 
 func (c *StreamConn) Read(p []byte) (int, error) {
-	return c.Stream.Read(p)
+	n, err := c.Stream.Read(p)
+	if n > 0 {
+		c.recv.Add(int64(n))
+	}
+	return n, err
 }
 
 func (c *StreamConn) Write(p []byte) (int, error) {
-	return c.Stream.Write(p)
+	n, err := c.Stream.Write(p)
+	if n > 0 {
+		c.sent.Add(int64(n))
+	}
+	return n, err
 }
 
 func (c *StreamConn) Close() error {
 	if c.tracker != nil {
-		c.tracker.Destroy("closed", 0, 0)
+		c.tracker.Destroy("closed", uint64(c.sent.Load()), uint64(c.recv.Load()))
 	}
 	return c.Stream.Close()
 }
@@ -211,6 +222,8 @@ func (c *StreamConn) SetWriteDeadline(t time.Time) error {
 type PacketConn struct {
 	conn         *quic.Conn
 	tracker      *log.ConnectionTracker
+	sent         atomic.Int64 // 同 StreamConn：给关停日志一个真实数字
+	recv         atomic.Int64
 	packetBuffer chan []byte
 	// ctx/cancel 用于唤醒阻塞在 ReceiveDatagram 上的读;服务端用 packetBuffer
 	// 中转时可不设置(为 nil),客户端直读路径必须设置。
@@ -232,6 +245,7 @@ func (c *PacketConn) ReadFrom(p []byte) (int, net.Addr, error) {
 			return 0, nil, common.NewError("QUIC packet connection closed")
 		}
 		n := copy(p, data)
+		c.recv.Add(int64(n))
 		return n, c.conn.RemoteAddr(), nil
 	}
 	// 零长度数据报在这里丢弃，绝不上交：它不含任何应用内容，一旦被当作一次读，
@@ -246,6 +260,7 @@ func (c *PacketConn) ReadFrom(p []byte) (int, net.Addr, error) {
 			continue
 		}
 		n := copy(p, data)
+		c.recv.Add(int64(n))
 		return n, c.conn.RemoteAddr(), nil
 	}
 }
@@ -254,6 +269,7 @@ func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error
 	if err := c.conn.SendDatagram(p); err != nil {
 		return 0, err
 	}
+	c.sent.Add(int64(len(p)))
 	return len(p), nil
 }
 
@@ -288,7 +304,7 @@ func (c *PacketConn) Close() error {
 		c.cancel()
 	}
 	if c.tracker != nil {
-		c.tracker.Destroy("closed", 0, 0)
+		c.tracker.Destroy("closed", uint64(c.sent.Load()), uint64(c.recv.Load()))
 	}
 	return nil
 }
