@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"sync/atomic"
 
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
@@ -51,12 +52,32 @@ type InboundConn struct {
 	OutboundConn
 	cancel  context.CancelFunc // 取消后阻塞在 Read 上的 relay goroutine 被唤醒
 	tracker *log.ConnectionTracker
+	// 只给关停那行 Destroy 用。原先 Destroy 写死 0,0，日志恒为"零流量"，
+	// 与 mux/quic 同型问题；这里自己数一遍，不去改 OutboundConn（它无 tracker）。
+	sent atomic.Int64
+	recv atomic.Int64
+}
+
+func (c *InboundConn) Read(p []byte) (int, error) {
+	n, err := c.OutboundConn.Read(p)
+	if n > 0 {
+		c.recv.Add(int64(n))
+	}
+	return n, err
+}
+
+func (c *InboundConn) Write(p []byte) (int, error) {
+	n, err := c.OutboundConn.Write(p)
+	if n > 0 {
+		c.sent.Add(int64(n))
+	}
+	return n, err
 }
 
 func (c *InboundConn) Close() error {
 	c.cancel()
 	if c.tracker != nil {
-		c.tracker.Destroy("closed", 0, 0)
+		c.tracker.Destroy("closed", uint64(c.sent.Load()), uint64(c.recv.Load()))
 	}
 	return c.OutboundConn.Close()
 }

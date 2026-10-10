@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Potterli20/trojan-go-fork/common"
@@ -50,6 +51,9 @@ type PacketConn struct {
 	cancel  context.CancelFunc
 	wg      sync.WaitGroup
 	tracker *log.ConnectionTracker
+	// 只给关停那行 Destroy 用；原先写死 0,0 会让日志恒为"零流量"（与 mux/quic/websocket 同型）
+	sent atomic.Int64
+	recv atomic.Int64
 }
 
 // maxConsecutivePacketErrors 连续读失败多少次后判定会话永久故障。
@@ -149,7 +153,7 @@ func (c *PacketConn) Close() error {
 	c.cancel()
 	c.proxy.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	if c.tracker != nil {
-		c.tracker.Destroy("closed", 0, 0)
+		c.tracker.Destroy("closed", uint64(c.sent.Load()), uint64(c.recv.Load()))
 	}
 	err := c.PacketConn.Close()
 	c.wg.Wait()
@@ -186,7 +190,11 @@ func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error
 	policy := c.Route(m.Address)
 	switch policy {
 	case Proxy:
-		return c.proxy.WriteWithMetadata(p, m)
+		n, err := c.proxy.WriteWithMetadata(p, m)
+		if n > 0 {
+			c.sent.Add(int64(n))
+		}
+		return n, err
 	case Block:
 		return 0, common.NewError("router blocked address (udp): " + m.Address.String())
 	case Bypass:
@@ -194,10 +202,14 @@ func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error
 		if err != nil {
 			return 0, common.NewError("router failed to resolve udp address").Base(err)
 		}
-		return c.PacketConn.WriteTo(p, &net.UDPAddr{
+		n, err := c.PacketConn.WriteTo(p, &net.UDPAddr{
 			IP:   ip,
 			Port: m.Address.Port,
 		})
+		if n > 0 {
+			c.sent.Add(int64(n))
+		}
+		return n, err
 	default:
 		panic("unknown policy")
 	}
@@ -207,6 +219,9 @@ func (c *PacketConn) ReadWithMetadata(p []byte) (int, *tunnel.Metadata, error) {
 	select {
 	case info := <-c.packetChan:
 		n := copy(p, info.payload)
+		if n > 0 {
+			c.recv.Add(int64(n))
+		}
 		putPacketBuf(info.payload)
 		return n, info.src, nil
 	case <-c.ctx.Done():
