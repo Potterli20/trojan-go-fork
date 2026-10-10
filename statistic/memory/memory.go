@@ -596,6 +596,24 @@ func (a *Authenticator) Close() error {
 	// 且 updater 每轮都会撞上这种脏数据。
 	a.cancel()
 	a.wg.Wait()
+	// 关停前做一次最终 flush。batchTrafficUpdater 每 10s 才写一次库，而下面 User.Close
+	// 的第一件事就是 ResetTraffic 把累计量清零 —— 不 flush 就必然丢掉最后一个周期内的
+	// 流量（sqlite 持久化下是真实的数据丢失，不是"少记一点"）。
+	// 位置要求：必须在 a.wg.Wait() 之后（updater 已停，不会与它并发写同一用户），
+	// 又必须在 users.Range(Close) 之前（清零之后就读不到待写的量了）。
+	if a.pst != nil {
+		a.users.Range(func(_, v any) bool {
+			u := v.(*User)
+			sent, recv := u.GetTraffic()
+			if sent == u.persistedSent.Load() && recv == u.persistedRecv.Load() {
+				return true // 与批处理一致：无变化不写库
+			}
+			if err := a.pst.UpdateUserTraffic(u.Hash, sent, recv); err != nil {
+				log.Error(common.NewError("failed to flush user traffic on close").Base(err))
+			}
+			return true
+		})
+	}
 	a.users.Range(func(k, v any) bool {
 		v.(*User).Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return true

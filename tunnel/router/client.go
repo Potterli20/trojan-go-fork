@@ -309,6 +309,17 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		cancel()
 		return nil, common.NewError("router failed to initialize raw client").Base(err)
 	}
+	// 从这里开始，下面任何一条错误返回都必须同时回收 cancel 和已建好的 direct
+	// 客户端：原先有 6 处（未知 strategy/policy、非法 regex、非法 cidr、非法 prefix）
+	// 直接 return，既不取消 ctx 也不关闭 freedom client —— 独立进程里由退出兜住，
+	// 但作为库被反复建栈（api/service、测试）就会每次漏一个 client 和一份 ctx。
+	success := false
+	defer func() {
+		if !success {
+			cancel()
+			direct.Close() //gosec:disable -- 错误忽略：失败回收路径
+		}
+	}()
 
 	client := &Client{
 		domains:    [3][]*v2geodata.Domain{},
@@ -501,5 +512,6 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	log.Debugf("GeoSite rules -> Alloc: %s; TotalAlloc: %s", common.HumanFriendlyTraffic(m3.Alloc-m2.Alloc), common.HumanFriendlyTraffic(m3.TotalAlloc-m2.TotalAlloc))
 	log.Debugf("Manual rules -> Alloc: %s; TotalAlloc: %s", common.HumanFriendlyTraffic(m4.Alloc-m3.Alloc), common.HumanFriendlyTraffic(m4.TotalAlloc-m3.TotalAlloc))
 
+	success = true // 此后 ctx 与 direct 由 Client.Close() 负责
 	return client, nil
 }
