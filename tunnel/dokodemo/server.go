@@ -24,6 +24,9 @@ type Server struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
 	wg          sync.WaitGroup
+	// 监听只能被关一次：ctx 观察者与 Close 都会调用 closeListeners。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 func (s *Server) dispatchLoop() {
@@ -136,11 +139,26 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	}
 }
 
+// closeListeners 幂等地关掉 TCP/UDP 监听并返回首次关闭的错误。
+// 两个调用方：NewServer 装的 ctx 观察者，以及 Close。
+func (s *Server) closeListeners() error {
+	s.closeOnce.Do(func() {
+		// 先 TCP 再 UDP：任一失败都记录，不因一个失败而漏掉另一个
+		tcpErr := s.tcpListener.Close()
+		udpErr := s.udpListener.Close()
+		if tcpErr != nil {
+			s.closeErr = tcpErr
+		} else {
+			s.closeErr = udpErr
+		}
+	})
+	return s.closeErr
+}
+
 func (s *Server) Close() error {
 	s.cancel()
 	// 先关闭监听解除 Accept 阻塞，否则 wg.Wait() 会永久死锁
-	s.tcpListener.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-	err := s.udpListener.Close()
+	err := s.closeListeners()
 	s.wg.Wait()
 	return err
 }
@@ -173,6 +191,14 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 	}
 	server.wg.Go(func() {
 		server.dispatchLoop()
+	})
+	// 取消 ctx 就要能解除 AcceptConn 里阻塞的 Accept。proxy 的关停顺序是
+	// p.cancel() -> wg.Wait() -> releaseTunnels()，而只有关掉监听才能叫醒裸 Accept；
+	// 缺了这个观察者，forward 模式（source 就是 DOKODEMO）每次停机都要等满
+	// proxy.go 的 5s 有界兜底，还会顺带把真实关停错误一起埋掉。
+	server.wg.Go(func() {
+		<-server.ctx.Done()
+		server.closeListeners() //gosec:disable -- 错误忽略：由 Close 汇总
 	})
 	return server, nil
 }

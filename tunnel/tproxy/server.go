@@ -27,13 +27,30 @@ type Server struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
 	wg          sync.WaitGroup
+	// 监听只能关一次：ctx 观察者、Close、以及 UDP 连续读错误的自杀路径都会关。
+	closeOnce sync.Once
+	closeErr  error
+}
+
+// closeListeners 幂等地关掉 TCP/UDP 监听。三个调用方：Close、NewServer 装的 ctx
+// 观察者、以及 UDP 连续读错误时的自我关停。
+func (s *Server) closeListeners() error {
+	s.closeOnce.Do(func() {
+		tcpErr := s.tcpListener.Close()
+		udpErr := s.udpListener.Close()
+		if tcpErr != nil {
+			s.closeErr = tcpErr
+		} else {
+			s.closeErr = udpErr
+		}
+	})
+	return s.closeErr
 }
 
 func (s *Server) Close() error {
 	s.cancel()
 	// 先关闭监听解除 Accept 阻塞，否则 wg.Wait() 会永久死锁
-	s.tcpListener.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-	err := s.udpListener.Close()
+	err := s.closeListeners()
 	s.wg.Wait()
 	return err
 }
@@ -85,7 +102,12 @@ func (s *Server) packetDispatchLoop() {
 				log.Error(common.NewError("tproxy failed to read from udp socket").Base(err))
 				if readErrors >= 10 {
 					log.Error("tproxy udp socket persistently failing, closing server")
-					s.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+					// 这里绝不能用 s.Close()：本 goroutine 是 s.wg 的成员，而 Close
+					// 里有 s.wg.Wait() —— 等于等自己退出，永久自锁死，且之后外部真正
+					// 的 Close 也会卡在同一个 Wait。只拆掉监听与 ctx，让其它成员各自
+					// 从 ctx.Done / 监听错误里退出，Wait 交给外部的 Close 去做。
+					s.cancel()
+					s.closeListeners() //gosec:disable -- 错误忽略：故障自关停路径
 					return
 				}
 				// 错误退避：在 ctx 取消时立即返回，否则等待 100ms 后重试。
@@ -265,6 +287,13 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 	}
 	server.wg.Go(func() {
 		server.packetDispatchLoop()
+	})
+	// 取消 ctx 就要能解除 AcceptConn 里阻塞的 Accept：nat 模式的 source 就是 TPROXY，
+	// 而 proxy 的关停顺序是 cancel -> wg.Wait -> releaseTunnels，缺了这个观察者
+	// 每次停机都要烧满 proxy.go 的 5s 有界兜底。
+	server.wg.Go(func() {
+		<-server.ctx.Done()
+		server.closeListeners() //gosec:disable -- 错误忽略：由 Close 汇总
 	})
 	log.Info("tproxy server listening on", tcpListener.Addr(), "(tcp)", udpListener.LocalAddr(), "(udp)")
 	log.Debug("tproxy server created")

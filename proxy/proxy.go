@@ -41,6 +41,14 @@ type Proxy struct {
 	// 跨住 Run→Close 的间隙，避免清理阶段再收到信号时被默认处置直接杀进程。
 	sigChan chan os.Signal
 	sigOnce sync.Once
+
+	// startMu + stopped 让第一批 Add 严格 happen-before Close 的 Wait。
+	// WaitGroup 允许"计数器非零时"的 Add 与 Wait 并发（runtime 用 semaphore 兜住），
+	// 非法的是 Wait 从 0 开始之后又出现 Add。监听在 NewServer 里就已绑定，调用方完全
+	// 可能在 Run 还没来得及 spawn 时就 Close；每个 source 的 accept 循环正是 Run 的
+	// 第一批 Add，所以只有这两个站点需要过这道闸。
+	startMu sync.Mutex
+	stopped bool
 }
 
 // boundedBufPool 带驻留数量上限的转发 buffer 池：
@@ -178,6 +186,11 @@ func (p *Proxy) releaseTunnels() error {
 // The returned error reports tunnels that failed to close; a plain
 // signal-triggered shutdown still returns nil.
 func (p *Proxy) Close() error {
+	// 先立起 stopped：此后 Run 的第一批 Add 一律放弃，下面的 wg.Wait 就不会与
+	// "计数器从 0 开始的 Add" 并发（那是 WaitGroup 的非法用法，-race 会报）。
+	p.startMu.Lock()
+	p.stopped = true
+	p.startMu.Unlock()
 	p.cancel()
 	defer signal.Stop(p.sigChan)
 	// Run 已经消费掉第一次关闭信号；这里丢掉清理开始前积压的信号，
@@ -218,9 +231,21 @@ var (
 	maxRelayBufferCount = 65536
 )
 
+// spawnLoop 在 startMu 保护下把 accept 循环登记为 wg 成员。返回 false 表示代理已经
+// 开始关停，调用方应直接退出，不再制造与 Wait 并发的非法 Add。
+func (p *Proxy) spawnLoop(fn func()) bool {
+	p.startMu.Lock()
+	defer p.startMu.Unlock()
+	if p.stopped {
+		return false
+	}
+	p.wg.Go(fn)
+	return true
+}
+
 func (p *Proxy) relayConnLoop() {
 	for _, source := range p.sources {
-		p.wg.Go(func() {
+		if !p.spawnLoop(func() {
 			for {
 				if p.ctx.Err() != nil {
 					log.Debug("exiting")
@@ -279,13 +304,15 @@ func (p *Proxy) relayConnLoop() {
 					}
 				})
 			}
-		})
+		}) {
+			return
+		}
 	}
 }
 
 func (p *Proxy) relayPacketLoop() {
 	for _, source := range p.sources {
-		p.wg.Go(func() {
+		if !p.spawnLoop(func() {
 			for {
 				if p.ctx.Err() != nil {
 					log.Debug("exiting")
@@ -369,7 +396,9 @@ func (p *Proxy) relayPacketLoop() {
 					}
 				})
 			}
-		})
+		}) {
+			return
+		}
 	}
 }
 

@@ -227,6 +227,15 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	}
 
 	var keyLogger io.WriteCloser
+	// keyLogger 在本函数内打开，但唯一的归还入口是 Client.Close()。本函数此后还有
+	// 错误返回（证书文件读不到等），那些路径上 client 对象不会被交出去，句柄就永久
+	// 漏掉——实测 20 次失败留下 20 个 fd。用一个 success 标志在返回前兜住所有失败路径。
+	keyLoggerOwned := false
+	defer func() {
+		if !keyLoggerOwned && keyLogger != nil {
+			keyLogger.Close() //gosec:disable -- 错误忽略：失败回收路径
+		}
+	}()
 	if cfg.TLS.KeyLogPath != "" {
 		keyLogger, err = os.OpenFile(cfg.TLS.KeyLogPath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 		if err != nil {
@@ -263,6 +272,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		log.Info("[TLS] Using default CA list for certificate verification")
 	}
 
+	keyLoggerOwned = true // 从这里开始由 Client.Close() 负责归还
 	log.Info("[TLS] Client created successfully")
 	return client, nil
 }
