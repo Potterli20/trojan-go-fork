@@ -107,8 +107,7 @@ func TestAcceptLoopIsNotBlockedBySilentStream(t *testing.T) {
 	defer func(old time.Duration) { headerTimeout = old }(headerTimeout)
 	headerTimeout = 100 * time.Millisecond // 把等待压到测试可接受的范围
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	silent := newStalledConn()
 	addr := &tunnel.Address{AddressType: tunnel.DomainName, DomainName: "after-silent.example.com", Port: 443}

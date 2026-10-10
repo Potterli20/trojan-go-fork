@@ -50,7 +50,7 @@ func writeConnectHead(client net.Conn, headerBytes int) {
 	perLine := 512 * 1024
 	lines := headerBytes/perLine + 1
 	big := strings.Repeat("x", perLine)
-	for i := 0; i < lines; i++ {
+	for i := range lines {
 		fmt.Fprintf(client, "X-Big%d: %s\r\n", i, big)
 	}
 	fmt.Fprint(client, "\r\n")

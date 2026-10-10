@@ -4,7 +4,6 @@ package tproxy
 
 import (
 	"bytes"
-	"context"
 	"testing"
 
 	"github.com/Potterli20/trojan-go-fork/tunnel"
@@ -19,8 +18,7 @@ import (
 //     UDP 回包 payload 恒为全零——数据被静默损坏。同结构的 socks/conn.go:60-61
 //     是 make + copy，那才是正确写法。
 func TestPacketConnWriteCopiesPayload(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	c := &PacketConn{
 		input:  make(chan *packetInfo),
