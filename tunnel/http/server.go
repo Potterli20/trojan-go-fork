@@ -38,6 +38,7 @@ type OtherConn struct {
 	net.Conn
 	metadata   *tunnel.Metadata // fixed
 	reqReader  *io.PipeReader
+	reqWriter  *io.PipeWriter
 	respWriter *io.PipeWriter
 	ctx        context.Context
 	cancel     context.CancelFunc
@@ -66,9 +67,14 @@ func (c *OtherConn) Write(p []byte) (int, error) {
 	return c.respWriter.Write(p)
 }
 
+// Close 结束「这一个请求」的转发会话：关掉管道两端，让两个转发方向都从阻塞中
+// 报错返回。reqWriter 也必须在这里关——请求写完就发 EOF 会让 relay 误判会话结束
+// 并把还在路上的响应砍断（见 acceptLoop 里的说明）。
+// 注意它刻意不关裸连接：裸连接由 handler 拥有并支持 keep-alive。
 func (c *OtherConn) Close() error {
 	c.cancel()
 	c.reqReader.Close()  //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	c.reqWriter.Close()  //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	c.respWriter.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	return nil
 }
@@ -182,6 +188,7 @@ func (s *Server) acceptLoop() {
 						ctx:        ctx,
 						cancel:     cancel,
 						reqReader:  reqReader,
+						reqWriter:  reqWriter,
 						respWriter: respWriter,
 					}
 
@@ -193,10 +200,14 @@ func (s *Server) acceptLoop() {
 						return
 					}
 
+					// reqWriter 不能在这里关：本仓库的 relay 是「任一方向结束就拆掉整个
+					// 会话」，而 HTTP 请求写完必然 EOF —— 提前 EOF 会让响应在传输途中被
+					// 砍断（实测 64KB 响应只过去了 4KB）。会话的结束统一由 newConn.Close()
+					// 表示，所以每个出口都必须关掉它，否则两个转发方向会永远阻塞在管道上。
 					err = req.Write(reqWriter)
-					reqWriter.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 					if err != nil {
 						log.Error(common.NewError("http failed to write http request").Base(err))
+						newConn.Close()  //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 						req.Body.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 						return
 					}
@@ -205,12 +216,14 @@ func (s *Server) acceptLoop() {
 					resp, err := http.ReadResponse(respBufReader, req)
 					if err != nil {
 						log.Error(common.NewError("http failed to read http response").Base(err))
+						newConn.Close()  //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 						req.Body.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 						return
 					}
 					err = resp.Write(conn)
 					if err != nil {
 						log.Error(common.NewError("http failed to write the response back").Base(err))
+						newConn.Close()   //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 						req.Body.Close()  //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 						resp.Body.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 						return

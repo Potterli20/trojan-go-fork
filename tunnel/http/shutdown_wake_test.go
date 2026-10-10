@@ -167,6 +167,121 @@ func assertWriteIsStuck(client net.Conn) error {
 	}
 }
 
+// TestHTTPRequestDirectionHasNoEarlyEOF 盯住这条修复的核心不变量：请求已经转发完
+// （relay 读走了请求头）之后，请求方向不能提前返回 EOF。
+//
+// 为什么这很重要：relay 是「任一方向结束就拆掉整个会话」，而 HTTP 请求写完必然
+// 「结束」——于是响应还在路上就被砍断（真实栈实测 64KB 只过去 4KB）。修复前的代码
+// 在 req.Write 之后立刻 reqWriter.Close()，这条判据必红。
+func TestHTTPRequestDirectionHasNoEarlyEOF(t *testing.T) {
+	client, serverSide := net.Pipe()
+	srv, err := NewServer(context.Background(), &pipeServer{conn: &pipeConn{Conn: serverSide}})
+	if err != nil {
+		t.Fatalf("NewServer: %v", err)
+	}
+	// Close 放到后台：若某个失败出口漏了关会话，本用例要报的是那条断言，
+	// 而不是把整个包挂死在 wg.Wait 上（这恰是修复前的真实表现）。
+	t.Cleanup(func() { go srv.Close() }) //gosec:disable -- 错误忽略：测试清理
+
+	go func() {
+		fmt.Fprint(client, getReq1)
+	}()
+	conn, err := srv.AcceptConn(&Tunnel{})
+	if err != nil {
+		t.Fatalf("AcceptConn: %v", err)
+	}
+	if err := readHeaders(conn); err != nil {
+		t.Fatalf("读取转发请求: %v", err)
+	}
+
+	type read struct {
+		n   int
+		err error
+	}
+	ch := make(chan read, 1)
+	go func() {
+		n, err := conn.Read(make([]byte, 1))
+		ch <- read{n, err}
+	}()
+	select {
+	case r := <-ch:
+		if r.err == io.EOF {
+			t.Fatal("请求方向在响应开始前就发出了 EOF：relay 会立刻拆掉会话、把响应砍断")
+		}
+		if r.err != nil {
+			t.Fatalf("请求方向提前报错（不是等会话结束）：%v", r.err)
+		}
+		t.Fatalf("请求方向在会话结束前就读到了 %d 字节", r.n)
+	case <-time.After(500 * time.Millisecond):
+		// 阻塞中 = 没有提前 EOF，符合预期
+	}
+
+	// 会话正常收尾：喂响应，handler 写完后会关掉 OtherConn
+	const respBytes = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello"
+	if _, err := conn.Write([]byte(respBytes)); err != nil {
+		t.Fatalf("写入响应: %v", err)
+	}
+	// handler 写回客户端后关闭本请求的会话；把客户端那端读干以推进它
+	go drainUntil(client, len(respBytes))
+	select {
+	case r := <-ch:
+		if r.err == nil {
+			t.Fatalf("会话结束后请求方向仍能读到 %d 字节，没有随会话关闭", r.n)
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatal("会话结束后请求方向仍阻塞：转发方向不会被唤醒，relay 会滞留")
+	}
+}
+
+// TestHTTPRequestSessionClosesWhenResponseIsMalformed 守住这条修复的另一半：
+// 既然请求方向不再提前发 EOF，relay 就只能靠「会话被关闭」来退出。所以每一个失败
+// 出口都必须关掉这个请求的会话，否则两个转发方向会永远阻塞在管道上（连接、
+// goroutine 一起滞留，直到整个 Server 关停才解）。
+// 这里用「下游回的东西不是合法 HTTP 响应」触发 ReadResponse 失败那条出口。
+func TestHTTPRequestSessionClosesWhenResponseIsMalformed(t *testing.T) {
+	client, serverSide := net.Pipe()
+	srv, err := NewServer(context.Background(), &pipeServer{conn: &pipeConn{Conn: serverSide}})
+	if err != nil {
+		t.Fatalf("NewServer: %v", err)
+	}
+	// Close 放到后台：若某个失败出口漏了关会话，本用例要报的是那条断言，
+	// 而不是把整个包挂死在 wg.Wait 上（这恰是修复前的真实表现）。
+	t.Cleanup(func() { go srv.Close() }) //gosec:disable -- 错误忽略：测试清理
+
+	go func() {
+		fmt.Fprint(client, getReq1)
+	}()
+	conn, err := srv.AcceptConn(&Tunnel{})
+	if err != nil {
+		t.Fatalf("AcceptConn: %v", err)
+	}
+	if err := readHeaders(conn); err != nil {
+		t.Fatalf("读取转发请求: %v", err)
+	}
+
+	if _, err := conn.Write([]byte("this is not an http response\r\n\r\n")); err != nil {
+		t.Fatalf("写入畸形响应: %v", err)
+	}
+
+	ch := make(chan error, 1)
+	go func() {
+		_, err := conn.Read(make([]byte, 1))
+		ch <- err
+	}()
+	select {
+	case err := <-ch:
+		if err == nil {
+			t.Fatal("会话已经失败退出，但请求方向还读得到数据")
+		}
+		if err == io.EOF {
+			t.Fatal("请求方向以 EOF 结束：这会让 relay 把它当成正常收尾，" +
+				"失败出口应当是连接被关闭的错误")
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("失败出口没有关闭本请求的会话：两个转发方向会永久阻塞在管道上")
+	}
+}
+
 // TestHTTPServerKeepAliveSurvivesRequestClose 是我这条修复的反向护栏：
 // 单个请求结束时的 newConn.Close() 只关管道，绝不能关裸连接——否则 keep-alive
 // 退化成"一条连接只服务一个请求"，比原本的 bug 更糟。
