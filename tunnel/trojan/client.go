@@ -262,6 +262,20 @@ func NewClient(ctx context.Context, client tunnel.Client) (*Client, error) {
 	}
 	log.Info("[Trojan] Authenticator created successfully")
 
+	// 从这里起任何一条错误返回都必须把认证器归还：statistic.NewAuthenticator 已把它按
+	// ctx 登记进全局 createdAuth，而 memory 后端内部另派了自己的 ctx（注释原话：
+	// “生命周期由自身 Close 控制，不依赖调用方取消父 ctx”），所以本函数后面那句
+	// cancel() 停不了它——配了 sqlite 时 batchTrafficUpdater 与 DB 句柄会永远跑下去。
+	// 已知触发点：口令列表为空导致的 "no valid user found"。
+	authReleased := false
+	defer func() {
+		if !authReleased {
+			if err := statistic.ReleaseAuthenticator(ctx); err != nil {
+				log.Warn("[Trojan] Failed to release authenticator:", err)
+			}
+		}
+	}()
+
 	cfg := config.FromContext(ctx, Name).(*Config)
 	if log.ShouldLog(log.DebugLevel) {
 		log.Debug("[Trojan] RemoteHost:", cfg.RemoteHost)
@@ -305,5 +319,6 @@ func NewClient(ctx context.Context, client tunnel.Client) (*Client, error) {
 		})
 	}
 
+	authReleased = true // 交棒给 Client.Close()
 	return c, nil
 }
