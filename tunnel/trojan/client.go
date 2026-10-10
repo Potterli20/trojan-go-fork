@@ -3,6 +3,7 @@ package trojan
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"net"
 	"sync"
@@ -119,6 +120,11 @@ func (c *OutboundConn) Close() error {
 		log.Info("[Trojan] Connection to", c.metadata, "closed", "sent:", common.HumanFriendlyTraffic(c.sent.Load()), "recv:", common.HumanFriendlyTraffic(c.recv.Load()))
 	}
 	if err := c.Conn.Close(); err != nil {
+		// 关停时 proxy 的转发环和本 tunnel 都会关同一条流，"已经关过"不是故障。
+		// 把它记成 ERROR 并上抛，会让一次正常关停看起来像错误（也污染退出码判断）。
+		if errors.Is(err, net.ErrClosed) {
+			return nil
+		}
 		log.Error("[Trojan] Failed to close connection:", err)
 		return err
 	}
