@@ -2,7 +2,7 @@
 
 # trojan-go
 
-Go implementation of the Trojan proxy protocol. Unmaintained upstream (archived), but still built/released via CI. Module: `github.com/p4gefau1t/trojan-go`, Go 1.17, CGO disabled by default.
+Go implementation of the Trojan proxy protocol. Unmaintained upstream (archived), but still built/released via CI. Module: `github.com/Potterli20/trojan-go-fork`, `go 1.27.1`（go.mod 与 CI 的 `^1.27` 一致），CGO disabled by default.
 
 ## Architecture
 
@@ -43,15 +43,15 @@ All modules self-register in `init()`. Nothing is wired explicitly in `main.go` 
 
 ## Conventions
 
-- **Errors**: use `common.NewError(msg)` and `.Base(err)` — concatenates `" | " + err.Error()`. No `Unwrap` chain. `errors.Is`/`errors.As` DO NOT WORK across `.Base()` boundaries. See `common/error.go:15-20`.
-- **Panics via `Must`**: `common.Must(err)`, `common.Must2(x, err)` panic on non-nil err. Used at startup for unrecoverable wiring (`common/error.go:32-44`).
-- **Log levels are INVERTED**: `0=AllLevel, 1=InfoLevel, 2=WarnLevel, 3=ErrorLevel, 4=FatalLevel, 5=OffLevel` (`log/log.go:12-19`). Lower = more verbose.
-- **Per-instance IDs**: `context.WithValue(ctx, Name+"_ID", rand.Int())` — each proxy creator stamps its own ID into context (`proxy/proxy.go:184-187`). Enables multiple instances of the same tunnel in one process.
-- **Context cancel is the shutdown primitive**: relay loops in `proxy/proxy.go:51-61, 83-91` select on `ctx.Done()` to exit `Accept` blocking calls. All `Tunnel.NewClient/NewServer` implementations must respect `ctx`.
+- **Errors**: use `common.NewError(msg)` and `.Base(err)` — concatenates `" | " + err.Error()`. No `Unwrap` chain. `errors.Is`/`errors.As` DO NOT WORK across `.Base()` boundaries. 见 `common/error.go` 里的 `NewError` 与 `(*Error).Base`。
+- **Panics via `Must`**: `common.Must(err)`, `common.Must2(x, err)` panic on non-nil err. 用于启动期不可恢复的接线（`common/error.go` 的 `Must`/`Must2`）。
+- **Log levels are INVERTED**: `0=AllLevel, 1=InfoLevel, 2=WarnLevel, 3=ErrorLevel, 4=FatalLevel, 5=OffLevel`，另有 `TraceLevel = -1` 与 `DebugLevel == AllLevel == 0`（见 `log/log.go` 的级别常量块）。Lower = more verbose.
+- **实例 ID：目前只写不读**。`NewProxyFromConfigData` 用 `common.SecureRandInt` 生成一个 ID，以 `proxyIDKey("PROXY_ID")` 存入 ctx（`proxyIDKey` 是私有 key 类型，避免与内置 string key 碰撞）。**没有任何 tunnel 读取 `*_ID`**，所以“每个 creator 各打一个 ID、支持同 tunnel 多实例并存”的旧说法已不成立；要按会话区分实例需另想机制。
+- **Context cancel is the shutdown primitive**: `proxy/proxy.go` 的 `relayConnLoop`/`relayPacketLoop` 在 select 里带上 `ctx.Done()` to exit `Accept` blocking calls. All `Tunnel.NewClient/NewServer` implementations must respect `ctx`.
 
 ## Anti-patterns (project-specific)
 
-- **Never store the pointer to a mux header — copy it.** `tunnel/mux/conn.go:54` (verbatim comment).
+- **Never store the pointer to a mux header — copy it.** 见 `tunnel/mux/conn.go` 中 `ReadFrom` 循环里的原注释（“NEVER STORE THE POINTER TO HEADER, COPY THE HEADER INSTEAD”）。
 - **`errors.Is`/`As` won't traverse `.Base()`.** Check messages or keep original error separately if you need it.
 - **Don't edit `api/service/api.pb.go` or `api_grpc.pb.go`** — regenerate via `api/service/gen.sh`.
 - **`SHADOWSOCKS_SF_CAPACITY="-1"` is required for tests** (disables shadowsocks stream capacity check in go-shadowsocks2). See `Makefile::test` and CI.

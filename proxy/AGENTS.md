@@ -8,7 +8,7 @@ Stack builder + relay engine. Turns config + tunnel names into a running `Proxy`
 
 - `Proxy` (`proxy.go`): holds `sources []tunnel.Server`, `sink tunnel.Client`, `ctx`, `cancel`. `Run()` spawns `relayConnLoop` + `relayPacketLoop` per source.
 - `Creator func(ctx) (*Proxy, error)` registered via `RegisterProxyCreator(name, fn)` — names: `client`, `server`, `forward`, `nat`, `custom`.
-- `NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error)` (`proxy.go:143`) — dispatches on `general.RunType`.
+- `NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error)`（`proxy/proxy.go`）——按 `general.RunType` 分派到对应 creator。
 
 ## Stack builder (`stack.go`)
 
@@ -21,16 +21,19 @@ Iterates names left-to-right. For each name: `tunnel.GetTunnel(name).NewClient(c
 
 ## Per-instance ID
 
-`proxy.go:184-187`:
+`NewProxyFromConfigData`（`proxy/proxy.go`）里：
 ```go
-ctx = context.WithValue(ctx, name+"_ID", rand.Int())
+ctx := context.WithValue(context.Background(), proxyIDKey(Name+"_ID"), instanceID)
 ```
-Stamped by every proxy creator at start. Downstream tunnels read it for per-session stats/logging. **Multiple same-type tunnels in one stack each need distinct IDs** — this is why per-instance and not package-global.
+`instanceID` 来自 `common.SecureRandInt`（不是 `math/rand`）；`proxyIDKey` 是私有
+string 类型，避免与包外 key 碰撞。**注意现实：只有这一处写入，key 固定是
+`"PROXY_ID"`，且没有任何 tunnel 读取 `*_ID`** —— 旧文档说的“每个 creator 各打一个、
+下游按 per-session stats 读取、同类型多实例靠它区分”都已不成立。
 
 ## Relay loops
 
-- `relayConnLoop` (`proxy.go:51-61`): `source.AcceptConn(nil)` → `sink.DialConn(meta, nil)` → bidi `io.Copy` in goroutines. `ctx.Done()` closes source to unblock `Accept`.
-- `relayPacketLoop` (`proxy.go:83-91`): same for UDP; `PacketConn.ReadFrom/WriteTo` with `Metadata` addressing.
+- `relayConnLoop`（`proxy/proxy.go`）: `source.AcceptConn(nil)` → `sink.DialConn(meta, nil)` → bidi `io.Copy` in goroutines. `ctx.Done()` closes source to unblock `Accept`.
+- `relayPacketLoop`（`proxy/proxy.go`）: same for UDP; `PacketConn.ReadFrom/WriteTo` with `Metadata` addressing.
 
 ## Subdirectories
 
@@ -48,5 +51,5 @@ Stamped by every proxy creator at start. Downstream tunnels read it for per-sess
 
 ## Anti-patterns
 
-- Don't add goroutine leaks: every `io.Copy` pair must close both conns on either side's EOF (`proxy.go` uses `defer` + `sync.Once`).
+- 别漏 goroutine：转发两侧的 conn 必须在任一侧结束时关闭（`proxy/proxy.go` 用 `defer` + `sync.OnceFunc(closeDone)`，且池化 buffer 借出后一律 `Put` 归还）。
 - Don't `log.Fatal` in creators — return error; `main.go` handles exit.

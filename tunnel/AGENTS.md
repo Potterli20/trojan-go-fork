@@ -2,7 +2,7 @@
 
 # tunnel/
 
-Core abstraction layer. `Tunnel` is the sole plugin interface; 14 implementations live here.
+Core abstraction layer. `Tunnel` is the sole plugin interface; 15 implementations live here.
 
 ## Interface contract (`tunnel.go`)
 
@@ -26,7 +26,7 @@ type Tunnel interface {
 
 `RegisterTunnel(name, t)` called from each subdir's `init()`. `GetTunnel(name)` used by `proxy/stack.go`. No unregister. Re-registration panics.
 
-## Subdirectories (14)
+## Subdirectories (15)
 
 | Tunnel | Role | Notes |
 |---|---|---|
@@ -36,20 +36,21 @@ type Tunnel interface {
 | `mux/` | multiplex | smux wrapper. See `tunnel/mux/AGENTS.md` |
 | `shadowsocks/` | crypto | See `tunnel/shadowsocks/AGENTS.md` |
 | `simplesocks/` | proto | Trojan metadata without password (used inside mux) |
-| `freedom/` | outbound | Direct dial. `TODO: hardcoded localhost` in `client.go:79` |
-| `transport/` | transport | TCP raw; fallback listener. Import-cycle TODO in `server.go:90` |
+| `freedom/` | outbound | 直连出站；可选 forward-proxy（SOCKS5）与 `outbound_local_addr`/fwmark。历史上文档记的 “client.go:79 hardcoded localhost TODO” 已不存在，包内无任何 TODO |
+| `transport/` | transport | TCP raw; fallback listener。关于 “导入 websocket/http 会成 import cycle” 的注释在 `server.go` 里（旧文档记的行号已漂移，按内容找） |
 | `tproxy/` | inbound | **Linux-only** (`//go:build linux`). IP_TRANSPARENT |
 | `socks/` | inbound | SOCKS5 server |
 | `http/` | inbound | HTTP/HTTPS proxy server |
 | `adapter/` | inbound | Protocol sniffing dispatcher (socks vs http) |
 | `router/` | routing | Geosite/geoip. See `tunnel/router/AGENTS.md` |
 | `dokodemo/` | inbound | Fixed-target redirect (like v2ray dokodemo-door) |
+| `quic/` | transport | QUIC 承载；服务端/客户端都显式开 RFC 9221 datagram。**标准 run-type 的栈里没有它，只有 `custom` 模式能到达**；trojan 的 UDP 走 stream 而非数据报 |
 
 ## Conventions specific to tunnels
 
 - Config retrieved via `config.FromContext(ctx, Name).(*XxxConfig)` — never read JSON directly.
 - Tunnel `Name()` MUST equal the config-registry name and the stack-list name. String identity matters.
-- Per-tunnel context IDs (from `proxy/proxy.go`) are added BEFORE tunnel construction — use `ctx.Value(Name+"_ID")` if you need session distinction.
+- 实例 ID 目前**只写不读**：`proxy.NewProxyFromConfigData` 只塞一个 `proxyIDKey("PROXY_ID")`，没有 tunnel 去读 `NAME_ID`。别假设 `ctx.Value(Name+"_ID")` 会有值；要按会话区分实例需要另想机制。
 - `Conn.Metadata()` returns negotiated `*Metadata` on inbound conns; outbound conns use `Metadata` passed to `DialConn`.
 
 ## Anti-patterns
