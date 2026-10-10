@@ -137,6 +137,15 @@ func (c *Client) Close() error {
 	log.Info("[Trojan] Closing client")
 	c.cancel()
 	c.wg.Wait()
+	// NewClient 用 statistic.NewAuthenticator(c.ctx, …) 取认证器，它按 ctx 为键登记在
+	// 全局 createdAuth 里（只增不删）。服务端早就成对调用了 ReleaseAuthenticator，
+	// 客户端此前漏了：每建一个 client 实例就永久留住一条 map 项、整棵 User 对象图
+	// （含 ipTable）以及 sqlite 的 DB 句柄——Authenticator.Close 是唯一的
+	// pst.Close() 入口，客户端路径永远走不到。wg.Wait 之后再释放，避免还在上报的
+	// 批处理 goroutine 撞上已关闭的持久化层。
+	if err := statistic.ReleaseAuthenticator(c.ctx); err != nil {
+		log.Error("[Trojan] Failed to release authenticator:", err)
+	}
 	if err := c.underlay.Close(); err != nil {
 		log.Error("[Trojan] Failed to close underlay:", err)
 		return err

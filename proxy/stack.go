@@ -153,6 +153,11 @@ func (n *Node) CloseAll() {
 		return
 	}
 	for _, s := range FindAllEndpoints(n) {
+		// 构建中途失败的节点，Server 可能还是 nil（例如 custom 模式里 root 先入树、
+		// NewServer 才失败）。对 nil 接口调 Close 会 panic，把真正的配置错误吞掉。
+		if s == nil {
+			continue
+		}
 		if err := s.Close(); err != nil {
 			log.Debug("failed to close a tunnel while unwinding the inbound tree:", err)
 		}

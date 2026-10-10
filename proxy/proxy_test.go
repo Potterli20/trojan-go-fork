@@ -427,3 +427,16 @@ func TestNewProxyKeepsSaneBufferConfig(t *testing.T) {
 		t.Fatalf("合法配置被改写了：size=%d limit=%d", p.bufPool.size, p.bufPool.limit)
 	}
 }
+
+// TestCloseAllSkipsNilServer 盯构建失败回收路径上的 panic：custom 模式是先
+// root = lastNode 入树、再 t.NewServer(...)，失败时 root.Server 仍是 nil，
+// 而 root != nil 会让回收去关一个 nil 接口 -> panic，把真正的配置错误吞掉。
+func TestCloseAllSkipsNilServer(t *testing.T) {
+	root := &Node{
+		Name:       "transport",
+		Next:       make(map[string]*Node),
+		Server:     nil,
+		IsEndpoint: true,
+	}
+	root.CloseAll() // 不应该 panic
+}
