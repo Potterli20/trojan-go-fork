@@ -117,10 +117,23 @@ func (s *Server) AcceptConn(overlay tunnel.Tunnel) (tunnel.Conn, error) {
 }
 
 func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
-	return &freedom.PacketConn{
-		UDPConn: s.udpListener.(*net.UDPConn),
+	// 不能直接交出 freedom.PacketConn：它内嵌 *net.UDPConn，Close 会把这个**共享**监听
+	// 一起关掉。而这个 socket 的所有权属于 Server，只应由 Server.Close 关一次。
+	// 交出可关的包装后，proxy 的包转发环在会话结束时 defer inbound.Close() 就替 Server
+	// 关了监听，随后 releaseTunnels 调用 adapter.Close 拿到
+	// "use of closed network connection"，一路冒到 main 变成 FATAL + 非零退出码
+	// —— client 模式带 UDP 的正常关停必然踩到。
+	return borrowedPacketConn{
+		PacketConn: &freedom.PacketConn{UDPConn: s.udpListener.(*net.UDPConn)},
 	}, nil
 }
+
+// borrowedPacketConn 借来的包句柄：读写照常转给底层，Close 是空操作。
+type borrowedPacketConn struct {
+	tunnel.PacketConn
+}
+
+func (borrowedPacketConn) Close() error { return nil }
 
 func (s *Server) Close() error {
 	s.closeOnce.Do(func() {
