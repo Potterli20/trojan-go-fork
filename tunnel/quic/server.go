@@ -240,6 +240,10 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		MaxIncomingStreams: int64(cfg.QUIC.MaxIncomingStreams),
 		// 与 client 对称开启 datagram 支持,否则对端数据报无法收发。
 		EnableDatagrams: true,
+		// initial_stream_window / initial_conn_window 之前定义了却从未接线，用户设了
+		// 不生效。0 表示交给 quic-go 的库内默认（512KB）。
+		InitialStreamReceiveWindow:     uint64(cfg.QUIC.InitialStreamWindow),
+		InitialConnectionReceiveWindow: uint64(cfg.QUIC.InitialConnWindow),
 	}
 
 	packetConn, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP(cfg.RemoteHost), Port: cfg.RemotePort})

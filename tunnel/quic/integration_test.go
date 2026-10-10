@@ -434,3 +434,92 @@ func TestQuicKeepAliveIsInvisibleToDatagrams(t *testing.T) {
 		t.Fatal("空闲之后包没送达：连接已经死了")
 	}
 }
+
+// TestQuicWindowConfigReachesQuicConfig 接线 initial_stream_window /
+// initial_conn_window：这两个键此前被静默忽略（config.go 定义了字段，但从未进入
+// quic.Config），用户设了也没有任何效果。
+//
+// 同时守住"默认不得缩小窗口"这条：quic-go 在值为 0 时使用库内默认 512KB
+// （interface.go:125-139），而本仓库旧默认是 65535。要是把 65535 直接接上去，
+// 就等于在一次"让配置生效"的改动里顺手把所有人的默认流控窗口缩到 1/8。
+// 因此默认取 0，把决定权交回库。
+func TestQuicWindowConfigReachesQuicConfig(t *testing.T) {
+	certPath, keyPath := writeSelfSigned(t, t.TempDir())
+	port := common.PickPort("udp", "127.0.0.1")
+
+	const (
+		wantStream uint64 = 1 << 20
+		wantConn   uint64 = 1 << 21
+	)
+
+	sctx := quicServerCtx(t, port, certPath, keyPath)
+	sc := config.FromContext(sctx, Name).(*Config)
+	sc.QUIC.InitialStreamWindow = int(wantStream)
+	sc.QUIC.InitialConnWindow = int(wantConn)
+	server, err := NewServer(sctx, nil)
+	if err != nil {
+		t.Fatalf("NewServer: %v", err)
+	}
+	defer server.Close() //gosec:disable -- 错误忽略：测试清理
+	if server.quicConfig.InitialStreamReceiveWindow != wantStream ||
+		server.quicConfig.InitialConnectionReceiveWindow != wantConn {
+		t.Fatalf("服务端窗口未接线：stream=%d conn=%d，期望 %d/%d",
+			server.quicConfig.InitialStreamReceiveWindow,
+			server.quicConfig.InitialConnectionReceiveWindow, wantStream, wantConn)
+	}
+
+	client, err := NewClient(clientCtxWithWindows(t, port, wantStream, wantConn), nil)
+	if err != nil {
+		t.Fatalf("NewClient: %v", err)
+	}
+	defer client.Close() //gosec:disable -- 错误忽略：测试清理
+	if client.quicConfig.InitialStreamReceiveWindow != wantStream ||
+		client.quicConfig.InitialConnectionReceiveWindow != wantConn {
+		t.Fatalf("客户端窗口未接线：stream=%d conn=%d，期望 %d/%d",
+			client.quicConfig.InitialStreamReceiveWindow,
+			client.quicConfig.InitialConnectionReceiveWindow, wantStream, wantConn)
+	}
+}
+
+// TestQuicWindowDefaultsLeaveTheLibraryInCharge 直接检查生产的默认值（newDefaultConfig
+// 既被 config 注册使用也被本测试调用，不存在"测试里一套默认值、线上另一套"）。
+// 默认必须是 0：0 才会让 quic-go 用它的 512KB 库内默认。若这里被改成任何非零值，
+// 接线就等于替所有没配置过的用户缩小流控窗口。
+func TestQuicWindowDefaultsLeaveTheLibraryInCharge(t *testing.T) {
+	d := newDefaultConfig()
+	if d.QUIC.InitialStreamWindow != 0 || d.QUIC.InitialConnWindow != 0 {
+		t.Fatalf("默认初始窗口不是 0（stream=%d conn=%d）：接线后这会覆盖 quic-go 的 512KB 库内默认",
+			d.QUIC.InitialStreamWindow, d.QUIC.InitialConnWindow)
+	}
+	// 0 一路传到 quic.Config，不在中间被填成别的数
+	certPath, keyPath := writeSelfSigned(t, t.TempDir())
+	server, err := NewServer(quicServerCtx(t, common.PickPort("udp", "127.0.0.1"), certPath, keyPath), nil)
+	if err != nil {
+		t.Fatalf("NewServer: %v", err)
+	}
+	defer server.Close() //gosec:disable -- 错误忽略：测试清理
+	if server.quicConfig.InitialStreamReceiveWindow != 0 || server.quicConfig.InitialConnectionReceiveWindow != 0 {
+		t.Fatalf("0 被中间改写：stream=%d conn=%d",
+			server.quicConfig.InitialStreamReceiveWindow, server.quicConfig.InitialConnectionReceiveWindow)
+	}
+}
+
+func clientCtxWithWindows(t *testing.T, port int, stream, conn uint64) context.Context {
+	t.Helper()
+	cctx := config.WithConfig(context.Background(), Name, &Config{
+		RemoteHost: "127.0.0.1",
+		RemotePort: port,
+		QUIC: QUICConfig{
+			ALPN:                "hq-29",
+			MaxIdleTimeout:      30,
+			MaxIncomingStreams:  100,
+			InitialStreamWindow: int(stream),
+			InitialConnWindow:   int(conn),
+			Congestion:          "bbr",
+			Insecure:            true,
+		},
+	})
+	return config.WithConfig(cctx, tlstunnel.Name, &tlstunnel.Config{
+		TLS: tlstunnel.TLSConfig{Verify: false, SNI: "localhost"},
+	})
+}

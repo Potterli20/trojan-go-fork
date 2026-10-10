@@ -344,6 +344,10 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		// trojan 在 packet.go:81 解析地址失败就关闭这条 UDP 会话，proxy.go:318/343
 		// 也把 n==0 判为会话结束——等于每 10s 杀一次同连接上存活的 UDP 会话。
 		KeepAlivePeriod: time.Second * time.Duration(cfg.QUIC.MaxIdleTimeout/2),
+		// initial_stream_window / initial_conn_window 之前定义了却从未接线，用户设了
+		// 不生效。0 表示交给 quic-go 的库内默认（512KB）。
+		InitialStreamReceiveWindow:     uint64(cfg.QUIC.InitialStreamWindow),
+		InitialConnectionReceiveWindow: uint64(cfg.QUIC.InitialConnWindow),
 		// 必须开启 RFC 9221 datagram 支持,否则 ReceiveDatagram 直接返回
 		// "datagram support disabled",UDP(PacketConn)路径完全不可用。
 		EnableDatagrams: true,
