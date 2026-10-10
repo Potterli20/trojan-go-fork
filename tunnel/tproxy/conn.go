@@ -59,7 +59,11 @@ func (c *PacketConn) Close() error {
 }
 
 func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error) {
+	// 必须 copy：proxy 的转发环在本方法返回后立刻把 p 归还给 buffer 池复用，
+	// 直接把 p 入队会让队列里的包被下一个会话覆写。make 而不 copy 更会让 payload
+	// 恒为全零（此前就是这个状态），与 socks/conn.go 的正确写法对齐。
 	newP := make([]byte, len(p))
+	copy(newP, p)
 	select {
 	case c.output <- &packetInfo{
 		metadata: m,

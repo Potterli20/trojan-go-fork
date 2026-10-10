@@ -393,3 +393,37 @@ func TestCloseDoesNotHangWhenTunnelCloseBlocks(t *testing.T) {
 		t.Fatal("sink must be closed before the blocked source")
 	}
 }
+
+// TestNewProxyClampsBufferConfig：relay_buffer_size / relay_buffer_count 完全来自配置且
+// 原先不做上界检查。boundedBufPool 的 bufs 是 make(chan []byte, count)，Go 会在构造时
+// 立刻按 count×24B 分配环形缓冲——把一个手滑写成 10000000 的 count 传进去，进程还没开始
+// 转发就已经驻留约 240MB。buffer 尺寸同理：每个借出的 buffer 都是那么大。
+// 默认值（8KB×1024）是有意的，钳制只挡住明显的数量级错误。
+func TestNewProxyClampsBufferConfig(t *testing.T) {
+	ctx := config.WithConfig(context.Background(), Name, &Config{
+		RelayBufferSize:  1 << 30,
+		RelayBufferCount: 10_000_000,
+	})
+	p := NewProxy(ctx, func() {}, nil, nil)
+
+	if p.bufPool.size > maxRelayBufferSize {
+		t.Fatalf("buffer 尺寸未被钳制：%d，上限应为 %d", p.bufPool.size, maxRelayBufferSize)
+	}
+	if p.bufPool.limit > maxRelayBufferCount || cap(p.bufPool.bufs) > maxRelayBufferCount {
+		t.Fatalf("池容量未被钳制：limit=%d chan_cap=%d，上限应为 %d（make(chan,N) 会立即分配 N×24B）",
+			p.bufPool.limit, cap(p.bufPool.bufs), maxRelayBufferCount)
+	}
+}
+
+// TestNewProxyKeepsSaneBufferConfig 确认钳制不会动正常配置：默认值必须原样保留，
+// 否则这道门就成了"随便往上钳"的空转判据。
+func TestNewProxyKeepsSaneBufferConfig(t *testing.T) {
+	ctx := config.WithConfig(context.Background(), Name, &Config{
+		RelayBufferSize:  64 * 1024,
+		RelayBufferCount: 2048,
+	})
+	p := NewProxy(ctx, func() {}, nil, nil)
+	if p.bufPool.size != 64*1024 || p.bufPool.limit != 2048 {
+		t.Fatalf("合法配置被改写了：size=%d limit=%d", p.bufPool.size, p.bufPool.limit)
+	}
+}

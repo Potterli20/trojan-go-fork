@@ -19,6 +19,12 @@ import (
 // handshakeTimeout 限定等待单个 HTTP 请求 (含 keep-alive 后续请求) 的时限
 const handshakeTimeout = 30 * time.Second
 
+// maxRequestHeadBytes 限定单个请求头块可读取的字节数，取 net/http 的
+// DefaultMaxHeaderBytes 同档（1MB）。stdlib 的 http.ReadRequest 自身没有这个上限
+// ——有上限的是内部 readRequestLimit，只服务 Server；transport/tls/websocket 各层
+// 嗅探时都做了限幅，此前只有本文件这个真实代理入口漏了。
+const maxRequestHeadBytes = 1 << 20
+
 type ConnectConn struct {
 	net.Conn
 	metadata *tunnel.Metadata
@@ -91,10 +97,17 @@ func (s *Server) acceptLoop() {
 		}
 
 		s.wg.Go(func() {
-			reqBufReader := bufio.NewReader(io.NopCloser(conn))
+			// 预算读取器挂在 conn 与 bufio 之间：每个请求头单独计预算，解析成功后立刻
+			// 解除限制，这样请求体和 keep-alive 的后续请求都不受影响。不能把
+			// io.LimitReader 直接包在 conn 外面——那限制的是整条连接的累计字节数，
+			// 长连接上第 N 个请求之后就会被截断。
+			boundedReader := common.NewBoundedReader(conn)
+			reqBufReader := bufio.NewReader(boundedReader)
 			// 等待首个请求限时:对端静默 (如端口扫描) 时不让 handler 永久阻塞
 			conn.SetReadDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			boundedReader.Limit(maxRequestHeadBytes)
 			req, err := http.ReadRequest(reqBufReader)
+			boundedReader.Unlimited()
 			conn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			if err != nil {
 				log.Error(common.NewError("not a valid http request").Base(err))
@@ -191,7 +204,9 @@ func (s *Server) acceptLoop() {
 
 					// keep-alive:等待下一个请求同样限时，读完即解除
 					conn.SetReadDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+					boundedReader.Limit(maxRequestHeadBytes)
 					req, err = http.ReadRequest(reqBufReader)
+					boundedReader.Unlimited()
 					conn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 					if err != nil {
 						log.Error(common.NewError("http failed to read request from local").Base(err))

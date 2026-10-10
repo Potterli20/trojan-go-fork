@@ -210,6 +210,12 @@ func (p *Proxy) Close() error {
 var (
 	defaultBufSize  = 8 * 1024
 	defaultBufCount = 1024
+	// 配置里的 relay_buffer_* 只做下限检查，数量级写错就直接换算成常驻内存：
+	// boundedBufPool 的 bufs 是 make(chan []byte, count)，构造时立刻占约 count×24B，
+	// 而 size 决定每个借出 buffer 的大小。这两条上限只挡误配，不影响正常取值范围
+	// （默认 8KB×1024 远在其下）。
+	maxRelayBufferSize  = 1 << 20 // 1MB
+	maxRelayBufferCount = 65536
 )
 
 func (p *Proxy) relayConnLoop() {
@@ -373,9 +379,19 @@ func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.S
 	if cfg, ok := config.FromContext(ctx, Name).(*Config); ok {
 		if cfg.RelayBufferSize > 0 {
 			bufSize = cfg.RelayBufferSize
+			if bufSize > maxRelayBufferSize {
+				log.Warnf("relay_buffer_size %d 超出上限，按 %d 处理（超出只会增加常驻内存，不会提升中继性能）",
+					cfg.RelayBufferSize, maxRelayBufferSize)
+				bufSize = maxRelayBufferSize
+			}
 		}
 		if cfg.RelayBufferCount > 0 {
 			bufCount = cfg.RelayBufferCount
+			if bufCount > maxRelayBufferCount {
+				log.Warnf("relay_buffer_count %d 超出上限，按 %d 处理（make(chan,N) 会立即分配约 N×24B）",
+					cfg.RelayBufferCount, maxRelayBufferCount)
+				bufCount = maxRelayBufferCount
+			}
 		}
 	}
 	// UDP 包必须整包读进 buffer：tunnel/trojan 的 ReadWithMetadata 在
