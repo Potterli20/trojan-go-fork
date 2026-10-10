@@ -13,7 +13,6 @@ type Config struct {
 }
 
 type QUICConfig struct {
-	Enabled             bool   `json:"enabled" yaml:"enabled"`
 	MaxIdleTimeout      int    `json:"max_idle_timeout" yaml:"max-idle-timeout"`
 	MaxIncomingStreams  int    `json:"max_incoming_streams" yaml:"max-incoming-streams"`
 	InitialStreamWindow int    `json:"initial_stream_window" yaml:"initial-stream-window"`
@@ -30,7 +29,6 @@ type QUICConfig struct {
 func newDefaultConfig() *Config {
 	return &Config{
 		QUIC: QUICConfig{
-			Enabled:            false,
 			MaxIdleTimeout:     30,
 			MaxIncomingStreams: 100,
 			// 0 是 quic-go 的"用库内默认"哨兵，两个初始窗口都是 512KB
