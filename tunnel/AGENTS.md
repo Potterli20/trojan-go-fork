@@ -52,6 +52,12 @@ type Tunnel interface {
 - Tunnel `Name()` MUST equal the config-registry name and the stack-list name. String identity matters.
 - **没有** per-tunnel 实例 ID：`ctx.Value(Name+"_ID")` 永远取不到值（原先唯一的写入点已删除，且它的 key 类型是包内私有的、别人根本读不到）。需要按会话区分实例请另想机制。
 - `Conn.Metadata()` returns negotiated `*Metadata` on inbound conns; outbound conns use `Metadata` passed to `DialConn`.
+- **relay 没有半关闭**：`proxy/proxy.go` 的 `relayConnLoop` 是「任一方向结束就拆掉整个会话」
+  （两个 `io.CopyBuffer` 共享一个 `done`，谁先返回谁触发，随后 `defer` 关掉两端）。
+  `tunnel.Conn` 接口也没有 `CloseWrite`，所以无法只断一个方向。写 tunnel 时必须假设：
+  只要有一方读到 EOF/错误，另一方的数据就没了。典型受害者是「请求写完就 EOF」的形态——
+  `tunnel/http` 因此把请求方向的 EOF 推迟到本请求会话真正结束（见 `server.go` 里
+  `OtherConn.Close` 的注释）；任何新 tunnel 若自己会先产生 EOF，也要照这个思路处理。
 
 ## Anti-patterns
 

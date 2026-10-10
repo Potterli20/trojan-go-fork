@@ -52,6 +52,7 @@ All modules self-register in `init()`. Nothing is wired explicitly in `main.go` 
 ## Anti-patterns (project-specific)
 
 - **Never store the pointer to a mux header — copy it.** 见 `tunnel/mux/conn.go` 中 `ReadFrom` 循环里的原注释（“NEVER STORE THE POINTER TO HEADER, COPY THE HEADER INSTEAD”）。
+- **relay 不做半关闭**：`relayConnLoop` 是「任一方向结束就拆掉整个会话」，且 `tunnel.Conn` 没有 `CloseWrite`。所以任何 tunnel 自己先产生的 EOF 会立刻终止另一方向——细节与踩坑记录见 `tunnel/AGENTS.md`。
 - **`errors.Is`/`As` won't traverse `.Base()`.** Check messages or keep original error separately if you need it.
 - **Don't edit `api/service/api.pb.go` or `api_grpc.pb.go`** — regenerate via `api/service/gen.sh`.
 - **`SHADOWSOCKS_SF_CAPACITY="-1"` is required for tests** (disables shadowsocks stream capacity check in go-shadowsocks2). See `Makefile::test` and CI.
