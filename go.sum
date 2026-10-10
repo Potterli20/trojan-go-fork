@@ -4,8 +4,8 @@ github.com/HyNetworks/quic-go v0.63.1-0.20261004180939-a10df75c260c h1:spAvK8Tcu
 github.com/HyNetworks/quic-go v0.63.1-0.20261004180939-a10df75c260c/go.mod h1:J7UZVOMF2M1LiE3iiUZWPuy8YCPAcLJOwVURrfJCvc0=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261009220355-dfd95367d331 h1:4q4/NrBlmIuAM3QqHEjrGSOzvb19I5RYmnNtl45aXVE=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261009220355-dfd95367d331/go.mod h1:cmWbxmkh+Idfsq6Q9n7V36aa91JucBaXxwDMgfnWwUo=
-github.com/Potterli20/socks5-fork v0.0.0-20261009181351-5dc5f70d1367 h1:TD0eh9Uxm4pMpEjrct7d+9SxowSCrcwV2xtg/MuoNN0=
-github.com/Potterli20/socks5-fork v0.0.0-20261009181351-5dc5f70d1367/go.mod h1:UxsLOzC1cPWR6O7/P0MQ4mxxwq6mjrVT2x1FuSr1fAM=
+github.com/Potterli20/socks5-fork v0.0.0-20261010003907-34055c734acb h1:Jm3ax18Q36GNq1J5YU8FNksS8De6SOBUkGPoh7+I118=
+github.com/Potterli20/socks5-fork v0.0.0-20261010003907-34055c734acb/go.mod h1:cv7MNyFDJj3OEbRHX8TTdy3C68WzQe/hpzvhPeEwd+A=
 github.com/Potterli20/sqlite v0.0.0-20261009215650-2a1426639572 h1:GywTQrugiNE/yDljfVAXKjIxjvaAKpeYvPglbeumTEo=
 github.com/Potterli20/sqlite v0.0.0-20261009215650-2a1426639572/go.mod h1:ZquUa26JPAackCk+UY7H5+4i/H3ifoXC4RfrokDv0ko=
 github.com/cloudflare/circl v1.6.5 h1:O64F26HEqNhznd/hrC5KZXVKYuKM2rx4deZDTc4ihQA=
@@ -78,8 +78,8 @@ github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b h1:7bFUKsVEo0LmiYfbE
 github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20260908062103-8cdf7bf9c7f0 h1:rb+fKQFhz+5I2PPuQsNYxI5mUU840XWYtRF0ZBjvkws=
 github.com/xtls/reality v0.0.0-20260908062103-8cdf7bf9c7f0/go.mod h1:DsJblcWDGt76+FVqBVwbwRhxyyNJsGV48gJLch0OOWI=
-github.com/xtls/xray-core v1.260327.1-0.20261008092411-836a6fed385b h1:lw/KWJ6CCQUeZ5wT4/luP0IpCvC3tRg6BL9xX9tqxrE=
-github.com/xtls/xray-core v1.260327.1-0.20261008092411-836a6fed385b/go.mod h1:FAjlDAzHXXyki7R1BxruCHFx19B3i8TvQGEy+wsqZWU=
+github.com/xtls/xray-core v1.260327.1-0.20261010043621-cf8f11a8db92 h1:eileeXyOdeCzr/l8X/KL575pHKuFflMj8uPaeQXPo10=
+github.com/xtls/xray-core v1.260327.1-0.20261010043621-cf8f11a8db92/go.mod h1:UKxXrJD0V6aEg06aAlUkELvmEVkedymOIFWRb5X3ZbQ=
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055 h1:SpG238mmCez9TdHDu0Qba+ol57R+/pUxvJsDXT22Fug=
 github.com/zhigui-projects/gm-go v0.0.0-20200510034956-8e4ef670d055/go.mod h1:CiDImH0b0JKWrAXdXqw9cBrz31oDVUBWdthDYs7dpkI=
 go.uber.org/mock v0.5.2 h1:LbtPTcP8A5k9WPXj54PPPbjcI4Y6lhyOZXn+VS7wNko=
@@ -90,6 +90,8 @@ go4.org/netipx v0.0.0-20231129151722-fdeea329fbba h1:0b9z3AuHCjxk0x/opv64kcgZLBs
 go4.org/netipx v0.0.0-20231129151722-fdeea329fbba/go.mod h1:PLyyIXexvUFg3Owu6p/WfdlivPbZJsZdgWZlrGope/Y=
 golang.org/x/crypto v0.58.0 h1:COkYLr4k7nDI4r6QtMML2AfzeIswWHAJthLS6K/M/54=
 golang.org/x/crypto v0.58.0/go.mod h1:Xh+kl5A+M0gMiWDytH2Hhr5Z7WbNCpv/eB/EFgfSk+w=
+golang.org/x/crypto/x509roots/fallback v0.0.0-20261005185213-c3db4df58582 h1:wjDBrGbfLuifgrVLFEWUBJYAfh5Q1wkMc5t0FY0tCbs=
+golang.org/x/crypto/x509roots/fallback v0.0.0-20261005185213-c3db4df58582/go.mod h1:HPze8vhfG6fO06AM+VSvxRm4E3+5Yk375mgrJ5M2z1E=
 golang.org/x/exp v0.0.0-20260820142414-ca536658362e h1:01Ju2A/fZKkci4zqx0eZxw//DnRYOnBiGJG14hFBhO8=
 golang.org/x/exp v0.0.0-20260820142414-ca536658362e/go.mod h1:zeBbvyFKDaLwa7CH/zI8KXt7gTl14SF7sO08Pl5jBCM=
 golang.org/x/mod v0.41.0 h1:qJmnOUb4YB+FsEuM3HcWucdZASCPGhsX6uljO6pog0c=
