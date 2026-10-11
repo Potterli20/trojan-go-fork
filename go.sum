@@ -17,8 +17,8 @@ github.com/coder/websocket v1.8.15 h1:6B2JPeOGlpff2Uz6vOEH1Vzpi0iUz20A+lPVhPHtNU
 github.com/coder/websocket v1.8.15/go.mod h1:NX3SzP+inril6yawo5CQXx8+fk145lPDC6pumgx0mVg=
 github.com/database64128/netx-go v0.1.1 h1:dT5LG7Gs7zFZBthFBbzWE6K8wAHjSNAaK7wCYZT7NzM=
 github.com/database64128/netx-go v0.1.1/go.mod h1:LNlYVipaYkQArRFDNNJ02VkNV+My9A5XR/IGS7sIBQc=
-github.com/database64128/tfo-go/v2 v2.4.2-0.20261009155134-44440d555386 h1:j2WOf4XDPMBEAz04laQFEa2+rjjr+Rp9a7qCj2FN99E=
-github.com/database64128/tfo-go/v2 v2.4.2-0.20261009155134-44440d555386/go.mod h1:HPaLO89zsw0N8UHdscSr+ReLArAgt+Oc/AYC8rolC2k=
+github.com/database64128/tfo-go/v2 v2.4.2 h1:qpOgakBbvU0gqCZG4eL9q40OvKr/jAItkmkoTGU55fs=
+github.com/database64128/tfo-go/v2 v2.4.2/go.mod h1:HPaLO89zsw0N8UHdscSr+ReLArAgt+Oc/AYC8rolC2k=
 github.com/dustin/go-humanize v1.1.0 h1:dbKTrvD0klcbBV/h4AWJdMuZogJACoMlvWIWZ5b2xWg=
 github.com/dustin/go-humanize v1.1.0/go.mod h1:hc1CvRkJMsgxqjmjMQF3QNRAZBwY8AXBAzKYoSX9sFI=
 github.com/go-sql-driver/mysql v1.10.1 h1:arlSnNLq6a5yxGxV7qg9lF4j0C+KwD6NbQyKr9QL6ME=
