@@ -50,18 +50,18 @@ func TestEveryQuicConfigFieldIsConsumed(t *testing.T) {
 // structFields 取出某个 struct 的字段名列表（按声明顺序）。
 func structFields(source, typeName string) []string {
 	marker := "type " + typeName + " struct {"
-	i := strings.Index(source, marker)
-	if i < 0 {
+	_, after, ok := strings.Cut(source, marker)
+	if !ok {
 		return nil
 	}
-	body := source[i+len(marker):]
-	end := strings.Index(body, "\n}")
-	if end < 0 {
+	body := after
+	before0, _, ok0 := strings.Cut(body, "\n}")
+	if !ok0 {
 		return nil
 	}
 	lineRe := regexp.MustCompile(`^\t([A-Z]\w*)\s+\S+\s+` + "`")
 	var out []string
-	for _, line := range strings.Split(body[:end], "\n") {
+	for line := range strings.SplitSeq(before0, "\n") {
 		if m := lineRe.FindStringSubmatch(line); m != nil {
 			out = append(out, m[1])
 		}
