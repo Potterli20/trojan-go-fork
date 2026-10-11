@@ -113,6 +113,8 @@ func (u *blockingUnderlay) Close() error {
 // TestTunnelNewServerWithoutConfig 复现提交 73a7a822 引入的启动崩溃：HTTP 从未注册
 // config creator，config.FromContext 恒为 nil，裸类型断言在栈构建阶段 panic，
 // 使所有含 http 入站的 client 模式无法启动。
+// 现在 NewServer 已经不读 ctx 配置，这类崩溃在结构上不可能再发生；留着本用例是为了
+// 万一有人重新往里塞 config.FromContext(ctx, Name).(*Xxx) 的裸断言时能当场被测出来。
 func TestTunnelNewServerWithoutConfig(t *testing.T) {
 	underlay := &blockingUnderlay{done: make(chan struct{})}
 	srv, err := (&Tunnel{}).NewServer(context.Background(), underlay)
@@ -124,24 +126,5 @@ func TestTunnelNewServerWithoutConfig(t *testing.T) {
 	}
 	if err := srv.Close(); err != nil {
 		t.Fatalf("Close failed: %v", err)
-	}
-}
-
-// TestTunnelNewServerReadsConfig 保证注入了配置时确实被读取，而不是恒取默认值
-func TestTunnelNewServerReadsConfig(t *testing.T) {
-	underlay := &blockingUnderlay{done: make(chan struct{})}
-	ctx := config.WithConfig(context.Background(), Name, &HTTP2Config{Enabled: true})
-	srv, err := (&Tunnel{}).NewServer(ctx, underlay)
-	if err != nil {
-		t.Fatalf("NewServer failed: %v", err)
-	}
-	defer srv.Close() //gosec:disable -- 错误忽略：测试清理路径
-
-	s, ok := srv.(*Server)
-	if !ok {
-		t.Fatalf("NewServer returned %T, want *Server", srv)
-	}
-	if s.http2 == nil || !s.http2.Enabled {
-		t.Error("the HTTP2Config put into ctx was not read by NewServer")
 	}
 }

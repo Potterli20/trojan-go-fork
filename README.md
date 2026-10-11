@@ -230,7 +230,8 @@ Trojan-Go Fork 支持 TLS + WebSocket 承载 Trojan 协议，可利用 CDN 进�
   SHADOWSOCKS/QUIC/adapter/socks/dokodemo/freedom/trojan/transport/tproxy/api/统计后端等），
   因此配置里的 `http2` 段根本不会被解析；
 - 全仓没有导入 `golang.org/x/net/http2`，没有任何 HTTP/2 分帧、HPACK 或推送实现；
-- `tunnel/http` 里剩下的只有 `HTTP2Config` 这层脚手架，`Server` 存下它就再没读过。
+- `tunnel/http` 里原先还剩一层 `HTTP2Config`/`NewServerWithHTTP2` 脚手架，`Server` 把
+  它存进字段后再没有任何代码读过——形同"配了也没用"，已随本节一并删除。
 
 `ssl` 段的 `alpn` 列表倒是真的会透传给 `crypto/tls`，但**不要**把它设成 `["h2"]`：
 本实现没有 h2 帧处理，协商成功也只会把流量送进一个没人解析的分支。
@@ -240,8 +241,8 @@ Trojan-Go Fork 支持 TLS + WebSocket 承载 Trojan 协议，可利用 CDN 进�
 - [多路复用](#多路复用)：`mux`，在一条 TCP/TLS 连接上跑多个流；
 - [HTTP/3 QUIC 隧道](#http3-quic 隧道)：QUIC 原生多流，且 `quic` 配置确实已注册、会生效。
 
-> 若将来真要上 HTTP/2 承载，需要连着 `tunnel/http` 的 `HTTP2Config`/`NewServerWithHTTP2`
-> 脚手架一起实现，并给 HTTP 模块注册 config creator——否则配置项依旧是一句空话。
+> 将来若要真正实现 HTTP/2 承载，除了写分帧与 HPACK，还要给 HTTP 模块注册 config
+> creator，否则新配置项依旧是一句空话——这正是本节曾经出错的地方。
 
 ### HTTP/3 QUIC 隧道
 

@@ -85,7 +85,6 @@ type Server struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	wg       sync.WaitGroup
-	http2    *HTTP2Config
 }
 
 func (s *Server) acceptLoop() {
@@ -270,23 +269,19 @@ func (s *Server) Close() error {
 	return err
 }
 
-// NewServerWithHTTP2 创建支持 HTTP/2 的 HTTP 服务器
-func NewServerWithHTTP2(ctx context.Context, underlay tunnel.Server, http2Conf *HTTP2Config) (*Server, error) {
+// NewServer 创建 HTTP 入站服务器。
+// 这里刻意不读 ctx 里的模块配置：HTTP 从未注册 config creator，FromContext 恒为 nil，
+// 曾经对它做裸类型断言会让所有含 http 入站的 client 模式在建栈阶段直接 panic。
+func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	server := &Server{
 		underlay: underlay,
 		connChan: make(chan tunnel.Conn, 32),
 		ctx:      ctx,
 		cancel:   cancel,
-		http2:    http2Conf,
 	}
 	server.wg.Go(func() {
 		server.acceptLoop()
 	})
 	return server, nil
-}
-
-// NewServer 兼容接口，默认不使用 HTTP/2
-func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
-	return NewServerWithHTTP2(ctx, underlay, &HTTP2Config{Enabled: false})
 }
