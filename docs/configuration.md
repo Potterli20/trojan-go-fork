@@ -55,13 +55,12 @@ Trojan-Go-Fork 支持 JSON 和 YAML 两种配置文件格式。配置文件通�
 | `verify` | bool | 是否验证服务端证书 | true |
 | `verify_hostname` | bool | 是否验证主机名 | true |
 | `cipher` | string | 加密套件（留空使用默认） | - |
-| `prefer_server_cipher` | bool | 优先使用服务端加密套件 | true |
-| `reuse_session` | bool | 复用 TLS 会话 | true |
+| `reuse_session` | bool | 复用 TLS 会话（映射到 `SessionTicketsDisabled` 取反） | false |
 | `alpn` | []string | ALPN 协议列表 | ["http/1.1"] |
-| `curves` | string | 曲线配置 | - |
+| `curve_preferences` | []string | 密钥交换偏好（如 `X25519MLKEM768`、`X25519`）；留空用 Go 默认 | - |
 | `fingerprint` | string | TLS 指纹（客户端常用 `chrome`） | - |
 | `key_log` | string | TLS 密钥日志文件路径（用于调试） | - |
-| `cert_check_rate` | int | 证书检查频率（秒） | 60 |
+| `cert_check_rate` | int | 服务端定期重检证书的间隔（秒）；**0 表示不做定时重检** | 0 |
 | `plain_http_response` | string | HTTP 响应文件（用于回落） | - |
 | `fallback_addr` | string | 回落地址 | - |
 | `fallback_port` | int | 回落端口 | 0 |
@@ -124,32 +123,57 @@ Trojan-Go-Fork 支持 JSON 和 YAML 两种配置文件格式。配置文件通�
 
 ## QUIC 配置 (quic)
 
+**可达性**：QUIC 隧道只在 `run_type: custom` 下生效——`client` / `server` / `forward` / `nat`
+的栈是硬编码的，不含 `QUIC` 层，光写 `quic` 段不会让隧道跑起来。并且 QUIC 节点的 `config`
+块里必须自带 `ssl`（证书/SNI），因为每个节点只能看到自己的 ctx。
+
 | 字段 | 类型 | 说明 | 默认值 |
 |------|------|------|--------|
-| `enabled` | bool | 是否启用 QUIC | false |
-| `max_idle_timeout` | int | 最大空闲超时（秒） | 30 |
-| `max_incoming_streams` | int | 最大入站流数 | 100 |
-| `initial_stream_window` | int | 初始流窗口大小 | 65535 |
-| `initial_conn_window` | int | 初始连接窗口大小 | 65535 |
-| `alpn` | string | ALPN 协议 | "hq-29" |
-| `insecure` | bool | 是否跳过证书验证 | false |
-| `congestion` | string | 拥塞控制算法（`bbr`、`cubic`） | "bbr" |
-| `brutal_up` | int | 上行带宽限制（字节） | 0 |
-| `brutal_down` | int | 下行带宽限制（字节） | 0 |
+| `max_idle_timeout` | int | 最大空闲超时（秒），保活周期取其一半 | 30 |
+| `max_incoming_streams` | int | 最大并发流数 | 100 |
+| `initial_stream_window` | int | 初始流窗口；0 = 交给 quic-go 库内默认（512KB） | 0 |
+| `initial_conn_window` | int | 初始连接窗口；同上 | 0 |
+| `alpn` | string | ALPN 标识（留空回落到 `hq-29`） | "hq-29" |
+| `insecure` | bool | 是否跳过证书验证（仅测试） | false |
+| `congestion` | string | 拥塞控制算法：`bbr`、`brutal`、`force-brutal`、`reno`；其它值告警并回退 BBR | "bbr" |
+| `brutal_up` | uint64 | 上行速率，单位 **bps** | 0 |
+| `brutal_down` | uint64 | 下行速率，单位 **bps** | 0 |
+
+> **没有 `enabled` 这个键**（2026-10-11 删除：它带 `false` 默认值却全仓无人读，会让人误以为隧道默认关闭）。
+> 另注：`brutal` 需要 `brutal_up` 和 `brutal_down` 同时 > 0（取二者较小值），`force-brutal` 只需要 `brutal_up`。
 
 ### 示例
 
-```json
-{
-    "quic": {
-        "enabled": false,
-        "max_idle_timeout": 30,
-        "max_incoming_streams": 100,
-        "alpn": "hq-29",
-        "congestion": "bbr"
-    }
-}
+`custom` 模式下的一个 outbound 节点：
+
+```yaml
+run-type: custom
+outbound:
+  node:
+    - protocol: quic
+      tag: quic
+      config:
+        remote-addr: 127.0.0.1      # 客户端语义：对端地址
+        remote-port: 17443
+        quic:
+          alpn: hq-29
+          max-idle-timeout: 30
+          max-incoming-streams: 100
+          congestion: bbr
+        ssl:
+          sni: localhost
+          verify: false
+    - protocol: trojan
+      tag: trojan
+      config:
+        password: ["your_password"]
+  path:
+    - - quic
+      - tls
+      - trojan
 ```
+
+服务端把 `remote-addr` / `remote-port` 当**监听地址**用（`net.ListenUDP(cfg.RemoteHost, cfg.RemotePort)`），并把 `ssl` 换成带 `cert` / `key` 的一组。
 
 ---
 
@@ -314,12 +338,11 @@ Trojan-Go-Fork 支持 JSON 和 YAML 两种配置文件格式。配置文件通�
         "verify": true,
         "verify_hostname": true,
         "cipher": "",
-        "prefer_server_cipher": true,
         "reuse_session": true,
         "alpn": [
             "http/1.1"
         ],
-        "curves": "",
+        "curve_preferences": [],
         "fingerprint": "chrome",
         "key_log": "",
         "cert_check_rate": 60,
@@ -340,11 +363,10 @@ Trojan-Go-Fork 支持 JSON 和 YAML 两种配置文件格式。配置文件通�
         }
     },
     "quic": {
-        "enabled": false,
         "max_idle_timeout": 30,
         "max_incoming_streams": 100,
-        "initial_stream_window": 65535,
-        "initial_conn_window": 65535,
+        "initial_stream_window": 0,
+        "initial_conn_window": 0,
         "alpn": "hq-29",
         "insecure": false,
         "congestion": "bbr",
@@ -412,12 +434,11 @@ Trojan-Go-Fork 支持 JSON 和 YAML 两种配置文件格式。配置文件通�
         "verify": false,
         "verify_hostname": true,
         "cipher": "",
-        "prefer_server_cipher": true,
         "reuse_session": true,
         "alpn": [
             "http/1.1"
         ],
-        "curves": "",
+        "curve_preferences": [],
         "fingerprint": "",
         "key_log": "",
         "cert_check_rate": 60,
@@ -435,11 +456,10 @@ Trojan-Go-Fork 支持 JSON 和 YAML 两种配置文件格式。配置文件通�
         "headers": {}
     },
     "quic": {
-        "enabled": false,
         "max_idle_timeout": 30,
         "max_incoming_streams": 100,
-        "initial_stream_window": 65535,
-        "initial_conn_window": 65535,
+        "initial_stream_window": 0,
+        "initial_conn_window": 0,
         "alpn": "hq-29",
         "insecure": false,
         "congestion": "bbr",

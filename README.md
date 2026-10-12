@@ -133,6 +133,8 @@ sudo ./trojan-go-fork -server -remote 127.0.0.1:80 -local 0.0.0.0:443 \
 ./trojan-go-fork -config config.json
 ```
 
+JSON / YAML 皆可，逐字段说明见 [配置说明](docs/configuration.md)。
+
 ### 3. URL 模式（客户端）
 
 ```shell
@@ -245,7 +247,8 @@ Trojan-Go Fork 支持 TLS + WebSocket 承载 Trojan 协议，可利用 CDN 进�
 承载层的队头阻塞仍然要靠这两节解决（h2c 只解决本地代理入口那一跳的并发）：
 
 - [多路复用](#多路复用)：`mux`，在一条 TCP/TLS 连接上跑多个流；
-- [HTTP/3 QUIC 隧道](#http3-quic-隧道)：QUIC 原生多流，且 `quic` 配置确实已注册、会生效。
+- [HTTP/3 QUIC 隧道](#http3-quic-隧道)：QUIC 原生多流。`quic` 配置已注册、字段也确实被读取
+  （不像上面那个 `http2` 段），但要注意它只在 `custom` 运行类型下进栈。
 
 > 将来若要给**承载层**加 HTTP/2，得先给那个模块注册 config creator，否则新配置项
 > 依旧是一句空话 —— 这正是本节曾经出错的地方。
@@ -284,39 +287,67 @@ X-Real-IP: <客户端地址>
 
 ### HTTP/3 QUIC 隧道
 
-Trojan-Go Fork 支持基于 QUIC 协议的 HTTP/3 隧道，提供卓越的弱网性能和连接速度。
+Trojan-Go Fork 实现了 QUIC 隧道（`tunnel/quic`，基于 quic-go），用 UDP 承载替代 TCP+TLS。
 
-启用 QUIC 隧道：
+**可达性**：QUIC 目前只在 `custom` 运行类型下可用。`client` / `server` / `forward` / `nat`
+的栈是硬编码的，里面没有 `QUIC` 这一层（`proxy/client/client.go:GenerateClientTree`、
+`proxy/server/server.go`），所以只写一个 `"quic": {...}` 段**不会**让隧道生效——必须把
+`quic` 作为节点放进 `inbound` / `outbound` 的 `path`。
 
-```json
-"quic": {
-    "enabled": true,
-    "max_idle_timeout": 30,
-    "max_incoming_streams": 100,
-    "initial_stream_window": 65535,
-    "initial_conn_window": 65535,
-    "alpn": "hq-29",
-    "congestion": "bbr"
-}
+```yaml
+run-type: custom
+outbound:
+  node:
+    - protocol: quic
+      tag: quic
+      config:
+        remote-addr: 127.0.0.1
+        remote-port: 17443
+        quic:
+          alpn: hq-29
+          max-idle-timeout: 30
+          congestion: bbr
+        ssl:            # 证书/SNI 必须写在 quic 节点自己的块里，写在下游 tls 节点看不到
+          sni: localhost
+          verify: false
+    - protocol: trojan
+      tag: trojan
+      config:
+        password: ["your_password"]
+  path:
+    - - quic
+      - tls
+      - trojan
 ```
 
-QUIC 隧道优势：
-- **零 RTT 连接恢复**：已建立连接的客户端可立即发送数据
-- **改进的拥塞控制**：支持 BBR、CUBIC 等算法
-- **弱网优化**：在高延迟、高丢包环境下表现优异
-- **内置加密**：TLS 1.3 深度集成，所有流量默认加密
+服务端把 `remote-addr` / `remote-port` 当作**监听地址**（反直觉，但源码如此：
+`net.ListenUDP(cfg.RemoteHost, cfg.RemotePort)`），并把 `ssl` 换成带 `cert` / `key` 的一组。
 
-高级配置选项：
-```json
-"quic": {
-    "enabled": true,
-    "brutal_up": 10,      // 上行限速 (Mbps)
-    "brutal_down": 50,    // 下行限速 (Mbps)
-    "insecure": false     // 是否跳过证书验证
-}
-```
+QUIC 传输层自己会校验证书，`ssl.verify: false` 管不到它——要跳过就得设 `quic.insecure: true`
+（仅限本地自签测试；生产用 CA 证书并保持 `insecure: false`）。
 
-> **注意**：QUIC 基于 UDP 协议，某些网络环境可能限制 UDP 流量。Brutal 加速仅在 `cubic` 拥塞控制下有效，BBR 自带速率控制。
+> **两层校验是独立的**（实测）：`custom` 栈里 `quic` 节点和它下层的 `tls` 节点各自验一次证书。
+> 用自签证书本地跑通，需要**同时**放开 `quic.insecure: true` 与两处 `ssl.verify: false`——
+> 只放开 QUIC 那一层，内层 TLS 仍会报 `x509: certificate signed by unknown authority`。
+
+`quic` 段字段（见 `tunnel/quic/config.go`）：
+
+| 字段 | 类型 | 默认 | 说明 |
+|------|------|------|------|
+| `max_idle_timeout` | int | 30 | 空闲超时（秒）；保活周期取其一半 |
+| `max_incoming_streams` | int | 100 | 最大并发流数 |
+| `initial_stream_window` | int | 0 | 0 = 交给 quic-go 库内默认（512KB） |
+| `initial_conn_window` | int | 0 | 同上 |
+| `alpn` | string | `hq-29` | ALPN 标识，留空回落到 `hq-29` |
+| `insecure` | bool | false | 跳过证书校验（仅测试环境） |
+| `congestion` | string | `bbr` | `bbr` / `brutal` / `force-brutal` / `reno`，其它值告警并回退 BBR |
+| `brutal_up` / `brutal_down` | uint64 | 0 | 单位 **bps**。`brutal` 需要两者都给（取较小值），`force-brutal` 只需 `brutal_up` |
+
+> **`quic.enabled` 这个键不存在**（2026-10-11 删除：它带 `false` 默认值却全仓无人读，会让人误以为隧道默认关闭）。
+
+特性边界：QUIC DATAGRAM 扩展已启用，但 trojan 的 UDP 走专用 stream，因此数据报路径只有
+在 `custom` 里直接配对 PacketConn 时才会用到；**0-RTT 连接恢复未启用**（代码里没有 `Allow0RTT`）。
+QUIC 基于 UDP，某些网络环境可能限制 UDP 流量。
 
 详细配置指南请参考 [QUIC 使用文档](docs/quic_usage.md)。
 
@@ -442,63 +473,101 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
 
 ### Cloudflare HTTP/3 配置
 
-针对 Cloudflare CDN 优化的 QUIC 配置，提供最佳性能：
+> **先读这条**：下面两份配置是 `custom` 模式，不是 `client` / `server`。QUIC 只在 `custom` 下可达
+> （内置运行类型的栈里没有 QUIC 层），`quic.enabled` 这个键也不存在。能在这里核实的是
+> trojan-go ↔ trojan-go 的 QUIC 隧道；至于公网 QUIC 能否抵达你的服务端，取决于 UDP 直通 /
+> Spectrum 的 UDP 转发，那不属于本仓库的代码。
 
-**客户端配置 (`client.yaml`)**：
-
-```yaml
-run-type: client
-local-addr: 127.0.0.1
-local-port: 10808
-remote-addr: your-domain.com
-remote-port: 443
-
-quic:
-  enabled: true
-  max-idle-timeout: 30
-  max-incoming-streams: 100
-  initial-stream-window: 65535
-  initial-conn-window: 65535
-  alpn: hq-29
-  congestion: bbr
-  insecure: false
-
-ssl:
-  verify-hostname: true
-  sni: your-domain.com
-  key: /path/to/key.pem
-  cert: /path/to/cert.pem
-
-password:
-  - your-strong-password
-```
-
-**服务端配置 (`server.yaml`)**：
+**客户端配置 (`cloudflare_quic_client.yaml`)**：
 
 ```yaml
-run-type: server
-local-addr: 0.0.0.0
-local-port: 443
-password:
-  - your-strong-password
+run-type: custom
 
-quic:
-  enabled: true
-  max-idle-timeout: 30
-  max-incoming-streams: 100
-  initial-stream-window: 65535
-  initial-conn-window: 65535
-  alpn: hq-29
-  congestion: bbr
+inbound:
+  node:
+    - protocol: adapter
+      tag: adapter
+      config: {local-addr: 127.0.0.1, local-port: 10808}
+    - protocol: socks
+      tag: socks
+      config: {local-addr: 127.0.0.1, local-port: 10808}
+  path: [[adapter, socks]]
 
-ssl:
-  verify-hostname: false
-  key: /path/to/server.key
-  cert: /path/to/server.crt
-  sni: your-domain.com
+outbound:
+  node:
+    - protocol: quic
+      tag: quic
+      config:
+        remote-addr: your-domain.com
+        remote-port: 443
+        quic:
+          alpn: hq-29
+          max-idle-timeout: 30
+          max-incoming-streams: 100
+          initial-stream-window: 0     # 0 = quic-go 库内默认（512KB）
+          initial-conn-window: 0
+          congestion: bbr
+          insecure: false              # 自签测试证书需改成 true
+        ssl:
+          sni: your-domain.com
+          verify: true
+    - protocol: tls
+      tag: tls
+      config:
+        ssl: {sni: your-domain.com, verify: true}
+    - protocol: trojan
+      tag: trojan
+      config:
+        password: [your-strong-password]
+  path: [[quic, tls, trojan]]
 ```
 
-详细配置请参考 `config/cloudflare_quic_client.yaml` 和 `config/cloudflare_quic_server.yaml`。
+**服务端配置 (`cloudflare_quic_server.yaml`)**：
+
+```yaml
+run-type: custom
+
+inbound:
+  node:
+    - protocol: quic
+      tag: quic
+      config:
+        remote-addr: 0.0.0.0           # 这里语义是监听地址
+        remote-port: 443
+        quic:
+          alpn: hq-29
+          max-idle-timeout: 30
+          max-incoming-streams: 100
+          congestion: bbr
+        ssl:                           # 证书必须写在 quic 节点里
+          cert: /path/to/cert.pem
+          key: /path/to/key.pem
+          cert-check-rate: 1
+    - protocol: tls
+      tag: tls
+      config:
+        ssl:
+          cert: /path/to/cert.pem
+          key: /path/to/key.pem
+          cert-check-rate: 1
+    - protocol: trojan
+      tag: trojan
+      config:
+        remote-addr: 127.0.0.1         # 诱饵/回落地址，需先于本进程启动
+        remote-port: 80
+        password: [your-strong-password]
+  path: [[quic, tls, trojan]]
+
+outbound:
+  node:
+    - protocol: freedom
+      tag: freedom
+      config: {}
+  path: [[freedom]]
+```
+
+完整可拷贝的版本在 `config/cloudflare_quic_client.yaml` 和 `config/cloudflare_quic_server.yaml`；
+TCP 降级（真的用 `run-type: client`）见 `config/cloudflare_tcp_fallback.yaml`。
 
 ### CDN 中转配置
 
@@ -681,29 +750,43 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags "full"
 
 **症状**：QUIC 隧道无法建立
 
-**解决方案**：
+**解决方案**（按命中概率排序）：
 
-1. **确认 UDP 443 端口可用**：
-   ```bash
-   nc -uvz your-domain.com 443
-   ```
+1. **先确认 QUIC 真的在栈里**——这是最常见的原因：`run-type: client` / `server` 的栈是硬编码的，
+   不含 QUIC 层，只加一个 `quic:` 段不会启用它，必须用 `custom` 把 `quic` 写成节点。
+   判据：日志里应有 `QUIC server listening on <addr>`（服务端）或
+   `Dialing to <addr> with congestion=<算法>`（客户端）。一条都没有就说明栈里根本没有 QUIC。
 
-2. **切换拥塞控制算法**：
+2. **证书校验失败**（实测两类报错）：
+   - `x509: certificate signed by unknown authority` → 自签证书 + `insecure: false`
+   - `x509: certificate has expired or is not yet valid` → 证书过期
+   注意 `quic` 节点和内层 `tls` 节点**各校验一次**，自签测试要同时放开 `quic.insecure: true`
+   和两处 `ssl.verify: false`。
+
+3. **ALPN 不匹配**：两端必须填同一个值（默认 `hq-29`）。实测症状是**快速失败**：
+   `QUIC failed to dial | CRYPTO_ERROR 0x178 (remote): tls: no application protocol`
+
+4. **UDP 路径不通 / 对端没监听**：症状完全不同——是**等满超时**后报
+   `QUIC failed to dial | timeout: no recent network activity`。
+   所以"秒失败"看 ALPN/证书，"卡住才失败"看 UDP 通路。
+   另注意：`nc -uvz` 对 UDP 是"发个包就算成功"，测不出真实可达性；
+   `openssl s_client` 是 TCP 的，打到只做 `ListenUDP` 的 quic 端口必然 `Connection refused`
+   （errno=111），那不代表 QUIC 有问题。可靠判据只有日志：
+   - 服务端出现 `QUIC server listening on <addr>` = 监听成功
+   - 客户端出现 `Connection established to <addr>` = 隧道建成
+   中间盒丢 UDP 时，换端口或走 TCP 降级（`config/cloudflare_tcp_fallback.yaml`）。
+
+5. **换拥塞算法**（只有这四个，写别的会告警并回退 BBR）：
    ```yaml
    quic:
-     congestion: cubic  # 从 bbr 切换到 cubic
+     congestion: reno   # bbr / brutal / force-brutal / reno
    ```
 
-3. **禁用 Brutal 加速**（BBR 自带速率控制）：
+6. **Brutal 只在显式选中时才参与限速**，`bbr` / `reno` 下 `brutal-up/down` 不会被读取：
    ```yaml
    quic:
-     brutal-up: 0
+     brutal-up: 0     # 单位是 bps
      brutal-down: 0
-   ```
-
-4. **检查 ALPN 协商**：
-   ```bash
-   openssl s_client -connect your-domain.com:443 -alpn hq-29
    ```
 
 ### WebSocket 访问无效
@@ -746,6 +829,8 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags "full"
      initial-stream-window: 262144   # 256KB
      initial-conn-window: 262144
    ```
+   注意这几项要写在 **quic 节点自己的 `config` 块**里（和 `remote-addr` 同级），
+   custom 模式下顶层的 `quic:` 不会传到隧道节点上。
 
 3. **启用多路复用**（高并发场景）：
    ```json
@@ -766,9 +851,13 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags "full"
 
 **症状**：服务停止需要数秒才能完全退出
 
-**说明**：这是预期行为，每个环节受 5 秒超时兜底
+**说明**：正常情况**不该**这样。空闲连接下 SIGTERM 停机是毫秒级的（本轮 QUIC 端到端实测：
+客户端与服务端各 0.002s 退出）。`proxy/proxy.go` 的 `shutdownTimeout`（5s）只是**单个环节的上限**，
+用来兜住"对端半开、中继卡死"的情况——真等到 5s 说明有连接没退干净，而不是设计如此。
 
-**优化**：减少空闲连接数量，或使用 QUIC 的零 RTT 特性
+**排查**：把 `log-level` 设为 `0`，看关闭阶段打出的是哪个受限环节
+（`wait for relay loops to finish` / `close tunnels`，见 `proxy/proxy.go:198,205`），
+再顺着那条连接找对端状态。
 
 ---
 
