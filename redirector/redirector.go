@@ -1,10 +1,12 @@
 package redirector
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"io"
 	"net"
+	"net/http"
 	"reflect"
 	"strings"
 	"sync"
@@ -12,6 +14,7 @@ import (
 	"time"
 
 	"github.com/Potterli20/trojan-go-fork/common"
+	"github.com/Potterli20/trojan-go-fork/config"
 	"github.com/Potterli20/trojan-go-fork/log"
 )
 
@@ -145,7 +148,9 @@ type Redirection struct {
 	Dial
 	RedirectTo  net.Addr
 	InboundConn net.Conn
-	ClientIP    string
+	// ClientIP 是调用侧显式指定的客户端地址；留空则由 redirector 取 TCP 对端地址。
+	// 无论哪种来源，只有配置里 redirect-client-ip 打开时才会写进请求头。
+	ClientIP string
 }
 
 type Redirector struct {
@@ -153,6 +158,7 @@ type Redirector struct {
 	cancel          context.CancelFunc
 	wg              sync.WaitGroup
 	redirectionChan chan *Redirection
+	injectClientIP  bool
 }
 
 func (r *Redirector) Redirect(redirection *Redirection) {
@@ -164,35 +170,51 @@ func (r *Redirector) Redirect(redirection *Redirection) {
 	}
 }
 
-func injectForwardedHeader(inbound net.Conn, outbound net.Conn, clientIP string) error {
+func injectForwardedHeader(inbound net.Conn, outbound net.Conn, clientIP string) (bool, error) {
 	var headerBuf bytes.Buffer
 	buf := make([]byte, 4096)
 
+	// flushAsIs 把已经读到的字节原样交出去，然后由上层接着按普通中继走。
+	// 「不是可注入的 HTTP 请求」不是故障：诱饵的意义就是让探测者继续把连接当成
+	// 真服务，所以这里绝不能因为"读不出头部块"就关掉连接（旧实现是关的）。
+	// 只有写出错才代表对端已经断了，返回给调用方去收尾。
+	flushAsIs := func() (bool, error) {
+		if headerBuf.Len() == 0 {
+			return false, nil
+		}
+		if _, err := outbound.Write(headerBuf.Bytes()); err != nil {
+			return false, common.NewError("failed to pass through the unparsed head bytes").Base(err)
+		}
+		return false, nil
+	}
+
 	for {
 		n, err := inbound.Read(buf)
-		if err != nil {
-			if n > 0 {
-				headerBuf.Write(buf[:n])
-			}
-			if headerBuf.Len() > 0 {
-				outbound.Write(headerBuf.Bytes()) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-			}
-			return err
+		if n > 0 {
+			headerBuf.Write(buf[:n])
 		}
-		headerBuf.Write(buf[:n])
-
+		if err != nil {
+			return flushAsIs()
+		}
 		if bytes.Contains(headerBuf.Bytes(), []byte("\r\n\r\n")) {
 			break
 		}
-
 		if headerBuf.Len() > 65536 {
-			outbound.Write(headerBuf.Bytes()) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-			return common.NewError("headers too large")
+			return flushAsIs()
 		}
 	}
 
 	headerBytes := headerBuf.Bytes()
 	before, after, _ := bytes.Cut(headerBytes, []byte("\r\n\r\n"))
+
+	if !isHTTPRequestHead(before) {
+		// 读到了 CRLFCRLF，但那一块不是合法请求行 + 请求头（裸 TCP 探测、
+		// 其他协议的握手都长这样）：原样中继，不加任何头
+		if _, err := outbound.Write(headerBytes); err != nil {
+			return false, common.NewError("failed to pass through the non-http head").Base(err)
+		}
+		return false, nil
+	}
 
 	headers := before
 	remaining := after
@@ -222,8 +244,22 @@ func injectForwardedHeader(inbound net.Conn, outbound net.Conn, clientIP string)
 	out.WriteString("\r\n")
 	out.Write(remaining)
 
-	_, err := outbound.Write(out.Bytes())
-	return err
+	if _, err := outbound.Write(out.Bytes()); err != nil {
+		return true, common.NewError("failed to write the injected request").Base(err)
+	}
+	return true, nil
+}
+
+// isHTTPRequestHead 用 stdlib 的请求行/头部解析来判定"这段字节是一个 HTTP 请求的
+// 头部块"，而不是自己拆空格：非 HTTP 的载荷一旦被塞进 XFF 行，那个协议自己的字节
+// 就被改坏了。这里只做判定，注入仍然按原始行拼接，保住字节顺序与大小写。
+func isHTTPRequestHead(headerBlock []byte) bool {
+	withTerminator := append(append([]byte{}, headerBlock...), []byte("\r\n\r\n")...)
+	req, err := http.ReadRequest(bufio.NewReader(bytes.NewReader(withTerminator)))
+	if err != nil {
+		return false
+	}
+	return req.Method != "" && req.ProtoAtLeast(1, 0)
 }
 
 func (r *Redirector) worker() {
@@ -253,15 +289,29 @@ func (r *Redirector) worker() {
 					return
 				}
 				defer outboundConn.Close()
-				if redirection.ClientIP != "" {
+				clientIP := ""
+				if r.injectClientIP {
+					// 开关只决定"注入与否"，不改变 Redirection.ClientIP 的语义：
+					// 调用侧显式给了 IP 就用它，否则取 TCP 对端地址。
+					clientIP = redirection.ClientIP
+					if clientIP == "" {
+						clientIP = hostOnly(redirection.InboundConn.RemoteAddr())
+					}
+				}
+				if clientIP != "" {
 					// 注入阶段同样要对静默对端限时：这里阻塞在 inbound.Read 上，
 					// 而上游交出连接前已把认证阶段的读截止时间清掉了
 					at := time.Now().Add(redirectionIdleTimeout)
 					_ = redirection.InboundConn.SetReadDeadline(at) //gosec:disable -- 错误忽略：失败时由 superviseCopies 的硬上限兜底
 					_ = outboundConn.SetWriteDeadline(at)           //gosec:disable -- 错误忽略：同上
-					if err := injectForwardedHeader(redirection.InboundConn, outboundConn, redirection.ClientIP); err != nil {
+					injected, err := injectForwardedHeader(redirection.InboundConn, outboundConn, clientIP)
+					if err != nil {
 						log.Debug("failed to inject X-Forwarded-For header, closing connection:", err)
 						return
+					}
+					if !injected {
+						// 载荷不是一个可注入的 HTTP 请求：字节已原样交给诱饵，继续中继
+						log.Debug("the redirected payload is not an http request; relayed as is")
 					}
 					_ = redirection.InboundConn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：解除限时
 					_ = outboundConn.SetWriteDeadline(time.Time{})           //gosec:disable -- 错误忽略：解除限时
@@ -306,11 +356,45 @@ func NewRedirector(ctx context.Context) *Redirector {
 		ctx:             ctx,
 		cancel:          cancel,
 		redirectionChan: make(chan *Redirection, 64),
+		injectClientIP:  injectClientIPIsEnabled(ctx),
 	}
 	r.wg.Go(func() {
 		r.worker()
 	})
 	return r
+}
+
+// injectClientIPIsEnabled 默认关。两件事只有打开以后才发生：客户端地址被写进
+// 发给诱饵服务器的请求头，以及注入阶段会先吃掉头部块再放行。配置文件里没有
+// REDIRECTION 段 / 走的是不解析配置的入口时，FromContext 为 nil —— 同样是不开。
+func injectClientIPIsEnabled(ctx context.Context) bool {
+	c := config.FromContext(ctx, Name)
+	if c == nil {
+		return false
+	}
+	cfg, ok := c.(*Config)
+	if !ok {
+		return false
+	}
+	return cfg.RedirectClientIP
+}
+
+// hostOnly 从地址里取主机部分作为客户端 IP。取不到地址就返回空串（不注入），
+// 而不是把带端口的整串塞进 XFF —— 那是个非法的 header 值。
+//
+// 这里拿到的是 TCP 对端地址：如果 trojan-go 挂在 CDN/前置代理后面，它就是那台
+// 代理的地址，不是最终用户的地址。trojan 自己的 GetRealIP 会去读请求头里的
+// CF-Connecting-IP / X-Forwarded-For（受 trust-headers 控制），但走到重定向这一支
+// 时认证已经失败、那个 IP 还没解析出来，所以只能给对端地址。
+func hostOnly(addr net.Addr) string {
+	if addr == nil {
+		return ""
+	}
+	host, _, err := net.SplitHostPort(addr.String())
+	if err != nil {
+		return addr.String()
+	}
+	return host
 }
 
 func (r *Redirector) Close() error {
