@@ -110,6 +110,16 @@ func (s *Server) acceptLoop() {
 			reqBufReader := bufio.NewReader(boundedReader)
 			// 等待首个请求限时:对端静默 (如端口扫描) 时不让 handler 永久阻塞
 			conn.SetReadDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			// 先分一次流：一条连接只会是 h1 或 h2c 之一，所以嗅到 HTTP/2 前文就整条
+			// 交给 serveH2Conn（内部按流并发），不再走下面的 h1 循环。
+			// 放在头部预算之前是有原因的：这一支根本不做 h1 头部解析，夹在
+			// Limit/Unlimited 中间会让"每个 ReadRequest 调用点成对使用预算"这条
+			// 不变量失去意义（TestEveryReadRequestSiteIsBounded 就是抓这个的）。
+			// 嗅探本身最多只触发一次 bufio 填充（4KiB），不是无界读取。
+			if head, perr := reqBufReader.Peek(h2PrefaceProbe); perr == nil && string(head) == "PRI *" {
+				s.serveH2Conn(conn, reqBufReader)
+				return
+			}
 			boundedReader.Limit(maxRequestHeadBytes)
 			req, err := http.ReadRequest(reqBufReader)
 			boundedReader.Unlimited()
