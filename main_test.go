@@ -143,21 +143,29 @@ func TestEveryHandlerSaysNotSetWhenItsFlagsAreAbsent(t *testing.T) {
 	for _, name := range names {
 		h, ok := option.GetHandler(name)
 		if !ok {
-			continue // 由 build tag 决定哪些 handler 存在
+			continue // 存在哪几个 handler 由 build tag 决定
 		}
 		found++
 		if name == "PROXY" {
-			continue
+			continue // 见上面的排除说明
 		}
 		if err := h.Handle(); !option.IsNotSet(err) {
 			t.Errorf("handler %s 在参数缺省时没有返回 NotSet()，实际：%v", name, err)
 		}
 	}
+	if found == 0 {
+		t.Fatal("注册表里一个已知的 handler 都没有——要么注册坏了，要么这份构建不含任何入口")
+	}
+	// 这条与 build tag 无关，任何构建下都必须成立：注册表里有我清单之外的 handler，
+	// 就等于新增了一个没人校验过的入口。
 	if found != option.HandlerCount() {
-		t.Fatalf("注册表里有 %d 个 handler，但本用例只覆盖了 %d 个：%s —— 新 handler 必须一并纳入检查",
+		t.Fatalf("注册表里有 %d 个 handler，但本用例只认得 %d 个：%s —— 新 handler 必须一并纳入检查",
 			option.HandlerCount(), found, strings.Join(names, ", "))
 	}
+	// 只有 `api || full` 这类标签组合才同时带着 URL/easy/api 这些入口；
+	// 无标签构建里 base.go 只注册 version，此时逐条检查没有对象可查，
+	// 交给 -tags full（race.yml 每晚跑）覆盖，而不是让 make test 假失败。
 	if found < 4 {
-		t.Fatalf("只找到 %d 个 handler，多半是 build tag 不对或注册表空了（这条判据就会空转）", found)
+		t.Skipf("本次构建只注册了 %d 个 handler（无 -tags full），逐条 NotSet 检查没有对象", found)
 	}
 }
