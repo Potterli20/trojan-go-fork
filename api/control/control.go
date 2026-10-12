@@ -43,6 +43,12 @@ func (o *apiController) listRecords(apiClient service.TrojanServerServiceClient)
 	for {
 		resp, err := stream.Recv()
 		if err != nil {
+			// GetRecords 是 server-streaming：服务端正常发完后 Recv() 返回的就是
+			// io.EOF，它是"流结束"的哨兵而不是失败。原来直接 return err，
+			// 于是 `-api record` 把记录全打出来之后还算一次失败。
+			if err == io.EOF {
+				return nil
+			}
 			return err
 		}
 		data, err := json.MarshalIndent(resp, "", "    ")
