@@ -64,7 +64,26 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		}
 		return nil, common.NewError("tproxy failed to accept conn")
 	}
-	dst, err := getOriginalTCPDest(conn.(*net.TCPConn))
+	inbound, err := s.decorate(conn)
+	if err != nil {
+		// 唯一的失败回收点：Accept 出来的 socket 已经归本层所有，任何后续失败都必须
+		// 关掉它。relay 拿到错误只会记一条日志继续 Accept，没人回收就是每失败一条
+		// 泄露一个 fd，最终 EMFILE 把进程拖死。
+		conn.Close() //gosec:disable -- 错误忽略：失败回收路径，错误无处可报
+		return nil, err
+	}
+	return inbound, nil
+}
+
+// decorate 给已经 Accept 出来的连接补上原始目的地址。
+// 刻意不做裸类型断言：以前的 conn.(*net.TCPConn) 一旦监听器交出的不是 *net.TCPConn,
+// 就会在 relay 的 accept 循环里 panic，等于整个进程被打崩。
+func (s *Server) decorate(conn net.Conn) (tunnel.Conn, error) {
+	tcpConn, ok := conn.(*net.TCPConn)
+	if !ok {
+		return nil, common.NewError("tproxy listener accepted a non-TCP connection")
+	}
+	dst, err := getOriginalTCPDest(tcpConn)
 	if err != nil {
 		return nil, common.NewError("tproxy failed to obtain original address of tcp socket").Base(err)
 	}
