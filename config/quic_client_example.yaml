@@ -1,27 +1,62 @@
-# QUIC 客户端配置示例
-run-type: client
-local-addr: 127.0.0.1
-local-port: 10808
-remote-addr: example.com
-remote-port: 443
+# QUIC 客户端配置示例（custom 模式）
+#
+# 为什么是 custom：QUIC 隧道只在 custom 运行类型下可达。client / server / forward / nat
+# 的栈是硬编码的（proxy/client/client.go:GenerateClientTree、proxy/server/server.go），
+# 里面没有 QUIC 这一层，所以「run-type: client + 一个 quic 段」不会启用 QUIC。
 
-# QUIC 配置（启用 HTTP/3）
-quic:
-  enabled: true                    # 启用 QUIC
-  max-idle-timeout: 30            # 最大空闲超时（秒）
-  max-incoming-streams: 100       # 最大入站流数
-  initial-stream-window: 65535    # 初始流窗口大小
-  initial-conn-window: 65535      # 初始连接窗口大小
-  alpn: hq-29                     # ALPN 标识
-  insecure: false                 # 是否跳过证书验证
-  congestion: bbr                 # 拥塞控制算法 (bbr/cubic)
-  brutal-up: 0                    # Brutal 上行限速 (Mbps, 0=禁用)
-  brutal-down: 0                  # Brutal 下行限速 (Mbps, 0=禁用)
+run-type: custom
 
-ssl:
-  verify-hostname: false          # 测试环境可设为 false，生产环境建议设为 true
-  key: /path/to/client.key
-  cert: /path/to/client.crt
-  sni: example.com
+inbound:
+  node:
+    - protocol: adapter
+      tag: adapter
+      config:
+        local-addr: 127.0.0.1
+        local-port: 10808
+    - protocol: socks
+      tag: socks
+      config:
+        local-addr: 127.0.0.1
+        local-port: 10808
+  path:
+    - - adapter
+      - socks
 
-log-level: 0                      # 显示所有日志级别
+outbound:
+  node:
+    - protocol: quic
+      tag: quic
+      config:
+        remote-addr: example.com      # 服务端的 QUIC 监听地址【需要修改】
+        remote-port: 443
+        quic:
+          alpn: hq-29                # 两端必须一致，否则握手失败
+          max-idle-timeout: 30       # 秒；保活周期取它的一半
+          max-incoming-streams: 100  # 最大并发流
+          initial-stream-window: 0   # 0 = 交给 quic-go 库内默认（512KB）
+          initial-conn-window: 0     # 同上
+          insecure: false            # 用自签证书本地测试时要改成 true
+          congestion: bbr            # bbr / brutal / force-brutal / reno
+          brutal-up: 0               # 单位是 bps；只有 congestion 为 brutal/force-brutal 才读取
+          brutal-down: 0             # 单位是 bps
+        ssl:                         # QUIC 传输层自己校验证书，所以必须写在 quic 节点里
+          sni: example.com
+          verify: true
+    - protocol: tls
+      tag: tls
+      config:
+        ssl:
+          sni: example.com
+          verify: true
+    - protocol: trojan
+      tag: trojan
+      config:
+        password:
+          - your-secure-password-here
+  path:
+    - - quic
+      - tls
+      - trojan
+
+# log-level 是 int，且级别是反的：0=All 1=Info 2=Warn 3=Error 4=Fatal 5=Off
+log-level: 1

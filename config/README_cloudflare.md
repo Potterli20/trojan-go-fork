@@ -133,33 +133,51 @@ quic:
 
 **检查项**:
 ```bash
-# 验证证书链
-openssl s_client -connect your-domain.com:443 -servername your-domain.com
-
-# 检查 SNI 是否匹配
+# 检查 SNI 是否与证书 CN/SAN 一致
 grep sni config/cloudflare_quic_client.yaml
+
+# 看证书有效期
+openssl x509 -in fullchain.pem -noout -enddate
 ```
 
-**临时测试**（仅开发环境）:
+> `openssl s_client -connect your-domain.com:443` 是 **TCP** 的，而 quic 服务端只做
+> `ListenUDP`，打过去必然 `Connection refused`（实测 errno=111）。它能连通与否说明不了
+> QUIC 证书对不对，别拿它当 QUIC 的验证手段。
+
+**临时测试**（仅开发环境，别在生产用）：
+
+自签证书下有两处**各自独立**的校验，要一起放开（实测只放开一处仍会报
+`x509: certificate signed by unknown authority`）：
+
 ```yaml
-ssl:
-  insecure: true
+# quic 节点的 config 块里
+quic:
+  insecure: true          # 跳过 QUIC 传输层的证书校验
+  ssl:
+    verify: false         # quic 节点自己的 TLS 配置
+# 内层 tls 节点也要
+# ssl:
+#   verify: false
 ```
+
+注意：**没有 `ssl.insecure` 这个键**（`tunnel/tls/config.go` 里是 `verify` / `verify_hostname`），
+`insecure` 只存在于 `quic` 段。
 
 ### Q3: 性能不佳
 
 **调优建议**:
 ```yaml
 quic:
-  # 增大窗口提升吞吐量
+  # 增大窗口提升吞吐量（0 才是默认值 = 交给 quic-go 库内默认 512KB）
   initial-stream-window: 262144   # 256KB
   initial-conn-window: 262144
-  
+
   # 增加并发
   max-incoming-streams: 200
-  
-  # 尝试不同拥塞算法
-  congestion: cubic               # 从 bbr 切换
+
+  # 换拥塞算法：只有 bbr / brutal / force-brutal / reno 四个取值，
+  # 写 cubic 会报 "Unknown congestion control" 并回退 BBR
+  congestion: reno
 ```
 
 ---
@@ -206,5 +224,5 @@ quic:
 ## 参考资源
 
 - [Cloudflare HTTP/3 文档](https://developers.cloudflare.com/http3/)
-- [trojan-go-fork QUIC 使用指南](../../docs/quic_usage.md)
+- [trojan-go-fork QUIC 使用指南](../docs/quic_usage.md)
 - [QUIC 拥塞控制最佳实践](https://quic.edm.uh.edu/)

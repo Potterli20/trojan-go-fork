@@ -1,85 +1,81 @@
 # trojan-go-fork + Cloudflare HTTP/3 (QUIC) 服务端配置
 # =====================================================
-# 此配置作为自建服务器，通过 QUIC/HTTP3 提供代理服务
-# 
-# ⚠️ 使用前请修改以下配置项：
-#   1. ssl.key/cert: 证书和私钥路径
-#   2. ssl.sni: 必须与域名一致
-#   3. password: Trojan 认证密码
-#   4. api.passwd: API 管理密码
+# ⚠️ 关于 "Cloudflare" 的部分：本仓库能核实的只有 trojan-go ↔ trojan-go 的 QUIC 隧道。
+#    要让公网 QUIC 抵达这个服务端，你需要的是 UDP 直通（或 Spectrum 的 UDP 转发），
+#    而不是站点的 HTTP/3 —— 后者会被 Cloudflare 边缘终结。这条不在本仓库代码里，无法在此验证。
+#
+# ⚠️ 使用前请修改：ssl.key / ssl.cert / sni / password
+#
+# 为什么是 custom：内置 server 运行类型的栈里没有 QUIC 层，只写 quic 段不会启用它。
+# 三个实测过的坑：
+#   1. quic 节点的 remote-addr / remote-port 语义是**监听地址**
+#   2. 节点只能看到自己的 ctx，证书必须写在 **quic 节点自己的 config 里**，
+#      否则报 `QUIC requires TLS certificate and key`
+#   3. trojan 节点构造时实拨一次诱饵地址，诱饵服务必须先于本进程启动
 
-run-type: server
-log-level: info
+run-type: custom
+log-level: 1                      # int；级别是反的：0=All 1=Info 2=Warn 3=Error 4=Fatal 5=Off
 
-# 监听地址（UDP 443）
-local-addr: 0.0.0.0
-local-port: 443
+inbound:
+  node:
+    - protocol: quic
+      tag: quic
+      config:
+        remote-addr: 0.0.0.0          # 监听地址（UDP）
+        remote-port: 443
+        quic:
+          alpn: hq-29                # 与客户端一致
+          max-idle-timeout: 30
+          max-incoming-streams: 100
+          initial-stream-window: 0   # 0 = 交给 quic-go 库内默认（512KB）
+          initial-conn-window: 0
+          congestion: bbr            # bbr / brutal / force-brutal / reno
+          brutal-up: 0               # 单位 bps
+          brutal-down: 0             # 单位 bps
+        ssl:                         # 证书写在 quic 节点里
+          cert: /etc/letsencrypt/live/example.com/fullchain.pem
+          key: /etc/letsencrypt/live/example.com/privkey.pem
+          verify-hostname: false     # 服务端不校验客户端证书
+          cert-check-rate: 1         # 秒；定期重读证书，配合续期
+    - protocol: tls
+      tag: tls
+      config:
+        ssl:
+          cert: /etc/letsencrypt/live/example.com/fullchain.pem
+          key: /etc/letsencrypt/live/example.com/privkey.pem
+          verify-hostname: false
+          cert-check-rate: 1
+    - protocol: trojan
+      tag: trojan
+      config:
+        remote-addr: 127.0.0.1        # 认证失败时的诱饵/回落地址
+        remote-port: 80
+        password:
+          - change-this-to-a-strong-password
+  path:
+    - - quic
+      - tls
+      - trojan
 
-# ==================== QUIC 配置 ====================
-quic:
-  enabled: true                    # 启用 QUIC
-  
-  # 超时设置
-  max-idle-timeout: 30            # 最大空闲超时（秒）
-  
-  # 并发控制
-  max-incoming-streams: 100       # 最大入站流数
-  
-  # 流控窗口（字节）
-  initial-stream-window: 65535    # 初始流窗口大小
-  initial-conn-window: 65535      # 初始连接窗口大小
-  
-  # 协议协商
-  alpn: hq-29                     # HTTP/3 draft-29
-  
-  # 拥塞控制
-  congestion: bbr                 # 推荐 BBR
-  
-  # Brutal 加速（根据带宽调整）
-  brutal-up: 0                    # 上行限速 (Mbps, 0=禁用)
-  brutal-down: 0                  # 下行限速 (Mbps, 0=禁用)
+outbound:
+  node:
+    - protocol: freedom
+      tag: freedom
+      config: {}
+  path:
+    - - freedom
 
-# ==================== SSL/TLS 配置 ====================
-ssl:
-  # 证书验证（服务端通常不需要验证客户端）
-  verify-hostname: false
-  verify-cert: false
-  insecure: false
-  
-  # 证书路径【需要修改】- 必须提供有效证书
-  key: /etc/letsencrypt/live/example.com/privkey.pem
-  cert: /etc/letsencrypt/live/example.com/fullchain.pem
-  
-  # SNI【需要修改】
-  sni: example.com
-  
-  # ALPN
-  # alpn: hq-29
+# ==================== 流量持久化（可选）====================
+# 顶层 `sqlite` 给一个路径即启用（实测：日志出现「已启用持久化后端：*sqlite.Persistencer」）。
+# 没有 statistic.type 这种键；statistic/sqlite 由平台构建标签限制（linux + amd64/386/arm/arm64）。
+# sqlite: /var/lib/trojan-go-fork/trojan-go.db
 
-# ==================== 认证配置 ====================
-password:
-  - change-this-to-a-strong-password
-
-# 多密码支持（可选）
-# password:
-#   - password1
-#   - password2
-#   - password3
-
-# ==================== API 管理接口 ====================
+# ==================== API 管理接口（可选，需 -tags api 构建）====================
+# 真实键名是 api_addr / api_port；这里没有 user / passwd，
+# gRPC 的访问控制靠 api.ssl（verify_client + client_cert 白名单）。
 api:
   enabled: true
-  addr: 127.0.0.1
-  port: 9999
-  user: admin
-  passwd: change-this-api-password
-
-# ==================== 统计后端 ====================
-statistic:
-  type: "sqlite"                  # 使用 SQLite 持久化流量统计
-  # db-path: "/var/lib/trojan/trojan.db"
-
-# ==================== DNS 设置 ====================
-dns:
-  strategy: "prefer_ipv4"         # IPv4 优先
-  timeout: "5s"
+  api-addr: 127.0.0.1
+  api-port: 9999
+  ssl:
+    enabled: false

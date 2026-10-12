@@ -4,7 +4,7 @@
 # 使用传统的 TCP + TLS 连接
 
 run-type: client
-log-level: info
+log-level: 1                      # int；级别是反的：0=All 1=Info 2=Warn 3=Error 4=Fatal 5=Off
 
 local-addr: 127.0.0.1
 local-port: 10808
@@ -12,34 +12,36 @@ local-port: 10808
 remote-addr: example.com          # 【需要修改】改为你的域名
 remote-port: 443
 
-# ==================== QUIC 禁用 ====================
-quic:
-  enabled: false                  # 禁用 QUIC，回退到 TCP+TLS
-
 # ==================== SSL/TLS 配置 ====================
+# 这份是 TCP 降级配置，所以**不需要**任何 QUIC 开关：client 运行类型的栈本身就是
+# transport → tls → trojan，不含 QUIC 层（QUIC 只在 custom 下可达，见 quic_*_example.yaml）。
+# ssl 段的可用键见 tunnel/tls/config.go —— 没有 verify-cert / insecure 这两枚。
 ssl:
+  verify: true                    # 校验服务端证书链
   verify-hostname: true           # 必须与 sni 匹配
-  verify-cert: true               # 验证证书链
-  insecure: false                 # 生产环境必须为 false
-  
+
   # 证书路径（使用系统证书可省略）
   # key: /etc/letsencrypt/live/example.com/privkey.pem
   # cert: /etc/letsencrypt/live/example.com/fullchain.pem
-  
+
   sni: example.com                # 【需要修改】必须与域名一致
 
 # ==================== 认证配置 ====================
 password:
   - change-this-to-a-strong-password
 
-# ==================== API 管理接口 ====================
+# ==================== API 管理接口（可选，需 -tags api 构建）====================
+# 真实键名是 api_addr / api_port（api/service/config.go）。
+# 这里没有 user / passwd：gRPC 的访问控制靠 api.ssl（verify_client + client_cert 白名单）。
 api:
   enabled: false
-  addr: 127.0.0.1
-  port: 9999
-  user: admin
-  passwd: admin-password
+  api-addr: 127.0.0.1
+  api-port: 9999
+  ssl:
+    enabled: false
 
-# ==================== 统计后端 ====================
-statistic:
-  type: "memory"
+# ==================== 流量持久化（可选）====================
+# 没有 statistic 配置段。顶层 `sqlite` 给一个路径即启用持久化后端
+# （实测日志：「已启用持久化后端：*sqlite.Persistencer」），
+# 平台限制见 statistic/sqlite（linux + amd64/386/arm/arm64）。
+# sqlite: /var/lib/trojan-go-fork/trojan-go.db

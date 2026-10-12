@@ -1,88 +1,75 @@
-# trojan-go-fork + Cloudflare HTTP/3 (QUIC) 推荐配置
+# trojan-go-fork + Cloudflare HTTP/3 (QUIC) 客户端配置
 # =====================================================
-# 此配置针对 Cloudflare CDN 优化，启用 QUIC/HTTP3 协议以获得最佳性能
-# 
-# ⚠️ 使用前请修改以下配置项：
-#   1. remote-addr: 你的 Cloudflare 域名
-#   2. ssl.sni: 必须与域名一致
-#   3. password: 你的 Trojan 认证密码
-#   4. 证书路径（如使用自定义证书）
+# ⚠️ 关于 "Cloudflare" 的部分：本仓库能核实的只有 trojan-go ↔ trojan-go 的 QUIC 隧道。
+#    QUIC 能不能穿过 Cloudflare，取决于你开通的是 HTTP/3 站点还是 Spectrum 的 UDP 转发，
+#    这两条都不在本仓库的代码里，也无法在这里验证。下面的配置是**自建 QUIC 服务端**的形状。
+#
+# ⚠️ 使用前请修改：remote-addr / ssl.sni / password
+#
+# 为什么是 custom：QUIC 只在 custom 运行类型下可达。client / server / forward / nat 的
+# 栈是硬编码的，不含 QUIC 层，写 run-type: client + quic 段不会启用 QUIC。
 
-run-type: client
-log-level: info
-# 本地代理端口（根据需求调整）
-local-addr: 127.0.0.1
-local-port: 10808
+run-type: custom
+log-level: 1                      # int；级别是反的：0=All 1=Info 2=Warn 3=Error 4=Fatal 5=Off
 
-# Cloudflare CDN 地址 - 【需要修改】改为你的域名
-remote-addr: example.com
-remote-port: 443
+inbound:
+  node:
+    - protocol: adapter
+      tag: adapter
+      config:
+        local-addr: 127.0.0.1
+        local-port: 10808
+    - protocol: socks
+      tag: socks
+      config:
+        local-addr: 127.0.0.1
+        local-port: 10808
+  path:
+    - - adapter
+      - socks
 
-# ==================== QUIC/HTTP3 配置 ====================
-quic:
-  enabled: true                    # 启用 QUIC (HTTP/3)
-  
-  # 超时设置
-  max-idle-timeout: 30            # 最大空闲超时（秒），Cloudflare 默认 30s
-  
-  # 并发控制
-  max-incoming-streams: 100       # 最大入站流数（并发连接数）
-  
-  # 流控窗口（字节）
-  initial-stream-window: 65535    # 初始流窗口大小
-  initial-conn-window: 65535      # 初始连接窗口大小
-  
-  # 协议协商
-  alpn: hq-29                     # HTTP/3 draft-29（Cloudflare 支持）
-  
-  # 安全性（生产环境务必设为 false）
-  insecure: false                 # 是否跳过证书验证
-  
-  # 拥塞控制（BBR 在 Cloudflare 网络上表现最佳）
-  congestion: bbr                 # 可选：bbr, cubic
-  
-  # Brutal 加速（Cloudflare 已优化，通常不需要）
-  brutal-up: 0                    # 上行限速 (Mbps, 0=禁用)
-  brutal-down: 0                  # 下行限速 (Mbps, 0=禁用)
+outbound:
+  node:
+    - protocol: quic
+      tag: quic
+      config:
+        remote-addr: example.com      # 【需要修改】服务端 QUIC 监听地址
+        remote-port: 443              # Cloudflare 只放行 443 上的 QUIC
+        quic:
+          alpn: hq-29                # 两端必须一致
+          max-idle-timeout: 30       # 秒
+          max-incoming-streams: 100
+          initial-stream-window: 0   # 0 = 交给 quic-go 库内默认（512KB）
+          initial-conn-window: 0
+          insecure: false            # 用 CA 证书保持 false；自签测试才改 true
+          congestion: bbr            # bbr / brutal / force-brutal / reno
+          brutal-up: 0               # 单位 bps
+          brutal-down: 0             # 单位 bps
+        ssl:                         # QUIC 层自己校验证书，必须写在 quic 节点里
+          sni: example.com           # 【需要修改】与域名一致
+          verify: true
+    - protocol: tls
+      tag: tls
+      config:
+        ssl:
+          sni: example.com
+          verify: true
+    - protocol: trojan
+      tag: trojan
+      config:
+        password:
+          - change-this-to-a-strong-password   # 【需要修改】
+  path:
+    - - quic
+      - tls
+      - trojan
 
-# ==================== SSL/TLS 配置 ====================
-ssl:
-  # 证书验证
-  verify-hostname: true           # 必须与 sni 匹配
-  verify-cert: true               # 验证证书链
-  insecure: false                 # 生产环境必须为 false
-  
-  # 证书路径（使用系统证书可省略，仅当需要自定义证书时取消注释）
-  # key: /etc/letsencrypt/live/example.com/privkey.pem
-  # cert: /etc/letsencrypt/live/example.com/fullchain.pem
-  
-  # SNI（必须与你的域名一致）【需要修改】
-  sni: example.com
-  
-  # ALPN（让 quic-go 自动处理，这里可不设）
-  # alpn: hq-29
-
-# ==================== 其他配置 ====================
-# 认证密码【需要修改】- 建议使用强密码（至少 16 位随机字符）
-password:
-  - change-this-to-a-strong-password
-
-# API 管理接口（可选，用于监控和统计）
+# ==================== API 管理接口（可选，需 -tags api 构建）====================
+# 真实键名是 api_addr / api_port（api/service/config.go）；这里没有 user / passwd，
+# gRPC 的访问控制靠 api.ssl（含 verify_client + client_cert 白名单）。
 api:
   enabled: false
-  addr: 127.0.0.1
-  port: 9999
-  user: admin
-  passwd: admin-password
-
-# 统计后端（可选）
-statistic:
-  type: "memory"                  # 可选：memory, sqlite, mysql
-  # 使用 SQLite 持久化（仅 Linux x86_64/arm64）
-  # type: "sqlite"
-  # db-path: "/var/lib/trojan/trojan.db"
-
-# DNS 设置（可选，使用系统默认）
-# dns:
-#   strategy: "prefer_ipv4"       # 可选：prefer_ipv4, prefer_ipv6, ipv4_first, ipv6_first
-#   timeout: "5s"
+  api-addr: 127.0.0.1
+  api-port: 9999
+  ssl:
+    enabled: false

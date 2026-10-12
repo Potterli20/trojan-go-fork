@@ -1,26 +1,63 @@
-# QUIC 服务端配置示例
-run-type: server
-local-addr: 0.0.0.0
-local-port: 443
-password:
-  - your-secure-password-here
+# QUIC 服务端配置示例（custom 模式）
+#
+# 为什么是 custom：内置 server 运行类型的栈里没有 QUIC 层，只写 quic 段不会启用它。
+# 两个反直觉的点（都实测过）：
+#   1. quic 节点的 remote-addr / remote-port 语义是**监听地址**
+#      （源码 net.ListenUDP(cfg.RemoteHost, cfg.RemotePort)）
+#   2. 每个节点只能看到自己的 ctx，所以证书必须写在 **quic 节点自己的 config 里**，
+#      否则报 `QUIC requires TLS certificate and key`
+#   3. trojan 节点构造时会实拨一次诱饵地址，诱饵服务必须先于本进程启动
 
-# QUIC 配置（启用 HTTP/3）
-quic:
-  enabled: true                    # 启用 QUIC
-  max-idle-timeout: 30            # 最大空闲超时（秒）
-  max-incoming-streams: 100       # 最大入站流数
-  initial-stream-window: 65535    # 初始流窗口大小
-  initial-conn-window: 65535      # 初始连接窗口大小
-  alpn: hq-29                     # ALPN 标识
-  congestion: bbr                 # 拥塞控制算法 (bbr/cubic)
-  brutal-up: 0                    # Brutal 上行限速 (Mbps, 0=禁用)
-  brutal-down: 0                  # Brutal 下行限速 (Mbps, 0=禁用)
+run-type: custom
 
-ssl:
-  verify-hostname: false          # 测试环境可设为 false，生产环境建议设为 true
-  key: /path/to/server.key
-  cert: /path/to/server.crt
-  sni: example.com
+inbound:
+  node:
+    - protocol: quic
+      tag: quic
+      config:
+        remote-addr: 0.0.0.0        # 监听地址
+        remote-port: 443
+        quic:
+          alpn: hq-29              # 与客户端保持一致
+          max-idle-timeout: 30
+          max-incoming-streams: 100
+          initial-stream-window: 0 # 0 = 交给 quic-go 库内默认（512KB）
+          initial-conn-window: 0
+          congestion: bbr          # bbr / brutal / force-brutal / reno
+          brutal-up: 0             # 单位是 bps
+          brutal-down: 0           # 单位是 bps
+        ssl:
+          cert: /path/to/server.crt
+          key: /path/to/server.key
+          verify-hostname: false
+          cert-check-rate: 1
+    - protocol: tls
+      tag: tls
+      config:
+        ssl:
+          cert: /path/to/server.crt
+          key: /path/to/server.key
+          verify-hostname: false
+          cert-check-rate: 1
+    - protocol: trojan
+      tag: trojan
+      config:
+        remote-addr: 127.0.0.1     # 认证失败时的诱饵/回落地址
+        remote-port: 80
+        password:
+          - your-secure-password-here
+  path:
+    - - quic
+      - tls
+      - trojan
 
-log-level: 0                      # 显示所有日志级别
+outbound:
+  node:
+    - protocol: freedom
+      tag: freedom
+      config: {}
+  path:
+    - - freedom
+
+# log-level 是 int，且级别是反的：0=All 1=Info 2=Warn 3=Error 4=Fatal 5=Off
+log-level: 1
