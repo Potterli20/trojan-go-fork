@@ -67,13 +67,17 @@ func (c *Client) Close() error {
 }
 
 func (c *Client) cleanLoop() {
-	var checkDuration time.Duration
-	if c.timeout <= 0 {
-		checkDuration = time.Second * 10
-		log.Warn("negative mux timeout")
-	} else {
-		checkDuration = c.timeout / 4
+	// 空闲时限与巡检间隔必须来自同一个值。旧代码只给间隔做了兜底
+	// （timeout<=0 时 interval=10s），回收判据却仍拿 c.timeout 原始值比较：
+	// `NumStreams()==0 && 空闲 > 0` 恒真，于是每个空闲会话在第一次巡检就被拆掉，
+	// 会话复用退化成了"每条新连接重开一个 mux 会话"。
+	// 非正数（idle-timeout: 0 或负）按配置失误处理，落到文档默认值。
+	idleTimeout := c.timeout
+	if idleTimeout <= 0 {
+		log.Warn("mux idle-timeout is not positive, using ", idleDefaultTimeout)
+		idleTimeout = idleDefaultTimeout
 	}
+	checkDuration := idleTimeout / 4
 	log.Debug("check duration:", checkDuration.Seconds(), "s")
 	ticker := time.NewTicker(checkDuration)
 	defer ticker.Stop()
@@ -89,7 +93,7 @@ func (c *Client) cleanLoop() {
 					delete(c.clientPool, id)
 					dead = append(dead, info)
 					log.Info("mux client", id, "is dead")
-				} else if info.client.NumStreams() == 0 && time.Since(time.Unix(0, info.lastActiveTime.Load())) > c.timeout {
+				} else if info.client.NumStreams() == 0 && time.Since(time.Unix(0, info.lastActiveTime.Load())) > idleTimeout {
 					delete(c.clientPool, id)
 					dead = append(dead, info)
 					log.Info("mux client", id, "is closed due to inactivity")

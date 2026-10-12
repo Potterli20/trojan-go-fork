@@ -22,8 +22,9 @@ Server reciprocates. Both sides must enable mux — mismatched config = broken s
 
 ## Session pool (client)
 
-- `Concurrency` = max streams per session; when exceeded, opens new session.
-- Idle sessions closed after `IdleTimeout` seconds.
+- `Concurrency` = max streams per session; when exceeded, opens new session. `concurrency <= 0` = 不设限（`client.go` 里显式放行）。
+- Idle sessions closed after `IdleTimeout` seconds. **`idle-timeout` 为非正数时按配置失误处理，落到 `idleDefaultTimeout`（30s，与配置创建器的默认值同一个常量）**：旧代码只给巡检间隔做兜底，回收判据仍拿原始值比较，`空闲 > 0` 恒真 ⇒ 每个空闲会话在首次巡检就被拆掉，会话复用失效（判据见 `idle_timeout_test.go`，在 pristine HEAD 上是红的）。
+- 服务端不对"每条 mux 会话的流数"设限（`handleSession` 里 `AcceptStream` 无上限）。这与"不开 mux 时同一账号本来就能开任意多条 TCP 连接"同阶，不是新增的放大面——别把它当漏洞来"修"。
 - `client.go` uses a sync pool keyed by target — one pool per distinct downstream.
 
 ## Header handling
