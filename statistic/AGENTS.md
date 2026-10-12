@@ -61,14 +61,20 @@ SQLite is linux-only because the platform build tags in `statistic/sqlite` restr
 - `IPLimit=0` means unlimited. `SpeedLimit=0` means unlimited.
 - Traffic counters are monotonic bytes. Rate is a windowed derivative.
 
-## 启动期校验
+## 启动期与运行时校验
 
-- **`password` 列表里出现空串会让服务端拒绝启动**（`memory.NewAuthenticator` 在任何
-  资源分配之前返回错误）。原因：配置文件这条路径原来是 `hash := SHA224String("")` +
-  `AddUser(hash)`，而空串的 SHA224 是公开常量 ⇒ 等于开了一条谁都能用的免密通道；
-  真机实测修复前它不但能起来，还会在后面的重定向地址检查上以一句无关的
-  `invalid redirect address ... dial tcp :0` 失败，根因完全看不见。
-  `easy` 模式（`-password`）本来就 `log.Fatal` 拒绝空密码，两条路径现在一致。
+- **空密码在三个入口都被堵死**（`SHA224("")` 是公开常量，注册成用户 = 一条免密通道）：
+  1. 配置文件：`memory.NewAuthenticator` 在**任何资源分配之前**拒绝
+     （再往下已打开 sqlite 持久化器并起后台协程）；`easy` 模式（`-password`）
+     本来就 `log.Fatal` 拒绝，两条路径现在一致。
+  2. 运行时 gRPC：`memory.AddUser(hash)` 拒绝 `""` 与 `SHA224("")`。
+     这条是必须的 —— `api/service` 的 SetUsers 会做
+     `if Hash == "" { Hash = SHA224(Password) }` 再 `AddUser`，所以
+     `-api set -add-profile -target-password ""` 原本能在跑着的进程上现场开出免密用户，
+     而 **gRPC API 自身没有任何鉴权**。真机实测（修复前的二进制）：该调用 exit=0
+     且空密码哈希出现在 `-api list` 里；修复后 exit=1、命中 0 次。
+  3. 持久化后端装载：`ListUser` 回调跳过空密码行并打 ERROR（老版本在 AddUser 与
+     SetKeyShare 之间崩溃会留下这种行），跳过而不是拒启，是为了不把已有部署直接锁死（bricked）。
 - `acquireAuth` 失败时**返回**原始错误（不再 log 完就 `return nil`），
   否则 `trojan.NewServer` 只能造一句通用文案，根因在错误链里丢失。
 

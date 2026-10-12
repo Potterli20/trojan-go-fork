@@ -540,7 +540,23 @@ func (u *User) GetKeyShare() string {
 	return u.password
 }
 
+// emptyPasswordHash 是空密码的 SHA224。它是公开常量（谁都能算出来），所以既不能
+// 出现在配置文件里，也不能被 AddUser/持久化后端装载接受 —— 那等于现场开一个免密用户。
+// gRPC API 本身没有鉴权，所以运行时这条路比配置文件更值得堵。
+var emptyPasswordHash = common.SHA224String("")
+
+func rejectEmptyPassword(hash string) error {
+	if hash == "" || hash == emptyPasswordHash {
+		return common.NewError("refusing to use an empty password: its SHA224 hash is a " +
+			"public constant, which would open a password-free user")
+	}
+	return nil
+}
+
 func (a *Authenticator) AddUser(hash string) error {
+	if err := rejectEmptyPassword(hash); err != nil {
+		return err
+	}
 	if _, found := a.users.Load(hash); found {
 		return common.NewError("hash " + hash + " is already exist")
 	}
@@ -706,6 +722,14 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 	}
 	if a.pst != nil {
 		err := a.pst.ListUser(func(hash string, u statistic.Metadata) bool {
+			if hash == "" || hash == emptyPasswordHash {
+				// 空密码行可能来自老版本：AddUser 与 SetKeyShare 之间崩溃就会留下
+				// 一条密码为空的用户。装载它等于恢复那条免密通道，所以只报错、不装载；
+				// 清理要直接操作数据库文件（这里不能走 DelUser，用户根本没进内存表）。
+				log.Error("跳过持久化后端里的空密码用户 hash=" + hash +
+					"：空密码的 SHA224 是公开常量，等于免密通道；请删除该条数据库记录")
+				return true
+			}
 			if _, found := a.users.Load(hash); found {
 				log.Error("hash " + hash + " is already exist")
 				return true
