@@ -142,11 +142,13 @@ func (o *StdinOption) Priority() int {
 
 func (o *StdinOption) isFormatJson() (bool, error) {
 	if o.format == nil {
-		return false, common.NewError("format specifier is nil")
+		return false, option.NotSet()
 	}
 	switch strings.ToLower(*o.format) {
 	case "disabled":
-		return false, common.NewError("reading from stdin is disabled")
+		// 默认值就是 disabled：说明命令行没要求 stdin 模式，本 handler 不适用。
+		// 不能返回其它文本，否则 main 会当成"这个 handler 失败了"。
+		return false, option.NotSet()
 	case "json":
 		return true, nil
 	case "yaml", "yml":

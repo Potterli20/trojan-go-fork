@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/constant"
 	"github.com/Potterli20/trojan-go-fork/option"
 )
@@ -35,7 +34,7 @@ func (c *versionOption) Handle() error {
 		fmt.Println("Trojan-Go Documents:\thttps://p4gefau1t.github.io/trojan-go/")
 		return nil
 	}
-	return common.NewError("not set")
+	return option.NotSet()
 }
 
 func init() {

@@ -12,7 +12,6 @@ import (
 
 	"github.com/Potterli20/trojan-go-fork/api/service"
 	"github.com/Potterli20/trojan-go-fork/common"
-	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/option"
 )
 
@@ -152,48 +151,39 @@ func (o *apiController) setUsers(apiClient service.TrojanServerServiceClient) er
 	}
 	if resp.Success {
 		fmt.Println("Done")
-	} else {
-		fmt.Println("Failed: " + resp.Info)
+		return nil
 	}
-	return nil
+	fmt.Println("Failed: " + resp.Info)
+	// 服务端拒绝了这次操作也必须当成失败：之前这里 return nil，
+	// 于是 `-api set ...` 无论成败退出码都是 0，脚本没法判断。
+	return common.NewError("api server rejected the operation: " + resp.Info)
 }
 
 func (o *apiController) Handle() error {
 	if *o.cmd == "" {
-		return common.NewError("")
+		// 命令行里没有 -api：本 handler 不适用，交给下一个 handler
+		return option.NotSet()
 	}
 	conn, err := grpc.NewClient(*o.address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Error(err)
-		return nil
+		// 原来这里 log.Error 之后 return nil —— main 会把「nil」当成
+		// 「这个 handler 接管成功」，于是地址不合法也照样以退出码 0 结束
+		return common.NewError("failed to create gRPC client for " + *o.address).Base(err)
 	}
 	defer conn.Close()
 	apiClient := service.NewTrojanServerServiceClient(conn)
 	switch *o.cmd {
 	case "record":
-		err := o.listRecords(apiClient)
-		if err != nil {
-			log.Error(err)
-		}
+		return o.listRecords(apiClient)
 	case "list":
-		err := o.listUsers(apiClient)
-		if err != nil {
-			log.Error(err)
-		}
+		return o.listUsers(apiClient)
 	case "get":
-		err := o.getUsers(apiClient)
-		if err != nil {
-			log.Error(err)
-		}
+		return o.getUsers(apiClient)
 	case "set":
-		err := o.setUsers(apiClient)
-		if err != nil {
-			log.Error(err)
-		}
+		return o.setUsers(apiClient)
 	default:
-		log.Error("unknown command " + *o.cmd)
+		return common.NewError("unknown api command: " + *o.cmd)
 	}
-	return nil
 }
 
 func (o *apiController) Priority() int {

@@ -63,7 +63,9 @@ func (o *easy) Name() string {
 
 func (o *easy) Handle() error {
 	if !*o.server && !*o.client {
-		return common.NewError("empty")
+		// 命令行里没有 -server/-client：本 handler 不适用，交给下一个 handler，
+		// 不能用别的错误文本——main.go 只认 option.NotSet() 这个标记。
+		return option.NotSet()
 	}
 	if *o.password == "" {
 		log.Fatal("empty password is not allowed")

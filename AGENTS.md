@@ -20,7 +20,7 @@ All modules self-register in `init()`. Nothing is wired explicitly in `main.go` 
 
 ## Entry & flow
 
-1. `main.go`: `flag.Parse()` → loops `option.PopOptionHandler().Handle()`; first handler whose `Handle()` returns non-`common.NewError("not set")` wins.
+1. `main.go`: `flag.Parse()` → `selectAndRun(option.PopOptionHandler)`; 按 `Priority()` 从高到低逐个试 handler，`nil` = 接管本次运行，`option.NotSet()` = 不适用继续下一个，**其它错误立刻终止**（详见 `option/AGENTS.md`）。
 2. Default handler builds a `proxy.Proxy` via `proxy.NewProxyFromConfigData(data, json|yaml)`.
 3. Config JSON/YAML → `config.WithJSONConfig`/`WithYAMLConfig` → stores per-module structs in `ctx` under `MODULE_CONFIG` key; modules retrieve via `config.FromContext(ctx, Name).(*FooConfig)`.
 4. `CreateClientStack(ctx, names...)` builds tunnel stack; `proxy.NewProxy(ctx, cancel, sources, sink)` runs it.

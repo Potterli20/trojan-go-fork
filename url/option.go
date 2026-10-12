@@ -100,7 +100,7 @@ func parseHostPort(hostPort string, defaultHost string, defaultPort int) (string
 
 func (u *URLOption) Handle() error {
 	if u.urlStr == nil || *u.urlStr == "" {
-		return common.NewError("url is empty")
+		return option.NotSet()
 	}
 
 	info, err := NewShareInfoFromURL(*u.urlStr)
