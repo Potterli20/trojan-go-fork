@@ -21,8 +21,8 @@ func TestCredentialsAreStillRemoved(t *testing.T) {
 		in    string
 		leaks []string
 	}{
-		{"裸 56 位 SHA224（trojan 的线上凭据等价物）", "trojan: invalid hash " + hash56, []string{hash56, hash56[:40]}},
-		{"40 位以上十六进制串", "geodata checksum " + hash56[:40] + " mismatch", []string{hash56[:40]}},
+		{"裸 56 位 SHA224（trojan 的线上凭据等价物）", "trojan: invalid hash " + hash56, []string{hash56, hash56[:40], hash56[40:]}},
+		{"40 位以上十六进制串", "geodata checksum " + hash56[:44] + " mismatch", []string{hash56[:40], hash56[40:44]}},
 		{"JWT 的 payload 段", "rejected jwt " + jwtToken, []string{"eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvIExvbiJ9", "dtC1YDlUdE3zqC4mD7pLd0Tov7b8VzQm3rJ1kZ2xYqw", jwtToken}},
 		{"key=value 形态", "load config password=hunter2failed", []string{"hunter2failed"}},
 	}
