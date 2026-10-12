@@ -1432,3 +1432,43 @@ func TestBatchTrafficUpdater_CancelInterruptsRetrySleep(t *testing.T) {
 		t.Fatal("ctx cancel 后 batchTrafficUpdater 仍未退出（可能被永久 sleep 卡住）")
 	}
 }
+
+// TestNewAuthenticatorRejectsEmptyPassword 钉的是一条免密通道：
+// cfg.Passwords 里出现空串时，原来会照常走 `hash := SHA224String("")` + AddUser，
+// 而 SHA224("") 是公开常量 —— 任何知道（或猜到）服务端配了空密码的人都能直接连上。
+// 模板渲染出空变量、`password: ["", "real"]` 这种笔误都是真实场景。
+//
+// 本仓库其它地方本来就拒绝空密码：easy 模式（-password）里是
+// `log.Fatal("empty password is not allowed")`。所以这不是新增策略，是把配置文件
+// 这条路径补成和它一致。
+func TestNewAuthenticatorRejectsEmptyPassword(t *testing.T) {
+	cfg := &Config{Passwords: []string{"good-password-1234567890", ""}}
+	auth, err := NewAuthenticator(config.WithConfig(context.Background(), Name, cfg))
+	if err == nil {
+		auth.Close() //gosec:disable -- 错误忽略：这条断言本身就是失败
+		t.Fatal(`配置里含空密码时应当拒绝创建认证器，而不是注册一个 SHA224("") 用户`)
+	}
+	if auth != nil {
+		auth.Close() //gosec:disable -- 错误忽略：拒绝路径不该返回实例
+		t.Fatalf("返回错误的同时还能返回一个已启动的认证器：说明校验太晚，sqlite/goroutine 已经开出去了：%T", auth)
+	}
+}
+
+// TestNewAuthenticatorAcceptsNormalPasswords 是同一条校验的阳性对照：
+// 只有真实密码时一切照常，且空串那个哈希绝不能是有效用户。
+func TestNewAuthenticatorAcceptsNormalPasswords(t *testing.T) {
+	const pwd = "good-password-1234567890"
+	cfg := &Config{Passwords: []string{pwd}}
+	auth, err := NewAuthenticator(config.WithConfig(context.Background(), Name, cfg))
+	if err != nil {
+		t.Fatalf("合法配置被拒绝了: %v", err)
+	}
+	defer auth.Close() //gosec:disable -- 错误忽略：测试清理
+
+	if valid, _ := auth.AuthUser(common.SHA224String(pwd)); !valid {
+		t.Fatal("合法密码没有注册成用户")
+	}
+	if valid, _ := auth.AuthUser(common.SHA224String("")); valid {
+		t.Fatal(`空串的哈希竟然是有效用户：等于开着一条公开可用的免密通道`)
+	}
+}

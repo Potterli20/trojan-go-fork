@@ -678,6 +678,17 @@ func (a *Authenticator) SetUserIPLimit(hash string, limit int) error {
 
 func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
+	// 空密码必须在这里、在任何资源分配之前就拒掉：SHA224("") 是一个公开常量，
+	// 把它当成用户注册进去等于给全网开一条免密通道（模板渲染出空变量、
+	// password: ["", "real"] 这类笔误都是真实场景）。
+	// easy 模式（-password）本来就 log.Fatal 拒绝空密码，配置文件这条路不能更宽松。
+	// 放在最上面是因为再往下就已经打开 sqlite 持久化器、起后台协程了。
+	for i, password := range cfg.Passwords {
+		if password == "" {
+			return nil, common.NewError(fmt.Sprintf(
+				"password #%d is empty: the hash of an empty password is a public constant, refusing to start", i+1))
+		}
+	}
 	// 派生自有 ctx:认证器的生命周期(含 batchTrafficUpdater)由自身 Close 控制,
 	// 不依赖调用方取消父 ctx
 	ctx, cancel := context.WithCancel(ctx)

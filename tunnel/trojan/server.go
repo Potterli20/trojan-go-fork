@@ -43,7 +43,12 @@ type authInstance struct {
 	refcnt int
 }
 
-func acquireAuth(ctx context.Context, cfg *Config) *authInstance {
+// acquireAuth 取（或按需重建）包级共享认证器。失败时把**原始原因**返回给调用方：
+// 以前这里是 log.Error 之后 return nil，调用点只能凭空造一句
+// "trojan failed to create authenticator"，用户拿到手的错误链里就没有根因了
+// （实测配置文件写空密码时，最后两行日志只剩 "trojan failed to create authenticator"，
+// 真正那句 "password #1 is empty..." 只在中间一行 ERROR 里）。
+func acquireAuth(ctx context.Context, cfg *Config) (*authInstance, error) {
 	authMu.Lock()
 	defer authMu.Unlock()
 	if Auth == nil || current == nil || current.auth != Auth {
@@ -61,14 +66,13 @@ func acquireAuth(ctx context.Context, cfg *Config) *authInstance {
 		}
 		if err != nil {
 			cancel()
-			log.Error(common.NewError("failed to create authenticator").Base(err))
-			return nil
+			return nil, common.NewError("failed to create authenticator").Base(err)
 		}
 		Auth = auth
 		current = &authInstance{auth: auth, ctx: authCtx, cancel: cancel}
 	}
 	current.refcnt++
-	return current
+	return current, nil
 }
 
 // releaseAuth 归还一次引用；只有最后一个使用者会真正关闭认证器。
@@ -436,10 +440,10 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
 	ctx, cancel := context.WithCancel(ctx)
 
-	ref := acquireAuth(ctx, cfg)
-	if ref == nil {
+	ref, err := acquireAuth(ctx, cfg)
+	if err != nil {
 		cancel()
-		return nil, common.NewError("trojan failed to create authenticator")
+		return nil, err
 	}
 	auth := ref.auth
 
