@@ -194,7 +194,12 @@ func (a *Address) ReadFrom(r io.Reader) (int64, error) {
 	case DomainName:
 		n, err := io.ReadFull(r, byteBuf[:])
 		total += int64(n)
-		length := byteBuf[0]
+		// 长度必须立刻升到 int：byte 参与加法会在 254/255 处回绕
+		// （254→0、255→1），make 出来的缓冲比域名短，随后的 buf[:length] 与
+		// buf[length:length+2] 直接切片越界 panic —— 一个 254/255 字节的主机名
+		// 既读不回来，又能把进程打崩（socks / freedom / simplesocks 这几条调用链
+		// 上没有 recover，只有 mux / tls / trojan 三处有）。
+		length := int(byteBuf[0])
 		if err != nil {
 			return total, common.NewError("failed to read domain name length")
 		}

@@ -52,6 +52,11 @@ type Tunnel interface {
 - Tunnel `Name()` MUST equal the config-registry name and the stack-list name. String identity matters.
 - **没有** per-tunnel 实例 ID：`ctx.Value(Name+"_ID")` 永远取不到值（原先唯一的写入点已删除，且它的 key 类型是包内私有的、别人根本读不到）。需要按会话区分实例请另想机制。
 - `Conn.Metadata()` returns negotiated `*Metadata` on inbound conns; outbound conns use `Metadata` passed to `DialConn`.
+- **线上格式里的长度/偏移一律先升到 `int` 再参与加法。** `metadata.go` 里
+  `make([]byte, length+2)`（`length` 是 `byte`）在 254/255 处回绕成 0/1，缓冲比域名还短，
+  下一句 `buf[:length]` 直接切片越界 panic。影响面是全仓共用的握手解码：实测（HEAD 二进制）
+  未认证的本地 SOCKS5 入口收到一个 255 字节主机名就整个进程崩掉——`socks` 这条链上没有
+  recover（只有 `mux`/`tls`/`trojan` 三处有）。门禁见 `tunnel/metadata_wire_test.go`。
 - **relay 没有半关闭**：`proxy/proxy.go` 的 `relayConnLoop` 是「任一方向结束就拆掉整个会话」
   （两个 `io.CopyBuffer` 共享一个 `done`，谁先返回谁触发，随后 `defer` 关掉两端）。
   `tunnel.Conn` 接口也没有 `CloseWrite`，所以无法只断一个方向。写 tunnel 时必须假设：
