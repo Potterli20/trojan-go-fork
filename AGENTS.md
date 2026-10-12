@@ -62,10 +62,10 @@ All modules self-register in `init()`. Nothing is wired explicitly in `main.go` 
 Set via `go build -tags "..."`. Selection happens entirely through `component/*.go` `//go:build` lines.
 
 - `full` — default Makefile target; pulls everything
-- `mini` — trojan core only (no forward/nat/api/mysql)
-- `client`, `server`, `forward`, `nat`, `custom` — mode-specific subsets
-- `api` — gRPC API server
-- `mysql` — extra auth backend (`statistic/mysql`, registered only under this tag). The sqlite persistence backend needs **no tag**: it is imported unconditionally by `statistic/memory` and gated by platform build tags inside `statistic/sqlite` (linux amd64/386/arm/arm64; other platforms get a stub that refuses to start)
+- `mini` — 只排除三样：`api`（gRPC 服务）、`custom`（自定义栈 run-type）与 `other`（`-url` / easy 这两个 CLI 入口，`component/other.go`）。**client / server / forward / nat 四个 run-type 以及 mysql 后端在 mini 里都在**（`component/{client,server,forward,nat,mysql}.go` 的标签都是 `xxx || full || mini`）
+- `client`, `server`, `forward`, `nat`, `custom` — mode-specific subsets（`custom` 只在 `custom || full`，不进 mini）
+- `api` — gRPC API server (`api || full`)
+- `mysql` — 只是"额外打开" `statistic/mysql`：**`full` 和 `mini` 本来就已经包含它**（标签是 `mysql || full || mini`），所以"不加 mysql 标签就没有 MySQL 后端"的说法不成立。The sqlite persistence backend needs **no tag**: it is imported unconditionally by `statistic/memory` and gated by platform build tags inside `statistic/sqlite` (linux amd64/386/arm/arm64; other platforms get a stub that refuses to start)
 - Platform: `tproxy` and `nat` proxy are Linux-only (`tunnel/tproxy/`, `proxy/nat/nat.go`)
 
 ## Commands
@@ -86,6 +86,9 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
 - No `go:generate` directives anywhere. Protobuf regen is manual (`api/service/gen.sh`).
 - `tunnel/tls/fingerprint/` vendors uTLS ClientHello IDs — updating uTLS may require touching this list.
 - `tunnel/router/` uses v2ray's geosite/geoip data format; bundles no data — user supplies `.dat`.
+- **配置解析是"同一份文档喂给所有已注册模块"**（`config.parseJSON`/`parseYAML` 遍历整个 registry）。因此只要两个模块把**同一个 JSON 路径**绑到不同类型，整份配置就会在启动时被第一个 `Unmarshal` 错误拒掉，而且报错的模块取决于用户没写的那个模块——排查起来很怪。2026-10-12 全仓核过：同名键 `alpn` / `password` / `path` / `ssl` 都分属不同路径（`quic.alpn` vs `ssl.alpn`、`mysql.password` vs 顶层 `password`、`inbound.path` vs `websocket.path`、`api.ssl` vs `ssl`），今天无碰撞；**新增模块时要照这个约束检查**（注意 `full`/`mini`/`api` 等 build tag 会改变注册了哪些模块，同一份配置在不同构建下的成败可能不同）。
+- **`redirector` 的 X-Forwarded-For 注入目前整条路径不可达**：`Redirection.ClientIP` 没有任何调用点赋值（全仓 grep `ClientIP:` 零命中），所以 `worker()` 里 `if redirection.ClientIP != ""` 恒假，`injectForwardedHeader` 事实上不会被执行——它是半成品而不是在用功能，按项目规矩只记录、不顺手删。要真正启用得先在调用侧决定"客户端 IP 从哪来、给谁看"。
+- `common/geodata.EmitBytes` 的读取长度来自 `.dat` 里的 varint，**分配前必须用文件剩余长度卡住**（`ErrInvalidGeodataLength`）。损坏的 geoip.dat 曾直接 `make([]byte, 1<<60)` ⇒ `makeslice: len out of range` panic，而 router 是在启动时加载它的。改这里时别退回"一次 `f.Read` 读不满就报硬错误"：`io.Reader` 允许短读，必须用 `io.ReadFull`。
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
