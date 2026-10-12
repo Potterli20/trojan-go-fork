@@ -21,7 +21,7 @@ Trojan-Go Fork 是基于 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/troj
   - [可移植性](#可移植性)
   - [简易配置](#简易配置)
   - [WebSocket](#websocket)
-  - [HTTP/2 隧道（未实现）](#http2-隧道未实现)
+  - [HTTP/2 代理入口（h2c）](#http2-代理入口h2c)
   - [HTTP/3 QUIC 隧道](#http3-quic 隧道)
   - [多路复用](#多路复用)
   - [路由模块](#路由模块)
@@ -221,28 +221,33 @@ Trojan-Go Fork 支持 TLS + WebSocket 承载 Trojan 协议，可利用 CDN 进�
 
 > 注意：标准 Trojan 不支持 WebSocket。如需使用 WebSocket 承载流量，请确保通信双方均使用 Trojan-Go Fork。
 
-### HTTP/2 隧道（未实现）
+### HTTP/2 代理入口（h2c）
 
-**HTTP/2 承载目前没有实现**，本节此前给出的 `"http2": { "enabled": true, ... }` 是错的，
-现已更正。可核对的事实：
+`tunnel/http`（本地 HTTP 代理入口）会嗅探 HTTP/2 前文：一条连接只要以 `PRI *` 开头，
+就整条交给 h2c（先前知识、明文）处理。**绝对 URI 形态**的代理请求 —— 即浏览器对明文
+代理开启 `proxy-http2` 后发出的那一种 —— 每条流拆成一个独立的转发会话，上层
+（trojan / mux / simplesocks…）看到的形状与 HTTP/1.1 完全一致。
 
-- `tunnel/http` 从未注册 config creator（已注册的是 TLS/WebSocket/MUX/ROUTER/
-  SHADOWSOCKS/QUIC/adapter/socks/dokodemo/freedom/trojan/transport/tproxy/api/统计后端等），
-  因此配置里的 `http2` 段根本不会被解析；
-- 全仓没有导入 `golang.org/x/net/http2`，没有任何 HTTP/2 分帧、HPACK 或推送实现；
-- `tunnel/http` 里原先还剩一层 `HTTP2Config`/`NewServerWithHTTP2` 脚手架，`Server` 把
-  它存进字段后再没有任何代码读过——形同"配了也没用"，已随本节一并删除。
+不需要改配置，也不新增任何配置项：嗅探是自动的，h1 连接照旧走 h1，同一条连接不会
+混用两种版本。
 
-`ssl` 段的 `alpn` 列表倒是真的会透传给 `crypto/tls`，但**不要**把它设成 `["h2"]`：
-本实现没有 h2 帧处理，协商成功也只会把流量送进一个没人解析的分支。
+能核对的边界：
 
-需要单连接并发（避免队头阻塞）请改用下面两节之一：
+- **CONNECT 不支持，显式回 501。** Go 的 http2 服务端没有实现 `http.Hijacker`
+  （整个包里零命中），桥不出裸隧道。要 CONNECT 请用 HTTP/1.1。
+- **这不是「HTTP/2 承载」。** h2c 只存在于本地代理入口这一跳；trojan / mux / quic
+  等承载层里没有任何 h2 帧处理。`ssl` 段的 `alpn` 仍然不要设成 `["h2"]` —— 远端
+  协商到 h2 只会把字节送进一个没人解析的分支。
+- `tunnel/http` 依旧没有注册 config creator，所以配置里写 `"http2": { ... }`
+  不会被解析。这不是漏了实现，而是这个模块本来就没有可配项。
+
+承载层的队头阻塞仍然要靠这两节解决（h2c 只解决本地代理入口那一跳的并发）：
 
 - [多路复用](#多路复用)：`mux`，在一条 TCP/TLS 连接上跑多个流；
-- [HTTP/3 QUIC 隧道](#http3-quic 隧道)：QUIC 原生多流，且 `quic` 配置确实已注册、会生效。
+- [HTTP/3 QUIC 隧道](#http3-quic-隧道)：QUIC 原生多流，且 `quic` 配置确实已注册、会生效。
 
-> 将来若要真正实现 HTTP/2 承载，除了写分帧与 HPACK，还要给 HTTP 模块注册 config
-> creator，否则新配置项依旧是一句空话——这正是本节曾经出错的地方。
+> 将来若要给**承载层**加 HTTP/2，得先给那个模块注册 config creator，否则新配置项
+> 依旧是一句空话 —— 这正是本节曾经出错的地方。
 
 ### HTTP/3 QUIC 隧道
 

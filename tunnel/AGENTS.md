@@ -40,7 +40,7 @@ type Tunnel interface {
 | `transport/` | transport | TCP raw; fallback listener。关于 “导入 websocket/http 会成 import cycle” 的注释在 `server.go` 里（旧文档记的行号已漂移，按内容找） |
 | `tproxy/` | inbound | **Linux-only** (`//go:build linux`). IP_TRANSPARENT |
 | `socks/` | inbound | SOCKS5 server |
-| `http/` | inbound | HTTP/HTTPS proxy server |
+| `http/` | inbound | HTTP/HTTPS proxy server。h1 之外还嗅探 h2c 前文并整条交给 `h2.go`；h2 上的 CONNECT 显式回 501 |
 | `adapter/` | inbound | Protocol sniffing dispatcher (socks vs http) |
 | `router/` | routing | Geosite/geoip. See `tunnel/router/AGENTS.md` |
 | `dokodemo/` | inbound | Fixed-target redirect (like v2ray dokodemo-door) |
