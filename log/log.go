@@ -178,13 +178,24 @@ func Logf(level LogLevel, format string, v ...any) {
 	}
 }
 
-var SensitivePatterns = []*regexp.Regexp{
-	regexp.MustCompile(`(?i)password\s*[=:]\s*["']?[^"'\\\s]+["']?`),
-	regexp.MustCompile(`(?i)(api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token|bearer[_-]?token)\s*[=:]\s*["']?[^"'\\\s]+["']?`),
-	regexp.MustCompile(`(?i)(secret|token|credential|passwd)\s*[=:]\s*["']?[^"'\\\s]+["']?`),
-	regexp.MustCompile(`[a-f0-9]{40}`),
-	regexp.MustCompile(`eyJhbGciOiJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+`),
-	regexp.MustCompile(`[a-zA-Z0-9]{32,}`),
+// sensitiveRule 的一条：正则 + 替换串。replacement 里用 ${1} 把键名留住，
+// 只把值换成占位符；纯凭据形态（没有键名可留）整段替换。
+type sensitiveRule struct {
+	re          *regexp.Regexp
+	replacement string
+}
+
+// 顺序有意义：具体形态必须排在通用兜底（最后那条 32+ 位串）之前。
+// 例如 JWT 的 header 段本身就满足通用规则，若先跑通用规则，
+// payload/签名两段会留下半截可见。
+var SensitivePatterns = []sensitiveRule{
+	{regexp.MustCompile(`(?i)(password\s*[=:]\s*)["']?[^\s"']*["']?`), "${1}[REDACTED]"},
+	{regexp.MustCompile(`(?i)((?:api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token|bearer[_-]?token)\s*[=:]\s*)["']?[^\s"']*["']?`), "${1}[REDACTED]"},
+	{regexp.MustCompile(`(?i)((?:secret|token|credential|passwd)\s*[=:]\s*)["']?[^\s"']*["']?`), "${1}[REDACTED]"},
+	{regexp.MustCompile(`[a-f0-9]{40,}`), "[REDACTED]"},
+	// 一整段 JWT 连同它的三段一起吃掉（字符类里带 '.'）
+	{regexp.MustCompile(`eyJhbGciOiJ[a-zA-Z0-9_.=-]+`), "[REDACTED]"},
+	{regexp.MustCompile(`[a-zA-Z0-9]{32,}`), "[REDACTED]"},
 }
 
 var SensitiveKeywords = []string{
@@ -193,19 +204,29 @@ var SensitiveKeywords = []string{
 	"credentials", "credential", "private-key", "privatekey",
 }
 
+// ObfuscateSensitiveData 遮住凭据，但尽量留下上下文。
+//
+// 关键词命中仍然整行打码：命中 "password"/"token" 这类词的行通常是配置转储，
+// 逐段遮反而容易漏。模式命中改成只替换命中的片段 —— 旧实现里最后那条
+// 「32 位以上连续字母数字」会把整行换成 [REDACTED]，实测连
+// "tls failed to handshake with https://…长路径…" 和 32 位 trace id 都会被
+// 整行抹掉：那不是凭据，而是运维唯一能看到的上下文。
+// redactedPlaceholder 是命中内容的替换产物。它自身只有 9 个字母，不会再被后续
+// 规则当成凭据重复吃掉。
+const redactedPlaceholder = "[REDACTED]"
+
 func ObfuscateSensitiveData(str string) string {
 	lowerStr := strings.ToLower(str)
 	for _, keyword := range SensitiveKeywords {
 		if strings.Contains(lowerStr, keyword) {
-			return "[REDACTED]"
+			return redactedPlaceholder
 		}
 	}
-	for _, pattern := range SensitivePatterns {
-		if pattern.MatchString(str) {
-			return "[REDACTED]"
-		}
+	out := str
+	for _, rule := range SensitivePatterns {
+		out = rule.re.ReplaceAllString(out, rule.replacement)
 	}
-	return str
+	return out
 }
 
 func SanitizeString(s string) string {

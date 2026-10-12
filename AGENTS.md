@@ -46,6 +46,7 @@ All modules self-register in `init()`. Nothing is wired explicitly in `main.go` 
 - **Errors**: use `common.NewError(msg)` and `.Base(err)` — concatenates `" | " + err.Error()`. No `Unwrap` chain. `errors.Is`/`errors.As` DO NOT WORK across `.Base()` boundaries. 见 `common/error.go` 里的 `NewError` 与 `(*Error).Base`。
 - **Panics via `Must`**: `common.Must(err)`, `common.Must2(x, err)` panic on non-nil err. 用于启动期不可恢复的接线（`common/error.go` 的 `Must`/`Must2`）。
 - **Log levels are INVERTED**: `0=AllLevel, 1=InfoLevel, 2=WarnLevel, 3=ErrorLevel, 4=FatalLevel, 5=OffLevel`，另有 `TraceLevel = -1` 与 `DebugLevel == AllLevel == 0`（见 `log/log.go` 的级别常量块）。Lower = more verbose.
+- **日志的凭据脱敏是"尽力而为"，不要当护栏用**（`log/log.go` 的 `ObfuscateSensitiveData`）：命中 `SensitiveKeywords`（password/token/secret/credential…）是**整行**替换成 `[REDACTED]`；只命中 `SensitivePatterns` 时**只遮命中的那段**，保留错误链上下文（旧实现连 32+ 位字母数字都要整行打码，把可诊断性一起丢了）。两个后果要记住：① 任何短于 32 字符、又不带关键词上下文的凭据**不会**被遮；② 含关键词的行整行没意义了，所以别把有用的诊断信息和 "token" 之类词写在同一条日志里。凭据要保密就**根本不要写进日志**。
 - **No per-instance ID.** 曾经在 `NewProxyFromConfigData` 里写入过一个 `proxyIDKey("PROXY_ID")`，但 key 类型是包内私有的——包外**无法构造**同一个 key 去读，包内也没有读者，所以它已被删除。旧文档说的“每个 creator 各自 `context.WithValue(ctx, Name+"_ID", …)`、靠它支持同 tunnel 多实例并存”**在代码里从来不存在**（没有任何 tunnel 读 `NAME_ID`）；要按会话区分实例需另想机制。
 - **Context cancel is the shutdown primitive**: `proxy/proxy.go` 的 `relayConnLoop`/`relayPacketLoop` 在 select 里带上 `ctx.Done()` to exit `Accept` blocking calls. All `Tunnel.NewClient/NewServer` implementations must respect `ctx`.
 
