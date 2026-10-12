@@ -22,6 +22,7 @@ Trojan-Go Fork 是基于 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/troj
   - [简易配置](#简易配置)
   - [WebSocket](#websocket)
   - [HTTP/2 代理入口（h2c）](#http2-代理入口h2c)
+  - [重定向（诱饵）与客户端地址注入](#重定向诱饵与客户端地址注入)
   - [HTTP/3 QUIC 隧道](#http3-quic 隧道)
   - [多路复用](#多路复用)
   - [路由模块](#路由模块)
@@ -248,6 +249,38 @@ Trojan-Go Fork 支持 TLS + WebSocket 承载 Trojan 协议，可利用 CDN 进�
 
 > 将来若要给**承载层**加 HTTP/2，得先给那个模块注册 config creator，否则新配置项
 > 依旧是一句空话 —— 这正是本节曾经出错的地方。
+
+### 重定向（诱饵）与客户端地址注入
+
+认证失败或载荷不合法时，连接会被交给 `redirector` 原样中继到一个回退地址，让探测者
+以为撞上了真站点。回退地址由 `ssl.fallback_addr` / `ssl.fallback_port`（TLS 层）或
+服务端的 `remote-addr` / `remote-port`（trojan 层）决定。
+
+默认**一个字节都不改**。要让回退服务器看到客户端地址，显式打开顶层开关
+（YAML `redirect-client-ip`，JSON `redirect_client_ip`）：
+
+```yaml
+redirect-client-ip: true
+```
+
+打开后，重定向流量里的 **HTTP 请求**会被追加两行请求头再转发；已有
+`X-Forwarded-For` 时是追加而不是覆盖：
+
+```
+X-Forwarded-For: <客户端地址>
+X-Real-IP: <客户端地址>
+```
+
+三条边界都是有意为之：
+
+- **取的是 TCP 对端地址。** trojan 自己的 `trust-headers` 会读
+  `CF-Connecting-IP` / `X-Forwarded-For`，但走到重定向这一支时认证已经失败、那个 IP
+  还没解析出来。节点挂在 CDN 后面时，这里就是 CDN 的地址。
+- **不是 HTTP 请求的载荷原样中继。** 裸 TCP 探测、其他协议的握手，即使里面带
+  `\r\n\r\n` 也不会被加头 —— 加了就把那个协议自己的字节改坏了。旧实现会加头，
+  并且在"读不出完整头部块"时直接掐断连接（等于向探测者自曝），现在改为继续中继。
+- **开关默认关。** 打开意味着把客户端地址交给回退服务器那一方，属于对外发送数据，
+  由运维显式决定。
 
 ### HTTP/3 QUIC 隧道
 
