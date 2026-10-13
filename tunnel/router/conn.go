@@ -176,7 +176,8 @@ func (c *PacketConn) WriteTo(p []byte, addr net.Addr) (n int, err error) {
 	if !ok {
 		return 0, common.NewError("invalid UDP address")
 	}
-	address, err := tunnel.NewAddressFromAddr("udp", udpAddr.String())
+	// 已经拿到 *net.UDPAddr 了，别再拼成字符串重新解析（每包一次）
+	address, err := tunnel.NewAddressFromNetAddr("udp", udpAddr)
 	if err != nil {
 		return 0, common.NewError("failed to create tunnel address").Base(err)
 	}

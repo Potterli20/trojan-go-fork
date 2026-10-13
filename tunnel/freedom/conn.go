@@ -56,7 +56,8 @@ func (c *PacketConn) ReadWithMetadata(p []byte) (int, *tunnel.Metadata, error) {
 	if err != nil {
 		return 0, nil, err
 	}
-	address, err := tunnel.NewAddressFromAddr("udp", addr.String())
+	// 每包一次的地址组装：底层就是 *net.UDPAddr，不必再走一遍字符串往返
+	address, err := tunnel.NewAddressFromNetAddr("udp", addr)
 	if err != nil {
 		return 0, nil, common.NewError("freedom failed to parse packet address").Base(err)
 	}
