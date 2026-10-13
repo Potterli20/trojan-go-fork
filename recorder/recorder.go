@@ -1,14 +1,12 @@
 package recorder
 
 import (
-	"math"
 	"net"
 	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
 )
 
@@ -19,16 +17,30 @@ var subscriberCapacity atomic.Int32
 
 func init() { subscriberCapacity.Store(10) }
 
+// maxSubscriberCapacity 是每个订阅者缓冲的上限。
+//
+// channel 的容量是 Subscribe 那一刻**一次性预分配**的，而 Record 有 136 字节
+// （实测 reflect 值）：配 1<<20 就是每个订阅者 136MB，配到 2e9 直接
+// `fatal error: runtime: out of memory` —— 那是 runtime throw，不是 panic，
+// recover 抓不住，进程当场没了。而触发点是 `api/service` 的 GetRecords：
+// 任何一个能打 API 的客户端调一次，就能把整个服务端弄死。
+// 旧实现里"溢出就 clamp 到 MaxInt32"那条兜底恰恰是最坏的选择——它把越界值
+// 换成**可能最大**的容量。
+//
+// 上限取 4096 条 ≈ 0.5MB/订阅者：溢出时本来就按 select+default 丢弃，
+// 一个跟不上流的订阅者配多大的缓冲都一样丢。
+const maxSubscriberCapacity = 4096
+
 // SetCapacity 设置每个订阅者的缓冲容量（须在 Subscribe 之前调用才有意义）
 func SetCapacity(n int) {
-	if n > 0 {
-		cap, err := common.SafeInt32FromInt(n)
-		if err != nil {
-			// 溢出时 clamp 到 MaxInt32
-			cap = math.MaxInt32
-		}
-		subscriberCapacity.Store(cap)
+	if n <= 0 {
+		return
 	}
+	if n > maxSubscriberCapacity {
+		log.Warn("record_capacity", n, "is above the limit, clamped to", maxSubscriberCapacity)
+		n = maxSubscriberCapacity
+	}
+	subscriberCapacity.Store(int32(n)) //gosec:disable -- 上方已钳制到 maxSubscriberCapacity，转换恒安全
 }
 
 var subscribers sync.Map
