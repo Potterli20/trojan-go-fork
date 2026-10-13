@@ -36,10 +36,22 @@ type Server struct {
 	listenPacketConn tunnel.PacketConn
 	mapping          map[string]*PacketConn
 	mappingLock      sync.RWMutex
-	ctx              context.Context
-	cancel           context.CancelFunc
-	wg               sync.WaitGroup
+	// associations 是在途 UDP ASSOCIATE 的控制连接。它们既不下发给下游、
+	// 也不属于 mapping（mapping 按 UDP 源地址索引，和 TCP 源地址无关），
+	// 所以必须单独登记，否则 Server.Close 没有任何办法把它们关掉。
+	assocLock    sync.Mutex
+	associations map[tunnel.Conn]struct{}
+	ctx          context.Context
+	cancel       context.CancelFunc
+	wg           sync.WaitGroup
 }
+
+// associationMaxLife 是单条 ASSOCIATE 控制连接的最长生命。
+// RFC 1928 把这条连接当作 UDP 关联的生命周期，所以不能「回完响应就关」；
+// 但只靠对端 FIN 回收也不行：custom 栈可以把 socks 入站放到公网监听上，
+// 一个「建好关联就发呆」的对端能无上限地占住 fd + goroutine。
+// 到点关掉即可：UDP 中继会话本身有空闲超时，客户端重关联就能继续用。
+const associationMaxLife = 10 * time.Minute
 
 func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	select {
@@ -109,7 +121,10 @@ func (s *Server) acceptConnLoop() {
 					handledConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 					return
 				}
-				// associate 的 TCP 连接响应后即被放弃,无需解除截止时间
+				// 响应已发出，这条 TCP 连接按 RFC 是 UDP 关联的生命周期凭据，既不能
+				// 交给下游也不能就此弃用：旧实现两件事都没做，每来一个 ASSOCIATE 就
+				// 永久留下一个 fd（没人再读它，对端 FIN 也不会让本端 socket 消失）。
+				s.watchAssociation(handledConn)
 			default:
 				log.Error("socks unknown command", handledConn.Metadata().Command)
 				handledConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
@@ -120,6 +135,8 @@ func (s *Server) acceptConnLoop() {
 
 func (s *Server) Close() error {
 	s.cancel()
+	// 在途关联的读循环不看 ctx，不显式关掉它们的话下面的 wg.Wait 永远回不来
+	s.closeAssociations()
 	s.listenPacketConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	err := s.underlay.Close()
 	s.wg.Wait()
@@ -186,6 +203,61 @@ func (s *Server) associate(conn net.Conn, addr *tunnel.Address) error {
 	}
 	_, err = conn.Write(buf.Bytes())
 	return err
+}
+
+// watchAssociation 接管一条已经回完 ASSOCIATE 响应的控制连接：读到对端关闭为止，
+// 然后回收这个 fd。读循环阻塞在 conn.Read 上、不看 ctx，所以连接登记在
+// associations 里，由 Close 显式关掉来唤醒——否则 Close 的 wg.Wait 挂死。
+func (s *Server) watchAssociation(conn tunnel.Conn) {
+	// 握手期设置的截止时间还挂着，必须解除：这条连接要靠对端 FIN 或
+	// associationMaxLife 结束，不能被 30s 的 handshakeTimeout 掐断
+	conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：失败时由 associationMaxLife 兜底
+
+	s.assocLock.Lock()
+	if s.ctx.Err() != nil {
+		// 与 Close 的排空竞争：对方已经收完登记表了，这里不能再塞进去
+		s.assocLock.Unlock()
+		conn.Close() //gosec:disable -- 错误忽略：关停路径，尽力关闭
+		return
+	}
+	if s.associations == nil {
+		s.associations = make(map[tunnel.Conn]struct{})
+	}
+	s.associations[conn] = struct{}{}
+	s.assocLock.Unlock()
+
+	s.wg.Go(func() {
+		defer func() {
+			s.assocLock.Lock()
+			delete(s.associations, conn)
+			s.assocLock.Unlock()
+			conn.Close() //gosec:disable -- 错误忽略：这里就是要无条件回收
+		}()
+		// 硬上限到点直接关闭，阻塞中的读循环会因此报错退出
+		killer := time.AfterFunc(associationMaxLife, func() { _ = conn.Close() })
+		defer killer.Stop()
+		buf := make([]byte, 64)
+		for {
+			if _, err := conn.Read(buf); err != nil {
+				log.Debug("socks association control connection ended")
+				return
+			}
+		}
+	})
+}
+
+// closeAssociations 关掉所有在途关联的控制连接，唤醒阻塞中的读循环。
+func (s *Server) closeAssociations() {
+	s.assocLock.Lock()
+	conns := make([]tunnel.Conn, 0, len(s.associations))
+	for c := range s.associations {
+		conns = append(conns, c)
+	}
+	s.associations = nil
+	s.assocLock.Unlock()
+	for _, c := range conns {
+		c.Close() //gosec:disable -- 错误忽略：关停路径，尽力关闭
+	}
 }
 
 func (s *Server) packetDispatchLoop() {
@@ -318,6 +390,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		connChan:         make(chan tunnel.Conn, 32),
 		packetChan:       make(chan tunnel.PacketConn, 32),
 		mapping:          make(map[string]*PacketConn),
+		associations:     make(map[tunnel.Conn]struct{}),
 		ctx:              ctx,
 		cancel:           cancel,
 		listenPacketConn: listenPacketConn,
