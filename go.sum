@@ -4,8 +4,8 @@ github.com/HyNetworks/quic-go v0.63.1-0.20261004180939-a10df75c260c h1:spAvK8Tcu
 github.com/HyNetworks/quic-go v0.63.1-0.20261004180939-a10df75c260c/go.mod h1:J7UZVOMF2M1LiE3iiUZWPuy8YCPAcLJOwVURrfJCvc0=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261009220355-dfd95367d331 h1:4q4/NrBlmIuAM3QqHEjrGSOzvb19I5RYmnNtl45aXVE=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261009220355-dfd95367d331/go.mod h1:cmWbxmkh+Idfsq6Q9n7V36aa91JucBaXxwDMgfnWwUo=
-github.com/Potterli20/socks5-fork v0.0.0-20261012210915-c38b9659e8dd h1:uU7qtF2XpHFOBGTTu8KpNG4eNXAjZAuZ0J4jEQCdz3c=
-github.com/Potterli20/socks5-fork v0.0.0-20261012210915-c38b9659e8dd/go.mod h1:n/sQT1H6/Ox2b2yC2cpWyDXAMe4gRLHR9CyIub6xgNs=
+github.com/Potterli20/socks5-fork v0.0.0-20261013062626-e54c654ed254 h1:vLJRVWvxjBwrE4eUAvQOV8TqFbNXZHVHLiV+LY4EYMc=
+github.com/Potterli20/socks5-fork v0.0.0-20261013062626-e54c654ed254/go.mod h1:FPbZOo0kvUQuUIdBy/rhvgeWaCpbXCWA32MijZuQtTU=
 github.com/Potterli20/sqlite v0.0.0-20261011210921-ee1bf2d1ab9e h1:KLtG53i9afv3EQec9lqXHVCQYymAHEkXIKWtTnMnaFQ=
 github.com/Potterli20/sqlite v0.0.0-20261011210921-ee1bf2d1ab9e/go.mod h1:31va0VAxgOxqDwMDtH1IDvkkB3g3iojawxkIC4fhMXk=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
@@ -100,8 +100,8 @@ golang.org/x/crypto/x509roots/fallback v0.0.0-20261005185213-c3db4df58582 h1:wjD
 golang.org/x/crypto/x509roots/fallback v0.0.0-20261005185213-c3db4df58582/go.mod h1:HPze8vhfG6fO06AM+VSvxRm4E3+5Yk375mgrJ5M2z1E=
 golang.org/x/exp v0.0.0-20260820142414-ca536658362e h1:01Ju2A/fZKkci4zqx0eZxw//DnRYOnBiGJG14hFBhO8=
 golang.org/x/exp v0.0.0-20260820142414-ca536658362e/go.mod h1:zeBbvyFKDaLwa7CH/zI8KXt7gTl14SF7sO08Pl5jBCM=
-golang.org/x/mod v0.41.0 h1:qJmnOUb4YB+FsEuM3HcWucdZASCPGhsX6uljO6pog0c=
-golang.org/x/mod v0.41.0/go.mod h1:Ek9pY8RKWXwsWvd3rQiHYtMqkjSUV+s1Rj7j4H5Ur6o=
+golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
+golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
 golang.org/x/net v0.61.0 h1:RR+6j/BTBCrggOLugxa+66R8FvoN6MHlzDlZIbN9YFw=
 golang.org/x/net v0.61.0/go.mod h1:WgDCOTH8iwtB66T4/GfI94AHo/hhdb7Hah9NDseQfiI=
 golang.org/x/sync v0.24.0 h1:iqiDrGoDgyuvAKrhLQthUEzU/R378N78gXbBjxed7oA=

@@ -115,8 +115,7 @@ func TestH1HostWithoutPortDefaultsTo80(t *testing.T) {
 // h2 用 :authority 表达目标，缺它就等于没有目的地 —— 直接打 handler，
 // 免得依赖框架自身的协议检查（那种绿测的是 stdlib，不是我这段代码）。
 func TestH2RequestWithoutAuthorityIsRejected(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	srv := &Server{ctx: ctx, connChan: make(chan tunnel.Conn, 4)}
 	h := &h2Handler{srv: srv}
 
