@@ -91,14 +91,14 @@ type SocksPacketConn struct {
 func (c *SocksPacketConn) WriteWithMetadata(payload []byte, metadata *tunnel.Metadata) (int, error) {
 	scratch := getSocksPacketBuf()
 	defer putSocksPacketBuf(scratch)
-	buf := bytes.NewBuffer(scratch[:0])
-	buf.Write([]byte{0, 0, 0}) // RSV, FRAG
-	_, err := metadata.Address.WriteTo(buf)
+	// 就地拼在池化切片上：Address.WriteTo 要为一次序列化额外分配临时切片，而这是每包一次
+	out := append(scratch[:0], 0, 0, 0) // RSV, FRAG
+	out, err := metadata.Address.AppendTo(out)
 	if err != nil {
 		return 0, common.NewError("freedom failed to write socks address").Base(err)
 	}
-	buf.Write(payload)
-	_, err = c.PacketConn.WriteTo(buf.Bytes(), c.socksAddr)
+	out = append(out, payload...)
+	_, err = c.PacketConn.WriteTo(out, c.socksAddr)
 	if err != nil {
 		return 0, err
 	}

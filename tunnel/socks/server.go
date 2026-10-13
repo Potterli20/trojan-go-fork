@@ -301,19 +301,21 @@ func (s *Server) packetDispatchLoop() {
 				timer := time.NewTimer(timeout)
 				defer timer.Stop()
 				responseBuf := make([]byte, MaxPacketSize)
-				responseBuffer := bytes.NewBuffer(responseBuf[:0])
 				for {
 					select {
 					case info := <-conn.output:
-						responseBuffer.Reset()
-						responseBuffer.Write([]byte{0, 0, 0}) // RSV, FRAG
-						_, err := info.metadata.Address.WriteTo(responseBuffer)
+						// 直接在会话自己那块 responseBuf 上就地拼：走 Address.AppendTo 而不是
+						// Address.WriteTo，后者每包还要再分配一个临时切片才能喂给 io.Writer
+						out := responseBuf[:0]
+						out = append(out, 0, 0, 0) // RSV, FRAG
+						var err error
+						out, err = info.metadata.Address.AppendTo(out)
 						if err != nil {
 							log.Error("socks failed to write address")
 							return
 						}
-						responseBuffer.Write(info.payload)
-						_, err = s.listenPacketConn.WriteTo(responseBuffer.Bytes(), conn.src)
+						out = append(out, info.payload...)
+						_, err = s.listenPacketConn.WriteTo(out, conn.src)
 						if err != nil {
 							log.Error("socks failed to respond packet to", conn.src)
 							return

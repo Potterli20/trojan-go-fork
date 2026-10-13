@@ -1,7 +1,6 @@
 package tunnel
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -35,19 +34,27 @@ func (r *Metadata) ReadFrom(rr io.Reader) (int64, error) {
 }
 
 func (r *Metadata) WriteTo(w io.Writer) (int64, error) {
-	buf := bytes.NewBuffer(make([]byte, 0, 64))
-	buf.WriteByte(byte(r.Command))
-	_, err := r.Address.WriteTo(buf)
+	if r.Address == nil {
+		return 0, common.NewError("cannot serialize metadata with nil address")
+	}
+	buf, err := r.AppendTo(make([]byte, 0, 1+r.Address.wireLength()))
 	if err != nil {
 		return 0, err
 	}
 	// use tcp by default
 	r.Address.NetworkType = "tcp"
-	n, err := buf.WriteTo(w)
-	if err != nil {
-		return n, err
+	n, err := w.Write(buf)
+	return int64(n), err
+}
+
+// AppendTo 把 Command + 地址按线上格式追加到 buf 末尾，返回增长后的切片。
+// 与 WriteTo 唯一的区别是不落地到 io.Writer，让手里已经有缓冲区的调用方零分配。
+func (r *Metadata) AppendTo(buf []byte) ([]byte, error) {
+	if r.Address == nil {
+		return buf, common.NewError("cannot serialize metadata with nil address")
 	}
-	return n, nil
+	buf = append(buf, byte(r.Command))
+	return r.Address.AppendTo(buf)
 }
 
 func (r *Metadata) Network() string {
@@ -266,46 +273,72 @@ func (a *Address) ReadFrom(r io.Reader) (int64, error) {
 	return total, nil
 }
 
-func (a *Address) WriteTo(w io.Writer) (int64, error) {
-	n, err := w.Write([]byte{byte(a.AddressType)})
-	if err != nil {
-		return int64(n), err
-	}
-	total := int64(n)
+// AppendTo 把地址按线上格式追加到 buf 末尾，返回增长后的切片。
+//
+// 这里从此是地址格式**唯一定义处**：WriteTo 变成"AppendTo + 一次 Write"的薄封装，
+// 两者不可能漂移。之所以要做这个形态，是因为 WriteTo 只能逐段 w.Write，而每个
+// []byte{...} 复合字面量都会逃逸到堆上——实测域名地址 4 次分配（含一次域名整串的
+// 转换）、IP 地址 2 次（本机 Ryzen 5 4500U，go1.27.1）。而 freedom / socks / trojan
+// 的 UDP 路径**每个包**都要序列化一次地址，前两处手里本来就有可复用的裸切片，
+// 走 AppendTo 就是零额外分配。
+//
+// 出错时返回的切片可能已经追加了部分内容，调用方必须整个丢弃。这也是与旧 WriteTo
+// 的一处**可观察差异**：旧实现会把已经写进 w 的 ATYP 字节留在流里再报错（只有直接调
+// Address.WriteTo 才有这个问题，Metadata.WriteTo 本来就攒在内部缓冲里、失败即丢弃）。
+// 全仓调用点都不看返回的字节数、且拿到 error 就等于放弃这个包/这条连接，所以统一成
+// "要么全写、要么一个字都不写"；域名超长或 ATYP 非法时不再往流里留半截垃圾字节。
+func (a *Address) AppendTo(buf []byte) ([]byte, error) {
+	buf = append(buf, byte(a.AddressType))
 	switch a.AddressType {
 	case DomainName:
 		if len(a.DomainName) > 255 {
-			return total, common.NewError("domain name too long for serialization")
+			return buf, common.NewError("domain name too long for serialization")
 		}
-		n, err := w.Write([]byte{byte(len(a.DomainName))}) //gosec:disable -- 上方已校验长度 <= 255
-		total += int64(n)
-		if err != nil {
-			return total, err
-		}
-		n, err = w.Write([]byte(a.DomainName))
-		total += int64(n)
-		if err != nil {
-			return total, err
-		}
+		buf = append(buf, byte(len(a.DomainName)))
+		buf = append(buf, a.DomainName...)
 	case IPv4:
-		n, err = w.Write(a.IP.To4())
-		total += int64(n)
+		// To4() 对纯 IPv6 返回 nil：旧实现是 w.Write(nil)，写 0 字节且不报错，
+		// append 空切片是同一件事——"ATYP 说是 v4 却只有 3 字节"这种畸形输出的形态没变，
+		// 判错仍然是调用方的责任，这里不趁重构顺手改语义
+		buf = append(buf, a.IP.To4()...)
 	case IPv6:
-		n, err = w.Write(a.IP.To16())
-		total += int64(n)
+		buf = append(buf, a.IP.To16()...)
 	default:
-		return total, common.NewError("invalid ATYP " + strconv.FormatInt(int64(a.AddressType), 10))
+		return buf, common.NewError("invalid ATYP " + strconv.FormatInt(int64(a.AddressType), 10))
 	}
-	if err != nil {
-		return total, err
-	}
-	port := [2]byte{}
 	portVal, e := common.SafeUint16FromInt(a.Port)
 	if e != nil {
-		return total, common.NewError("invalid port number: out of range").Base(e)
+		return buf, common.NewError("invalid port number: out of range").Base(e)
 	}
+	var port [2]byte
 	binary.BigEndian.PutUint16(port[:], portVal)
-	n, err = w.Write(port[:])
-	total += int64(n)
-	return total, err
+	buf = append(buf, port[:]...)
+	return buf, nil
+}
+
+// wireLength 是这个地址序列化后会占多少字节，只用来给 WriteTo 预分配容量。
+//
+// 它和 AppendTo 是两处代码，但**不需要**被同一组门禁钉住：这里算错只会多一次 append
+// 扩容（性能），改不了任何一个输出字节（正确性）。IPv4 分支按满 4 字节算，若 IP 其实
+// 是纯 IPv6，To4() 返回 nil、实际只写 3 字节，那就是多预留 4 字节，同样无害。
+func (a *Address) wireLength() int {
+	switch a.AddressType {
+	case DomainName:
+		return 1 + 1 + len(a.DomainName) + 2 // ATYP + 长度字节 + 域名 + 端口
+	case IPv4:
+		return 1 + 4 + 2
+	case IPv6:
+		return 1 + 16 + 2
+	default:
+		return 1 + 2
+	}
+}
+
+func (a *Address) WriteTo(w io.Writer) (int64, error) {
+	buf, err := a.AppendTo(make([]byte, 0, a.wireLength()))
+	if err != nil {
+		return 0, err
+	}
+	n, err := w.Write(buf)
+	return int64(n), err
 }
