@@ -4,16 +4,47 @@
 
 Trojan-Go-Fork 支持 JSON 和 YAML 两种配置文件格式。配置文件通过 `run_type` 字段区分客户端和服务端模式。
 
+同一份配置文档会被喂给**所有已注册模块**（`config/AGENTS.md`），各模块结构体里没声明的键会被
+`encoding/json` 静默丢弃——**键名写错、或者放错节，都不会报错**。本页的键名逐条对照代码写，
+仓库的 `.github/check-config-keys.py` 会按 (父节, 键) 成对校验本页与示例配置。
+
+- [基础配置](#基础配置)
+- [SSL/TLS 配置 (ssl)](#ssltls-配置-ssl)
+- [WebSocket 配置 (websocket)](#websocket-配置-websocket)
+- [QUIC 配置 (quic)](#quic-配置-quic)
+- [路由配置 (router)](#路由配置-router)
+- [Mux 多路复用配置 (mux)](#mux-多路复用配置-mux)
+- [TCP 配置 (tcp)](#tcp-配置-tcp)
+- [ShadowSocks 配置 (shadowsocks)](#shadowsocks-配置-shadowsocks)
+- [传输插件配置 (transport_plugin)](#传输插件配置-transport_plugin)
+- [出站控制 (freedom)](#出站控制-freedom)
+- [中继缓冲区 (relay_buffer_*)](#中继缓冲区-relay_buffer_)
+- [其它顶层键](#其它顶层键)
+- [日志 (log_level / log_file)](#日志-log_level--log_file)
+- [用户与流量后端](#用户与流量后端)
+- [管理接口 (api)](#管理接口-api)
+- [custom 模式的节点与路径 (inbound / outbound)](#custom-模式的节点与路径-inbound--outbound)
+- [完整配置示例](#完整配置示例)
+- [使用说明](#使用说明)
+
 ## 基础配置
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `run_type` | string | 运行模式：`client` 或 `server` |
+| `run_type` | string | 运行模式：`client` / `server` / `forward` / `nat` / `custom`（大小写不限，取值见下） |
 | `local_addr` | string | 本地监听地址 |
 | `local_port` | int | 本地监听端口 |
 | `remote_addr` | string | 远程服务器地址（客户端）或目标地址（服务端） |
 | `remote_port` | int | 远程服务器端口（客户端）或目标端口（服务端） |
 | `password` | []string | 密码数组，支持多用户认证 |
+
+`run_type` 是在 `proxy/proxy.go:471` 处 `ToUpper` 后查代理创建器注册表的，所以 `Client` 与
+`client` 等价；写注册表里没有的值直接报 `unknown proxy type: <值>` 并终止启动。五个合法值对应的
+语义：`client`（本地代理 → 上游 trojan 服务器）、`server`（trojan 入站 → 本地/Web 目标）、
+`forward`（透明转发，按目标地址直连）、`nat`（UDP 端口保持的 NAT 转发，仅 Linux）、
+`custom`（自己用 `inbound` / `outbound` 拼栈，见「custom 模式」一节）。可用哪些值还取决于构建标签
+（`client` / `server` / `forward` / `nat` 的标签都是 `xxx || full || mini`，`custom` 是
+`custom || full`，即 `mini` 里没有 `custom`；`nat` 的实现只在 Linux 编译得出来）。
 
 ### 客户端示例
 
@@ -398,14 +429,234 @@ outbound:
 
 | 字段 | 归属 | 说明 |
 |------|------|------|
-| `sqlite` | `statistic/memory` | 给一个路径即启用 SQLite 持久化（无独立配置段，也没有 `statistic.type` 这种键）；平台限制见 `statistic/sqlite` |
-| `MaxIPPerUser` | `statistic/memory` | 每用户并发 IP 上限，默认 0；注意它的大小写就是这个拼法 |
-| `mysql` | `statistic/mysql` | MySQL 后端整段 |
-| `api` | `api/service` | gRPC 管理接口：`enabled` / `api_addr` / `api_port` / `ssl`（**没有** user/passwd） |
+| `log_level` | `proxy` | 日志级别（int，**数值越小越啰嗦**），默认 1；见「日志」一节 |
+| `log_file` | `proxy` | 日志文件路径，留空写标准输出；见「日志」一节 |
+| `sqlite` | `statistic/memory` | 给一个路径即启用 SQLite 持久化（无独立配置段，也没有 `statistic.type` 这种键）；平台限制见「用户与流量后端」 |
+| `MaxIPPerUser` | `statistic/memory` | 每用户并发 IP 上限，默认 0 = 不限；注意它的大小写就是这个拼法 |
+| `mysql` | `statistic/mysql` + `tunnel/trojan` | MySQL 后端整段；其中 `enabled` 由 trojan 入站读取用于选后端，见「用户与流量后端」 |
+| `api` | `api/service` + `tunnel/trojan` | gRPC 管理接口整段（`enabled` / `api_addr` / `api_port` / `ssl`，**没有** user/passwd）；见「管理接口」 |
 | `redirect_client_ip` | `redirector` | 是否把客户端地址注入重定向请求（`X-Forwarded-For` / `X-Real-IP`），默认关 |
 | `udp_timeout` | `tunnel/socks`、`tunnel/dokodemo`、`tunnel/tproxy` | UDP 会话空闲超时（秒），三处默认都是 60 |
 | `target_addr` / `target_port` | `tunnel/dokodemo` | 固定目标 |
 | `trust_headers` / `disable_http_check` / `record_capacity` | `tunnel/trojan` | trojan 入站行为 |
+| `inbound` / `outbound` | `proxy/custom` | 只在 `run_type: custom` 生效，见「custom 模式」 |
+
+## 日志 (log_level / log_file)
+
+| 字段 | 类型 | 说明 | 默认值 |
+|------|------|------|--------|
+| `log_level` | int | 日志级别，**数值越小越啰嗦** | 1（InfoLevel） |
+| `log_file` | string | 日志文件路径；留空则写**标准输出**（实测 stderr 一行都没有） | 空 |
+
+级别取值来自 `log/log.go` 的常量块，顺序是反的：
+
+| 值 | 级别 | 值 | 级别 |
+|----|------|----|------|
+| `-1` | Trace | `3` | Error |
+| `0` | All / Debug（最啰嗦） | `4` | Fatal |
+| `1` | Info | `5` | Off（完全静默） |
+| `2` | Warn | | |
+
+- 声明在 `proxy/config.go`，YAML 的拼法是 `log-level` / `log-file`。
+- `log_file` 非空时以 `0600` 权限追加打开（`proxy/proxy.go:478-486`）。
+- **只能填数字**：字段类型是 `int`。实测把 `log-level: info` 写进 YAML 会在启动期直接 FATAL，
+  报 `failed to create proxy | yaml: unmarshal errors: line N: cannot unmarshal !!str "info"
+  into int`（2026-10-13 复现）。仓库里的示例配置原先就有这一写法，已改回数字。
+- 脱敏是"尽力而为"（`log/log.go` 的 `ObfuscateSensitiveData`）：短于 32 字符、又不带
+  password/token 这类关键词的凭据**不会**被遮。要保密的凭据就别写进日志。
+
+## 用户与流量后端
+
+服务端用户来自顶层 `password` 数组，每个密码在内部换成 **SHA224 摘要的 56 个十六进制字符**（28
+字节）作为用户标识（`common.SHA224String`，协议规定的算法，换不掉）。`-api list` 输出的 `hash`、
+MySQL `users` 表里 `password` 列存的值，都是这个哈希串，不是明文密码。
+
+**空密码会被拒绝**：SHA224("") 是公开常量，收下一个空密码等于多开一个免密用户，所以
+`rejectEmptyPassword` 在 `AddUser` 入口就报 `refusing to use an empty password`
+（`statistic/memory/memory.go:546-553`）。
+
+后端与持久化由这三处决定，判定顺序在 `tunnel/trojan/server.go:58-66`——先看
+`mysql.enabled`，为真用 MySQL 认证器，否则用 memory：
+
+| 键 | 效果 |
+|----|------|
+| `sqlite` | 给一个文件路径 → memory 后端启用 SQLite 持久化，用户/流量重启不丢 |
+| `mysql.enabled: true` | 改用 MySQL 后端，按 `check_rate` 周期与 `users` 表双向同步 |
+| `MaxIPPerUser` | 每用户并发 IP 上限；`<= 0` 表示不限（`(*User).AddIP` 直接放行） |
+
+> `mysql` 和 `api` 这两节由**两个模块各解析一次**：`tunnel/trojan` 的 Config 里只声明了
+> `mysql.enabled` / `api.enabled`，整段其余字段由 `statistic/mysql` 与 `api/service` 各自的结构体读。
+> 这是"同一份文档喂给所有已注册模块"的既有设计（见仓库根 `AGENTS.md`）。
+
+### SQLite 持久化
+
+- 没有独立配置节，也没有 `statistic.type` 这类开关，就是顶层 `sqlite` 一枚路径字符串。
+- **不需要 build tag**：`statistic/memory` 无条件引用 `statistic/sqlite`，平台开关在
+  `statistic/sqlite` 内部的文件名下。
+- 只有 linux amd64/386/arm/arm64 有实现；其它平台在**启动期直接失败**并报
+  `sqlite persistence is only supported on linux amd64/386/arm/arm64; current build does not
+  include the driver`（`statistic/sqlite/qulite_nonlinux.go`）。旧版在这里静默降级成空实现，
+  日志照样打"已启用持久化"，进程重启后数据全丢——现在宁可失败也不静默。
+- 既没配 `sqlite` 也没配 `mysql` 时，启动日志会打一行
+  `未配置持久化后端（sqlite/mysql），用户流量仅在内存中保存，进程退出后丢失`。
+
+### MySQL 后端 (`mysql`)
+
+需要构建包含 MySQL 后端：`component/mysql.go` 的标签是 `mysql || full || mini`，
+所以 `full` 与 `mini` 默认就带着它，只有裁剪到别的东西时才需要显式 `-tags mysql`。
+
+| 字段 | 类型 | 说明 | 默认值 |
+|------|------|------|--------|
+| `enabled` | bool | 是否改用 MySQL 认证后端 | false |
+| `server_addr` | string | MySQL 主机 | 空 |
+| `server_port` | int | MySQL 端口 | 3306 |
+| `database` | string | 库名 | 空 |
+| `username` / `password` | string | 账号密码 | 空 |
+| `ca` | string | CA 文件路径；**非空才会**给 DSN 追加 `tls=custom` | 空 |
+| `cert` / `key` | string | 客户端证书与私钥，**必须成对** | 空 |
+| `check_rate` | int | 与 `users` 表同步的间隔（秒） | 30 |
+
+代码里定死的行为（`statistic/mysql/mysql.go`）：
+
+- `ca` 为空 ⇒ 完全不启用 TLS；`ca` 非空 ⇒ 强制 `MinVersion = TLS 1.2`。
+- `cert` / `key` 只给一个 ⇒ 启动失败并报 `set both key and cert, or set neither`。
+- `check_rate` ≤ 0 兜底成 30s（`time.NewTicker` 对非正周期会 panic）。
+- 连接池固定 `MaxOpenConns=5` / `MaxIdleConns=2` / 连接最长存活 5 分钟。
+- 每轮同步执行 `SELECT username,password,quota,download,upload,maxip FROM users`，
+  **这 6 列必须都在**；写回是 `UPDATE users SET upload=upload+?, download=download+? WHERE
+  password=?`，匹配的是密码哈希。
+- 写回时两个方向的取值是**刻意互换**的（`syncUsers` 里的原注释 "swap upload and download for
+  users"）：`upload` 列累加的是 `recv`、`download` 列累加的是 `sent`。对着表里的数字排查时先记
+  住这条，不然会觉得上下行反了（`statistic/mysql/mysql.go:57-63`）。
+- `quota < 0` 视为不限流量；已用流量达到 quota 的用户会被从内存表里删掉（即拒绝认证）。
+- 表里的 `maxip` 是**每用户**的并发 IP 上限，与顶层 `MaxIPPerUser`（对所有用户生效）是两条路径。
+- 同步中途 `db.Query` 出错时**整轮放弃**，不据此清理用户——所以 MySQL 抖动不会误删合法用户。
+
+```json
+{
+    "password": ["your_secure_password_here"],
+    "mysql": {
+        "enabled": true,
+        "server_addr": "127.0.0.1",
+        "server_port": 3306,
+        "database": "trojan",
+        "username": "trojan",
+        "password": "db_password",
+        "ca": "",
+        "cert": "",
+        "key": "",
+        "check_rate": 30
+    }
+}
+```
+
+## 管理接口 (`api`)
+
+gRPC 管理接口在 `component/api.go` 里由 `api || full` 标签引入，**`mini` 不含**。
+
+| 字段 | 类型 | 说明 | 默认值 |
+|------|------|------|--------|
+| `enabled` | bool | 服务端起管理 API；客户端起 `GetTraffic` 服务 | false |
+| `api_addr` | string | 监听地址 | **无默认** |
+| `api_port` | int | 监听端口 | **无默认** |
+| `ssl.enabled` | bool | gRPC 走 TLS | false |
+| `ssl.cert` / `ssl.key` | string | 服务端证书与私钥 | 空 |
+| `ssl.verify_client` | bool | 要求并校验客户端证书（`RequireAndVerifyClientCert`） | false |
+| `ssl.client_cert` | []string | 放行的客户端证书，PEM 路径列表，逐个 `AppendCertsFromPEM` | 空 |
+
+这一节**没有** `user` / `passwd` 之类的凭据字段——gRPC API 本身不带鉴权（`statistic/memory/memory.go:544`
+的注释就写着这件事，所以空密码那条护栏比配置文件更值得堵），能连上的人可以增删用户、读流量记录。
+暴露面只能靠 `api_addr` 与防火墙控制。
+
+下面三条是 2026-10-13 用 `build/trojan-go-fork`（v0.10.0-4491）在 loopback 实测的结果：
+
+1. **省略 `api_addr` / `api_port` 会把 API 开到所有网卡上**。`net.ResolveIPAddr("ip", "")` 返回
+   通配地址，端口 0 由内核随机分配。实测一份只写 `"api": {"enabled": true}` 的配置起在
+   `*:40127` 和 `*:40439` 两个随机端口（trojan server 实例每创建一个就调一次 `api.RunService`，
+   `tunnel/trojan/server.go:482-485`）。所以 `api_addr` 不是可省的装饰——固定写
+   `"api_addr": "127.0.0.1"`，要跨机管理再上 TLS。
+2. **API 起不来是静默的**。`api.RunService` 的返回值在 `s.wg.Go(...)` 里被丢弃。实测第二个进程
+   的 `api_port` 被占用时，代理照常运行、日志里既没有 `server api failed to listen` 也没有别的
+   报错。判断 API 到底在不在，只认这一行：`server-side api service is listening on <addr>`
+   （客户端是 `client-side api service is listening on <addr>`）。
+3. **`api.ssl.enabled: true` 之后内置 `-api` 命令行连不上**。`api/control` 固定用
+   `insecure.NewCredentials()`（`api/control/control.go:167`），没有 TLS 客户端。实测报
+   `rpc error: code = Unavailable ... error reading server preface: EOF`。要加密就只能自己写
+   gRPC 客户端，或者让 API 只监听回环地址。
+
+### 服务与方法
+
+定义在 `api/service/api.proto`（`api.pb.go` / `api_grpc.pb.go` 是生成物，改协议要跑
+`api/service/gen.sh`，别手改）：
+
+- `TrojanServerService`：`ListUsers` / `GetUsers` / `SetUsers` / `GetRecords` /
+  `SetOutboundConfig` / `GetOutboundConfig`
+- `TrojanClientService`：`GetTraffic`
+
+### 内置命令行客户端 `-api`
+
+| 参数 | 说明 |
+|------|------|
+| `-api` | 取 `record` / `list` / `get` / `set`；其它值报 `unknown api command: <值>` |
+| `-api-addr` | 目标 API 地址，默认 `127.0.0.1:10000`；要和配置里的 `api_addr` + `api_port` 对上 |
+| `-target-password` / `-target-hash` | 指定用户；只给明文密码时服务端自己算哈希（`Hash` 为空则 `SHA224String(Password)`，`api/service/server.go:105-107`） |
+| `--add-profile` / `--modify-profile` / `--delete-profile` | `-api set` 的操作，三者必须选且只选一个，都不给报 `Invalid operation` |
+| `--upload-speed-limit` / `--download-speed-limit` | 限速，单位字节/秒（令牌桶 burst 取该值的 2 倍），0 = 不限 |
+| `--ip-limit` | 该用户的并发 IP 上限，0 = 不限 |
+
+补充：
+
+- `-api` 是 option handler（priority 50），命中就接管本次运行，不再起代理。
+- `--add-profile` 走 `AddUser` + `SetKeyShare`（把明文密码交给认证器算哈希并登记 key share）。
+  MySQL 后端下这两步**也会成功**——`statistic/mysql` 的 Authenticator 内嵌 `*memory.Authenticator`，
+  方法是继承来的。但下一轮 `syncUsers` 会拿 `UPDATE ... WHERE password=?` 的影响行数判存在，
+  ≠ 1 就 `DelUser`（`statistic/mysql/mysql.go:62-68`），所以**只通过 API 加的用户活不过一个
+  `check_rate` 周期**；MySQL 模式下加用户要写 `users` 表。
+- `-api set` 被服务端拒绝时**退出码非 0**（`api/control/control.go:157-164`），可以直接在脚本里判；
+  `-api record` 是 server-streaming，流打完返回的 `io.EOF` 算成功。
+
+```json
+{
+    "api": {
+        "enabled": true,
+        "api_addr": "127.0.0.1",
+        "api_port": 10000
+    }
+}
+```
+
+## custom 模式的节点与路径 (`inbound` / `outbound`)
+
+只有 `run_type: custom` 会读这两节（`proxy/custom/config.go`），`client` / `server` /
+`forward` / `nat` 的栈是硬编码的，写 `inbound` / `outbound` 不生效。`custom` 需要
+`custom || full` 标签（**不进 `mini`**）。
+
+结构是「节点表 + 路径」两层：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `inbound.node` / `outbound.node` | []object | 节点表，每项 `{protocol, tag, config}` |
+| `inbound.node[].protocol` | string | 隧道名，大小写不限（内部 `ToUpper` 后查注册表） |
+| `inbound.node[].tag` | string | 这条路径里引用它用的名字 |
+| `inbound.node[].config` | object | 该节点的配置，**按根层文档解析**（见下） |
+| `inbound.path` | [][]string | 入站栈路径，可以有多条 |
+| `outbound.path` | [][]string | 出站栈路径，**只允许恰好 1 条** |
+
+三个容易踩的点：
+
+- **节点 `config` 块是独立的一份文档**。实现把 `config` 重新 marshal 成 YAML 再交给
+  `config.WithYAMLConfig`（`proxy/custom/custom.go:23-29`），所以块内的 `remote_addr` / `ssl` /
+  `quic` 都是**根层键**，不能再套一层节点名；每个节点也只能看到自己的 ctx（QUIC 节点必须自带
+  `ssl` 就是这个原因）。
+- **`protocol` 名必须是注册过的隧道**，否则启动报 `invalid protocol name:<大写名>`。注册的是
+  `ADAPTER`、`DOKODEMO`、`FREEDOM`、`HTTP`、`MUX`、`QUIC`、`ROUTER`、`SHADOWSOCKS`、
+  `SIMPLESOCKS`、`SOCKS`、`TLS`、`TPROXY`、`TRANSPORT`、`TROJAN`、`WEBSOCKET`；其中
+  `ADAPTER` / `TRANSPORT` 是框架内部层，`TPROXY` 与 `nat` 一样只在 Linux 有实现。
+- **`outbound.path` 的长度必须是 1**，多写一条直接报
+  `there must be only 1 path for outbound protocol stack`；`path` 里引用没定义过的 tag 报
+  `invalid node tag: <tag>`。
+
+`config/` 下的 `cloudflare_quic_client.yaml`、`quic_server_example.yaml` 等就是可用的 custom 样例。
 
 ## 完整配置示例
 ### 客户端完整配置 (client.json)

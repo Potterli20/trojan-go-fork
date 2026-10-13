@@ -28,6 +28,7 @@ Trojan-Go Fork 是基于 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/troj
   - [路由模块](#路由模块)
   - [AEAD 加密](#aead-加密)
   - [传输层插件](#传输层插件)
+  - [管理接口与流量后端](#管理接口与流量后端)
 - [配置示例](#配置示例)
   - [Cloudflare HTTP/3 配置](#cloudflare-http3-配置)
   - [CDN 中转配置](#cdn 中转配置)
@@ -496,6 +497,52 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
     }
 }
 ```
+
+---
+
+### 管理接口与流量后端
+
+服务端用户默认只存在内存里（顶层 `password` 数组），进程重启即丢流量计数。两种落盘方式：
+
+- **SQLite**：顶层给一枚 `sqlite` 路径即可，没有独立配置节。仅 linux amd64/386/arm/arm64
+  有实现，其它平台在启动期直接失败而不是静默降级。不需要额外 build tag。
+- **MySQL**：`mysql.enabled: true` 后 trojan 入站改用 MySQL 认证器，按 `check_rate` 秒与
+  `users` 表双向同步（表必须含 `username,password,quota,download,upload,maxip` 六列，
+  `password` 列存的是密码的 SHA224 十六进制串）。`full` / `mini` 构建本来就带这个后端。
+
+gRPC 管理接口用于运行时查用户、看流量记录、增删改用户，以及读写出站配置：
+
+```json
+{
+    "api": {
+        "enabled": true,
+        "api_addr": "127.0.0.1",
+        "api_port": 10000
+    }
+}
+```
+
+配套需要 `api` 构建标签（`full` 已含，**`mini` 不含**）。用内置命令行客户端访问：
+
+```bash
+./build/trojan-go-fork -api list -api-addr 127.0.0.1:10000
+./build/trojan-go-fork -api record -api-addr 127.0.0.1:10000
+./build/trojan-go-fork -api set --add-profile -target-password new_password_here -api-addr 127.0.0.1:10000
+```
+
+三条必须知道的边界（2026-10-13 实测）：
+
+1. **`api_addr` / `api_port` 没有默认值，省略不等于不监听**。实测只写
+   `"api": {"enabled": true}` 会绑到 `*:40127`、`*:40439`——所有网卡 + 内核随机端口，而且不止一个。
+   API 本身**没有任何鉴权字段**（`api` 节里没有 user/passwd 这种键），所以 `api_addr` 要固定写死，
+   需要跨机管理再自己配合 TLS 与防火墙。
+2. **API 起不来是静默的**：它的返回值在 goroutine 里被丢弃，端口冲突时代理照常运行、日志里一句
+   话都不说。确认在不在只看这行 `server-side api service is listening on <addr>`。
+3. **`api.ssl.enabled: true` 之后内置 `-api` 连不上**：命令行客户端固定用明文传输
+   （`insecure.NewCredentials()`），实测报 `error reading server preface: EOF`。加密与内置工具二选一。
+
+字段表、`api.ssl.verify_client` / `client_cert` 的 mTLS 用法、以及 `-api` 全部参数见
+[配置说明](docs/configuration.md)的「管理接口 (`api`)」与「用户与流量后端」两节。
 
 ---
 
