@@ -19,6 +19,43 @@ type Server struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	wg       sync.WaitGroup
+	// sessions 是在途的 smux 会话。handleSession 阻塞在 AcceptStream 上，
+	// 而那个调用不看 s.ctx，也不受底层监听器关闭影响（连接是上层交下来的，
+	// underlay.Close 只关监听器），所以必须留一份登记表供 Close 显式关闭。
+	sessionLock sync.Mutex
+	sessions    map[*smux.Session]struct{}
+}
+
+func (s *Server) addSession(session *smux.Session) bool {
+	s.sessionLock.Lock()
+	defer s.sessionLock.Unlock()
+	if s.ctx.Err() != nil {
+		// 已经在关停了：不能再登记，否则 Close 的排空已经跑完，
+		// 这个会话就没人能唤醒它
+		return false
+	}
+	s.sessions[session] = struct{}{}
+	return true
+}
+
+func (s *Server) dropSession(session *smux.Session) {
+	s.sessionLock.Lock()
+	delete(s.sessions, session)
+	s.sessionLock.Unlock()
+}
+
+// closeSessions 关掉所有在途会话，把阻塞在 AcceptStream 上的 handleSession 唤醒。
+func (s *Server) closeSessions() {
+	s.sessionLock.Lock()
+	pending := make([]*smux.Session, 0, len(s.sessions))
+	for session := range s.sessions {
+		pending = append(pending, session)
+	}
+	s.sessionLock.Unlock()
+	for _, session := range pending {
+		// 错误忽略：这些会话本来就是要被拆掉的
+		_ = session.Close()
+	}
 }
 
 func (s *Server) acceptConnWorker() {
@@ -61,7 +98,13 @@ func (s *Server) handleConn(conn tunnel.Conn, tracker *log.ConnectionTracker) {
 		return
 	}
 	_ = tracker.Success()
+	if !s.addSession(smuxSession) {
+		_ = smuxSession.Close()
+		conn.Close() //gosec:disable -- 错误忽略：关停路径，尽力关闭
+		return
+	}
 	s.wg.Go(func() {
+		defer s.dropSession(smuxSession)
 		s.handleSession(smuxSession, conn)
 	})
 }
@@ -108,6 +151,11 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 
 func (s *Server) Close() error {
 	s.cancel()
+	// AcceptStream 不看 ctx，且会话的底层连接不属于本层监听器：只 cancel +
+	// underlay.Close 的话，每个已建立的会话都会让下面的 wg.Wait 永久挂住，
+	// 连带泄漏 1 个 goroutine + 会话 + fd（外层只靠 5s 的 waitBounded 掩盖，
+	// 资源照样没回收）
+	s.closeSessions()
 	err := s.underlay.Close()
 	s.wg.Wait()
 	return err
@@ -120,6 +168,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		ctx:      ctx,
 		cancel:   cancel,
 		connChan: make(chan tunnel.Conn, 32),
+		sessions: make(map[*smux.Session]struct{}),
 	}
 	server.wg.Go(func() {
 		server.acceptConnWorker()
