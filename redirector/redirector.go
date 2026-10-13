@@ -161,12 +161,33 @@ type Redirector struct {
 	injectClientIP  bool
 }
 
+// closeDropped 回收一条不会再被处理的 redirection 请求所携带的连接。
+// 调用方（trojan / tls / websocket / shadowsocks 的 fallback 分支）在 Redirect
+// 返回后立刻 return，连接的所有权已经交出来，唯一会关掉它的 defer 在 worker 的
+// 会话 goroutine 里——请求被丢下，就没人回收这条连接了。
+func closeDropped(redirection *Redirection) {
+	if redirection == nil || redirection.InboundConn == nil ||
+		reflect.ValueOf(redirection.InboundConn).IsNil() {
+		return
+	}
+	_ = redirection.InboundConn.Close()
+}
+
 func (r *Redirector) Redirect(redirection *Redirection) {
+	// 先看 ctx：缓冲区还有空位时，下面 select 的两个分支会随机选中，
+	// 于是「已关停」也可能把请求塞进缓冲区再也无人处理。
+	if r.ctx.Err() != nil {
+		log.Debug("exiting")
+		closeDropped(redirection)
+		return
+	}
 	select {
 	case r.redirectionChan <- redirection:
 		log.Debug("redirect request ")
 	case <-r.ctx.Done():
 		log.Debug("exiting")
+		// worker 已经不再消费，这条请求再没人接手，必须在这里关掉连接
+		closeDropped(redirection)
 	}
 }
 
@@ -399,6 +420,19 @@ func hostOnly(addr net.Addr) string {
 
 func (r *Redirector) Close() error {
 	r.cancel()
-	r.wg.Wait()
-	return nil
+	// worker 走 ctx.Done 分支是直接 return，不会排空缓冲区。排在里面的请求
+	// （容量 64）再没人处理，每条都攥着一根未认证对端递交过来的连接，
+	// 关停瞬间最多留下 64 个 fd——必须在这里逐个回收后才好等 wg。
+	// 残留窗口：仍在 select 里的调用方可能刚好在排空之后完成入队。那种请求
+	// 要么被 Redirect 自己的 ctx 检查挡下，要么只是一条即将退出的进程里的
+	// 单个 fd，不值得为它给每条重定向连接再加一份登记表。
+	for {
+		select {
+		case redirection := <-r.redirectionChan:
+			closeDropped(redirection)
+		default:
+			r.wg.Wait()
+			return nil
+		}
+	}
 }
