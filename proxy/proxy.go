@@ -175,6 +175,26 @@ func (p *Proxy) releaseTunnels() error {
 	return errors.Join(errs...)
 }
 
+// detachLogFile 释放日志文件，并在关闭前把 log 包的输出交还 stderr。
+//
+// 顺序不能颠倒：SetOutput 只是记下那个 io.Writer，之后每一行都往它写。文件一关，
+// 输出仍指着这个 *os.File（它不是 nil，判空短路不掉），每次写都拿到
+// "file already closed" 并被日志包丢弃。而两个关闭点之后都还有内容要落：
+// NewProxy 里 create(ctx) 失败后 main 才刚要报出启动失败的原因，Proxy.Close
+// 返回的错误也要由 main 写成 ERROR + FATAL。于是配了 log-file 的进程在启动失败时
+// 变成「退出码 1、stdout/stderr/日志文件全是空的」——排查的人只能自己重跑一遍
+// 不带 log-file 的版本才知道错在哪。
+//
+// 交还的目标是 stderr 而不是"恢复成之前的 writer"：进程在这一行之后就要 os.Exit，
+// 而"启动横幅写在 stderr、正式日志写在文件"本来就是这个二进制既有的行为。
+func detachLogFile(f *os.File) error {
+	if f == nil {
+		return nil
+	}
+	log.SetOutput(os.Stderr)
+	return f.Close()
+}
+
 // Close shuts down the proxy gracefully. Both phases are bounded by
 // shutdownTimeout so that a wedged peer can never keep the process alive:
 // the relay wait gives up first, and the resource release can give up too,
@@ -208,11 +228,12 @@ func (p *Proxy) Close() error {
 			errs = append(errs, err)
 		}
 	}
-	if p.logFile != nil {
-		if err := p.logFile.Close(); err != nil {
-			log.Error(common.NewError("failed to close log file").Base(err))
-		}
+	// detachLogFile 已经把输出切回 stderr，所以这条错误既写得出去，也不会再写进
+	// 一个关闭中的文件；置 nil 让重复 Close 不会二次交还输出
+	if err := detachLogFile(p.logFile); err != nil {
+		log.Error(common.NewError("failed to close log file").Base(err))
 	}
+	p.logFile = nil
 	return errors.Join(errs...)
 }
 
@@ -486,10 +507,10 @@ func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 	}
 	p, err := create(ctx)
 	if err != nil {
-		if logFile != nil {
-			if cerr := logFile.Close(); cerr != nil {
-				log.Warn(common.NewError("failed to close log file").Base(cerr))
-			}
+		// 这里必须走 detachLogFile 而不是裸 Close：调用方（option handler → main）
+		// 拿到这个 err 之后才刚刚要把它写出来，输出还指着文件就等于没写
+		if cerr := detachLogFile(logFile); cerr != nil {
+			log.Warn(common.NewError("failed to close log file").Base(cerr))
 		}
 		return nil, err
 	}
