@@ -347,8 +347,7 @@ func TestH2CServerCloseWakesInflightStream(t *testing.T) {
 // 判据是"501 且没有派发会话"：少了后半句，实现哪怕悄悄把 CONNECT 当普通请求转发
 // （目标端收到一个 CONNECT 方法、回个 400，客户端以为建隧成功）也算绿。
 func TestH2ConnectIsRejectedNotFaked(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	srv := &Server{ctx: ctx, connChan: make(chan tunnel.Conn, 4)}
 	h := &h2Handler{srv: srv}
 
@@ -574,7 +573,7 @@ func readHeadersToString(r io.Reader) (string, error) {
 }
 
 func contentLengthOf(head string) int {
-	for _, line := range strings.Split(head, "\r\n") {
+	for line := range strings.SplitSeq(head, "\r\n") {
 		if k, v, ok := strings.Cut(line, ":"); ok && strings.EqualFold(strings.TrimSpace(k), "Content-Length") {
 			n, err := strconv.Atoi(strings.TrimSpace(v))
 			if err != nil {

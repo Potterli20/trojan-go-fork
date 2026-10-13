@@ -178,11 +178,11 @@ func TestReadFromMalformedInputNeverPanics(t *testing.T) {
 		var buf bytes.Buffer
 		common.Must2(md.WriteTo(&buf))
 		full := buf.Bytes()
-		for i := 0; i < len(full); i++ {
+		for i := range full {
 			streams = append(streams, full[:i])
 		}
 		// ATYP 单字节换遍全部取值（长度给足，考察的是 ATYP 分支本身）
-		for atyp := 0; atyp < 256; atyp++ {
+		for atyp := range 256 {
 			b := append([]byte{byte(atyp)}, bytes.Repeat([]byte{0}, 40)...)
 			streams = append(streams, b)
 		}
