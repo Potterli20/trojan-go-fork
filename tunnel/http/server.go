@@ -25,6 +25,23 @@ const handshakeTimeout = 30 * time.Second
 // 嗅探时都做了限幅，此前只有本文件这个真实代理入口漏了。
 const maxRequestHeadBytes = 1 << 20
 
+// resolveProxyTarget 把请求里的目标信息解析成转发地址：带端口的直接用；
+// 只有主机名（`Host: example.com`，代理语义下合法）按默认端口 80。
+//
+// 但**完全没有目标信息**必须拒绝（HTTP/1.0 不带 Host，或 h2 请求缺 :authority）。
+// 让它退化成空主机名会一路走到 net.Dial("tcp", ":80")，实测那是**连接 127.0.0.1**
+// ——等于代理替请求方去访问自己的本地服务，还会绕过按域名匹配的路由规则
+// （域名是空串时谁都匹配不上，直接落到默认策略）。
+func resolveProxyTarget(host string) (*tunnel.Address, error) {
+	if host == "" {
+		return nil, common.NewError("http proxy request has no target host")
+	}
+	if addr, err := tunnel.NewAddressFromAddr("tcp", host); err == nil {
+		return addr, nil
+	}
+	return tunnel.NewAddressFromHostPort("tcp", host, 80), nil
+}
+
 type ConnectConn struct {
 	net.Conn
 	metadata *tunnel.Metadata
@@ -184,8 +201,13 @@ func (s *Server) acceptLoop() {
 					reqReader, reqWriter := io.Pipe()
 					respReader, respWriter := io.Pipe()
 					var addr *tunnel.Address
-					if addr, err = tunnel.NewAddressFromAddr("tcp", req.Host); err != nil {
-						addr = tunnel.NewAddressFromHostPort("tcp", req.Host, 80)
+					addr, err = resolveProxyTarget(req.Host)
+					if err != nil {
+						log.Error(err)
+						// 裸连接由 defer closeRawConn 收，这里只需回一个 400
+						conn.Write([]byte("HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")) //gosec:disable -- 错误忽略：对端可能已经断开，无处可报
+						req.Body.Close()                                                                                 //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+						return
 					}
 					log.Debug("http dest", addr)
 

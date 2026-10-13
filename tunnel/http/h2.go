@@ -106,10 +106,13 @@ func (h *h2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 目的地来自 :authority，语义等价于 h1 的绝对形式 / Host，解析方式保持一致。
-	addr, err := tunnel.NewAddressFromAddr("tcp", r.Host)
+	// 目的地来自 :authority，语义等价于 h1 的绝对形式 / Host，
+	// 并且必须走同一个解析入口：空主机名同样会退化成"拨本机"。
+	addr, err := resolveProxyTarget(r.Host)
 	if err != nil {
-		addr = tunnel.NewAddressFromHostPort("tcp", r.Host, 80)
+		log.Debug("http2 request without a target: ", err)
+		http.Error(w, "missing target host", http.StatusBadRequest)
+		return
 	}
 	log.Debug("http2 dest", addr)
 

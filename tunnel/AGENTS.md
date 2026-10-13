@@ -40,7 +40,7 @@ type Tunnel interface {
 | `transport/` | transport | TCP raw; fallback listener。关于 “导入 websocket/http 会成 import cycle” 的注释在 `server.go` 里（旧文档记的行号已漂移，按内容找） |
 | `tproxy/` | inbound | **Linux-only** (`//go:build linux`). IP_TRANSPARENT |
 | `socks/` | inbound | SOCKS5 server |
-| `http/` | inbound | HTTP/HTTPS proxy server。h1 之外还嗅探 h2c 前文并整条交给 `h2.go`；h2 上的 CONNECT 显式回 501 |
+| `http/` | inbound | HTTP/HTTPS proxy server。h1 之外还嗅探 h2c 前文并整条交给 `h2.go`；h2 上的 CONNECT 显式回 501；没有任何目标主机时回 400（见下面 Conventions） |
 | `adapter/` | inbound | Protocol sniffing dispatcher (socks vs http) |
 | `router/` | routing | Geosite/geoip. See `tunnel/router/AGENTS.md` |
 | `dokodemo/` | inbound | Fixed-target redirect (like v2ray dokodemo-door) |
@@ -57,6 +57,13 @@ type Tunnel interface {
   下一句 `buf[:length]` 直接切片越界 panic。影响面是全仓共用的握手解码：实测（HEAD 二进制）
   未认证的本地 SOCKS5 入口收到一个 255 字节主机名就整个进程崩掉——`socks` 这条链上没有
   recover（只有 `mux`/`tls`/`trojan` 三处有）。门禁见 `tunnel/metadata_wire_test.go`。
+- **`http` 入站不许把"没有目标"退化成默认端口。** `resolveProxyTarget`（`server.go`）是
+  h1 与 h2c 两条分支共用的唯一入口：`Host: example.com` 不带端口 → 按 80 转发（合法）；
+  **完全没有** Host/`:authority` → 明确回 400。旧实现落到 `NewAddressFromHostPort("tcp","",80)`，
+  目的地字符串是 `":80"`，而实测 `net.Dial("tcp", ":80")` **连的是 127.0.0.1** ——
+  等于让代理入口替请求方访问代理自己的本地服务，且域名是空串时按域匹配的路由规则
+  一条都不会命中（HEAD 上实测：一个不带 Host 的请求被正常转发、回 204）。
+  判据在 `tunnel/http/target_required_test.go`，含"不带端口的合法 Host 仍须走 80"的对照。
 - **relay 没有半关闭**：`proxy/proxy.go` 的 `relayConnLoop` 是「任一方向结束就拆掉整个会话」
   （两个 `io.CopyBuffer` 共享一个 `done`，谁先返回谁触发，随后 `defer` 关掉两端）。
   `tunnel.Conn` 接口也没有 `CloseWrite`，所以无法只断一个方向。写 tunnel 时必须假设：
