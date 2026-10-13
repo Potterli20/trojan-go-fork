@@ -133,7 +133,8 @@ func (c *PacketConn) packetLoop() {
 				continue
 			}
 			consecutiveErrors = 0
-			address, _ := tunnel.NewAddressFromAddr("udp", addr.String())
+			// 每包一次，走 NewAddressNetAddr 的快路径（addr 是 *net.UDPAddr）
+			address, _ := tunnel.NewAddressFromNetAddr("udp", addr)
 			select {
 			case c.packetChan <- &packetInfo{
 				src: &tunnel.Metadata{

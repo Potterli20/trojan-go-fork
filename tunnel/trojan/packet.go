@@ -30,7 +30,8 @@ func (c *PacketConn) ReadFrom(payload []byte) (int, net.Addr, error) {
 }
 
 func (c *PacketConn) WriteTo(payload []byte, addr net.Addr) (int, error) {
-	address, err := tunnel.NewAddressFromAddr("udp", addr.String())
+	// 每包一次：trojan 的 UDP 是封在 TCP 流里的 datagram，这里是出站方向的地址组装
+	address, err := tunnel.NewAddressFromNetAddr("udp", addr)
 	if err != nil {
 		return 0, err
 	}

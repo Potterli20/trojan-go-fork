@@ -100,7 +100,8 @@ func (s *Server) decorate(conn net.Conn) (tunnel.Conn, error) {
 	if err != nil {
 		return nil, common.NewError("tproxy failed to obtain original address of tcp socket").Base(err)
 	}
-	address, err := tunnel.NewAddressFromAddr("tcp", dst.String())
+	// dst 就是 GetOriginalDst 解出来的 *net.TCPAddr，每条连接一次也不必绕字符串
+	address, err := tunnel.NewAddressFromNetAddr("tcp", dst)
 	if err != nil {
 		return nil, common.NewError("tproxy failed to parse original address").Base(err)
 	}

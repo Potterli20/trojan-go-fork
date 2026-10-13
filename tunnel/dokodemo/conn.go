@@ -51,7 +51,8 @@ func (c *PacketConn) ReadFrom(p []byte) (int, net.Addr, error) {
 }
 
 func (c *PacketConn) WriteTo(p []byte, addr net.Addr) (int, error) {
-	address, err := tunnel.NewAddressFromAddr("udp", addr.String())
+	// 每包一次：手里就是 net.Addr，不必再 String() → ParseIP/SplitHostPort 绕一圈
+	address, err := tunnel.NewAddressFromNetAddr("udp", addr)
 	if err != nil {
 		return 0, err
 	}
