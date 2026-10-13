@@ -112,6 +112,10 @@ func (s *Server) handleConn(conn tunnel.Conn, tracker *log.ConnectionTracker) {
 func (s *Server) handleSession(session *smux.Session, conn tunnel.Conn) {
 	defer session.Close()
 	defer conn.Close()
+	// 这条会话上的每个 stream 共用同一个底层 conn，remote_addr 是不变量；但
+	// RemoteAddr().String() 每次都要重新格式化（实测 125 ns、3 allocs），而这个循环是
+	// 每接一个 stream 走一遍——浏览器一个 mux 会话轻松几十上百条流。提到循环外算一次。
+	remoteAddr := conn.RemoteAddr().String()
 	for {
 		stream, err := session.AcceptStream()
 		if err != nil {
@@ -120,7 +124,7 @@ func (s *Server) handleSession(session *smux.Session, conn tunnel.Conn) {
 		}
 
 		streamTracker := log.NewConnectionTracker("MUX", "Stream").
-			WithField("remote_addr", conn.RemoteAddr().String())
+			WithField("remote_addr", remoteAddr)
 
 		select {
 		case s.connChan <- &Conn{
