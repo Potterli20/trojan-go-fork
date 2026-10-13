@@ -34,17 +34,19 @@
 在所有配置文件中替换以下内容：
 
 ```yaml
-# 密码
+# 密码（顶层）
 password:
   - your-strong-password-here    # 改为你的强密码
 
-# 域名
+# 对端地址（顶层）
 remote-addr: your-domain.com     # 改为你的域名
-sni: your-domain.com             # 必须与域名一致
 
-# 证书路径（仅服务端需要）
-key: /path/to/server.key         # 改为实际路径
-cert: /path/to/server.crt        # 改为实际路径
+# 证书与 SNI 属于 ssl 节，不能写在顶层——
+# 顶层没有 cert/key/sni 这几枚键，写了会被静默忽略
+ssl:
+  sni: your-domain.com           # 必须与域名一致
+  key: /path/to/server.key       # 改为实际路径
+  cert: /path/to/server.crt      # 改为实际路径
 ```
 
 ### 步骤 2: 准备证书
@@ -123,11 +125,9 @@ ss -uln | grep 443
 - 证书不匹配
 
 **解决方案**:
-```yaml
-# 临时切换到 TCP 降级方案
-quic:
-  enabled: false
-```
+不必改配置——`run-type: client` / `server` 的内置栈里本来就没有 QUIC 层，QUIC 只在 `custom`
+运行类型下可达（见 `docs/quic_usage.md`）。另外**没有 `quic.enabled` 这枚键**，写它不会报错，
+只会被静默忽略。要退回 TCP+TLS，直接用 `config/cloudflare_tcp_fallback.yaml` 那份即可。
 
 ### Q2: 证书验证失败
 
@@ -150,14 +150,22 @@ openssl x509 -in fullchain.pem -noout -enddate
 `x509: certificate signed by unknown authority`）：
 
 ```yaml
-# quic 节点的 config 块里
-quic:
-  insecure: true          # 跳过 QUIC 传输层的证书校验
-  ssl:
-    verify: false         # quic 节点自己的 TLS 配置
-# 内层 tls 节点也要
-# ssl:
-#   verify: false
+# quic 与 ssl 是节点 config 块里**同级**的两节，不是父子
+outbound:
+  node:
+    - protocol: quic
+      tag: quic
+      config:
+        remote-addr: 127.0.0.1
+        remote-port: 17443
+        quic:
+          insecure: true        # 跳过 QUIC 传输层的证书校验
+        ssl:
+          verify: false         # 节点自己的 TLS 配置
+  path: [[quic]]
+# 内层 tls 节点同样要放开：
+#   ssl:
+#     verify: false
 ```
 
 注意：**没有 `ssl.insecure` 这个键**（`tunnel/tls/config.go` 里是 `verify` / `verify_hostname`），

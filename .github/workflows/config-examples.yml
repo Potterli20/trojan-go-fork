@@ -1,0 +1,58 @@
+name: config-examples
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+# 示例配置与文档里的配置键，没有任何 Go 测试会去加载它们；而 Go 的 encoding/json
+# 会静默忽略未知键。这两件事叠加，导致 `quic.enabled`、`ssl.verify-cert`、`api.user`、
+# `statistic.type` 一类编造键，以及 `log-level: info`（该字段是 int，启动即 FATAL）
+# 能长期留在仓库里。这道工作流专门拦这两类。
+jobs:
+  config-examples:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@main
+
+      - name: Setup Go
+        uses: actions/setup-go@main
+        with:
+          go-version: ^1.27
+
+      - name: Build
+        run: make
+
+      - name: Load every example config
+        env:
+          SHADOWSOCKS_SF_CAPACITY: "-1"
+        run: |
+          set -u
+          BIN=build/trojan-go-fork
+          test -x "$BIN" || { echo "::error::make 没产出 $BIN"; exit 1; }
+          scanned=0
+          failed=0
+          for f in config/*.yaml; do
+            scanned=$((scanned + 1))
+            out=$(mktemp)
+            timeout 20 "$BIN" -config "$f" >"$out" 2>&1
+            # 占位证书路径与端口占用是预期失败；反序列化失败才是配置写错
+            if grep -q 'unmarshal errors' "$out"; then
+              echo "::error file=$f::$f 无法被解析"
+              grep -A2 'unmarshal errors' "$out" | head -4
+              failed=$((failed + 1))
+            fi
+            rm -f "$out"
+          done
+          # 分母自证：glob 失配时 scanned=0，绝不能当成通过
+          if [ "$scanned" -lt 5 ]; then
+            echo "::error::只扫到 $scanned 份示例配置（下限 5）—— 文件名可能已改动"
+            exit 1
+          fi
+          echo "扫到 $scanned 份示例配置，反序列化失败 $failed 份"
+          [ "$failed" -eq 0 ] || exit 1
+
+      - name: Check config keys in docs and examples
+        run: python3 .github/check-config-keys.py
