@@ -19,6 +19,21 @@ import (
 
 const Name = "MEMORY"
 
+// ipStaleAfter 是源 IP 表项的兜底回收时限：AddIP 会刷新 lastSeen，超过这个时限没被
+// 刷新的表项由 ipCleaner 强制收回，用来兜住 DelIP 漏调的情况。
+const ipStaleAfter = 10 * time.Second
+
+// ipSlot 记录一个源 IP 的引用数与最后一次被占用时刻。
+// refs 是这次加上的关键字段：AddIP/DelIP 是**按连接**调用的（见 tunnel/trojan/server.go
+// 的 Auth 与 Close），而计数语义是**不同源 IP 的个数**。没有 refs 时同一个 IP 的第二条
+// 连接只刷新时间、不增加计数，于是其中任意一条连接关闭时的 DelIP 会把整条表项删掉、
+// 计数归零，而另一条连接还活着——上限提前失效。NAT 后多个用户共用一个出口 IP 是最日常
+// 的形态，一个连接池也能稳定复现。
+type ipSlot struct {
+	refs     int
+	lastSeen time.Time
+}
+
 type User struct {
 	Sent          atomic.Uint64
 	Recv          atomic.Uint64
@@ -31,7 +46,7 @@ type User struct {
 	Hash          string
 	password      string
 	passLock      sync.RWMutex
-	ipTable       map[string]time.Time
+	ipTable       map[string]*ipSlot
 	ipNum         atomic.Int32
 	MaxIPNum      int
 	limiterLock   sync.RWMutex
@@ -57,16 +72,24 @@ func (u *User) ipCleaner() {
 		select {
 		case <-u.ctx.Done():
 			return
-		case <-ticker.C:
+		case now := <-ticker.C:
 			u.ipLock.Lock()
-			now := time.Now()
-			for ip, lastSeen := range u.ipTable {
-				if now.Sub(lastSeen) >= 10*time.Second {
-					delete(u.ipTable, ip)
-					u.ipNum.Add(-1)
-				}
-			}
+			u.sweepStaleIPs(now)
 			u.ipLock.Unlock()
+		}
+	}
+}
+
+// sweepStaleIPs 收回超过 ipStaleAfter 没被 AddIP 刷新过的表项，调用方必须持有 ipLock。
+// 这里是**强制**回收：即使 refs>0 也删。它是 DelIP 漏调时的兜底，让"引用泄漏"最坏只占
+// 一个时限，而不是永久占住槽位——加引用计数的时候必须把这条留着，否则就把一个"上限偏松"
+// 的问题换成了一个"槽位永不释放"的泄漏。长连接空闲过也会被收回一次，下一条新连接重新
+// 计数，这是改造前就有的行为。
+func (u *User) sweepStaleIPs(now time.Time) {
+	for ip, slot := range u.ipTable {
+		if now.Sub(slot.lastSeen) >= ipStaleAfter {
+			delete(u.ipTable, ip)
+			u.ipNum.Add(-1)
 		}
 	}
 }
@@ -79,8 +102,12 @@ func (u *User) AddIP(ip string) bool {
 	u.ipLock.Lock()
 	defer u.ipLock.Unlock()
 
-	if _, found := u.ipTable[ip]; found {
-		u.ipTable[ip] = time.Now()
+	if slot, found := u.ipTable[ip]; found {
+		// 已经有别的连接占着这个源 IP：加引用、刷新时限，**不**增加计数
+		// （计数按"不同 IP 个数"算）。少一次 refs++ 就会让先关的那条连接
+		// 把还在用的表项整个删掉。
+		slot.refs++
+		slot.lastSeen = time.Now()
 		return true
 	}
 
@@ -88,7 +115,7 @@ func (u *User) AddIP(ip string) bool {
 		return false
 	}
 
-	u.ipTable[ip] = time.Now()
+	u.ipTable[ip] = &ipSlot{refs: 1, lastSeen: time.Now()}
 	u.ipNum.Add(1)
 	return true
 }
@@ -101,12 +128,19 @@ func (u *User) DelIP(ip string) bool {
 	u.ipLock.Lock()
 	defer u.ipLock.Unlock()
 
-	if _, found := u.ipTable[ip]; !found {
+	slot, found := u.ipTable[ip]
+	if !found {
 		return false
 	}
 
-	delete(u.ipTable, ip)
-	u.ipNum.Add(-1)
+	slot.refs--
+	// 只有最后一条连接走才真正释放槽位。refs 归零即删表项，所以
+	// ipNum 恒等于 len(ipTable)，非负——重复 DelIP 拿到的是 found==false，
+	// 不会把计数打到负数。
+	if slot.refs <= 0 {
+		delete(u.ipTable, ip)
+		u.ipNum.Add(-1)
+	}
 
 	return true
 }
@@ -563,7 +597,7 @@ func (a *Authenticator) AddUser(hash string) error {
 	ctx, cancel := context.WithCancel(a.ctx)
 	meter := &User{
 		Hash:    hash,
-		ipTable: make(map[string]time.Time),
+		ipTable: make(map[string]*ipSlot),
 		ctx:     ctx,
 		cancel:  cancel,
 	}
@@ -737,7 +771,7 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 			ctx, cancel := context.WithCancel(a.ctx)
 			user := &User{
 				Hash:    hash,
-				ipTable: make(map[string]time.Time),
+				ipTable: make(map[string]*ipSlot),
 				ctx:     ctx,
 				cancel:  cancel,
 			}

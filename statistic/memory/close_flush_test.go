@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/Potterli20/trojan-go-fork/statistic"
 )
@@ -58,7 +57,7 @@ func TestCloseFlushesPendingTraffic(t *testing.T) {
 
 	u := &User{
 		Hash:    "aabbccddeeff",
-		ipTable: map[string]time.Time{},
+		ipTable: map[string]*ipSlot{},
 		ctx:     ctx,
 		cancel:  func() {},
 	}
@@ -93,7 +92,7 @@ func TestCloseSkipsFlushWhenNothingChanged(t *testing.T) {
 	defer cancel()
 
 	a := &Authenticator{pst: pst, ctx: ctx, cancel: cancel}
-	u := &User{Hash: "same", ipTable: map[string]time.Time{}, ctx: ctx, cancel: func() {}}
+	u := &User{Hash: "same", ipTable: map[string]*ipSlot{}, ctx: ctx, cancel: func() {}}
 	u.Sent.Store(10)
 	u.Recv.Store(20)
 	u.persistedSent.Store(10) // 已经持久化过
