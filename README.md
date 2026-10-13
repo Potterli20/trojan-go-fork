@@ -226,10 +226,12 @@ Trojan-Go Fork 支持 TLS + WebSocket 承载 Trojan 协议，可利用 CDN 进�
 在服务端和客户端配置中同时添加 `websocket` 选项即可启用：
 
 ```json
-"websocket": {
-    "enabled": true,
-    "path": "/your-websocket-path",
-    "host": "www.your-awesome-domain-name.com"
+{
+    "websocket": {
+        "enabled": true,
+        "path": "/your-websocket-path",
+        "host": "www.your-awesome-domain-name.com"
+    }
 }
 ```
 
@@ -376,8 +378,10 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
 客户端启用多路复用：
 
 ```json
-"mux": {
-    "enabled": true
+{
+    "mux": {
+        "enabled": true
+    }
 }
 ```
 
@@ -396,20 +400,22 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
 客户端配置示例：
 
 ```json
-"router": {
-    "enabled": true,
-    "bypass": [
-        "geoip:cn",
-        "geoip:private",
-        "full:localhost"
-    ],
-    "block": [
-        "cidr:192.168.1.1/24"
-    ],
-    "proxy": [
-        "domain:google.com"
-    ],
-    "default_policy": "proxy"
+{
+    "router": {
+        "enabled": true,
+        "bypass": [
+            "geoip:cn",
+            "geoip:private",
+            "full:localhost"
+        ],
+        "block": [
+            "cidr:192.168.1.1/24"
+        ],
+        "proxy": [
+            "domain:google.com"
+        ],
+        "default_policy": "proxy"
+    }
 }
 ```
 
@@ -425,18 +431,20 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
 服务端配置示例（只允许访问本地回环段的目标走上游转发，其余直连）：
 
 ```json
-"forward_proxy": {
-    "enabled": true,
-    "proxy_addr": "127.0.0.1",
-    "proxy_port": 1080
-},
-"router": {
-    "enabled": true,
-    "domain_strategy": "as_is",
-    "default_policy": "bypass",
-    "proxy": [
-        "cidr:127.0.0.1/32"
-    ]
+{
+    "forward_proxy": {
+        "enabled": true,
+        "proxy_addr": "127.0.0.1",
+        "proxy_port": 1080
+    },
+    "router": {
+        "enabled": true,
+        "domain_strategy": "as_is",
+        "default_policy": "bypass",
+        "proxy": [
+            "cidr:127.0.0.1/32"
+        ]
+    }
 }
 ```
 
@@ -447,9 +455,11 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
 支持基于 Shadowsocks AEAD 对 Trojan 协议流量进行二次加密，确保 WebSocket 传输流量不被不可信的 CDN 识别：
 
 ```json
-"shadowsocks": {
-    "enabled": true,
-    "password": "my-password"
+{
+    "shadowsocks": {
+        "enabled": true,
+        "password": "my-password"
+    }
 }
 ```
 
@@ -464,22 +474,26 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
 **服务端**：
 
 ```json
-"transport_plugin": {
-    "enabled": true,
-    "type": "shadowsocks",
-    "command": "./v2ray-plugin",
-    "arg": ["-server", "-host", "www.baidu.com"]
+{
+    "transport_plugin": {
+        "enabled": true,
+        "type": "shadowsocks",
+        "command": "./v2ray-plugin",
+        "arg": ["-server", "-host", "www.baidu.com"]
+    }
 }
 ```
 
 **客户端**：
 
 ```json
-"transport_plugin": {
-    "enabled": true,
-    "type": "shadowsocks",
-    "command": "./v2ray-plugin",
-    "arg": ["-host", "www.baidu.com"]
+{
+    "transport_plugin": {
+        "enabled": true,
+        "type": "shadowsocks",
+        "command": "./v2ray-plugin",
+        "arg": ["-host", "www.baidu.com"]
+    }
 }
 ```
 
@@ -823,11 +837,13 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags "full"
     "host": "your-domain.com"
   },
   "ssl": {
-    "fallback_addr": "127.0.0.1",  // HTTP/1.1 回退地址
+    "fallback_addr": "127.0.0.1",
     "fallback_port": 80
   }
 }
 ```
+
+`ssl.fallback_addr` / `fallback_port` 是 HTTP/1.1 回退地址（JSON 不支持注释，说明写在这里）。
 
 ### 性能不佳
 
@@ -837,8 +853,10 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags "full"
 
 1. **启用 TCP Fast Open**：
    ```json
-   "tcp": {
-     "fast_open": true
+   {
+     "tcp": {
+       "fast_open": true
+     }
    }
    ```
 
@@ -853,10 +871,12 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags "full"
 
 3. **启用多路复用**（高并发场景）：
    ```json
-   "mux": {
-     "enabled": true,
-     "idle_timeout": 30,
-     "concurrency": 8
+   {
+     "mux": {
+       "enabled": true,
+       "idle_timeout": 30,
+       "concurrency": 8
+     }
    }
    ```
 
