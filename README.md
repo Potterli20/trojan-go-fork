@@ -141,6 +141,19 @@ JSON / YAML 皆可，逐字段说明见 [配置说明](docs/configuration.md)。
 ./trojan-go-fork -url 'trojan-go://password@example.com/?type=ws&path=%2Fpath&host=your-site.com'
 ```
 
+只接受 `trojan-go://` scheme——传 `trojan://` 会在启动期报 `url does not have a trojan-go:// scheme`
+（实测）。`type=ws` 时 `path` 必填且必须以 `/` 开头。
+
+配套开关 `-url-option` 只认三个键：`mux` / `listen` / `api`，默认值是
+`mux=true;listen=127.0.0.1:1080`——**不写 `-url-option` 也会开多路复用**，想关掉要显式传：
+
+```shell
+./trojan-go-fork -url 'trojan-go://password@example.com/' -url-option 'mux=false;listen=127.0.0.1:1080'
+```
+
+`mux` 的值不是合法 bool 时报 `invalid mux value: <值>`；键值对之间用 `;` 分隔，少写 `=`
+报 `invalid option format: <pair>. expected key=value`（两条错误文案都实测过）。
+
 ---
 
 ## 特性介绍
@@ -216,11 +229,14 @@ Trojan-Go Fork 支持 TLS + WebSocket 承载 Trojan 协议，可利用 CDN 进�
 "websocket": {
     "enabled": true,
     "path": "/your-websocket-path",
-    "hostname": "www.your-awesome-domain-name.com"
+    "host": "www.your-awesome-domain-name.com"
 }
 ```
 
-`hostname` 可以省略，但服务端和客户端的 `path` 必须一致。开启 WebSocket 后，服务端可同时兼容 WebSocket 和标准 Trojan 流量。
+`host` 可以省略，但服务端和客户端的 `path` 必须一致。开启 WebSocket 后，服务端可同时兼容 WebSocket 和标准 Trojan 流量。
+
+> 键名是 `host`，**不是 `hostname`**：`tunnel/websocket/config.go` 没声明 `hostname`，
+> 写错不报错、只是被静默忽略（Go 的 json 行为）。
 
 > 注意：标准 Trojan 不支持 WebSocket。如需使用 WebSocket 承载流量，请确保通信双方均使用 Trojan-Go Fork。
 
@@ -741,10 +757,13 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags "full"
 4. **查看日志**：
    ```json
    {
-     "log-level": 0,  // AllLevel - 显示所有日志
-     "access-log": "/var/log/trojan-access.log"
+     "log_level": 0,
+     "log_file": "/var/log/trojan-access.log"
    }
    ```
+   `log_level` 是 int 且级别**是反的**（`0`=All 最啰嗦 … `5`=Off）。没有 `access-log` 这个键，
+   日志文件是 `log_file`；JSON 用下划线、YAML 用连字符（`log-level` / `log-file`），
+   两者都来自 `proxy/config.go`。
 
 ### QUIC 连接问题
 

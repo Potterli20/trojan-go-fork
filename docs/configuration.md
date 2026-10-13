@@ -185,17 +185,41 @@ outbound:
 | `bypass` | []string | 绕过规则（直连） |
 | `proxy` | []string | 代理规则 |
 | `block` | []string | 屏蔽规则 |
-| `domain_strategy` | string | 域名解析策略（`as_is`、`ip_if_non_cname`、`ip_on_demand`） |
+| `domain_strategy` | string | 域名解析策略，取值见下 |
 | `default_policy` | string | 默认策略（`proxy`、`bypass`、`block`） |
 | `geoip` | string | GeoIP 数据库路径 |
 | `geosite` | string | GeoSite 数据库路径 |
 
+`domain_strategy` 的合法取值（`tunnel/router/client.go:333-339`，比较前会 `ToLower`，
+下划线/连字符/连写三种拼法都接受）：
+
+- `as_is` / `as-is` / `asis`
+- `ip_if_non_match` / `ip-if-non-match` / `ipifnonmatch`
+- `ip_on_demand` / `ip-on-demand` / `ipondemand`
+
+**写别的值不会静默回退，而是启动即失败**：`default` 分支返回 `unknown strategy: <值>`。
+注意没有 `ip_if_non_cname` 这一项（v2ray 里叫 `ip_if_non_match`）。
+
+默认值（`RegisterConfigCreator`）：`default_policy = "proxy"`、`domain_strategy = "as_is"`、
+`geoip` / `geosite` 为解析出的 `geoip.dat` / `geosite.dat` 路径。
+
 ### 规则格式
 
-- `geoip:cn` - GeoIP 数据库中的国家代码
-- `geosite:cn` - GeoSite 数据库中的站点分组
-- `geosite:category-ads` - 广告站点
-- `geosite:geolocation-!cn` - 非中国地区的站点
+前缀共 7 种，逐个来自 `tunnel/router/client.go`（`loadCode` 的调用点）：
+
+| 前缀 | 含义 |
+|------|------|
+| `geoip:<code>` | 按 GeoIP 数据库的国家/地区分组，如 `geoip:cn`、`geoip:private` |
+| `geosite:<group>` | 按 GeoSite 数据库的站点分组，如 `geosite:cn`、`geosite:category-ads`、`geosite:geolocation-!cn` |
+| `domain:<name>` | 域名匹配（后缀语义） |
+| `full:<name>` | 域名完全匹配，如 `full:localhost` |
+| `keyword:<word>` | 域名包含关键字 |
+| `regexp:<expr>` | 域名正则匹配 |
+| `cidr:<net>` | IP 段匹配，如 `cidr:192.168.1.1/24`；写错会报 `invalid cidr: <net>` |
+
+`geoip:` / `geosite:` 依赖外部 `.dat` 文件（本仓库不打包数据）。路径解析顺序是
+**绝对路径原样使用 → `$TROJAN_GO_LOCATION_ASSET` 目录下同名文件 → 程序所在目录**
+（`common/common.go:GetAssetLocation`）；找不到时只跳过对应规则并告警，不会让进程启动失败。
 
 ### 示例
 
@@ -249,15 +273,31 @@ outbound:
 
 ## TCP 配置 (tcp)
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `fast_open` | bool | 是否启用 TCP Fast Open |
+同一个 `tcp` 路径被**两个模块**各自解析，可用字段不同：
+
+`tunnel/freedom/config.go`（出站直连）：
+
+| 字段 | 类型 | 说明 | 默认值 |
+|------|------|------|--------|
+| `prefer_ipv4` | bool | 优先 IPv4 | false |
+| `keep_alive` | bool | TCP keepalive | true |
+| `no_delay` | bool | 禁用 Nagle | true |
+| `fast_open` | bool | TCP Fast Open | true |
+
+`tunnel/transport/config.go`（入站监听）只有 `fast_open`（默认 true）。
+
+> 因此 `no_delay` / `keep_alive` / `prefer_ipv4` 只作用于出站直连，写在配置里不会影响入站监听——
+> 这不是配错了，是两个模块共用同一路径的既有设计（见仓库根 AGENTS.md 关于「同一份文档喂给所有
+> 已注册模块」的说明）。
 
 ### 示例
 
 ```json
 {
     "tcp": {
+        "prefer_ipv4": false,
+        "keep_alive": true,
+        "no_delay": true,
         "fast_open": true
     }
 }
@@ -315,8 +355,59 @@ outbound:
 
 ---
 
-## 完整配置示例
+## 出站控制 (freedom)
 
+`tunnel/freedom/config.go` 的顶层键：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `outbound_local_addr` | string | 出站拨号绑定的本地地址（指定出口 IP） |
+| `outbound_fwmark` | int | 出站 socket 的 SO_MARK（Linux fwmark 策略路由） |
+| `tcp` | object | 见上面 TCP 一节 |
+| `forward_proxy` | object | 出站上游 SOCKS5 代理 |
+
+`forward_proxy` 字段：
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `enabled` | bool | 是否走上游 |
+| `proxy_addr` | string | 上游地址 |
+| `proxy_port` | int | 上游端口 |
+| `username` / `password` | string | 上游认证 |
+
+配合 `router` 时，命中 `proxy` 规则的目标走上游，命中 `bypass` 的目标由 `DialConnDirect`
+直连（`tunnel/freedom/client.go`、`tunnel/router/client.go:199`），即使 `forward_proxy` 已启用。
+
+## 中继缓冲区 (relay_buffer_*)
+
+`proxy/config.go` 的顶层键，控制中继 `io.CopyBuffer` 的池化 buffer：
+
+| 字段 | 类型 | 默认值 | 上限 |
+|------|------|--------|------|
+| `relay_buffer_size` | int | 8192 | 1MB（超出则告警并按上限处理） |
+| `relay_buffer_count` | int | 1024 | 65536 |
+
+只在取值 > 0 时覆盖默认；超过上限只会增加常驻内存，不会提升中继性能，所以有告警兜底
+（`proxy/proxy.go:402-412`）。
+
+> UDP 路径不受 `relay_buffer_size` 调小影响：`tunnel/trojan` 的 `ReadWithMetadata` 在
+> buffer 小于整包长度时会直接报错并断掉整条 packet 流，所以包路径仍会留够 `MaxPacketSize`
+> （见 `proxy/proxy.go` 该处注释）。把 buffer 调小不会让 UDP 变坏，但也别指望它省内存。
+
+## 其它顶层键
+
+| 字段 | 归属 | 说明 |
+|------|------|------|
+| `sqlite` | `statistic/memory` | 给一个路径即启用 SQLite 持久化（无独立配置段，也没有 `statistic.type` 这种键）；平台限制见 `statistic/sqlite` |
+| `MaxIPPerUser` | `statistic/memory` | 每用户并发 IP 上限，默认 0；注意它的大小写就是这个拼法 |
+| `mysql` | `statistic/mysql` | MySQL 后端整段 |
+| `api` | `api/service` | gRPC 管理接口：`enabled` / `api_addr` / `api_port` / `ssl`（**没有** user/passwd） |
+| `redirect_client_ip` | `redirector` | 是否把客户端地址注入重定向请求（`X-Forwarded-For` / `X-Real-IP`），默认关 |
+| `udp_timeout` | `tunnel/socks`、`tunnel/dokodemo`、`tunnel/tproxy` | UDP 会话空闲超时（秒），三处默认都是 60 |
+| `target_addr` / `target_port` | `tunnel/dokodemo` | 固定目标 |
+| `trust_headers` / `disable_http_check` / `record_capacity` | `tunnel/trojan` | trojan 入站行为 |
+
+## 完整配置示例
 ### 客户端完整配置 (client.json)
 
 ```json

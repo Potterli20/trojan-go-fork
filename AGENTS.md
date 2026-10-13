@@ -39,7 +39,11 @@ All modules self-register in `init()`. Nothing is wired explicitly in `main.go` 
 - `statistic/` — user traffic/auth backends: memory, mysql, sqlite. See `statistic/AGENTS.md`
 - `redirector/`, `recorder/` — misdirection on auth failure
 - `test/`, `tunnel/*/*_test.go` — integration tests require loopback + test certs in `test/`
-- `url/` — `trojan://` / `trojan-go://` URL parser
+- `url/` — `trojan-go://` 分享链接解析器。**只接受 `trojan-go://` scheme**（`url/share_link.go:57`），
+  传 `trojan://` 会在启动期报 `url does not have a trojan-go:// scheme`（2026-10-13 实测）。
+  接受的 query 键：`sni` / `type` / `host` / `path`（`type=ws` 时必填且必须以 `/` 开头）/
+  `encryption`（`provider;params`，ss 走 `method:password`）/ `plugin`，fragment 作为 description。
+  入口 flag 是 `-url`，配套 `-url-option`（默认 `mux=true;listen=127.0.0.1:1080`，`;` 分隔 k=v）。
 
 ## Conventions
 
