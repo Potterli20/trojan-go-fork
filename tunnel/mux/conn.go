@@ -89,6 +89,24 @@ func (c *stickyConn) Close() error {
 	return err
 }
 
+// pushFrameHeader 把一个 smux 帧头挂进粘连队列，等下一次数据写带出去。
+//
+// 队列满时必须就地发出，不能阻塞：Write 全程持有 writeMu，而唯一会 drain 这个
+// 队列的是「同一个 smux 写循环的下一次数据写」——它正被这次 Write 堵住；
+// Close 里的 drain 又要抢同一把 writeMu。两者互等，整条会话连同 Close 一起
+// 永久卡死（mux-concurrency<=0 即"不设限"时，开够 128 条不写数据的流就能撞上）。
+// 就地发出的代价只是这一帧没和后续 payload 粘连，字节序不变（队列 FIFO，
+// 本帧排在最后），正确性不受影响。
+func (c *stickyConn) pushFrameHeader(queue chan []byte, header []byte) error {
+	select {
+	case queue <- header:
+		return nil
+	default:
+		_, err := c.Conn.Write(c.stickToPayload(header))
+		return err
+	}
+}
+
 func (c *stickyConn) Write(p []byte) (int, error) {
 	// smux 写循环是唯一的数据写者(单 goroutine),但 Close 的 padding 写
 	// 与之并发,底层 AEAD 无锁,必须互斥
@@ -103,14 +121,12 @@ func (c *stickyConn) Write(p []byte) (int, error) {
 				// cmdSYN
 				header := make([]byte, 8)
 				copy(header, p)
-				c.synQueue <- header
-				return 8, nil
+				return 8, c.pushFrameHeader(c.synQueue, header)
 			case 1:
 				// cmdFIN
 				header := make([]byte, 8)
 				copy(header, p)
-				c.finQueue <- header
-				return 8, nil
+				return 8, c.pushFrameHeader(c.finQueue, header)
 			}
 		} else {
 			log.Debug("other 8 bytes header")
