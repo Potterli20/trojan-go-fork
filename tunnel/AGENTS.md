@@ -85,6 +85,20 @@ type Tunnel interface {
   （ubuntu-24.04，非 root）构造不出真实入口。所以 `tproxyPacketInfo` 和 `packetQueue` 是
   `Server` 的字段而不是 `packetDispatchLoop` 的局部量——就为了测试能直接投伪造 info、跳开
   socket 层验证同一份会话代码。改成局部变量会把这条判据一起弄没。
+- **`tunnel.Address` 的导出字段在构造/解析后视为不可变。** 一个 `*Address` 会被多条并发
+  会话**共享**，这是既成事实不是疏忽：`dokodemo` 的 `s.targetAddr` 每实例一个，却塞进每条
+  TCP 会话的 `targetMetadata` 和每个 UDP 会话的 `fixedMetadata`（`server.go:34`/`:135`），
+  `freedom` 的 `c.proxyAddr` 同理，而 relay 给每条会话各起一个 goroutine。所以任何"顺手写回
+  地址对象"的代码都是同一对象上的无锁并发读写。`ResolveIP` 过去把 DNS 结果写进导出的
+  `net.IP` 就是这个形态——域名地址的序列化与 `String()` 只看 `DomainName`、根本不读 `IP`，
+  写它既无读者又送一次竞争；现在缓存落在非导出的 `resolvedIP` 上、由 `resolveMu` 保护
+  （缓存本身必须留着：`router` 对同一条连接会解析两次，去掉就是每次拨号多一轮 DNS）。
+  判据见 `tunnel/metadata_shared_addr_test.go`，其中并发那条要在 `-race` 下跑。
+- **已核实但故意没改的一处竞争**：`Metadata.WriteTo` 仍然写 `r.Address.NetworkType = "tcp"`。
+  它在非测试代码里零读者（读者链只有 `Address.Network()` ← `Metadata.Network()`，后者没有
+  调用点），却因上面那些共享对象被 `-race` 判死（16 条会话并发 `WriteTo` 即报）。删掉语义
+  代价为零，但 `tunnel/metadata_appendto_test.go:123` 明确把这个副作用钉成"必须保住"，那是
+  另一条工作线上的主动决定——**要动它先和那条线对齐**，不要单点修改把别人的门禁改红。
 
 ## Anti-patterns
 

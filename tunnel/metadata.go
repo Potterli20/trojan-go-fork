@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"strconv"
+	"sync"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -85,6 +86,20 @@ type Address struct {
 	NetworkType string
 	net.IP
 	AddressType
+
+	// resolveMu 保护 resolvedIP。为什么需要锁：一个 *Address 会被多条并发会话**共享**
+	// ——dokodemo 的 s.targetAddr 每实例一个，却塞进每条 TCP 会话的 targetMetadata 和
+	// 每个 UDP 会话的 fixedMetadata（server.go:34/:135）；freedom 的 c.proxyAddr 同理。
+	// relay 给每条会话各起一个 goroutine，所以这里是真实的并发读写，不是理论风险。
+	//
+	// 旧实现把 DNS 结果写回导出的 net.IP 字段。那是无效的：域名地址的序列化与
+	// String() 都只看 DomainName，没人读这个 IP；而 ReadFrom / AppendTo 的 IPv4/IPv6
+	// 分支会不加锁地读 IP。也就是说这次写回一个读者用、写者不加锁的字段，纯粹是给
+	// -race 送分。现在缓存挪到非导出字段并在锁内读写，net.IP 只在构造/解析时定型。
+	// 保留缓存本身是必要的：router 对同一条连接会解析两次（client.go 判定策略、
+	// conn.go 走 UDP 路径），去掉缓存就是每次拨号多一轮 DNS。
+	resolveMu  sync.Mutex
+	resolvedIP net.IP
 }
 
 func (a *Address) String() string {
@@ -108,16 +123,33 @@ func (a *Address) ResolveIP() (net.IP, error) {
 	//LOG
 	log.Debug("ResolveIP: network type :" + a.NetworkType + " Domain: " + a.DomainName)
 	if a.AddressType == IPv4 || a.AddressType == IPv6 {
+		// 这条分支读的是构造/解析时定型的 IP，之后没有任何写入点，所以无锁可读
 		return a.IP, nil
 	}
 	log.Debug("ResolveIP Start! domain: ", a.DomainName, " PORT: ", a.Port)
+
+	a.resolveMu.Lock()
+	cached := a.resolvedIP
+	a.resolveMu.Unlock()
+	if cached != nil {
+		return cached, nil
+	}
+
 	ipAddr, err := net.ResolveIPAddr("ip", a.DomainName)
 	if err != nil {
 		return nil, err
 	}
 	log.Debug("ResolveIP Done! IP: ", ipAddr.IP)
-	a.IP = ipAddr.IP
-	return ipAddr.IP, nil
+
+	// 并发首次解析可能做两次 DNS，这跟改造前一样，不是回退；要紧的是缓存只落一次、
+	// 且绝不写导出的 net.IP（那会和 AppendTo/String 的无锁读构成竞争）
+	a.resolveMu.Lock()
+	if a.resolvedIP == nil {
+		a.resolvedIP = ipAddr.IP
+	}
+	resolved := a.resolvedIP
+	a.resolveMu.Unlock()
+	return resolved, nil
 }
 
 func NewAddressFromAddr(network, addr string) (*Address, error) {
