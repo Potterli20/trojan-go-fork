@@ -107,6 +107,13 @@ func (s *Server) dispatchLoop() {
 					timer.Reset(s.timeout)
 				case <-s.ctx.Done():
 					return
+				case <-conn.ctx.Done():
+					// 下游 relay 拆会话走的是 conn.Close()，只 cancel 会话自己的 ctx。
+					// 不监听它就只能等空闲 timer 过期，最长 UDPTimeout；这期间 mapping
+					// 里挂着死表项，同源地址的包全投进没人读的 input 丢掉，且因为
+					// found 恒真再也投递不出新会话——同一个源端口重开会话就是黑洞。
+					// socks 的同型 daemon 一直有这条，这里属于漏改。
+					return
 				case <-timer.C:
 					log.Debug("closing timeout packetConn")
 					return

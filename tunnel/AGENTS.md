@@ -70,6 +70,21 @@ type Tunnel interface {
   只要有一方读到 EOF/错误，另一方的数据就没了。典型受害者是「请求写完就 EOF」的形态——
   `tunnel/http` 因此把请求方向的 EOF 推迟到本请求会话真正结束（见 `server.go` 里
   `OtherConn.Close` 的注释）；任何新 tunnel 若自己会先产生 EOF，也要照这个思路处理。
+- **UDP 会话 daemon 的 select 必须同时看 `s.ctx.Done()` 和 `conn.ctx.Done()`。** 入站 UDP
+  按源地址（`ip:port`）在 `mapping` 里复用会话，daemon 负责在会话结束时删表项。relay 拆会话
+  走的是 `conn.Close()`，它**只 cancel 会话自己的 ctx**（`s.ctx` 是 Server 级，要等整个进程
+  关停）；daemon 少看 `conn.ctx.Done()` 就只能等空闲 timer 过期，最长一个 `UDPTimeout`。
+  这期间表项是死的，而 dispatch 的 `found` 分支把后续包投进没人读的 `input` 就 `continue`
+  ——**同一源端口重开会话等于黑洞**，不是"只是晚点恢复"。`socks` 从一开始就带着这条分支，
+  是另外两条的参照实现；`dokodemo` 与 `tproxy` 是 2026-10-13 才补齐的，判据分别是
+  `tunnel/dokodemo/session_close_test.go` 与 `tunnel/tproxy/session_close_test.go`（两者把
+  `timeout` 故意设成 5 分钟，让"timer 早晚会清"这条自愈在水准线内不可用，从而测到的是窗口
+  本身）。新增同类入站时把这条抄过去。
+- **`tproxy` 的 UDP 路径在没有 CAP_NET_ADMIN 时无法端到端测。** `ReadFromUDP` 依赖
+  `IP_RECVORIGDSTADDR` cmsg，而它只在监听 socket 带 `IP_TRANSPARENT` 时由内核投递，普通 CI
+  （ubuntu-24.04，非 root）构造不出真实入口。所以 `tproxyPacketInfo` 和 `packetQueue` 是
+  `Server` 的字段而不是 `packetDispatchLoop` 的局部量——就为了测试能直接投伪造 info、跳开
+  socket 层验证同一份会话代码。改成局部变量会把这条判据一起弄没。
 
 ## Anti-patterns
 

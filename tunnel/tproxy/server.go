@@ -17,9 +17,22 @@ import (
 
 const MaxPacketSize = 1024 * 8
 
+// tproxyPacketInfo 是 UDP 读取协程交给 dispatch 主循环的一条报文。
+// 原先它是 packetDispatchLoop 里的函数内类型 + 局部 channel；提到包级并挂到 Server 上，
+// 是为了让 dispatch 的会话逻辑能在**没有 CAP_NET_ADMIN** 的环境里被测——
+// ReadFromUDP 需要 IP_RECVORIGDSTADDR cmsg，而那要求监听 socket 带 IP_TRANSPARENT，
+// 普通 CI（含本仓库的 ubuntu-24.04）根本构造不出真实入口。测试直接往 packetQueue
+// 投递伪造的 info，跳开 socket 层，被验证的仍是同一份会话代码。
+type tproxyPacketInfo struct {
+	src     *net.UDPAddr
+	dst     *net.UDPAddr
+	payload []byte
+}
+
 type Server struct {
 	tcpListener net.Listener
 	udpListener *net.UDPConn
+	packetQueue chan *tproxyPacketInfo
 	packetChan  chan tunnel.PacketConn
 	timeout     time.Duration
 	mappingLock sync.RWMutex
@@ -101,13 +114,6 @@ func (s *Server) decorate(conn net.Conn) (tunnel.Conn, error) {
 }
 
 func (s *Server) packetDispatchLoop() {
-	type tproxyPacketInfo struct {
-		src     *net.UDPAddr
-		dst     *net.UDPAddr
-		payload []byte
-	}
-	packetQueue := make(chan *tproxyPacketInfo, 1024)
-
 	s.wg.Go(func() {
 		buf := make([]byte, MaxPacketSize)
 		readErrors := 0
@@ -142,7 +148,7 @@ func (s *Server) packetDispatchLoop() {
 			payload := make([]byte, n)
 			copy(payload, buf[:n])
 			select {
-			case packetQueue <- &tproxyPacketInfo{
+			case s.packetQueue <- &tproxyPacketInfo{
 				src:     src,
 				dst:     dst,
 				payload: payload,
@@ -156,7 +162,7 @@ func (s *Server) packetDispatchLoop() {
 	for {
 		var info *tproxyPacketInfo
 		select {
-		case info = <-packetQueue:
+		case info = <-s.packetQueue:
 		case <-s.ctx.Done():
 			log.Debug("exiting")
 			return
@@ -236,6 +242,14 @@ func (s *Server) packetDispatchLoop() {
 					case <-s.ctx.Done():
 						log.Debug("exiting")
 						return
+					case <-sessionConn.ctx.Done():
+						// 下游 relay 拆会话走的是 conn.Close()，只 cancel 会话自己的 ctx。
+						// 不监听它就得等空闲 timer 过期（最长 UDPTimeout）；这期间 mapping
+						// 挂着死表项，同源地址的包全投进没人读的 input 丢掉，而且 found
+						// 恒真所以再也投递不出新会话——同一源端口重开会话就是黑洞。
+						// socks/dokodemo 的同型 daemon 都有这条，nat 模式的 TPROXY 之前漏了。
+						log.Debug("tproxy udp session closed by consumer")
+						return
 					case <-timer.C:
 						log.Debug("packet session ", sessionConn.src.String(), "timeout")
 						return
@@ -303,6 +317,7 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 		timeout:     time.Duration(cfg.UDPTimeout) * time.Second,
 		mapping:     make(map[string]*PacketConn),
 		packetChan:  make(chan tunnel.PacketConn, 32),
+		packetQueue: make(chan *tproxyPacketInfo, 1024),
 	}
 	server.wg.Go(func() {
 		server.packetDispatchLoop()
