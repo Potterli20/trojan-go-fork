@@ -9,7 +9,10 @@ on:
 # 示例配置与文档里的配置键，没有任何 Go 测试会去加载它们；而 Go 的 encoding/json
 # 会静默忽略未知键。这两件事叠加，导致 `quic.enabled`、`ssl.verify-cert`、`api.user`、
 # `statistic.type` 一类编造键，以及 `log-level: info`（该字段是 int，启动即 FATAL）
-# 能长期留在仓库里。这道工作流专门拦这两类。
+# 能长期留在仓库里。这道工作流专门拦这两类，分两个判据：
+#   * 前一步把 config/*.yaml 与文档里的 ```yaml 代码块逐段还原出来，一起喂给真实二进制，
+#     只有这条路能抓到值类型错误（`log-level: info`）——Python 侧算不出 int/bool 的期望类型。
+#   * 后一步 check-config-keys.py 按 (父节, 键) 比名字，抓的是放错节的编造键。
 jobs:
   config-examples:
     runs-on: ubuntu-24.04
@@ -28,21 +31,26 @@ jobs:
       - name: Load every example config
         env:
           SHADOWSOCKS_SF_CAPACITY: "-1"
+          # 提取器会 import 同级审计脚本取 DOC_FILES，别让它在 .github/ 里落下 __pycache__
+          PYTHONDONTWRITEBYTECODE: "1"
         run: |
           set -u
           BIN=build/trojan-go-fork
           test -x "$BIN" || { echo "::error::make 没产出 $BIN"; exit 1; }
+          docdir=$(mktemp -d)
+          python3 .github/extract-doc-yaml.py "$docdir"
           scanned=0
           failed=0
-          for f in config/*.yaml; do
-            scanned=$((scanned + 1))
+          # 逐份把配置喂给真实二进制，判据只看 grep 到的错误，**不看退出码**：Actions 给
+          # run 用的是 `bash -e`，而这一行在 CI 里必然非零退出——配置能解析时进程会一直
+          # 服务到 timeout 收工（rc=124），占位证书、443 端口权限、诱饵地址不通又会让它
+          # rc=1 快速失败。裸写这一行会在第一份配置就以 124 终止整步，连后面的分母自检
+          # 都跑不到。8 秒的上限只用来兜"解析已完成、进程赖着不走"这一种情况。
+          probe() {
+            local f="$1" out rc
             out=$(mktemp)
-            # 这一行在 CI 里必然非零退出，而且不能让它把整步带走：Actions 给 run 用的是
-            # `bash -e`，配置能解析时进程会一直服务到 timeout 收工（rc=124），占位证书与
-            # 443 端口权限会快速失败（rc=1）——两者都是预期，裸写这一行会在第一份配置
-            # 就以 124 终止，连后面的分母自检都跑不到。
             rc=0
-            timeout 20 "$BIN" -config "$f" >"$out" 2>&1 || rc=$?
+            timeout 8 "$BIN" -config "$f" >"$out" 2>&1 || rc=$?
             # 反序列化失败才是配置写错
             if grep -q 'unmarshal errors' "$out"; then
               echo "::error file=$f::$f 无法被解析"
@@ -50,20 +58,35 @@ jobs:
               failed=$((failed + 1))
             # 分子自证：没走到加载配置那一行，说明 -config 这条 CLI 接线变了，
             # 上面那个 grep 会在空文件上永远不命中、白过。两种触发方式：CLI 接线改了，
-            # 或者这份示例把 log-level 调到 3 以上、把 INFO/WARN 一起关掉了。
+            # 或者这份配置把 log-level 调到 3 以上、把 INFO/WARN 一起关掉了。
             elif ! grep -q 'Found handler: PROXY' "$out"; then
               echo "::error file=$f::$f 没走到加载配置这一步（rc=$rc），或该文件的 log-level 关掉了 INFO"
               head -20 "$out"
               failed=$((failed + 1))
             fi
             rm -f "$out"
+          }
+          for f in config/*.yaml; do
+            scanned=$((scanned + 1))
+            probe "$f"
           done
-          # 分母自证：glob 失配时 scanned=0，绝不能当成通过
+          # 文档里的 ```yaml 代码块同样实喂一遍：下一那步的 Python 审计只比 (节,键) 名，
+          # 不看值类型，`log-level: info` 写在文档里今天照样能全绿。
+          docs=0
+          for f in "$docdir"/*.yaml; do
+            docs=$((docs + 1))
+            probe "$f"
+          done
+          # 分母自证：glob 失配时 scanned/docs=0，绝不能当成通过
           if [ "$scanned" -lt 5 ]; then
             echo "::error::只扫到 $scanned 份示例配置（下限 5）—— 文件名可能已改动"
             exit 1
           fi
-          echo "扫到 $scanned 份示例配置，反序列化失败 $failed 份"
+          if [ "$docs" -lt 12 ]; then
+            echo "::error::只从文档里取出 $docs 段 yaml 代码块（下限 12）—— 提取器或围栏写法变了"
+            exit 1
+          fi
+          echo "扫到 $scanned 份示例配置 + $docs 段文档 yaml，反序列化失败 $failed 份"
           [ "$failed" -eq 0 ] || exit 1
 
       - name: Check config keys in docs and examples
