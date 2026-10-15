@@ -214,6 +214,24 @@ func (s *Server) packetDispatchLoop() {
 				log.Debug("udp packet daemon for", sessionConn.src.String())
 				timer := time.NewTimer(s.timeout)
 				defer timer.Stop()
+				// 回包 socket 按目的地缓存在这条会话自己身上。旧写法每个包都要走一遍
+				// socket()+IP_TRANSPARENT+bind+connect+os.NewFile+FileConn 再 Close，
+				// 一条会话几十包就是几十套系统调用加同数量的一次性 fd。
+				// 存活期改成跟随会话即可，不需要全局缓存也不需要 TTL：会话表本身有
+				// 空闲超时与源地址上限，最多让一个 socket 多活到会话结束。
+				// 目的地取的是 metadata 里的 IP:port，一条会话里通常是固定那一个，
+				// 所以线性比较足够，且刻意不拿字符串当键（那又是每包一次格式化）。
+				type replySock struct {
+					conn *net.UDPConn
+					ip   net.IP
+					port int
+				}
+				var replySocks []replySock
+				defer func() {
+					for _, rs := range replySocks {
+						rs.conn.Close() //gosec:disable -- 错误忽略：会话结束尽力关闭
+					}
+				}()
 				for {
 					select {
 					case info := <-sessionConn.output:
@@ -222,26 +240,36 @@ func (s *Server) packetDispatchLoop() {
 							log.Error("tproxy invalid response metadata address", info.metadata)
 							continue
 						}
-						back, err := DialUDP(
-							"udp",
-							&net.UDPAddr{
-								IP:   info.metadata.IP,
-								Port: info.metadata.Port,
-							},
-							sessionConn.src.(*net.UDPAddr),
-						)
-						if err != nil {
-							log.Error(common.NewError("failed to dial tproxy udp").Base(err))
-							return
+						var back *net.UDPConn
+						for _, rs := range replySocks {
+							if rs.port == info.metadata.Port && rs.ip.Equal(info.metadata.IP) {
+								back = rs.conn
+								break
+							}
+						}
+						if back == nil {
+							var err error
+							back, err = dialUDP(
+								"udp",
+								&net.UDPAddr{
+									IP:   info.metadata.IP,
+									Port: info.metadata.Port,
+								},
+								sessionConn.src.(*net.UDPAddr),
+							)
+							if err != nil {
+								log.Error(common.NewError("failed to dial tproxy udp").Base(err))
+								return
+							}
+							replySocks = append(replySocks, replySock{conn: back, ip: info.metadata.IP, port: info.metadata.Port})
 						}
 						n, err := back.Write(info.payload)
 						if err != nil {
-							back.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+							// 不单独关掉这一条：写失败就拆会话，defer 会统一回收
 							log.Error(common.NewError("tproxy udp write error").Base(err))
 							return
 						}
 						log.Debug("recv packet, send back to", sessionConn.src, "payload", len(info.payload), "sent", n)
-						back.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 						if !timer.Stop() {
 							<-timer.C
 						}

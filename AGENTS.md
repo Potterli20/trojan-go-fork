@@ -113,6 +113,13 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   被 `tunnel/trojan/packet.go` 调到的路径，旧实现先付 2 次 `addr.String()` + 2 次 `SplitHostPort`
   + 时间戳才发现在 range 空表。计数由 `Swap`/`LoadAndDelete` 的返回值维护，同 uid 重复
   Subscribe 不会重复计数。
+- **tproxy 的回包 socket 按目的地缓存在会话上**（`tunnel/tproxy/server.go` 的会话守护协程）。
+  旧写法是**每个出向包**一次 `DialUDP`：`socket()+IP_TRANSPARENT+bind+connect+os.NewFile+FileConn`
+  再立刻 `Close`，一条会话几十包就是几十套这套调用。注意 `DialUDP(network, laddr, raddr)` 的参数
+  次序——`laddr` 是**伪造的原始目的地**（TPROXY 语义要绑上去，客户端才分不出代理），`raddr` 才是
+  客户端；所以复用键取 metadata 里的目的地 IP:port，socket 存活期跟随会话（会话表有空闲超时与
+  源地址上限，不会无界增长）。这条路径靠 `var dialUDP = DialUDP` 这层注入点做判据
+  （真实 `DialUDP` 需要 CAP_NET_ADMIN，CI 与本机都起不来），**别把它当冗余代码删掉**。
 - `common/geodata.EmitBytes` 的读取长度来自 `.dat` 里的 varint，**分配前必须用文件剩余长度卡住**
   （`ErrInvalidGeodataLength`）。损坏的 geoip.dat 曾直接 `make([]byte, 1<<60)` ⇒
   `makeslice: len out of range` panic，而 router 是在启动时加载它的。改这里时别退回"一次 `f.Read`

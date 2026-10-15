@@ -138,6 +138,11 @@ func ReadFromUDP(conn *net.UDPConn, b []byte) (int, *net.UDPAddr, *net.UDPAddr, 
 	return n, addr, originalDst, nil
 }
 
+// dialUDP 是会话守护协程唯一的拨号入口。留这一层变量是为了让"回包 socket 按目的地
+// 复用"能被测试钉住：真实 DialUDP 需要 IP_TRANSPARENT（CAP_NET_ADMIN），CI 与本机
+// 都起不来那个 socket，没有这个注入点就没有任何判据覆盖这条路径。
+var dialUDP = DialUDP
+
 // DialUDP connects to the remote address raddr on the network net,
 // which must be "udp", "udp4", or "udp6".  If laddr is not nil, it is
 // used as the local address for the connection.
