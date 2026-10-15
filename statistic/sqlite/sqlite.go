@@ -24,6 +24,12 @@ func NewSqlitePersistencer(path string) (*Persistencer, error) {
 	}
 	err = db.AutoMigrate(&User{})
 	if err != nil {
+		// gorm.Open 已经建好并持有一个 *sql.DB（AutoMigrate 必然开过连接），
+		// 这里不关掉就把 sqlite 文件句柄和连接池留在进程里。建库失败往往是反复
+		// 重试的路径（文件被占、schema 不兼容），每次漏一份。
+		if sqlDB, dbErr := db.DB(); dbErr == nil {
+			sqlDB.Close() //gosec:disable -- 错误忽略：失败路径回收，真实错误由返回值给出
+		}
 		return nil, err
 	}
 	sp := &Persistencer{

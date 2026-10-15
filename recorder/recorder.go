@@ -45,6 +45,11 @@ func SetCapacity(n int) {
 
 var subscribers sync.Map
 
+// subscriberCount 只为 Add 的空订阅短路存在：sync.Map 没有 O(1) 的"是否为空"，
+// 而 Range 一遍要分配迭代器。计数由 Swap/LoadAndDelete 的返回值维护，
+// 同一 uid 重复 Subscribe 不会重复计数。
+var subscriberCount atomic.Int64
+
 type option struct {
 	recordChan     chan Record
 	transport      string
@@ -64,6 +69,13 @@ type Record struct {
 }
 
 func Add(hash string, clientAddr, targetAddr net.Addr, transport string, payload []byte) {
+	// 没有订阅者就直接返回：Add 是**每连接、每 UDP 包**都会走的路径
+	// （tunnel/trojan/packet.go 的 Record），而下面这几行要先付 2 次 addr.String()
+	// + 2 次 SplitHostPort + 时间戳 + Record 组装，才发现没人在听。
+	// 绝大多数部署根本不开 record，这部分是纯白付的。
+	if subscriberCount.Load() == 0 {
+		return
+	}
 	clientIP, clientPort, _ := net.SplitHostPort(clientAddr.String())
 	targetHost, targetPort, _ := net.SplitHostPort(targetAddr.String())
 
@@ -88,13 +100,16 @@ func Subscribe(uid string, transport, targetPort string, includePayload bool) ch
 		targetPort:     targetPort,
 		includePayload: includePayload,
 	}
-	subscribers.Store(uid, opt)
+	if _, loaded := subscribers.Swap(uid, opt); !loaded {
+		subscriberCount.Add(1)
+	}
 	return opt.recordChan
 }
 
 func Unsubscribe(uid string) {
 	log.Debug("Delete recorder subscriber", uid)
 	if val, ok := subscribers.LoadAndDelete(uid); ok {
+		subscriberCount.Add(-1)
 		opt := val.(option)
 		close(opt.recordChan)
 	}
