@@ -135,6 +135,79 @@ func keysOf(m map[string]int) []string {
 	return out
 }
 
+// TestWebsocketStackLeavesNoLeakedGoroutines 把同一把判据套在 tls+websocket+
+// shadowsocks+mux 这棵树上：它经过的 Close 路径与纯 trojan 子树不同
+// （websocket 的 reader/writer 生命周期、tls 的 pendingConns 排空、mux 的会话表），
+// 泄露往往只在其中一棵树的某个分支上露头。
+func TestWebsocketStackLeavesNoLeakedGoroutines(t *testing.T) {
+	before := leakStacks(t)
+
+	serverPort := common.PickPort("tcp", "127.0.0.1")
+	socksPort := common.PickPort("tcp", "127.0.0.1")
+	clientData := fmt.Sprintf(`
+run-type: client
+local-addr: 127.0.0.1
+local-port: %d
+remote-addr: 127.0.0.1
+remote-port: %d
+password:
+    - password
+ssl:
+    verify: false
+    fingerprint: firefox
+    sni: localhost
+websocket:
+    enabled: true
+    path: /ws
+    host: somedomainname.com
+shadowsocks:
+    enabled: true
+    method: AEAD_CHACHA20_POLY1305
+    password: 12345678
+mux:
+    enabled: true
+`, socksPort, serverPort)
+	serverData := fmt.Sprintf(`
+run-type: server
+local-addr: 127.0.0.1
+local-port: %d
+remote-addr: 127.0.0.1
+remote-port: 80
+disable-http-check: true
+password:
+    - password
+ssl:
+    verify-hostname: false
+    key: server.key
+    cert: server.crt
+    sni: localhost
+shadowsocks:
+    enabled: true
+    method: AEAD_CHACHA20_POLY1305
+    password: 12345678
+websocket:
+    enabled: true
+    path: /ws
+    host: 127.0.0.1
+`, serverPort)
+
+	if !CheckClientServer(clientData, serverData, socksPort) {
+		t.Fatal("websocket 真实栈流量未通过，泄露比对没有意义")
+	}
+	waitForLeakProfile(t)
+
+	after := leakStacks(t)
+	var grew []string
+	for fingerprint, n := range after {
+		if delta := n - before[fingerprint]; delta > 0 {
+			grew = append(grew, fmt.Sprintf("%d x %s", delta, fingerprint))
+		}
+	}
+	if len(grew) > 0 {
+		t.Fatalf("关停 websocket 栈后新增 %d 类泄露协程：\n  %s", len(grew), strings.Join(grew, "\n  "))
+	}
+}
+
 // TestRealStackLeavesNoLeakedGoroutines 用 socks+shadowsocks+mux 的真实栈跑一轮流量，
 // 关停后比对"泄露协程栈"的增量：任何新出现的、属于本仓的阻塞协程都算泄露。
 //
