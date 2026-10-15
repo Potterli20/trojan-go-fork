@@ -124,10 +124,7 @@ func (c *PacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadata, er
 		// 就能按包放大本端分配。这里复用调用方自己的缓冲分片读掉，零额外分配。
 		remaining := length
 		for remaining > 0 && len(payload) > 0 {
-			chunk := len(payload)
-			if chunk > remaining {
-				chunk = remaining
-			}
+			chunk := min(len(payload), remaining)
 			if _, err := io.ReadFull(c.Conn, payload[:chunk]); err != nil {
 				break //gosec:disable -- 错误忽略：排包路径，错误由下方统一返回
 			}

@@ -150,7 +150,7 @@ func TestDialConnReclaimsDeadSessionsEvenWhenOneIsUsable(t *testing.T) {
 	c.clientPoolLock.Unlock()
 
 	// 反复拨号：map 遍历顺序随机，只要死条目先被扫到，旧代码就会在返回前把它丢在半路
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		conn, err := c.DialConn(nil, &Tunnel{})
 		if err != nil {
 			t.Fatalf("DialConn #%d: %v", i, err)

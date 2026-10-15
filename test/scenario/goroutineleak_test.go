@@ -49,7 +49,7 @@ func leakStacks(t *testing.T) map[string]int {
 		}
 		frames, count, inGroup = nil, 0, false
 	}
-	for _, raw := range strings.Split(buf.String(), "\n") {
+	for raw := range strings.SplitSeq(buf.String(), "\n") {
 		line := strings.TrimSpace(raw)
 		switch {
 		case line == "" || strings.HasPrefix(line, "goroutineleak profile:"):
@@ -79,7 +79,7 @@ var leakGroupHeader = regexp.MustCompile(`^(\d+) @ `)
 // 注意模块路径本身就带 "/"，所以只能按"字段以 / 开头是文件路径"来区分，
 // 不能用"带斜杠就跳过"——那样每个函数名都会被丢掉。
 func frameName(line string) string {
-	for _, f := range strings.Fields(line) {
+	for f := range strings.FieldsSeq(line) {
 		if strings.HasPrefix(f, "#") || strings.HasPrefix(f, "0x") || strings.HasPrefix(f, "/") {
 			continue
 		}
