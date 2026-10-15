@@ -102,7 +102,11 @@ func (c *SocksPacketConn) WriteWithMetadata(payload []byte, metadata *tunnel.Met
 	if err != nil {
 		return 0, err
 	}
-	log.Debug("sent udp packet to " + c.socksAddr.String() + " with metadata " + metadata.String())
+	// 先过级别门禁再拼字符串：这是每 UDP 包一次的路径，而 log.Debug 的门禁在函数内部，
+	// 参数在那之前就已经算完了（口径见 AGENTS.md 的日志约定）
+	if log.ShouldLog(log.DebugLevel) {
+		log.Debug("sent udp packet to " + c.socksAddr.String() + " with metadata " + metadata.String())
+	}
 	return len(payload), nil
 }
 
@@ -113,8 +117,15 @@ func (c *SocksPacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadat
 	if err != nil {
 		return 0, nil, err
 	}
-	log.Debug("recv udp packet from " + from.String())
+	if log.ShouldLog(log.DebugLevel) {
+		log.Debug("recv udp packet from " + from.String())
+	}
 	addr := new(tunnel.Address)
+	// 注意这里的别名关系：r 直接持有**池化 buf** 的切片，而上面 defer 会在本函数返回时
+	// 把它归还进池。之所以安全，是因为 Address.ReadFrom 只把字节读进本地数组、域名
+	// 走 string() 复制，解析结果不引用 buf；改成"直接持有底层切片的一段"就会跨包串数据。
+	// 这条不变量由 TestParsedAddressDoesNotAliasPooledBuffer 钉住（涂脏归还后的 buf，
+	// 断言已返回的地址与负载不变），改 ReadFrom 前先想清楚它。
 	r := bytes.NewBuffer(buf[3:n])
 	_, err = addr.ReadFrom(r)
 	if err != nil {
