@@ -68,7 +68,12 @@ func (s *Server) AcceptPacket(t tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (s *Server) Close() error {
-	return s.underlay.Close()
+	err := s.underlay.Close()
+	// 这里嵌的是 *redirector.Redirector，而 Server 自己又定义了 Close，
+	// 嵌进来的那个 Close 被遮蔽了：不显式调用，重定向器就永远没人取消它的 ctx，
+	// 队列里（容量 64）和在中继中的会话各自攥着一根未认证对端的活连接。
+	s.Redirector.Close() //gosec:disable -- Redirector.Close 恒返回 nil；关停路径尽力回收
+	return err
 }
 
 func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {

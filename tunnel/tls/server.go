@@ -123,6 +123,9 @@ drain:
 			log.Warn("[TLS] Failed to close key log file:", err)
 		}
 	}
+	// 与 trojan 同理：重定向器的 ctx 只有 Redirector.Close 会取消，漏掉这一步，
+	// 队列里（容量 64）和在中继中的会话都攥着未认证对端的活连接，最长等满 60s 才松开。
+	s.redir.Close() //gosec:disable -- Redirector.Close 恒返回 nil；关停路径尽力回收
 	return err
 }
 

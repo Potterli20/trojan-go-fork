@@ -35,7 +35,12 @@ type Server struct {
 
 func (s *Server) Close() error {
 	s.cancel()
-	return s.underlay.Close()
+	err := s.underlay.Close()
+	// 重定向器只有在这里被显式关闭才会取消它的 ctx：worker 不排空队列就退出，
+	// 队列里（容量 64）和在中继中的会话都攥着未认证对端的活连接，最长要等满
+	// redirectionIdleTimeout 才松开。
+	s.redir.Close() //gosec:disable -- Redirector.Close 恒返回 nil；关停路径尽力回收
+	return err
 }
 
 func (s *Server) cleanupFailedHandshake(conn tunnel.Conn, tracker *log.ConnectionTracker, err error) error {
