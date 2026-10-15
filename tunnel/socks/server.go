@@ -21,6 +21,12 @@ const (
 
 const (
 	MaxPacketSize = 1024 * 8
+
+	// udpSessionQueueSize 是每个 UDP 会话收发队列的深度，与 dokodemo 的 16 对齐。
+	// 旧的 128 配上最大 8KB 的负载，两条通道就是每会话 2MB 的驻留上限，而会话表
+	// 只按空闲超时清理——一个源端口密集的客户端能把这份占用乘上会话数堆上去。
+	// 队列满时投递侧走 select/default 丢包：UDP 语义下丢包优于按会话无界占内存。
+	udpSessionQueueSize = 16
 )
 
 // handshakeTimeout 限定 socks 握手(version/method/command/address)整体时限
@@ -155,8 +161,15 @@ func (s *Server) handshake(conn net.Conn) (*Conn, error) {
 	if _, err := io.ReadFull(conn, nmethods[:]); err != nil {
 		return nil, common.NewError("failed to read NMETHODS").Base(err)
 	}
-	if _, err := io.CopyN(io.Discard, conn, int64(nmethods[0])); err != nil {
-		return nil, common.NewError("socks failed to read methods").Base(err)
+	// 跳过 method 列表。不用 io.CopyN：Go 1.27 的 io.copyBuffer 在 buf==nil 时
+	// 直接 make([]byte, 32*1024)，而这里是**每条 TCP 连接一次的握手**路径、
+	// 且在认证之前——未认证的对端只要不断建连，就能按连接数放大本端分配。
+	// NMETHODS 是 1 字节，上限 255，一块栈上数组就够。
+	if n := nmethods[0]; n > 0 {
+		var skip [255]byte
+		if _, err := io.ReadFull(conn, skip[:n]); err != nil {
+			return nil, common.NewError("socks failed to read methods").Base(err)
+		}
 	}
 	if _, err := conn.Write([]byte{0x5, 0x0}); err != nil {
 		return nil, common.NewError("failed to respond auth").Base(err)
@@ -195,13 +208,21 @@ func (s *Server) associate(conn net.Conn, addr *tunnel.Address) error {
 	if !ok {
 		return common.NewError("socks failed to get udp relay address")
 	}
-	relayAddr := tunnel.NewAddressFromHostPort("udp", udpAddr.IP.String(), udpAddr.Port)
-	buf := bytes.NewBuffer([]byte{0x05, 0x00, 0x00})
-	_, err := relayAddr.WriteTo(buf)
+	// 手里已经有 *net.UDPAddr，不必拼成字符串再解析一遍（口径同 6857b3f2 那批）。
+	// 帧也用 AppendTo 就地攒：bytes.NewBuffer([]byte{...}) 会把外部切片直接交给 buffer
+	// 持有，配上 WriteTo 就是全仓最后一处"旧地址序列化 + 传参别名"的形态。
+	relayAddr, err := tunnel.NewAddressFromNetAddr("udp", udpAddr)
+	if err != nil {
+		return common.NewError("socks failed to build udp relay address").Base(err)
+	}
+	// 预留 3+19：IPv6 的地址块（ATYP+16 地址+2 端口）是这里的上限，一次写完不扩容
+	frame := make([]byte, 0, 3+19)
+	frame = append(frame, 0x05, 0x00, 0x00)
+	frame, err = relayAddr.AppendTo(frame)
 	if err != nil {
 		return common.NewError("socks failed to write relay address").Base(err)
 	}
-	_, err = conn.Write(buf.Bytes())
+	_, err = conn.Write(frame)
 	return err
 }
 
@@ -280,8 +301,8 @@ func (s *Server) packetDispatchLoop() {
 		if !found {
 			ctx, cancel := context.WithCancel(s.ctx)
 			conn = &PacketConn{
-				input:      make(chan *packetInfo, 128),
-				output:     make(chan *packetInfo, 128),
+				input:      make(chan *packetInfo, udpSessionQueueSize),
+				output:     make(chan *packetInfo, udpSessionQueueSize),
 				ctx:        ctx,
 				cancel:     cancel,
 				PacketConn: s.listenPacketConn,
@@ -295,7 +316,19 @@ func (s *Server) packetDispatchLoop() {
 			s.mappingLock.Unlock()
 
 			s.wg.Go(func() {
-				defer conn.Close()
+				// 无论会话因超时、ctx 还是写失败退出，都必须移除表项并关闭会话。
+				// 旧写法把 delete 只写在 timer.C 与 ctx.Done 两个分支里，而下面
+				// 序列化失败和 WriteTo 失败这两条 return 绕过了它们：表项连同
+				// input/output 两条通道永久滞留，且该源地址之后的每个包都因为
+				// found 恒真被投进这个没人读的死会话（select/default 丢弃），
+				// 同一个源端口重开会话就是彻底黑洞——只能等满 UDPTimeout 才自愈。
+				// dokodemo/tproxy 的同型 daemon 已改成 defer 统一回收，这里对齐。
+				defer func() {
+					s.mappingLock.Lock()
+					delete(s.mapping, conn.src.String())
+					s.mappingLock.Unlock()
+					conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+				}()
 				// UDP 会话空闲超时与 dokodemo/tproxy 对齐,取配置的 UDPTimeout(默认 60s)
 				timeout := s.timeout
 				timer := time.NewTimer(timeout)
@@ -327,14 +360,8 @@ func (s *Server) packetDispatchLoop() {
 						timer.Reset(timeout)
 					case <-timer.C:
 						log.Info("socks udp session timeout, closed")
-						s.mappingLock.Lock()
-						delete(s.mapping, conn.src.String())
-						s.mappingLock.Unlock()
 						return
 					case <-conn.ctx.Done():
-						s.mappingLock.Lock()
-						delete(s.mapping, conn.src.String())
-						s.mappingLock.Unlock()
 						log.Info("socks udp session closed")
 						return
 					}
