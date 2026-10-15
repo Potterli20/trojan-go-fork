@@ -134,7 +134,14 @@ func (c *PacketConn) packetLoop() {
 			}
 			consecutiveErrors = 0
 			// 每包一次，走 NewAddressNetAddr 的快路径（addr 是 *net.UDPAddr）
-			address, _ := tunnel.NewAddressFromNetAddr("udp", addr)
+			address, addrErr := tunnel.NewAddressFromNetAddr("udp", addr)
+			if addrErr != nil {
+				// 不能把 err 丢掉：那样 address 是 nil，这条 packetInfo 一路传到
+				// Route(m.Address)/AppendTo 就是空指针崩进程。丢包并还缓冲。
+				putPacketBuf(buf)
+				log.Error("router failed to build source address for udp packet", addrErr)
+				continue
+			}
 			select {
 			case c.packetChan <- &packetInfo{
 				src: &tunnel.Metadata{
@@ -158,7 +165,20 @@ func (c *PacketConn) Close() error {
 	}
 	err := c.PacketConn.Close()
 	c.wg.Wait()
-	return err
+	// 排空队列并把借出的 buffer 归还进池。必须放在 wg.Wait() 之后：两个 packetLoop
+	// 的入队 select 同时盯着 ctx.Done，取消后仍可能随机命中入队分支再压一个进去，
+	// 提前排空会留下尾巴。队列里每个 *packetInfo 都握着一个从 packetBufPool 借出的
+	// 8KB buffer，归还权本来在消费端；会话被拆时没有消费端再来取，这些 buffer 就
+	// 永久离开池——堆内存能被回收，但池被抽空一截，之后每包都要重新 make(8KB)，
+	// 分配次数回到与包数同阶。
+	for {
+		select {
+		case info := <-c.packetChan:
+			putPacketBuf(info.payload)
+		default:
+			return err
+		}
+	}
 }
 
 func (c *PacketConn) ReadFrom(p []byte) (n int, addr net.Addr, err error) {
