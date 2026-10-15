@@ -314,6 +314,11 @@ drain:
 	s.closeOnce.Do(func() {
 		releaseAuth(s.authRef)
 	})
+	// 重定向器必须跟着一起收：worker 走 ctx.Done 分支只 return、不排空队列，而它的
+	// ctx 只有 Redirector.Close 会取消。漏掉这一步，关停瞬间排在队列里（容量 64）的
+	// 请求、以及已经在中继的会话都还攥着未认证对端的活连接，最长要等满
+	// redirectionIdleTimeout(60s) 才自己松开——每层入站都漏一批 fd。
+	s.redir.Close() //gosec:disable -- Redirector.Close 恒返回 nil；关停路径尽力回收
 	return err
 }
 
