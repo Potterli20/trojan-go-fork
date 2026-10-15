@@ -1,7 +1,6 @@
 package socks_test
 
 import (
-	"context"
 	"errors"
 	"io"
 	"net"
@@ -57,8 +56,7 @@ func socksAssociate(t *testing.T, addr string) net.Conn {
 // 也就是客户端接着 Read 要看到 EOF。修复前这条 Read 一直阻塞到超时。
 func TestAssociateControlConnIsReclaimed(t *testing.T) {
 	port := common.PickPort("tcp", "127.0.0.1")
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ctx = config.WithConfig(ctx, adapter.Name, &adapter.Config{
 		LocalHost: "127.0.0.1",
 		LocalPort: port,
@@ -103,8 +101,7 @@ func TestAssociateControlConnIsReclaimed(t *testing.T) {
 // 这正是「建好关联就发呆」的对端能造成的常驻占用）。
 func TestAssociateControlConnClosedByServerClose(t *testing.T) {
 	port := common.PickPort("tcp", "127.0.0.1")
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	ctx = config.WithConfig(ctx, adapter.Name, &adapter.Config{
 		LocalHost: "127.0.0.1",
 		LocalPort: port,

@@ -185,7 +185,6 @@ func TestAddressAppendToReusesCallerBuffer(t *testing.T) {
 		{AddressType: DomainName, DomainName: "www.example.com", Port: 443},
 	}
 	for _, a := range addresses {
-		a := a
 		t.Run(a.String(), func(t *testing.T) {
 			n := testing.AllocsPerRun(2000, func() {
 				out, err := a.AppendTo(buf[:0])

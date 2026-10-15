@@ -6,7 +6,7 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20261009220355-dfd95367d331
-	github.com/Potterli20/socks5-fork v0.0.0-20261014212912-d2abc0a2bdc2
+	github.com/Potterli20/socks5-fork v0.0.0-20261015040955-9837c416f7cc
 	github.com/Potterli20/sqlite v0.0.0-20261011210921-ee1bf2d1ab9e
 	github.com/apernet/quic-go v0.63.1-0.20261004180939-a10df75c260c
 	github.com/coder/websocket v1.8.15
@@ -54,7 +54,7 @@ require (
 	golang.org/x/mod v0.42.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/text v0.43.0 // indirect
-	golang.org/x/tools v0.51.0 // indirect
+	golang.org/x/tools v0.52.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20261012220534-4341edf3f941 // indirect
 	layeh.com/gopher-luar v1.0.11 // indirect
 	modernc.org/libc v1.78.0 // indirect

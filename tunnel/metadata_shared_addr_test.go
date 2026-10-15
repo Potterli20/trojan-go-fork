@@ -67,7 +67,6 @@ func TestConcurrentResolveIPIsRaceFreeAndStable(t *testing.T) {
 	var wg sync.WaitGroup
 	got := make([]net.IP, sessions)
 	for i := range sessions {
-		i := i
 		wg.Go(func() {
 			for range 32 {
 				ip, err := shared.ResolveIP()
