@@ -9,6 +9,7 @@ import (
 	"github.com/Potterli20/trojan-go-fork/common"
 	_ "github.com/Potterli20/trojan-go-fork/component"
 	"github.com/Potterli20/trojan-go-fork/constant"
+	"github.com/Potterli20/trojan-go-fork/diag"
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/option"
 )
@@ -57,8 +58,22 @@ func main() {
 	log.Info("Start Time:", startTime.Format("2006-01-02 15:04:05"))
 	log.Info("==================================================")
 
+	diagBind := flag.String("diag-bind", "", "仅在该回环地址上开放 pprof 诊断，如 127.0.0.1:6060；留空则完全不开放。"+
+		"Go 1.27 起可用 /debug/pprof/goroutineleak 直接定位泄露的阻塞协程")
+
 	flag.Parse()
 	log.Debug("Command line flags parsed successfully")
+
+	// 诊断口在代理启动之前建监听，这样"地址不合法/端口被占"是启动期的一次硬失败，
+	// 而不是跑起来之后静默缺席。留空（默认）则完全不开放。
+	if *diagBind != "" {
+		_, stopDiag, err := diag.Start(*diagBind)
+		if err != nil {
+			log.Error(err)
+			log.Fatal("Invalid options - failed to start diagnostics")
+		}
+		defer stopDiag()
+	}
 
 	if err := selectAndRun(option.PopOptionHandler); err != nil {
 		log.Error(err)

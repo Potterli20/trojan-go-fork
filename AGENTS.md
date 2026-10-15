@@ -38,6 +38,12 @@ All modules self-register in `init()`. Nothing is wired explicitly in `main.go` 
 - `api/service/` — gRPC stats/user mgmt; generated pb. See `api/service/AGENTS.md`
 - `statistic/` — user traffic/auth backends: memory, mysql, sqlite. See `statistic/AGENTS.md`
 - `redirector/`, `recorder/` — misdirection on auth failure
+- `diag/` — 可选的 pprof 诊断口。**默认不监听任何端口**，只有 `-diag-bind`（`main.go`）给出
+  回环地址才起服务；非回环（含 `:6060`、`0.0.0.0:6060`）一律拒绝。Go 1.27 起
+  `runtime/pprof` 注册了 `goroutineleak` 剖析类型（跑一轮泄露检测 GC，只输出"阻塞在
+  channel/mutex 上且无任何活对象可达"的协程），这是长期运行的代理定位协程泄露的正解——
+  `runtime.NumGoroutine()` 数总量分不出"在途会话"和"泄露"。测试侧同一判据见
+  `test/scenario/goroutineleak_test.go`（先自证非空判据，再比对真实栈关停前后的栈增量）。
 - `test/`, `tunnel/*/*_test.go` — integration tests require loopback + test certs in `test/`
 - `url/` — `trojan-go://` 分享链接解析器。**只接受 `trojan-go://` scheme**（`url/share_link.go:57`），
   传 `trojan://` 会在启动期报 `url does not have a trojan-go:// scheme`（2026-10-13 实测）。
@@ -94,7 +100,23 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
 - `tunnel/router/` uses v2ray's geosite/geoip data format; bundles no data — user supplies `.dat`.
 - **配置解析是"同一份文档喂给所有已注册模块"**（`config.parseJSON`/`parseYAML` 遍历整个 registry）。因此只要两个模块把**同一个 JSON 路径**绑到不同类型，整份配置就会在启动时被第一个 `Unmarshal` 错误拒掉，而且报错的模块取决于用户没写的那个模块——排查起来很怪。2026-10-12 全仓核过：同名键 `alpn` / `password` / `path` / `ssl` 都分属不同路径（`quic.alpn` vs `ssl.alpn`、`mysql.password` vs 顶层 `password`、`inbound.path` vs `websocket.path`、`api.ssl` vs `ssl`），今天无碰撞；**新增模块时要照这个约束检查**（注意 `full`/`mini`/`api` 等 build tag 会改变注册了哪些模块，同一份配置在不同构建下的成败可能不同）。
 - **`redirector` 的客户端地址注入由顶层开关 `redirect-client-ip`（JSON `redirect_client_ip`）控制，默认关**。2026-10-12 启用：此前 `Redirection.ClientIP` 全仓没有任何赋值点，整条注入路径不可达（文档只记录、不顺手删）。打开后 `worker()` 取 `InboundConn` 的 TCP 对端地址（调用侧显式给了 `ClientIP` 就用它），并且只有当头部块能被 `http.ReadRequest` 判成合法 HTTP 请求时，才追加 `X-Forwarded-For` / `X-Real-IP`。非 HTTP 载荷、以及读不出完整头部块（含 64KB 上限）这两条出口**原样中继并保持连接**——旧实现分别是加坏字节、以及直接关连接（对探测者自曝）。开关放在 `redirector` 自己注册的 `REDIRECTION` 配置段上，所以 trojan / shadowsocks / tls / websocket 四个入站不必各加一份键（各加一份会踩「同一路径必须同类型」那条约束）。注意这里拿到的是 TCP 对端地址：`trust-headers` 那条 `GetRealIP` 走不通，因为到重定向时认证已失败、那个 IP 还没解析出来。
-- `common/geodata.EmitBytes` 的读取长度来自 `.dat` 里的 varint，**分配前必须用文件剩余长度卡住**（`ErrInvalidGeodataLength`）。损坏的 geoip.dat 曾直接 `make([]byte, 1<<60)` ⇒ `makeslice: len out of range` panic，而 router 是在启动时加载它的。改这里时别退回"一次 `f.Read` 读不满就报硬错误"：`io.Reader` 允许短读，必须用 `io.ReadFull`。
+- **地址序列化只剩一条路**：生产代码里 `Address.WriteTo` / `Metadata.WriteTo` 已无调用点（只有
+  `tunnel/metadata_*_test.go` 还拿它们当等价性判据），新代码请直接用 `AppendTo`。注意
+  `Metadata.WriteTo` 还带一个 `Address.NetworkType = "tcp"` 的就地改写副作用，`AppendTo` 没有——
+  全仓无人依赖它（`Address.Network()` 只被 `Metadata.Network()` 读，而后者无人调用）。
+  另两处已核实但**没动**的热点，改之前先掂量：① `tunnel/tproxy/udp.go` 的 `DialUDP` 是**每个回包**
+  新建 socket + `os.NewFile`，按源地址缓存连接能省掉大量 fd  churn，但要引入 TTL 与 NAT 语义；
+  ② socks/tproxy/dokodemo 的 UDP 会话表以 `addr.String()` 为键，每包一次格式化，换成
+  `netip.AddrPort` 能省掉，但 IPv4-in-IPv6 与 v6 zone 的键相等语义会改变现有会话归属，
+  必须先有判据再动。
+- **`recorder.Add` 在零订阅者时直接返回**（`subscriberCount` 短路）。它是每连接、每 UDP 包都会
+  被 `tunnel/trojan/packet.go` 调到的路径，旧实现先付 2 次 `addr.String()` + 2 次 `SplitHostPort`
+  + 时间戳才发现在 range 空表。计数由 `Swap`/`LoadAndDelete` 的返回值维护，同 uid 重复
+  Subscribe 不会重复计数。
+- `common/geodata.EmitBytes` 的读取长度来自 `.dat` 里的 varint，**分配前必须用文件剩余长度卡住**
+  （`ErrInvalidGeodataLength`）。损坏的 geoip.dat 曾直接 `make([]byte, 1<<60)` ⇒
+  `makeslice: len out of range` panic，而 router 是在启动时加载它的。改这里时别退回"一次 `f.Read`
+  读不满就报硬错误"：`io.Reader` 允许短读，必须用 `io.ReadFull`。
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 

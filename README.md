@@ -368,6 +368,22 @@ QUIC 传输层自己会校验证书，`ssl.verify: false` 管不到它——要�
 在 `custom` 里直接配对 PacketConn 时才会用到；**0-RTT 连接恢复未启用**（代码里没有 `Allow0RTT`）。
 QUIC 基于 UDP，某些网络环境可能限制 UDP 流量。
 
+**数据报路径的三条既有约束**（2026-10-15 核实并修复，判据见 `tunnel/quic/leak_fix_test.go`）：
+
+1. **死连接会被作废**。客户端只缓存一条 `*quic.Conn`，过去唯一的失效点在 `DialConn` 的
+   开流失败分支上——对端重启 / NAT 重绑 / 空闲超时之后，`DialPacket` 仍把那条死连接交出去，
+   每路 UDP 秒断且永不重连（TCP 方向反倒会自愈）。现在读路径拿到连接级错误就作废缓存，
+   下一拨重建。自己这侧的 ctx 取消不算（那是上游拆会话，连接还活着）。
+2. **关掉一路 UDP 会话不会拆掉整条连接**。服务端的接收泵现在能在会话关闭时退出（此前它会
+   带着 16 个数据报缓冲长期占住一个 goroutine，同连接后续 UDP 全丢）。注意 `packetDone`
+   只在**连接级**结束才点亮：会话级关闭也点它的话，`handleConnection` 会 return 并把整条
+   连接 `CloseWithError`，殃及同连接上还在跑的 stream。
+3. **数据报是整包语义**。调用方缓冲装不下时报错拆会话，不再 `copy` 截断把半包当完整包交出去。
+   另外 QUIC 数据报**不带 in-band 目标地址**（trojan/simple-socks 的 datagram 里有），
+   所以读出来的 `Metadata.Address` 是 nil；`proxy/proxy.go` 的 `relayPacketLoop` 在写出前
+   统一拦空地址，把原本会在 sink 里空指针崩进程的情况降级为单条会话退出。
+   这里刻意不用 `conn.RemoteAddr()` 顶替——那会把代理服务器自己的地址当成数据报来源交给应用。
+
 详细配置指南请参考 [QUIC 使用文档](docs/quic_usage.md)。
 
 ### 多路复用
@@ -944,6 +960,29 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags "full"
 **排查**：把 `log-level` 设为 `0`，看关闭阶段打出的是哪个受限环节
 （`wait for relay loops to finish` / `close tunnels`，见 `proxy/proxy.go:198,205`），
 再顺着那条连接找对端状态。
+
+### 定位协程/内存泄露（`-diag-bind`，Go 1.27 特性）
+
+**默认完全关闭**：不给 `-diag-bind` 就不开任何端口。给了才监听，而且**只接受回环地址**
+（`:6060`、`0.0.0.0:6060` 这类会被直接拒绝——pprof 暴露协程栈与堆直方图，挂到公网等于把进程交出去）。
+
+```bash
+./trojan-go-fork -config config.json -diag-bind 127.0.0.1:6060
+```
+
+Go 1.27 把 `goroutineleak` 剖析正式开放给 `runtime/pprof`：它会先跑一轮带泄露检测的 GC，
+**只**输出"阻塞在 channel/mutex 上、且没有任何活对象能引到"的协程。长期跑的代理用
+`runtime.NumGoroutine()` 数总量区分不了"在途会话"和"泄露"，而这个可以直接点名：
+
+```bash
+curl 'http://127.0.0.1:6060/debug/pprof/goroutineleak?debug=1'   # 泄露的阻塞协程
+curl 'http://127.0.0.1:6060/debug/pprof/heap?debug=1'             # 堆按分配点聚合
+curl 'http://127.0.0.1:6060/debug/pprof/'                         # 其余剖析（含 profile/trace）
+```
+
+测试侧同一个判据已经接进 `test/scenario/goroutineleak_test.go`：`TestProbeIsNotVacuous`
+先种一条必然泄露的阻塞协程自证判据有效，`TestRealStackLeavesNoLeakedGoroutines` 再用
+socks+shadowsocks+mux 的真实栈比对关停前后的泄露栈增量。
 
 ---
 
