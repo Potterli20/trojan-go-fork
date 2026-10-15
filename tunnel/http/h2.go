@@ -25,6 +25,31 @@ import (
 // （方法后紧跟裸 "*" 作为 request-target 不成立），所以 5 字节足够判真。
 const h2PrefaceProbe = 5
 
+// h2CopyBufSize 取 32KB，与 io.copyBuffer 在 buf==nil 时的默认值一致：Go 1.27 起
+// io 内部已经不再有复用池（src/io/io.go:418-426 直接 `make([]byte, size)`），
+// 而这里的 dst（http2 的 ResponseWriter）不实现 ReaderFrom、src（resp.Body）不实现
+// WriterTo，走的就是这条分配路径 —— 每条被代理的 h2c 请求都要新造再丢一块 32KB。
+// 换成池化只改分配来源，吞吐与字节序都不变。
+const h2CopyBufSize = 32 * 1024
+
+var h2CopyBufPool = sync.Pool{
+	New: func() any {
+		buf := make([]byte, h2CopyBufSize)
+		return &buf
+	},
+}
+
+func getH2CopyBuf() []byte { return *h2CopyBufPool.Get().(*[]byte) }
+
+func putH2CopyBuf(buf []byte) {
+	// 与 redirector.copyBufPool / proxy.boundedBufPool 同理：尺寸不符就交给 GC，
+	// 不让一次异常占用把整个池的水位顶高
+	if len(buf) != h2CopyBufSize {
+		return
+	}
+	h2CopyBufPool.Put(&buf)
+}
+
 // bufferedConn 把裸连接与"已经读过一部分"的 bufio.Reader 合成一个 net.Conn 交给
 // http2.ServeConn。必须这样接：嗅探用的字节（往往还不止前文，SETTINGS 帧通常已经
 // 一起进了 bufio 的缓冲）已经从 socket 里读走了，直接给 ServeConn 裸连接会让它
@@ -178,7 +203,9 @@ func (h *h2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.WriteHeader(resp.StatusCode)
-	if _, err := io.Copy(w, resp.Body); err != nil {
+	copyBuf := getH2CopyBuf()
+	defer putH2CopyBuf(copyBuf)
+	if _, err := io.CopyBuffer(w, resp.Body, copyBuf); err != nil {
 		log.Error(common.NewError("http2 failed to write the response back").Base(err))
 	}
 }

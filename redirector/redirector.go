@@ -193,7 +193,11 @@ func (r *Redirector) Redirect(redirection *Redirection) {
 
 func injectForwardedHeader(inbound net.Conn, outbound net.Conn, clientIP string) (bool, error) {
 	var headerBuf bytes.Buffer
-	buf := make([]byte, 4096)
+	// 读侧scratch借包内已有的池：这条路径是认证失败的诱饵会话，扫描器洪泛时
+	// 每秒能起几百条，每条一个 make(4096) 就是纯浪费
+	buf := getCopyBuffer()
+	defer putCopyBuffer(buf)
+	headerBuf.Grow(copyBufferSize)
 
 	// flushAsIs 把已经读到的字节原样交出去，然后由上层接着按普通中继走。
 	// 「不是可注入的 HTTP 请求」不是故障：诱饵的意义就是让探测者继续把连接当成
@@ -258,6 +262,8 @@ func injectForwardedHeader(inbound net.Conn, outbound net.Conn, clientIP string)
 	lines = append(lines, "X-Real-IP: "+clientIP)
 
 	var out bytes.Buffer
+	// 一次预留够：注入只多两行头部，长度可由已知量算出，省掉 bytes.Buffer 的倍增过程
+	out.Grow(len(headerBytes) + 2*len(lines)*2 + len(clientIP)*2 + 128)
 	for _, line := range lines {
 		out.WriteString(line)
 		out.WriteString("\r\n")
@@ -275,8 +281,11 @@ func injectForwardedHeader(inbound net.Conn, outbound net.Conn, clientIP string)
 // 头部块"，而不是自己拆空格：非 HTTP 的载荷一旦被塞进 XFF 行，那个协议自己的字节
 // 就被改坏了。这里只做判定，注入仍然按原始行拼接，保住字节顺序与大小写。
 func isHTTPRequestHead(headerBlock []byte) bool {
-	withTerminator := append(append([]byte{}, headerBlock...), []byte("\r\n\r\n")...)
-	req, err := http.ReadRequest(bufio.NewReader(bytes.NewReader(withTerminator)))
+	// 用 MultiReader 把结束符接在真正的头部块后面，而不是先整块复制再追加：
+	// headerBlock 最长可到 64KB，旧写法每次判定都要为新副本付一整块。
+	// http.ReadRequest 只读不写，shared 底层数组没有副作用。
+	withTerminator := io.MultiReader(bytes.NewReader(headerBlock), strings.NewReader("\r\n\r\n"))
+	req, err := http.ReadRequest(bufio.NewReader(withTerminator))
 	if err != nil {
 		return false
 	}
