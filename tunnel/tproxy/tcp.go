@@ -56,11 +56,17 @@ func ListenTCP(network string, laddr *net.TCPAddr) (net.Listener, error) {
 
 	fileDescriptorSource, err := listener.File()
 	if err != nil {
+		// listener 已经 bind 住端口了，不关掉它这次失败就会把一个已占用的 socket 留在进程里
+		listener.Close() //gosec:disable -- 错误忽略：失败路径回收，真实错误由返回值给出
 		return nil, &net.OpError{Op: "listen", Net: network, Source: nil, Addr: laddr, Err: fmt.Errorf("get file descriptor: %s", err)}
 	}
 	defer fileDescriptorSource.Close()
 
 	if err = syscall.SetsockoptInt(int(fileDescriptorSource.Fd()), syscall.SOL_IP, syscall.IP_TRANSPARENT, 1); err != nil {
+		// fileDescriptorSource 是 dup 出来的 fd，关掉 defer 里那一层并不解绑端口：
+		// 真正 bind 住地址的是 listener 自己的 socket。没有 CAP_NET_ADMIN 时这条
+		// EPERM 是常态（CI 与本机都是），启动脚本反复重试就会逐次累计占死端口。
+		listener.Close() //gosec:disable -- 错误忽略：失败路径回收，真实错误由返回值给出
 		return nil, &net.OpError{Op: "listen", Net: network, Source: nil, Addr: laddr, Err: fmt.Errorf("set socket option: IP_TRANSPARENT: %s", err)}
 	}
 

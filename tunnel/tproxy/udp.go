@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"sync"
 	"syscall"
 	"unsafe"
 )
@@ -26,12 +27,17 @@ func ListenUDP(network string, laddr *net.UDPAddr) (*net.UDPConn, error) {
 
 	fileDescriptorSource, err := listener.File()
 	if err != nil {
+		// listener 已经 bind 住端口，不关掉就是把一个已占用的 socket 留在进程里
+		listener.Close() //gosec:disable -- 错误忽略：失败路径回收，真实错误由返回值给出
 		return nil, &net.OpError{Op: "listen", Net: network, Source: nil, Addr: laddr, Err: fmt.Errorf("get file descriptor: %s", err)}
 	}
 	defer fileDescriptorSource.Close()
 
 	fileDescriptor := int(fileDescriptorSource.Fd())
 	if err = syscall.SetsockoptInt(fileDescriptor, syscall.SOL_IP, syscall.IP_TRANSPARENT, 1); err != nil {
+		// fileDescriptorSource 是 dup 出来的 fd，只关它那一层不解绑端口；无 CAP_NET_ADMIN
+		// 时这条 EPERM 是常态，失败建栈重试会逐次累计占死端口
+		listener.Close() //gosec:disable -- 错误忽略：失败路径回收，真实错误由返回值给出
 		return nil, &net.OpError{Op: "listen", Net: network, Source: nil, Addr: laddr, Err: fmt.Errorf("set socket option: IP_TRANSPARENT: %s", err)}
 	}
 
@@ -40,15 +46,35 @@ func ListenUDP(network string, laddr *net.UDPAddr) (*net.UDPConn, error) {
 	// tproxy 无法取回真实目的地。绑定 v4 地址的 "udp" 实际是 AF_INET socket，
 	// 对其设置 SOL_IPV6 层选项会 ENOPROTOOPT，故按 LocalAddr 的实际 family 判断
 	if err = syscall.SetsockoptInt(fileDescriptor, syscall.SOL_IP, syscall.IP_RECVORIGDSTADDR, 1); err != nil {
+		listener.Close() //gosec:disable -- 错误忽略：失败路径回收，真实错误由返回值给出
 		return nil, &net.OpError{Op: "listen", Net: network, Source: nil, Addr: laddr, Err: fmt.Errorf("set socket option: IP_RECVORIGDSTADDR: %s", err)}
 	}
 	if localAddr, ok := listener.LocalAddr().(*net.UDPAddr); ok && (localAddr.IP == nil || localAddr.IP.To4() == nil) {
 		if err = syscall.SetsockoptInt(fileDescriptor, syscall.SOL_IPV6, ipv6RecvOrigDstAddr, 1); err != nil {
+			listener.Close() //gosec:disable -- 错误忽略：失败路径回收，真实错误由返回值给出
 			return nil, &net.OpError{Op: "listen", Net: network, Source: nil, Addr: laddr, Err: fmt.Errorf("set socket option: IPV6_RECVORIGDSTADDR: %s", err)}
 		}
 	}
 
 	return listener, nil
+}
+
+// oobPool 复用收 cmsg 的带外缓冲：ReadFromUDP 是**每 UDP 包**一次的热点
+// （server.go:122 的 packetDispatchLoop），旧写法每包 make([]byte, 1024)。
+var oobPool = sync.Pool{
+	New: func() any {
+		buf := make([]byte, 1024)
+		return &buf
+	},
+}
+
+func getOOBBuf() []byte { return *oobPool.Get().(*[]byte) }
+func putOOBBuf(buf []byte) {
+	// 尺寸不符就交给 GC，与 proxy.boundedBufPool 的口径一致
+	if len(buf) != 1024 {
+		return
+	}
+	oobPool.Put(&buf)
 }
 
 // ReadFromUDP reads a UDP packet from c, copying the payload into b.
@@ -58,7 +84,8 @@ func ListenUDP(network string, laddr *net.UDPAddr) (*net.UDPConn, error) {
 // Out-of-band data is also read in so that the original destination
 // address can be identified and parsed.
 func ReadFromUDP(conn *net.UDPConn, b []byte) (int, *net.UDPAddr, *net.UDPAddr, error) {
-	oob := make([]byte, 1024)
+	oob := getOOBBuf()
+	defer putOOBBuf(oob)
 	n, oobn, _, addr, err := conn.ReadMsgUDP(b, oob)
 	if err != nil {
 		return 0, nil, nil, err
@@ -91,8 +118,13 @@ func ReadFromUDP(conn *net.UDPConn, b []byte) (int, *net.UDPAddr, *net.UDPAddr, 
 			}
 			pp := (*syscall.RawSockaddrInet6)(unsafe.Pointer(&msg.Data[0]))
 			p := (*[2]byte)(unsafe.Pointer(&pp.Port))
+			// 必须显式拷贝：msg.Data 直接指向本轮的 oob 缓冲，而那块缓冲已经在
+			// defer 里回到池中，下一个包就会覆写它。IPv4 分支走 net.IPv4()，
+			// 它本身返回新造的 16 字节切片，所以只有这里需要防悬垂引用。
+			ip := make(net.IP, net.IPv6len)
+			copy(ip, pp.Addr[:])
 			originalDst = &net.UDPAddr{
-				IP:   net.IP(pp.Addr[:]),
+				IP:   ip,
 				Port: int(p[0])<<8 + int(p[1]),
 				Zone: strconv.Itoa(int(pp.Scope_id)),
 			}

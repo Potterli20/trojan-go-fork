@@ -17,6 +17,12 @@ import (
 
 const MaxPacketSize = 1024 * 8
 
+// udpSessionQueueSize 是每个 UDP 会话收发队列的深度，与 dokodemo/socks 的 16 对齐。
+// 旧的 128 配上最大 8KB 的负载，两条通道就是每会话 2MB 的驻留上限，而 mapping
+// 只按空闲超时清理。队列满时投递侧走 select/default 丢包：UDP 语义下丢包优于
+// 按会话无界占内存。
+const udpSessionQueueSize = 16
+
 // tproxyPacketInfo 是 UDP 读取协程交给 dispatch 主循环的一条报文。
 // 原先它是 packetDispatchLoop 里的函数内类型 + 局部 channel；提到包级并挂到 Server 上，
 // 是为了让 dispatch 的会话逻辑能在**没有 CAP_NET_ADMIN** 的环境里被测——
@@ -176,8 +182,8 @@ func (s *Server) packetDispatchLoop() {
 		if !found {
 			ctx, cancel := context.WithCancel(s.ctx)
 			conn = &PacketConn{
-				input:      make(chan *packetInfo, 128),
-				output:     make(chan *packetInfo, 128),
+				input:      make(chan *packetInfo, udpSessionQueueSize),
+				output:     make(chan *packetInfo, udpSessionQueueSize),
 				PacketConn: s.udpListener,
 				ctx:        ctx,
 				cancel:     cancel,
@@ -259,10 +265,18 @@ func (s *Server) packetDispatchLoop() {
 			})
 		}
 
+		// 手里已经有 *net.UDPAddr，别拼成字符串再解析一遍：这条是**每 UDP 包**一次的
+		// 路径，旧写法每包多付一次 IP.String() 格式化 + 一次地址解析（口径同 6857b3f2）
+		dstAddr, addrErr := tunnel.NewAddressFromNetAddr("udp", info.dst)
+		if addrErr != nil {
+			log.Error("tproxy failed to build destination address", addrErr)
+			continue
+		}
+
 		select {
 		case conn.input <- &packetInfo{
 			metadata: &tunnel.Metadata{
-				Address: tunnel.NewAddressFromHostPort("udp", info.dst.IP.String(), info.dst.Port),
+				Address: dstAddr,
 			},
 			payload: info.payload,
 		}:
@@ -306,6 +320,10 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 		Port: cfg.LocalPort,
 	})
 	if err != nil {
+		// tcpListener 此刻已经 bind 住端口，只 cancel 的话它没有任何持有者会去关：
+		// 每次失败建栈漏一个 fd + 一个被占死的端口（api/测试这类在库模式反复建栈的
+		// 场景会逐次累计）。dokodemo/adapter 的失败路径都显式关了 TCP listener，这里对齐。
+		tcpListener.Close() //gosec:disable -- 错误忽略：失败路径回收，真实错误由返回值给出
 		cancel()
 		return nil, common.NewError("tproxy failed to listen udp").Base(err)
 	}
