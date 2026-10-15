@@ -51,8 +51,16 @@ func (c *Client) DialPacket(t tunnel.Tunnel) (tunnel.PacketConn, error) {
 			AddressType: tunnel.DomainName,
 		},
 	}
-	_, err = metadata.WriteTo(conn)
+	// 走 AppendTo 而不是 WriteTo：后者要先把 Command+地址攒进一个临时切片再喂给
+	// io.Writer，而这里 conn.Write 本来就是一次成型的整帧写入。
+	// 顺带甩掉一个副作用——Metadata.WriteTo 会就地把自己的 Address.NetworkType 改成
+	// "tcp"，这个 metadata 是即用即弃的临时对象，改不改都没人读，但少一处隐式写总是干净的。
+	frame, err := metadata.AppendTo(nil)
 	if err != nil {
+		conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		return nil, common.NewError("simplesocks failed to serialize udp associate").Base(err)
+	}
+	if _, err = conn.Write(frame); err != nil {
 		conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return nil, common.NewError("simplesocks failed to write udp associate").Base(err)
 	}
