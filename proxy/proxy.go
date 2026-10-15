@@ -370,6 +370,18 @@ func (p *Proxy) relayPacketLoop() {
 								closeDone()
 								return
 							}
+							// relay 的两个方向在写出去之前都要能拿到目标地址。QUIC 数据报没有
+							// in-band 地址（tunnel/quic/client.go 的 ReadWithMetadata 交回的是空
+							// Metadata），而下游 sink 大多直接拿 m.Address 去 AppendTo/Route ——
+							// 那是空指针崩掉整个进程，不是拆一条会话。在这里拦一次覆盖所有 tunnel
+							// 与所有 sink；今天没有任何 sink 能处理空地址，所以把"崩进程"降级成
+							// "这条 UDP 会话干净退出"，不改变任何原本能工作的路径。
+							if metadata == nil || metadata.Address == nil {
+								p.packetPool.Put(buf)
+								log.Error(common.NewError("packet relay got no destination address, tearing down the session"))
+								closeDone()
+								return
+							}
 							_, err = outbound.WriteWithMetadata(buf[:n], metadata)
 							p.packetPool.Put(buf)
 							if err != nil {
@@ -392,6 +404,13 @@ func (p *Proxy) relayPacketLoop() {
 							}
 							if n == 0 {
 								p.packetPool.Put(buf)
+								closeDone()
+								return
+							}
+							// 空地址拦截，理由见上一个方向那处
+							if metadata == nil || metadata.Address == nil {
+								p.packetPool.Put(buf)
+								log.Error(common.NewError("packet relay got no destination address, tearing down the session"))
 								closeDone()
 								return
 							}

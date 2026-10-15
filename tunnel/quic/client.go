@@ -112,6 +112,26 @@ func (c *Client) getQuicConn() *quic.Conn {
 	return c.quicConn
 }
 
+// invalidateConn 作废缓存里的那条连接：只有缓存仍然指向它时才处理，否则会把别的
+// 会话刚建好的新连接误关掉（拨号与作废是交错的）。
+//
+// 为什么需要：DialPacket 过去只看缓存是否非 nil，唯一的失效点在 DialConn 的
+// OpenStreamSync 失败分支上。于是对端重启、空闲超时、NAT 重绑之后，缓存里就是一条
+// 再也收不到数据报的死连接——每拨一路 UDP 都返回它，ReceiveDatagram 立刻报错、
+// 会话秒断，再拨还是同一条死连接，UDP 通道永久失联且不可自愈（TCP 方向反而会自愈，
+// 因为它走 DialConn 那条失效点）。
+func (c *Client) invalidateConn(conn *quic.Conn) {
+	c.quicConnMutex.Lock()
+	if c.quicConn != conn {
+		c.quicConnMutex.Unlock()
+		return
+	}
+	c.quicConn = nil
+	c.quicConnMutex.Unlock()
+	// 锁外关：CloseWithError 会走发送路径，可能阻塞
+	conn.CloseWithError(quic.ApplicationErrorCode(0), "packet path failed") //gosec:disable -- 错误忽略：作废路径
+}
+
 func (c *Client) DialPacket(tun tunnel.Tunnel) (tunnel.PacketConn, error) {
 	tracker := log.NewConnectionTracker("QUIC", "DialPacket").
 		WithField("remote_addr", c.remoteAddr.String())
@@ -132,7 +152,11 @@ func (c *Client) DialPacket(tun tunnel.Tunnel) (tunnel.PacketConn, error) {
 	// PacketConn.Close() 无法唤醒 parked 的读 goroutine(进而拖住 proxy 有界池
 	// 借出的 buffer),每路 UDP 会话结束都会泄漏一个 goroutine。
 	packetCtx, packetCancel := context.WithCancel(c.ctx)
-	return &PacketConn{conn: conn, tracker: tracker, ctx: packetCtx, cancel: packetCancel}, nil
+	return &PacketConn{
+		conn: conn, client: c, tracker: tracker,
+		ctx: packetCtx, cancel: packetCancel,
+		done: make(chan struct{}),
+	}, nil
 }
 
 func (c *Client) DialConn(address *tunnel.Address, tun tunnel.Tunnel) (tunnel.Conn, error) {
@@ -221,6 +245,7 @@ func (c *StreamConn) SetWriteDeadline(t time.Time) error {
 
 type PacketConn struct {
 	conn         *quic.Conn
+	client       *Client // 仅客户端直读路径设置；服务端形态为 nil
 	tracker      *log.ConnectionTracker
 	sent         atomic.Int64 // 同 StreamConn：给关停日志一个真实数字
 	recv         atomic.Int64
@@ -229,6 +254,19 @@ type PacketConn struct {
 	// 中转时可不设置(为 nil),客户端直读路径必须设置。
 	ctx    context.Context
 	cancel context.CancelFunc
+	// done 在 Close 时关闭：服务端形态（packetBuffer!=nil, cancel==nil）此前
+	// Close 是空操作，把数据报读进 packetBuffer 的那个泵没有任何出口。
+	done      chan struct{}
+	closeOnce sync.Once
+}
+
+// oversized 是这条隧道共用的判据：QUIC 数据报是**整包**语义，装不进调用方给的
+// 缓冲时绝不能把截断的一半当完整包交出去（trojan/packet.go 对超长包同样是拆会话）。
+func oversized(n, capacity int) error {
+	if n > capacity {
+		return common.NewError("QUIC datagram is larger than the read buffer")
+	}
+	return nil
 }
 
 func (c *PacketConn) WriteTo(p []byte, addr net.Addr) (int, error) {
@@ -244,6 +282,9 @@ func (c *PacketConn) ReadFrom(p []byte) (int, net.Addr, error) {
 		if !ok {
 			return 0, nil, common.NewError("QUIC packet connection closed")
 		}
+		if err := oversized(len(data), len(p)); err != nil {
+			return 0, nil, err
+		}
 		n := copy(p, data)
 		c.recv.Add(int64(n))
 		return n, c.conn.RemoteAddr(), nil
@@ -254,15 +295,29 @@ func (c *PacketConn) ReadFrom(p []byte) (int, net.Addr, error) {
 	for {
 		data, err := c.conn.ReceiveDatagram(c.receiveCtx())
 		if err != nil {
+			c.noteReadFailure(err)
 			return 0, nil, err
 		}
 		if len(data) == 0 {
 			continue
 		}
+		if err := oversized(len(data), len(p)); err != nil {
+			return 0, nil, err
+		}
 		n := copy(p, data)
 		c.recv.Add(int64(n))
 		return n, c.conn.RemoteAddr(), nil
 	}
+}
+
+// noteReadFailure 在连接级错误上作废缓存里的那条连接（详见 invalidateConn）。
+// 自己这一侧的 ctx 取消不算：那是上游拆掉这条会话，连接本身还好端端地给别人用。
+func (c *PacketConn) noteReadFailure(err error) {
+	if c.client == nil || c.ctx == nil || c.ctx.Err() != nil {
+		return
+	}
+	log.Debug("quic packet read failed, invalidating cached connection:", err)
+	c.client.invalidateConn(c.conn)
 }
 
 func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error) {
@@ -274,19 +329,34 @@ func (c *PacketConn) WriteWithMetadata(p []byte, m *tunnel.Metadata) (int, error
 }
 
 func (c *PacketConn) ReadWithMetadata(p []byte) (int, *tunnel.Metadata, error) {
+	// QUIC 数据报不带 in-band 目标地址（ trojan/simple-socks 的 datagram 里有），
+	// 所以这里交不出真实的对端目标：返回的 Metadata.Address 是 nil。
+	// 消费侧由 proxy/proxy.go 的 relayPacketLoop 统一拦空地址（拆掉这一条会话），
+	// 免得 sink 各自 Address.AppendTo/Route(nil) 空指针崩进程。
+	// 这里不拿 conn.RemoteAddr() 顶替：那会把"代理服务器自己的地址"当成数据报来源
+	// 交给上层应用，等于悄悄改了可见语义。
 	if c.packetBuffer != nil {
 		data, ok := <-c.packetBuffer
 		if !ok {
 			return 0, nil, common.NewError("QUIC packet connection closed")
 		}
+		if err := oversized(len(data), len(p)); err != nil {
+			return 0, nil, err
+		}
 		n := copy(p, data)
+		c.recv.Add(int64(n))
 		return n, &tunnel.Metadata{}, nil
 	}
 	data, err := c.conn.ReceiveDatagram(c.receiveCtx())
 	if err != nil {
+		c.noteReadFailure(err)
+		return 0, nil, err
+	}
+	if err := oversized(len(data), len(p)); err != nil {
 		return 0, nil, err
 	}
 	n := copy(p, data)
+	c.recv.Add(int64(n))
 	return n, &tunnel.Metadata{}, nil
 }
 
@@ -303,6 +373,13 @@ func (c *PacketConn) Close() error {
 	if c.cancel != nil {
 		c.cancel()
 	}
+	// 服务端形态没有 cancel，只有这个 done 能让"把数据报读进 packetBuffer 的那个泵"
+	// 退出；缺了它，relay 拆掉会话之后泵会一路阻塞到 16 个缓冲写满。
+	c.closeOnce.Do(func() {
+		if c.done != nil {
+			close(c.done)
+		}
+	})
 	if c.tracker != nil {
 		c.tracker.Destroy("closed", uint64(c.sent.Load()), uint64(c.recv.Load()))
 	}
