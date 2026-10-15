@@ -101,7 +101,10 @@ func (c *Client) cleanLoop() {
 			}
 			log.Debug("current mux clients: ", len(c.clientPool))
 			for id, info := range c.clientPool {
-				log.Debug(fmt.Sprintf("  - %x: %d/%d", id, info.client.NumStreams(), c.concurrency))
+				// Debugf 而不是 Debug(fmt.Sprintf(...))：默认级别下这 9 条拼接全是白付的
+				// （f 变体先过 ShouldLog 再格式化）。这里的格式串与参数都不含引号或 HTML
+				// 字符，两条清洗路径的输出逐字相同，且 caller 归因仍落在 cleanLoop 上
+				log.Debugf("  - %x: %d/%d", id, info.client.NumStreams(), c.concurrency)
 			}
 			c.clientPoolLock.Unlock()
 			for _, info := range dead {
@@ -209,20 +212,34 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 
 	c.clientPoolLock.Lock()
 	// First pass: try existing clients under lock
-	for _, info := range c.clientPool {
+	var dead []*smuxClientInfo
+	var usable *smuxClientInfo
+	for id, info := range c.clientPool {
 		if info.client.IsClosed() {
-			delete(c.clientPool, info.id)
-			log.Info(fmt.Sprintf("Mux client %x is closed", info.id))
+			// 只摘条目不够：它一旦离开池，cleanLoop 与 Client.Close 都再也看不见，
+			// 底层那条 TCP 连接就没人关。回收判据必须与 cleanLoop 一致（双关），
+			// 且要先把死条目收集起来、到锁外再关——旧写法在这里 delete 完就 continue，
+			// 命中可用会话时更是直接 return，被摘掉的死条目从此悬在池外漏 fd。
+			delete(c.clientPool, id)
+			dead = append(dead, info)
+			log.Infof("Mux client %x is closed", id)
 			continue
 		}
-		if info.client.NumStreams() < c.concurrency || c.concurrency <= 0 {
-			streamTracker := log.NewConnectionTracker("MUX", "Stream").
-				WithField("mux_id", fmt.Sprintf("%x", info.id))
-			c.clientPoolLock.Unlock()
-			return createNewConn(info, streamTracker)
+		if usable == nil && (info.client.NumStreams() < c.concurrency || c.concurrency <= 0) {
+			usable = info
 		}
 	}
 	c.clientPoolLock.Unlock()
+	// 会话关闭（含 stickyConn 写 padding）可能阻塞，与 cleanLoop 同理放到锁外
+	for _, info := range dead {
+		info.client.Close()       //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		info.underlayConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	}
+	if usable != nil {
+		streamTracker := log.NewConnectionTracker("MUX", "Stream").
+			WithField("mux_id", fmt.Sprintf("%x", usable.id))
+		return createNewConn(usable, streamTracker)
+	}
 
 	// No available client: dial a new one (outside the lock)
 	info, err := c.newMuxClient()
