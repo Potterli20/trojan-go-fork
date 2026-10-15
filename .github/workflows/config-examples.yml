@@ -37,11 +37,23 @@ jobs:
           for f in config/*.yaml; do
             scanned=$((scanned + 1))
             out=$(mktemp)
-            timeout 20 "$BIN" -config "$f" >"$out" 2>&1
-            # 占位证书路径与端口占用是预期失败；反序列化失败才是配置写错
+            # 这一行在 CI 里必然非零退出，而且不能让它把整步带走：Actions 给 run 用的是
+            # `bash -e`，配置能解析时进程会一直服务到 timeout 收工（rc=124），占位证书与
+            # 443 端口权限会快速失败（rc=1）——两者都是预期，裸写这一行会在第一份配置
+            # 就以 124 终止，连后面的分母自检都跑不到。
+            rc=0
+            timeout 20 "$BIN" -config "$f" >"$out" 2>&1 || rc=$?
+            # 反序列化失败才是配置写错
             if grep -q 'unmarshal errors' "$out"; then
               echo "::error file=$f::$f 无法被解析"
               grep -A2 'unmarshal errors' "$out" | head -4
+              failed=$((failed + 1))
+            # 分子自证：没走到加载配置那一行，说明 -config 这条 CLI 接线变了，
+            # 上面那个 grep 会在空文件上永远不命中、白过。两种触发方式：CLI 接线改了，
+            # 或者这份示例把 log-level 调到 3 以上、把 INFO/WARN 一起关掉了。
+            elif ! grep -q 'Found handler: PROXY' "$out"; then
+              echo "::error file=$f::$f 没走到加载配置这一步（rc=$rc），或该文件的 log-level 关掉了 INFO"
+              head -20 "$out"
               failed=$((failed + 1))
             fi
             rm -f "$out"
