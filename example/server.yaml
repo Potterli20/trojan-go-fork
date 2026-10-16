@@ -38,11 +38,10 @@ websocket:
   host: your-domain.com
   headers: {}
 quic:
-  enabled: false
   max-idle-timeout: 30
   max-incoming-streams: 100
-  initial-stream-window: 65535
-  initial-conn-window: 65535
+  initial-stream-window: 0 # 0 = 交给 quic-go 库内默认（单流 2MB、连接 3MB）
+  initial-conn-window: 0
   alpn: hq-29
   insecure: false
   congestion: bbr

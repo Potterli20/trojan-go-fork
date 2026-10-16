@@ -176,7 +176,7 @@ outbound:
 **调优建议**:
 ```yaml
 quic:
-  # 增大窗口提升吞吐量（0 才是默认值 = 交给 quic-go 库内默认 512KB）
+  # 增大窗口提升吞吐量（0 才是默认值 = 交给 quic-go 库内默认（单流 2MB、连接 3MB））
   initial-stream-window: 262144   # 256KB
   initial-conn-window: 262144
 

@@ -160,9 +160,9 @@ Trojan-Go-Fork 支持 JSON 和 YAML 两种配置文件格式。配置文件通�
 
 | 字段 | 类型 | 说明 | 默认值 |
 |------|------|------|--------|
-| `max_idle_timeout` | int | 最大空闲超时（秒），保活周期取其一半 | 30 |
+| `max_idle_timeout` | int | 最大空闲超时（秒）；客户端保活周期取其一半，服务端不生效 | 30 |
 | `max_incoming_streams` | int | 最大并发流数 | 100 |
-| `initial_stream_window` | int | 初始流窗口；0 = 交给 quic-go 库内默认（512KB） | 0 |
+| `initial_stream_window` | int | 初始流窗口；0 = 交给 quic-go 库内默认（单流 2MB、连接 3MB） | 0 |
 | `initial_conn_window` | int | 初始连接窗口；同上 | 0 |
 | `alpn` | string | ALPN 标识（留空回落到 `hq-29`） | "hq-29" |
 | `insecure` | bool | 是否跳过证书验证（仅测试） | false |

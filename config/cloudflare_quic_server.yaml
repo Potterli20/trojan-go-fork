@@ -27,7 +27,7 @@ inbound:
           alpn: hq-29                # 与客户端一致
           max-idle-timeout: 30
           max-incoming-streams: 100
-          initial-stream-window: 0   # 0 = 交给 quic-go 库内默认（512KB）
+          initial-stream-window: 0   # 0 = 交给 quic-go 库内默认（单流 2MB、连接 3MB（internal/protocol/params.go 的 DefaultInitialMaxStreamData 与其 1.5 倍））
           initial-conn-window: 0
           congestion: bbr            # bbr / brutal / force-brutal / reno
           brutal-up: 0               # 单位 bps

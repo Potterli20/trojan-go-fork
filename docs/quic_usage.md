@@ -2,7 +2,7 @@
 
 ## 概述
 
-trojan-go-fork 实现了 QUIC 隧道（`tunnel/quic`，基于 `quic-go v0.62.1`），把 trojan 栈跑在 UDP 上。
+trojan-go-fork 实现了 QUIC 隧道（`tunnel/quic`，基于 pin 住的 quic-go fork v0.63.1（见 go.mod 的 replace 注释）），把 trojan 栈跑在 UDP 上。
 
 **可达性（先读这条）**：QUIC 已在 `component/client.go` 和 `component/server.go` 中导入，因此**已注册**——
 但注册 ≠ 进栈。`client` / `server` / `forward` / `nat` 四种运行类型的栈是硬编码的，里面没有 `QUIC` 这一层
@@ -49,7 +49,7 @@ outbound:
           alpn: hq-29                 # ALPN 标识
           max-idle-timeout: 30        # 空闲超时（秒）
           max-incoming-streams: 100   # 最大并发流
-          initial-stream-window: 0    # 0 = 交给 quic-go 库内默认（512KB）
+          initial-stream-window: 0    # 0 = 交给 quic-go 库内默认（单流 2MB、连接 3MB）
           initial-conn-window: 0      # 同上
           insecure: false             # 是否跳过证书验证；自签测试证书需改成 true（见下）
           congestion: bbr             # bbr / brutal / force-brutal / reno
@@ -190,11 +190,11 @@ ALPN 用来让两端确认"这条 QUIC 连接上跑的是本协议"：
 |------|--------|------|
 | `max_idle_timeout` | 30 | 连接空闲超时时间（秒）；保活周期取它的一半 |
 | `max_incoming_streams` | 100 | 允许的最大并发流数 |
-| `initial_stream_window` | 0 | 0 = 交给 quic-go 库内默认（512KB） |
+| `initial_stream_window` | 0 | 0 = 交给 quic-go 库内默认（单流 2MB、连接 3MB） |
 | `initial_conn_window` | 0 | 同上 |
 
 调优建议：
-- **高带宽低延迟网络**：显式增大窗口（如 262144 = 256KB）。注意**别照抄旧文档的 65535**——库内默认是 512KB，填 65535 等于把窗口缩到 1/8。
+- **高带宽低延迟网络**：显式增大窗口（如 262144 = 256KB）。注意**别照抄旧 example/ 里的 65535**——库内默认是单流 2MB，填 65535 等于把窗口缩到 1/32。
 - **移动网络**：保持默认（0），交给库决定
 - **多用户场景**：增加 `max_incoming_streams`
 

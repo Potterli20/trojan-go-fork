@@ -31,10 +31,11 @@ func newDefaultConfig() *Config {
 		QUIC: QUICConfig{
 			MaxIdleTimeout:     30,
 			MaxIncomingStreams: 100,
-			// 0 是 quic-go 的"用库内默认"哨兵，两个初始窗口都是 512KB
-			// （interface.go:125-139）。这里原先写的是 65535，而这两个键当时根本没接进
+			// 0 是 quic-go 的"用库内默认"哨兵：单流 2MB、连接 3MB
+			// （internal/protocol/params.go 的 DefaultInitialMaxStreamData 与 1.5 倍）。
+			// 这里原先写的是 65535，而这两个键当时根本没接进
 			// quic.Config，所以没人察觉：一旦接线，就等于在一次"让配置生效"的改动里
-			// 把所有人的默认流控窗口缩到 1/8。保持 0 把决定权交给库，用户显式设置即可生效。
+			// 把所有人的默认流控窗口缩到 1/32。保持 0 把决定权交给库，用户显式设置即可生效。
 			InitialStreamWindow: 0,
 			InitialConnWindow:   0,
 			ALPN:                "hq-29",

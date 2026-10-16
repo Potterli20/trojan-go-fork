@@ -28,7 +28,7 @@ type Client struct {
 	brutalUp       uint64
 	brutalDown     uint64
 	// quicConn 用具体类型 *quic.Conn 而非 any:此前用 any + 结构体接口断言
-	// 绕过编译,却与被 pin 的 quic-go v0.62.1 API 全面不匹配(返回 *Stream 而非
+	// 绕过编译,却与被 pin 的 quic-go 版本 API 全面不匹配(返回 *Stream 而非
 	// Stream、ReceiveDatagram(ctx) 返回 []byte、CloseWithError 收 ApplicationErrorCode),
 	// 一旦接入即 panic。改成具体类型后编译器会真正校验这些调用。
 	quicConn      *quic.Conn
@@ -438,7 +438,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		// 也把 n==0 判为会话结束——等于每 10s 杀一次同连接上存活的 UDP 会话。
 		KeepAlivePeriod: time.Second * time.Duration(cfg.QUIC.MaxIdleTimeout/2),
 		// initial_stream_window / initial_conn_window 之前定义了却从未接线，用户设了
-		// 不生效。0 表示交给 quic-go 的库内默认（512KB）。
+		// 不生效。0 表示交给 quic-go 的库内默认（单流 2MB、连接 3MB）。
 		InitialStreamReceiveWindow:     uint64(cfg.QUIC.InitialStreamWindow),
 		InitialConnectionReceiveWindow: uint64(cfg.QUIC.InitialConnWindow),
 		// 必须开启 RFC 9221 datagram 支持,否则 ReceiveDatagram 直接返回

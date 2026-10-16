@@ -353,9 +353,9 @@ QUIC 传输层自己会校验证书，`ssl.verify: false` 管不到它——要�
 
 | 字段 | 类型 | 默认 | 说明 |
 |------|------|------|------|
-| `max_idle_timeout` | int | 30 | 空闲超时（秒）；保活周期取其一半 |
+| `max_idle_timeout` | int | 30 | 空闲超时（秒）；**客户端**保活周期取其一半（`tunnel/quic/client.go` 设 KeepAlivePeriod=idle/2，服务端的 quic.Config 没有这一项） |
 | `max_incoming_streams` | int | 100 | 最大并发流数 |
-| `initial_stream_window` | int | 0 | 0 = 交给 quic-go 库内默认（512KB） |
+| `initial_stream_window` | int | 0 | 0 = 交给 quic-go 库内默认（单流 2MB、连接 3MB） |
 | `initial_conn_window` | int | 0 | 同上 |
 | `alpn` | string | `hq-29` | ALPN 标识，留空回落到 `hq-29` |
 | `insecure` | bool | false | 跳过证书校验（仅测试环境） |
@@ -597,7 +597,7 @@ outbound:
           alpn: hq-29
           max-idle-timeout: 30
           max-incoming-streams: 100
-          initial-stream-window: 0     # 0 = quic-go 库内默认（512KB）
+          initial-stream-window: 0     # 0 = quic-go 库内默认（单流 2MB、连接 3MB）
           initial-conn-window: 0
           congestion: bbr
           insecure: false              # 自签测试证书需改成 true
@@ -705,7 +705,9 @@ server {
     ssl_certificate_key /path/to/privkey.pem;
 
     location /trojan-ws {
-        proxy_pass http://127.0.0.1:443;
+        # 服务端这侧是 TLS 之上的 websocket，上游必须是 https://：
+        # 写 http:// 等于拿明文去戳 TLS 端口，握手必挂
+        proxy_pass https://127.0.0.1:443;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -958,7 +960,7 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags "full"
 用来兜住"对端半开、中继卡死"的情况——真等到 5s 说明有连接没退干净，而不是设计如此。
 
 **排查**：把 `log-level` 设为 `0`，看关闭阶段打出的是哪个受限环节
-（`wait for relay loops to finish` / `close tunnels`，见 `proxy/proxy.go:198,205`），
+（`wait for relay loops to finish` / `close tunnels`，见 `proxy/proxy.go:218,225`），
 再顺着那条连接找对端状态。
 
 ### 定位协程/内存泄露（`-diag-bind`，Go 1.27 特性）

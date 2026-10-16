@@ -33,7 +33,7 @@ outbound:
           alpn: hq-29                # 两端必须一致，否则握手失败
           max-idle-timeout: 30       # 秒；保活周期取它的一半
           max-incoming-streams: 100  # 最大并发流
-          initial-stream-window: 0   # 0 = 交给 quic-go 库内默认（512KB）
+          initial-stream-window: 0   # 0 = 交给 quic-go 库内默认（单流 2MB、连接 3MB（internal/protocol/params.go 的 DefaultInitialMaxStreamData 与其 1.5 倍））
           initial-conn-window: 0     # 同上
           insecure: false            # 用自签证书本地测试时要改成 true
           congestion: bbr            # bbr / brutal / force-brutal / reno
