@@ -186,6 +186,20 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   `(*net.UDPAddr).AddrPort()` 会保住 zone，写判据之前我以为它会丢）。解析不出 host:port 的
   未知 `net.Addr` 实现退回字符串键，行为与改造前逐字一致。**新写入站会话表直接用这个类型，
   别再自己拼字符串键。**
+- **三处"看着能省"的分配，量过之后的结论是别动**（2026-10-16，go1.27.1，本机 Ryzen 5 4500U）：
+  ① `Address.ReadFrom` 域名分支的 `make([]byte, length+2)` 换成栈上 `var scratch [257]byte`
+  **更差**：172.2 ns/op、120 B/op → 242.3 ns/op、384 B/op（分配次数都是 6）。原因是
+  `io.ReadFull(r, buf)` 是接口方法调用，编译器无法证明实现不留引用，于是整个 257 字节数组
+  逃逸到堆上，比按需分配的 17 字节大一个数量级。**栈数组只在"不把切片交出去"时才是零分配。**
+  数字与复现见 `tunnel/metadata_parse_bench_test.go`。
+  ② `simplesocks.Conn.Write` 与 `trojan.OutboundConn.WriteHeader` 的首帧拼接缓冲已经是
+  1 alloc/op（300 字节负载实测 151.3 ns/op、384 B/op，`tunnel/simplesocks/first_frame_bench_test.go`），
+  而且是**每条 mux 流**一次、不是每包一次；再套一层池要引入借用/归还、cap 闸门与拆流排空，
+  换来的是每条流省一次分配——不划算。
+  ③ `tunnel/mux/conn.go` 的 SYN/FIN 帧头 `make([]byte, 8)`：这两个 8 字节对象**必须**是堆上副本
+  （要进 `synQueue`/`finQueue`，而 smux 会复用它自己的头缓冲——就是那句 NEVER STORE THE
+  POINTER TO HEADER），且 `pushFrameHeader` 在队列满时会就地发出，池化得在两条出口上都归还。
+  每条流 2 次 8 字节分配，不值这个复杂度。
 - **`Write` / `WriteWithMetadata` 返回之后不得再碰调用方的切片**（跨层契约，写在
   `tunnel/tunnel.go` 的接口注释上）。`proxy/proxy.go` 的 `relayConnLoop` 把
   `boundedBufPool` 的 buffer 喂给 `io.CopyBuffer`、`relayPacketLoop` 则是
