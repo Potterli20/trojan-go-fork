@@ -53,6 +53,29 @@ func (s *Server) Close() error {
 		s.packetConn.Close() //gosec:disable -- 错误忽略：关停路径，尽力释放
 	}
 	s.wg.Wait()
+	// 排空投递队列。wg.Wait 之后生产者已退出，但队列里可能还躺着"泵已经 AcceptStream
+	// /收到首个数据报、上层却还没来得及 AcceptConn 取走"的会话：每条都攥着 quic 连接、
+	// 一个 stream 或一份深度 16 的数据报缓冲。不关就只能等进程退出兜底，而 quic 是这个
+	// 仓库最后一个没做这件事的入站（adapter/tls/trojan/socks/dokodemo/tproxy 都有排空）。
+	// 判据形态见 tunnel/adapter/drain_on_close_test.go。
+drainConn:
+	for {
+		select {
+		case c := <-s.connChan:
+			c.Close() //gosec:disable -- 错误忽略：关停路径尽力回收
+		default:
+			break drainConn
+		}
+	}
+drainPacket:
+	for {
+		select {
+		case pc := <-s.packetChan:
+			pc.Close() //gosec:disable -- 错误忽略：关停路径尽力回收
+		default:
+			break drainPacket
+		}
+	}
 	s.activeConns.Range(func(_, value any) bool {
 		value.(*quic.Conn).CloseWithError(quic.ApplicationErrorCode(0), "server closed") //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return true
