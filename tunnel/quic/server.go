@@ -273,12 +273,25 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		// 与 client 对称开启 datagram 支持,否则对端数据报无法收发。
 		EnableDatagrams: true,
 		// initial_stream_window / initial_conn_window 之前定义了却从未接线，用户设了
-		// 不生效。0 表示交给 quic-go 的库内默认（512KB）。
+		// 不生效。0 表示交给 quic-go 的库内默认（本 pin 版本：单流 2MB、连接 3MB，
+		// internal/protocol/params.go），不是早先注释写的 512KB。
 		InitialStreamReceiveWindow:     uint64(cfg.QUIC.InitialStreamWindow),
 		InitialConnectionReceiveWindow: uint64(cfg.QUIC.InitialConnWindow),
 	}
 
-	packetConn, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.ParseIP(cfg.RemoteHost), Port: cfg.RemotePort})
+	// 服务端把 remote-addr 当**要绑定的地址**用，所以这里必须是 IP 字面量。
+	// 旧实现是 net.ParseIP(cfg.RemoteHost) 直接塞进 UDPAddr：域名解析出 nil，而
+	// &net.UDPAddr{IP: nil} 的含义是"监听所有网卡"。客户端那侧的 remote-addr 本来就是
+	// 域名，于是照抄/改一份配置就会一声不响地把服务从"只绑这个地址"扩成"全接口可达"——
+	// 绑定成功、无告警、无报错，运维在日志里看不出来。想监听全部就显式写 0.0.0.0 / ::。
+	listenIP := net.ParseIP(cfg.RemoteHost)
+	if listenIP == nil {
+		return nil, common.NewErrorf("QUIC server listen address %q is not an IP literal; "+
+			"remote-addr on the server side is the address to bind, use 0.0.0.0 or :: to listen on all interfaces",
+			cfg.RemoteHost)
+	}
+
+	packetConn, err := net.ListenUDP("udp", &net.UDPAddr{IP: listenIP, Port: cfg.RemotePort})
 	if err != nil {
 		return nil, common.NewError("QUIC failed to listen UDP").Base(err)
 	}
