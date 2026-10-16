@@ -409,10 +409,13 @@ func (s *Server) packetDispatchLoop() {
 						out, err = info.metadata.Address.AppendTo(out)
 						if err != nil {
 							log.Error("socks failed to write address")
+							// 手上这一条不在任何队列里，Close 的排空够不着它
+							putPacketBuf(info.payload)
 							return
 						}
 						out = append(out, info.payload...)
 						_, err = s.listenPacketConn.WriteTo(out, conn.src)
+						putPacketBuf(info.payload)
 						if err != nil {
 							log.Error("socks failed to respond packet to", conn.src)
 							return
@@ -453,16 +456,22 @@ func (s *Server) packetDispatchLoop() {
 		if remaining <= 0 {
 			continue
 		}
-		payload := make([]byte, remaining)
-		_, _ = r.Read(payload)
+		// 从池里借一块装这个包的负载；借用权随 packetInfo 交给会话，
+		// 最后由 ReadWithMetadata 归还（或会话被拆时由 Close 的排空归还）。
+		// remaining 已经过 SOCKS 帧解析，恒 <= MaxPacketSize - 帧头长度。
+		payload := getPacketBuf()
+		_, _ = r.Read(payload[:remaining])
 		select {
 		case conn.input <- &packetInfo{
 			metadata: &tunnel.Metadata{
 				Address: address,
 			},
-			payload: payload,
+			payload: payload[:remaining],
 		}:
 		default:
+			// 会话可能刚超时清理、已无读者：丢包优于阻塞 dispatch 循环，
+			// 但丢包的同时必须把借出的负载还回去，否则每次投递失败漏一块 8KB
+			putPacketBuf(payload)
 		}
 	}
 }

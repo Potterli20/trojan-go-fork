@@ -120,6 +120,17 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   现在走 `forwardDialer`：`common.Dial(c.ctx, …)` 连代理（域名代理地址的 DNS 也一并接回 ctx）+
   握手整体截止 + `context.AfterFunc` 让 Close 当场打断阻塞中的握手；**交出隧道前必须 `disarm()`**
   （残留时限会几十秒后凭空掐断一条正常会话，`var forwardHandshakeTimeout` 就是测这个的注入点）。
+- **UDP 负载缓冲在三层入站都池化了，归还责任跟着借用权走**（2026-10-16，`socks`/`dokodemo`/
+  `tproxy`）。口径抄 `tunnel/router`：Get 时计数加一，Put 时过 `cap` 闸门（超尺寸或根本不是池
+  对象就丢给 GC，不顶高水位）再减一。归还点必须覆盖：消费端（守护协程写完、`ReadWithMetadata`
+  复制完）、**所有丢包出口**（投递 `default:`、地址不可表示、会话上限拒绝）、序列化/写失败的提前
+  `return`（手上那条不在任何队列里，`Close` 的排空够不着它），以及会话 `Close` 的排空。
+  判据是**账目**而不是"有没有复用"：`pool_account_test.go` 要求一轮突发 + 拆会话之后
+  `borrowedPacketBufs()` 回到起点，为负即双归还——那比漏归还严重得多，两个包会共享同一块
+  底层数组、互相串数据。刻意不用"Get 之后有没有新建对象"来判：`sync.Pool` 的本地队列会在
+  P 之间被窃取，`-race` 下有假失效（见 trojan 的 `TestMaxSizePacketFitsPooledCapacity` 注释）。
+  实测 tproxy 写方向 551.7 ns/op、1440 B/op → 173.2 ns/op、56 B/op（`BenchmarkWriteWithMetadata`，
+  go1.27.1，本机）。超尺寸负载刻意不截断：走一次性分配，靠 Put 的 cap 闸门自动排除在池外。
 - **`tproxy` 两处按对端输入增长的表都有上限了**（2026-10-16）。① 会话内回包 socket 缓存：会话按
   **源地址**复用而目的地由对端决定，旧写法只 append 不删、会话结束才统一回收 ⇒ 一条会话就是一个
   fd 放大器，现在按 `netip.AddrPort` 索引、超过 `maxReplySocksPerSession` 走 FIFO 淘汰；

@@ -15,6 +15,7 @@ import (
 // 上限需要每个包来自不同源，所以另写一个。
 type multiSrcUDP struct {
 	feed   chan udpPacket
+	writes counters
 	closed chan struct{}
 	once   sync.Once
 }
@@ -33,12 +34,28 @@ func (u *multiSrcUDP) ReadFrom(p []byte) (int, net.Addr, error) {
 	}
 }
 
-func (u *multiSrcUDP) WriteTo(p []byte, _ net.Addr) (int, error) { return len(p), nil }
-func (u *multiSrcUDP) LocalAddr() net.Addr                       { return &net.UDPAddr{} }
-func (u *multiSrcUDP) RemoteAddr() net.Addr                      { return &net.UDPAddr{} }
-func (u *multiSrcUDP) SetDeadline(time.Time) error               { return nil }
-func (u *multiSrcUDP) SetReadDeadline(time.Time) error           { return nil }
-func (u *multiSrcUDP) SetWriteDeadline(time.Time) error          { return nil }
+func (u *multiSrcUDP) WriteTo(p []byte, _ net.Addr) (int, error) {
+	u.writes.bump()
+	return len(p), nil
+}
+
+// counters 是带锁计数器，只给判据用。
+type counters struct {
+	mu sync.Mutex
+	n  int
+}
+
+func (c *counters) bump() { c.mu.Lock(); c.n++; c.mu.Unlock() }
+func (c *counters) get() int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.n
+}
+func (u *multiSrcUDP) LocalAddr() net.Addr              { return &net.UDPAddr{} }
+func (u *multiSrcUDP) RemoteAddr() net.Addr             { return &net.UDPAddr{} }
+func (u *multiSrcUDP) SetDeadline(time.Time) error      { return nil }
+func (u *multiSrcUDP) SetReadDeadline(time.Time) error  { return nil }
+func (u *multiSrcUDP) SetWriteDeadline(time.Time) error { return nil }
 
 func (u *multiSrcUDP) Close() error {
 	u.once.Do(func() { close(u.closed) })

@@ -50,8 +50,11 @@ func (s *Server) dispatchLoop() {
 			return
 		}
 		log.Debug("udp packet from", addr)
-		toInput := make([]byte, n)
-		copy(toInput, buf[:n])
+		// 从池里借一块装这个包的负载；借用权随 input 队列交给会话，最后由
+		// ReadWithMetadata 归还，或会话被拆时由 Close 的排空归还。
+		toInput := getPacketBuf()
+		copy(toInput[:n], buf[:n])
+		toInput = toInput[:n]
 		// 锁内只做查表与建表,解锁后再发送:input 缓冲满时若持锁阻塞发送,
 		// 会话读端/超时清理/Close 全部被 mappingLock 卡死
 		s.mappingLock.Lock()
@@ -60,7 +63,8 @@ func (s *Server) dispatchLoop() {
 			if len(s.mapping) >= maxUDPSessions {
 				s.mappingLock.Unlock()
 				// 这一包直接丢掉：toInput 还没交给任何会话，也没有半建的会话对象要回收
-				// （闸卡在造对象之前）。
+				// （闸卡在造对象之前）。借出的负载就地还回去。
+				putPacketBuf(toInput)
 				log.Error("dokodemo udp session limit reached, dropping packet from", addr.String())
 				continue
 			}
@@ -81,7 +85,9 @@ func (s *Server) dispatchLoop() {
 		select {
 		case conn.input <- toInput:
 		default:
-			// 会话可能刚超时清理、已无读者；丢包优于阻塞 dispatch 循环
+			// 会话可能刚超时清理、已无读者；丢包优于阻塞 dispatch 循环。
+			// 丢包的同时必须把借出的负载还回去，否则每次投递失败漏一块 8KB。
+			putPacketBuf(toInput)
 		}
 		if found {
 			continue
@@ -110,6 +116,7 @@ func (s *Server) dispatchLoop() {
 				select {
 				case payload := <-conn.output:
 					_, err := s.udpListener.WriteTo(payload, conn.src)
+					putPacketBuf(payload)
 					if err != nil {
 						log.Error(common.NewError("dokodemo udp write error").Base(err))
 						return

@@ -24,6 +24,7 @@ type multiSrcListenConn struct {
 	feed      chan srcPacket
 	errAlways error
 	calls     counters
+	writes    counters
 	closed    chan struct{}
 	once      sync.Once
 }
@@ -53,12 +54,15 @@ func (m *multiSrcListenConn) ReadFrom(p []byte) (int, net.Addr, error) {
 	}
 }
 
-func (m *multiSrcListenConn) WriteTo(p []byte, _ net.Addr) (int, error) { return len(p), nil }
-func (m *multiSrcListenConn) LocalAddr() net.Addr                       { return &net.UDPAddr{} }
-func (m *multiSrcListenConn) RemoteAddr() net.Addr                      { return &net.UDPAddr{} }
-func (m *multiSrcListenConn) SetDeadline(time.Time) error               { return nil }
-func (m *multiSrcListenConn) SetReadDeadline(time.Time) error           { return nil }
-func (m *multiSrcListenConn) SetWriteDeadline(time.Time) error          { return nil }
+func (m *multiSrcListenConn) WriteTo(p []byte, _ net.Addr) (int, error) {
+	m.writes.bump()
+	return len(p), nil
+}
+func (m *multiSrcListenConn) LocalAddr() net.Addr              { return &net.UDPAddr{} }
+func (m *multiSrcListenConn) RemoteAddr() net.Addr             { return &net.UDPAddr{} }
+func (m *multiSrcListenConn) SetDeadline(time.Time) error      { return nil }
+func (m *multiSrcListenConn) SetReadDeadline(time.Time) error  { return nil }
+func (m *multiSrcListenConn) SetWriteDeadline(time.Time) error { return nil }
 
 func (m *multiSrcListenConn) Close() error {
 	m.once.Do(func() { close(m.closed) })

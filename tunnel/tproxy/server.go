@@ -98,6 +98,18 @@ func (s *Server) Close() error {
 	// 先关闭监听解除 Accept 阻塞，否则 wg.Wait() 会永久死锁
 	err := s.closeListeners()
 	s.wg.Wait()
+	// 排空读协程的投递队列并把借出的负载还回去：wg.Wait 之后生产者必然已退出，
+	// 但队列里可能还躺着没人取的包。不还的话它们永久离开池，池被抽空一截，
+	// 判据（borrowedPacketBufs 归零）也永远差这一截。
+drainQueue:
+	for {
+		select {
+		case info := <-s.packetQueue:
+			putPacketBuf(info.payload)
+		default:
+			break drainQueue
+		}
+	}
 	return err
 }
 
@@ -179,15 +191,18 @@ func (s *Server) packetDispatchLoop() {
 			}
 			readErrors = 0
 			log.Debug("udp packet from", src, "metadata", dst, "size", n)
-			payload := make([]byte, n)
-			copy(payload, buf[:n])
+			// 从池里借一块装这一个包的负载：借用权随 packetQueue 交给 dispatch，
+			// 再由 dispatch 交给会话，最后由消费端（守护协程 / ReadWithMetadata）归还。
+			payload := getPacketBuf()
+			copy(payload[:n], buf[:n])
 			select {
 			case s.packetQueue <- &tproxyPacketInfo{
 				src:     src,
 				dst:     dst,
-				payload: payload,
+				payload: payload[:n],
 			}:
 			case <-s.ctx.Done():
+				putPacketBuf(payload)
 				return
 			}
 		}
@@ -272,11 +287,13 @@ func (s *Server) packetDispatchLoop() {
 						if info.metadata.AddressType != tunnel.IPv4 &&
 							info.metadata.AddressType != tunnel.IPv6 {
 							log.Error("tproxy invalid response metadata address", info.metadata)
+							putPacketBuf(info.payload)
 							continue
 						}
 						key, keyOK := replySockKey(info.metadata)
 						if !keyOK {
 							log.Error("tproxy unrepresentable response address", info.metadata)
+							putPacketBuf(info.payload)
 							continue
 						}
 						back, cached := replySocks[key]
@@ -300,12 +317,15 @@ func (s *Server) packetDispatchLoop() {
 							)
 							if err != nil {
 								log.Error(common.NewError("failed to dial tproxy udp").Base(err))
+								// 手上这一条不在任何队列里，defer 的排空够不着它
+								putPacketBuf(info.payload)
 								return
 							}
 							replySocks[key] = back
 							replyOrder = append(replyOrder, key)
 						}
 						n, err := back.Write(info.payload)
+						putPacketBuf(info.payload)
 						if err != nil {
 							// 不单独关掉这一条：写失败就拆会话，defer 会统一回收
 							log.Error(common.NewError("tproxy udp write error").Base(err))
@@ -340,6 +360,7 @@ func (s *Server) packetDispatchLoop() {
 		dstAddr, addrErr := tunnel.NewAddressFromNetAddr("udp", info.dst)
 		if addrErr != nil {
 			log.Error("tproxy failed to build destination address", addrErr)
+			putPacketBuf(info.payload)
 			continue
 		}
 
@@ -351,7 +372,9 @@ func (s *Server) packetDispatchLoop() {
 			payload: info.payload,
 		}:
 		default:
-			// 会话可能刚超时清理、已无读者；丢包优于阻塞整个 dispatch 循环
+			// 会话可能刚超时清理、已无读者；丢包优于阻塞整个 dispatch 循环。
+			// 丢包的同时必须把借出的负载还回去，否则每次投递失败就永久漏一块 8KB。
+			putPacketBuf(info.payload)
 		}
 		log.Debug("tproxy packet sent with metadata", info.dst, "size", len(info.payload))
 	}
