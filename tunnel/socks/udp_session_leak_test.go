@@ -86,7 +86,7 @@ func newDispatchServer(t *testing.T, writeErr error) (*Server, *fakeListenConn, 
 		packetChan:       make(chan tunnel.PacketConn, 8),
 		timeout:          5 * time.Minute,
 		listenPacketConn: listen,
-		mapping:          map[string]*PacketConn{},
+		mapping:          map[tunnel.SessionKey]*PacketConn{},
 		ctx:              ctx,
 		cancel:           cancel,
 	}
@@ -111,7 +111,7 @@ func acceptSession(t *testing.T, s *Server) *PacketConn {
 }
 
 // waitMappingGone 等表项被回收；超时即判定泄露。
-func waitMappingGone(s *Server, key string) bool {
+func waitMappingGone(s *Server, key tunnel.SessionKey) bool {
 	deadline := time.Now().Add(2 * time.Second)
 	for time.Now().Before(deadline) {
 		s.mappingLock.RLock()
@@ -156,7 +156,7 @@ func feedAndAccept(t *testing.T, s *Server, listen *fakeListenConn) tunnel.Packe
 // defer 统一回收，这里是漏改。
 func TestUDPSessionMappingReclaimedOnWriteFailure(t *testing.T) {
 	s, listen, src := newDispatchServer(t, errFakeWrite)
-	key := src.String()
+	key := tunnel.NewSessionKey(src)
 
 	listen.feed <- socksPacket("first")
 	acceptSession(t, s)
@@ -184,7 +184,7 @@ func TestUDPSessionMappingReclaimedOnWriteFailure(t *testing.T) {
 // 判据与上一条相同，只是触发点换成 Address.AppendTo 返回错误（非法 ATYP）。
 func TestUDPSessionMappingReclaimedOnSerializeFailure(t *testing.T) {
 	s, listen, src := newDispatchServer(t, nil)
-	key := src.String()
+	key := tunnel.NewSessionKey(src)
 
 	listen.feed <- socksPacket("first")
 	acceptSession(t, s)

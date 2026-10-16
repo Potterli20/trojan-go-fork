@@ -80,7 +80,7 @@ func TestUDPSessionCountIsBounded(t *testing.T) {
 			IP:          []byte{127, 0, 0, 1},
 			Port:        8080,
 		},
-		mapping: make(map[string]*PacketConn, maxUDPSessions+1),
+		mapping: make(map[tunnel.SessionKey]*PacketConn, maxUDPSessions+1),
 		ctx:     ctx,
 		cancel:  cancel,
 	}
@@ -97,7 +97,7 @@ func TestUDPSessionCountIsBounded(t *testing.T) {
 				cancel: func() {},
 				src:    src,
 			}
-			s.mapping[src.String()] = pc
+			s.mapping[tunnel.NewSessionKey(src)] = pc
 			if i == 0 {
 				first = pc
 			}
@@ -122,7 +122,7 @@ func TestUDPSessionCountIsBounded(t *testing.T) {
 	}
 
 	s.mappingLock.Lock()
-	_, hasOverCap := s.mapping[overCap.String()]
+	_, hasOverCap := s.mapping[tunnel.NewSessionKey(overCap)]
 	size := len(s.mapping)
 	s.mappingLock.Unlock()
 

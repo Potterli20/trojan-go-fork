@@ -84,7 +84,7 @@ func newSeededServer(ctx context.Context, conn *multiSrcListenConn, seed int) (*
 	s := &Server{
 		listenPacketConn: conn,
 		packetChan:       make(chan tunnel.PacketConn, 4),
-		mapping:          make(map[string]*PacketConn, maxUDPSessions+1),
+		mapping:          make(map[tunnel.SessionKey]*PacketConn, maxUDPSessions+1),
 		timeout:          5 * time.Minute,
 		ctx:              ctx,
 	}
@@ -100,7 +100,7 @@ func newSeededServer(ctx context.Context, conn *multiSrcListenConn, seed int) (*
 				cancel: func() {},
 				src:    src,
 			}
-			s.mapping[src.String()] = pc
+			s.mapping[tunnel.NewSessionKey(src)] = pc
 			if i == 0 {
 				first = pc
 			}
@@ -144,7 +144,7 @@ func TestUDPSessionCountIsBounded(t *testing.T) {
 	}
 
 	s.mappingLock.RLock()
-	_, hasOverCap := s.mapping[overCap.String()]
+	_, hasOverCap := s.mapping[tunnel.NewSessionKey(overCap)]
 	size := len(s.mapping)
 	s.mappingLock.RUnlock()
 
@@ -226,7 +226,7 @@ func TestUDPServerDropsShortFrames(t *testing.T) {
 	s.mappingLock.RLock()
 	sessions := 0
 	for key := range s.mapping {
-		if key == zombie.String() {
+		if key == tunnel.NewSessionKey(zombie) {
 			sessions++
 		}
 	}

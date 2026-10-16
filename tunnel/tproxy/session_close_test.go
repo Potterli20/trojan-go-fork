@@ -34,7 +34,7 @@ func TestClosedSessionIsReplacedForSameSource(t *testing.T) {
 		packetQueue: make(chan *tproxyPacketInfo, 16),
 		packetChan:  make(chan tunnel.PacketConn, 8),
 		timeout:     5 * time.Minute,
-		mapping:     make(map[string]*PacketConn),
+		mapping:     make(map[tunnel.SessionKey]*PacketConn),
 		ctx:         ctx,
 		cancel:      cancel,
 	}
@@ -82,7 +82,7 @@ func TestClosedSessionIsReplacedForSameSource(t *testing.T) {
 	}
 
 	s.mappingLock.Lock()
-	current := s.mapping[src.String()]
+	current := s.mapping[tunnel.NewSessionKey(src)]
 	s.mappingLock.Unlock()
 	if current == nil || tunnel.PacketConn(current) != fresh {
 		t.Fatalf("mapping 表项没有换成刚投递的新会话：current=%v fresh=%v", current, fresh)

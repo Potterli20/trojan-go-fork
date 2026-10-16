@@ -64,3 +64,104 @@ func TestUDPSessionKeyNormalization(t *testing.T) {
 		t.Fatal("同地址不同端口同键，与预期不符（判据前提）")
 	}
 }
+
+// weirdAddr 是一个 String() 不是 host:port 形态的 net.Addr，用来验证退回字符串键这条路。
+type weirdAddr struct{ s string }
+
+func (w weirdAddr) Network() string { return "weird" }
+func (w weirdAddr) String() string  { return w.s }
+
+// TestSessionKeyMatchesStringSemantics 把 NewSessionKey 的归一化钉成事实：它必须与
+// `addr.String()` 分组完全一致，否则换键就是在改"哪些包算同一条会话"——那是 NAT 后
+// 两台客户端会不会被并成一条的问题，不是性能问题。
+func TestSessionKeyMatchesStringSemantics(t *testing.T) {
+	cases := []struct {
+		name     string
+		a, b     net.Addr
+		wantSame bool
+	}{
+		{
+			name:     "v4 与 v4-mapped-v6 同键",
+			a:        &net.UDPAddr{IP: net.IPv4(203, 0, 113, 7), Port: 40000},
+			b:        &net.UDPAddr{IP: net.IPv4(203, 0, 113, 7).To16(), Port: 40000},
+			wantSame: true,
+		},
+		{
+			name:     "16 字节 v4 与 4 字节 v4 同键",
+			a:        &net.UDPAddr{IP: net.IP{203, 0, 113, 7}, Port: 40000},
+			b:        &net.UDPAddr{IP: net.IPv4(203, 0, 113, 7).To4(), Port: 40000},
+			wantSame: true,
+		},
+		{
+			name:     "端口不同即不同键",
+			a:        &net.UDPAddr{IP: net.IPv4(203, 0, 113, 7), Port: 40000},
+			b:        &net.UDPAddr{IP: net.IPv4(203, 0, 113, 7), Port: 40001},
+			wantSame: false,
+		},
+		{
+			name:     "zone 不同即不同键",
+			a:        &net.UDPAddr{IP: net.ParseIP("fe80::1"), Zone: "eth0", Port: 40000},
+			b:        &net.UDPAddr{IP: net.ParseIP("fe80::1"), Zone: "eth1", Port: 40000},
+			wantSame: false,
+		},
+		{
+			name:     "带 zone 与不带 zone 不同键",
+			a:        &net.UDPAddr{IP: net.ParseIP("fe80::1"), Zone: "eth0", Port: 40000},
+			b:        &net.UDPAddr{IP: net.ParseIP("fe80::1"), Port: 40000},
+			wantSame: false,
+		},
+		{
+			name:     "纯 v6 不同地址不同键",
+			a:        &net.UDPAddr{IP: net.ParseIP("2001:db8::1"), Port: 40000},
+			b:        &net.UDPAddr{IP: net.ParseIP("2001:db8::2"), Port: 40000},
+			wantSame: false,
+		},
+		{
+			name:     "未知 Addr 实现退回字符串键，相同串同键",
+			a:        weirdAddr{s: "unix:/tmp/a.sock"},
+			b:        weirdAddr{s: "unix:/tmp/a.sock"},
+			wantSame: true,
+		},
+		{
+			// 只要 String() 是 host:port，未知实现也与同地址的 UDP 源同键——
+			// 与字符串口径一致；只有真的解析不出 host:port 才退回字符串键。
+			name:     "未知 Addr 但 String() 是 host:port，与 UDP 源同键",
+			a:        weirdAddr{s: "127.0.0.1:40000"},
+			b:        &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 40000},
+			wantSame: true,
+		},
+		{
+			name:     "解析不出 host:port 的未知实现不与 UDP 源并键",
+			a:        weirdAddr{s: "unix:/tmp/a.sock"},
+			b:        &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 40000},
+			wantSame: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ka, kb := NewSessionKey(tc.a), NewSessionKey(tc.b)
+			// 前提：字符串口径下两者是否同键，必须先与新键一致
+			strSame := tc.a.String() == tc.b.String()
+			if strSame != tc.wantSame {
+				t.Fatalf("用例前提不成立：addr.String() 口径下 same=%v，期望 %v", strSame, tc.wantSame)
+			}
+			if (ka == kb) != tc.wantSame {
+				t.Fatalf("SessionKey 口径 same=%v，与 addr.String() 的 %v 不一致（%q vs %q）",
+					ka == kb, tc.wantSame, ka, kb)
+			}
+		})
+	}
+}
+
+// TestSessionKeyNilAddrIsUsable 钉住 nil 不 panic：三层入站都把 src 直接塞进会话对象，
+// 任何一个上游给出 nil 地址都不该让 dispatch 循环崩掉。
+func TestSessionKeyNilAddrIsUsable(t *testing.T) {
+	k := NewSessionKey(nil)
+	if k.IsValid() {
+		t.Fatal("nil 地址不该被当成有效键")
+	}
+	if k != NewSessionKey(nil) {
+		t.Fatal("nil 地址两次归一化结果不同：同一个 nil 源会分裂成两条会话")
+	}
+}

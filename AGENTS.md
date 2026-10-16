@@ -173,11 +173,19 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   `tunnel/simplesocks/header_wire_test.go`，里面还钉住了帧的线上字节与"头与首个负载合成一次 Write"。
   注意 `Metadata.WriteTo` 还带一个 `Address.NetworkType = "tcp"` 的就地改写副作用，`AppendTo` 没有——
   全仓无人依赖它（`Address.Network()` 只被 `Metadata.Network()` 读，而后者无人调用）。
-  另两处已核实但**没动**的热点，改之前先掂量：① `tunnel/tproxy/udp.go` 的 `DialUDP` 是**每个回包**
-  新建 socket + `os.NewFile`，按源地址缓存连接能省掉大量 fd  churn，但要引入 TTL 与 NAT 语义；
-  ② socks/tproxy/dokodemo 的 UDP 会话表以 `addr.String()` 为键，每包一次格式化，换成
-  `netip.AddrPort` 能省掉；键相等语义（v4-mapped-v6 与 zone）已经由
-  `tunnel/udp_session_key_test.go` 钉住，改之前先跑它——实测结论见下面那条 bullet。
+  另一处已核实但**没动**的热点：`tunnel/tproxy/udp.go` 的 `DialUDP` 是**每个回包**
+  新建 socket + `os.NewFile`，按源地址缓存连接能省掉大量 fd churn，但要引入 TTL 与 NAT 语义
+  （会话内按目的地缓存那半已经做了，见下面那条 bullet）。
+- **UDP 会话表的键已经是 `tunnel.SessionKey`**（2026-10-16，`tunnel/session_key.go`）。
+  原先 socks/tproxy/dokodemo 三层都拿 `addr.String()` 当键，那是**每个 UDP 包**一次 IP
+  格式化加一次字符串哈希；现在 `*net.UDPAddr` 走 `AddrPort()` + `Unmap()`，不碰字符串。
+  换键的前提是"哪些地址算同一条会话"不能变，两条不那么显然的规则由
+  `tunnel/udp_session_key_test.go` 钉住：① v4 与 v4-mapped-v6 **同键**（双栈 socket 上收到
+  IPv4 对端给的是 4-in-6 形态，不 `Unmap()` 就会把同一台客户端拆成两条会话——这正是
+  `String()` 一直免费替我们做的事）；② zone **是**键的一部分（实测 go1.27.1 的
+  `(*net.UDPAddr).AddrPort()` 会保住 zone，写判据之前我以为它会丢）。解析不出 host:port 的
+  未知 `net.Addr` 实现退回字符串键，行为与改造前逐字一致。**新写入站会话表直接用这个类型，
+  别再自己拼字符串键。**
 - **`Write` / `WriteWithMetadata` 返回之后不得再碰调用方的切片**（跨层契约，写在
   `tunnel/tunnel.go` 的接口注释上）。`proxy/proxy.go` 的 `relayConnLoop` 把
   `boundedBufPool` 的 buffer 喂给 `io.CopyBuffer`、`relayPacketLoop` 则是

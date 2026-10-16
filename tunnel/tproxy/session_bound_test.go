@@ -53,7 +53,7 @@ func TestReplySocketCacheIsBounded(t *testing.T) {
 		packetQueue: make(chan *tproxyPacketInfo, 16),
 		packetChan:  make(chan tunnel.PacketConn, 8),
 		timeout:     5 * time.Minute,
-		mapping:     make(map[string]*PacketConn),
+		mapping:     make(map[tunnel.SessionKey]*PacketConn),
 		ctx:         ctx,
 		cancel:      cancel,
 	}
@@ -116,7 +116,7 @@ func TestUDPSessionCountIsBounded(t *testing.T) {
 		packetQueue: make(chan *tproxyPacketInfo, 4),
 		packetChan:  make(chan tunnel.PacketConn, 2),
 		timeout:     5 * time.Minute,
-		mapping:     make(map[string]*PacketConn, maxUDPSessions+1),
+		mapping:     make(map[tunnel.SessionKey]*PacketConn, maxUDPSessions+1),
 		ctx:         ctx,
 		cancel:      cancel,
 	}
@@ -126,7 +126,7 @@ func TestUDPSessionCountIsBounded(t *testing.T) {
 		src := &net.UDPAddr{IP: net.IPv4(10, 0, 0, byte(i>>8)), Port: 1000 + i}
 		srcs = append(srcs, src)
 		if i < maxUDPSessions {
-			s.mapping[src.String()] = &PacketConn{
+			s.mapping[tunnel.NewSessionKey(src)] = &PacketConn{
 				input:  make(chan *packetInfo, udpSessionQueueSize),
 				output: make(chan *packetInfo, udpSessionQueueSize),
 				ctx:    ctx,
@@ -155,7 +155,7 @@ func TestUDPSessionCountIsBounded(t *testing.T) {
 
 	s.mappingLock.RLock()
 	size := len(s.mapping)
-	_, hasOverCap := s.mapping[overCap.String()]
+	_, hasOverCap := s.mapping[tunnel.NewSessionKey(overCap)]
 	s.mappingLock.RUnlock()
 
 	if hasOverCap {
@@ -171,5 +171,5 @@ func TestUDPSessionCountIsBounded(t *testing.T) {
 func sessionQueueOf(s *Server, src *net.UDPAddr) chan *packetInfo {
 	s.mappingLock.RLock()
 	defer s.mappingLock.RUnlock()
-	return s.mapping[src.String()].input
+	return s.mapping[tunnel.NewSessionKey(src)].input
 }

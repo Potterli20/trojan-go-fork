@@ -42,7 +42,7 @@ func newAccountingServer(ctx context.Context, cancel context.CancelFunc, udp *mu
 			IP:          []byte{127, 0, 0, 1},
 			Port:        8080,
 		},
-		mapping: make(map[string]*PacketConn),
+		mapping: make(map[tunnel.SessionKey]*PacketConn),
 		ctx:     ctx,
 		cancel:  cancel,
 	}
@@ -139,7 +139,7 @@ func TestQueueDropReturnsBuffer(t *testing.T) {
 	var session *PacketConn
 	for time.Now().Before(deadline) {
 		s.mappingLock.Lock()
-		pc := s.mapping[src.String()]
+		pc := s.mapping[tunnel.NewSessionKey(src)]
 		s.mappingLock.Unlock()
 		if pc != nil && len(pc.input) == queueDepth {
 			session = pc

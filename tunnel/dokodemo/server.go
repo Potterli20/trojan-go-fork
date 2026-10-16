@@ -26,7 +26,7 @@ type Server struct {
 	timeout     time.Duration
 	targetAddr  *tunnel.Address
 	mappingLock sync.Mutex
-	mapping     map[string]*PacketConn
+	mapping     map[tunnel.SessionKey]*PacketConn
 	ctx         context.Context
 	cancel      context.CancelFunc
 	wg          sync.WaitGroup
@@ -57,8 +57,11 @@ func (s *Server) dispatchLoop() {
 		toInput = toInput[:n]
 		// 锁内只做查表与建表,解锁后再发送:input 缓冲满时若持锁阻塞发送,
 		// 会话读端/超时清理/Close 全部被 mappingLock 卡死
+		// 键归一放在 tunnel.SessionKey：语义与 addr.String() 一致（v4-mapped-v6 归一、
+		// zone 保留），但这条是**每包一次**的路径，不必再格式化字符串。
+		addrKey := tunnel.NewSessionKey(addr)
 		s.mappingLock.Lock()
-		conn, found := s.mapping[addr.String()]
+		conn, found := s.mapping[addrKey]
 		if !found {
 			if len(s.mapping) >= maxUDPSessions {
 				s.mappingLock.Unlock()
@@ -78,7 +81,7 @@ func (s *Server) dispatchLoop() {
 				ctx:        ctx,
 				cancel:     cancel,
 			}
-			s.mapping[addr.String()] = conn
+			s.mapping[addrKey] = conn
 		}
 		s.mappingLock.Unlock()
 		// Close() 从不 close channel,旧会话对象与新发送物理隔离,最坏只是丢包
@@ -108,7 +111,7 @@ func (s *Server) dispatchLoop() {
 			// 不 Close 则取消会话 ctx，阻塞在 output 发送上的 relay goroutine 永久卡死
 			defer func() {
 				s.mappingLock.Lock()
-				delete(s.mapping, conn.src.String())
+				delete(s.mapping, tunnel.NewSessionKey(conn.src))
 				s.mappingLock.Unlock()
 				conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			}()
@@ -210,7 +213,7 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 		tcpListener: tcpListener,
 		udpListener: udpListener,
 		targetAddr:  targetAddr,
-		mapping:     make(map[string]*PacketConn),
+		mapping:     make(map[tunnel.SessionKey]*PacketConn),
 		packetChan:  make(chan tunnel.PacketConn, 32),
 		timeout:     time.Second * time.Duration(cfg.UDPTimeout),
 		ctx:         ctx,

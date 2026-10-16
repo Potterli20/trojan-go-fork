@@ -69,7 +69,7 @@ type Server struct {
 	packetChan  chan tunnel.PacketConn
 	timeout     time.Duration
 	mappingLock sync.RWMutex
-	mapping     map[string]*PacketConn
+	mapping     map[tunnel.SessionKey]*PacketConn
 	ctx         context.Context
 	cancel      context.CancelFunc
 	wg          sync.WaitGroup
@@ -217,7 +217,7 @@ func (s *Server) packetDispatchLoop() {
 			return
 		}
 
-		srcKey := info.src.String()
+		srcKey := tunnel.NewSessionKey(info.src)
 		s.mappingLock.RLock()
 		conn, found := s.mapping[srcKey]
 		s.mappingLock.RUnlock()
@@ -260,7 +260,7 @@ func (s *Server) packetDispatchLoop() {
 				defer sessionConn.Close()
 				defer func() {
 					s.mappingLock.Lock()
-					delete(s.mapping, sessionConn.src.String())
+					delete(s.mapping, tunnel.NewSessionKey(sessionConn.src))
 					s.mappingLock.Unlock()
 				}()
 				log.Debug("udp packet daemon for", sessionConn.src.String())
@@ -427,7 +427,7 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 		ctx:         ctx,
 		cancel:      cancel,
 		timeout:     time.Duration(cfg.UDPTimeout) * time.Second,
-		mapping:     make(map[string]*PacketConn),
+		mapping:     make(map[tunnel.SessionKey]*PacketConn),
 		packetChan:  make(chan tunnel.PacketConn, 32),
 		packetQueue: make(chan *tproxyPacketInfo, 1024),
 	}

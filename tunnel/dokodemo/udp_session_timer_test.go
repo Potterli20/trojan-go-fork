@@ -82,7 +82,7 @@ func TestUDPSessionSurvivesTimerRestartWhileWriting(t *testing.T) {
 		packetChan:  make(chan tunnel.PacketConn, 8),
 		timeout:     60 * time.Millisecond,
 		targetAddr:  &tunnel.Address{AddressType: tunnel.IPv4, Port: 53},
-		mapping:     map[string]*PacketConn{},
+		mapping:     map[tunnel.SessionKey]*PacketConn{},
 		ctx:         ctx,
 		cancel:      cancel,
 	}
@@ -122,7 +122,7 @@ func TestUDPSessionSurvivesTimerRestartWhileWriting(t *testing.T) {
 	deadline := time.Now().Add(3 * time.Second)
 	for time.Now().Before(deadline) {
 		s.mappingLock.Lock()
-		_, alive := s.mapping[src.String()]
+		_, alive := s.mapping[tunnel.NewSessionKey(src)]
 		s.mappingLock.Unlock()
 		if !alive {
 			return // 会话按超时正常退出，mapping 已回收

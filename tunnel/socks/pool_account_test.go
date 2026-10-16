@@ -116,7 +116,7 @@ func TestQueueDropReturnsBuffer(t *testing.T) {
 	deadline := time.Now().Add(5 * time.Second)
 	for time.Now().Before(deadline) {
 		s.mappingLock.RLock()
-		pc, ok := s.mapping[src.String()]
+		pc, ok := s.mapping[tunnel.NewSessionKey(src)]
 		s.mappingLock.RUnlock()
 		if ok && len(pc.input) == udpSessionQueueSize {
 			break
@@ -125,7 +125,7 @@ func TestQueueDropReturnsBuffer(t *testing.T) {
 	}
 
 	s.mappingLock.RLock()
-	pc := s.mapping[src.String()]
+	pc := s.mapping[tunnel.NewSessionKey(src)]
 	s.mappingLock.RUnlock()
 	if pc == nil {
 		t.Fatal("会话没有建出来，判据失效")

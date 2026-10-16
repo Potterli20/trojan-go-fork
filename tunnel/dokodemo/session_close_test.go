@@ -36,7 +36,7 @@ func TestClosedSessionIsReplacedForSameSource(t *testing.T) {
 		packetChan:  make(chan tunnel.PacketConn, 8),
 		timeout:     5 * time.Minute,
 		targetAddr:  &tunnel.Address{AddressType: tunnel.IPv4, Port: 53},
-		mapping:     map[string]*PacketConn{},
+		mapping:     map[tunnel.SessionKey]*PacketConn{},
 		ctx:         ctx,
 		cancel:      cancel,
 	}
@@ -84,7 +84,7 @@ func TestClosedSessionIsReplacedForSameSource(t *testing.T) {
 
 	// 表项必须已经换成新会话，而不是那个已关闭的旧对象
 	s.mappingLock.Lock()
-	current := s.mapping[src.String()]
+	current := s.mapping[tunnel.NewSessionKey(src)]
 	s.mappingLock.Unlock()
 	if current != nil && current == fresh {
 		return

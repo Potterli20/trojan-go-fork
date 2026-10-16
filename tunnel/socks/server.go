@@ -46,7 +46,7 @@ type Server struct {
 	localPort        int
 	timeout          time.Duration
 	listenPacketConn tunnel.PacketConn
-	mapping          map[string]*PacketConn
+	mapping          map[tunnel.SessionKey]*PacketConn
 	mappingLock      sync.RWMutex
 	// associations 是在途 UDP ASSOCIATE 的控制连接。它们既不下发给下游、
 	// 也不属于 mapping（mapping 按 UDP 源地址索引，和 TCP 源地址无关），
@@ -351,8 +351,11 @@ func (s *Server) packetDispatchLoop() {
 			continue
 		}
 		log.Debug("socks recv udp packet from", src)
+		// 键归一放在 tunnel.SessionKey：语义与 addr.String() 一致（v4-mapped-v6 归一、
+		// zone 保留），但这条是**每包一次**的路径，不必再格式化字符串。
+		srcKey := tunnel.NewSessionKey(src)
 		s.mappingLock.RLock()
-		conn, found := s.mapping[src.String()]
+		conn, found := s.mapping[srcKey]
 		s.mappingLock.RUnlock()
 		if !found {
 			ctx, cancel := context.WithCancel(s.ctx)
@@ -376,7 +379,7 @@ func (s *Server) packetDispatchLoop() {
 			// 必须先登记再启协程。协程可能立刻走超时或 ctx.Done 分支去 delete，
 			// 那时 delete 打空，随后的插入就留下一个永不释放的 stale 条目：
 			// 既占着内存，又让该源 IP 之后永远命中这个死会话、再也建不起 UDP
-			s.mapping[src.String()] = conn
+			s.mapping[srcKey] = conn
 			s.mappingLock.Unlock()
 
 			s.wg.Go(func() {
@@ -389,7 +392,7 @@ func (s *Server) packetDispatchLoop() {
 				// dokodemo/tproxy 的同型 daemon 已改成 defer 统一回收，这里对齐。
 				defer func() {
 					s.mappingLock.Lock()
-					delete(s.mapping, conn.src.String())
+					delete(s.mapping, tunnel.NewSessionKey(conn.src))
 					s.mappingLock.Unlock()
 					conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				}()
@@ -491,7 +494,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		timeout:          time.Duration(cfg.UDPTimeout) * time.Second,
 		connChan:         make(chan tunnel.Conn, 32),
 		packetChan:       make(chan tunnel.PacketConn, 32),
-		mapping:          make(map[string]*PacketConn),
+		mapping:          make(map[tunnel.SessionKey]*PacketConn),
 		associations:     make(map[tunnel.Conn]struct{}),
 		ctx:              ctx,
 		cancel:           cancel,
