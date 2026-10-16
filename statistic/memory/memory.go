@@ -607,7 +607,18 @@ func (a *Authenticator) AddUser(hash string) error {
 	meter.wg.Go(func() {
 		meter.ipCleaner()
 	})
-	a.users.Store(hash, meter)
+	// 必须用 LoadOrStore：先 Load 再 Store 之间有窗口，两个并发的 AddUser(同一 hash)
+	// 都能通过存在性检查，各自起 speedUpdater + ipCleaner，然后后者把前者覆盖掉。
+	// 被覆盖的那个 User 再没有任何引用者（DelUser 只会关 map 里那一个），
+	// 它的 cancel 永远不会被调用 —— 每撞一次永久漏 2 个 goroutine + 2 个 ticker +
+	// 1 个 ctx + 1 张 ipTable。触发面是真实存在的：API 的 SetUsers(Add) 与
+	// mysql 后端的 syncUsers 都会对同一个 hash 调 AddUser。
+	if _, loaded := a.users.LoadOrStore(hash, meter); loaded {
+		// 抢输了：把刚起的两个后台协程收掉。先 cancel 再 Wait，Close 正是这一对。
+		// 协程是在登记之前起的，所以这里不存在"被别人先关掉"的次序问题。
+		_ = meter.Close() //gosec:disable -- 错误忽略：User.Close 恒返回 nil
+		return common.NewError("hash " + hash + " is already exist")
+	}
 	// 注意：此处不再调用 a.pst.SaveUser(meter)。
 	// 原实现会让 AddUser 立即 SaveUser（此时 password 仍为 ""），紧接着调用方
 	// 通常会调用 SetKeyShare(hash, password) 再次 SaveUser，造成两次 DB 写入，
