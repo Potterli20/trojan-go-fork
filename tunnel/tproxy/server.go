@@ -6,6 +6,7 @@ import (
 	"context"
 	"io"
 	"net"
+	"net/netip"
 	"sync"
 	"time"
 
@@ -16,6 +17,32 @@ import (
 )
 
 const MaxPacketSize = 1024 * 8
+
+// maxUDPSessions 是这个入站同时存活的 UDP 会话数上限。会话表 mapping 原先只按
+// 空闲超时清理，条目数完全由"UDPTimeout × 新源地址到达速率"决定，而源地址是
+// 可以伪造的：一条会话攥着两条深度 16 的队列，内存与 fd 都随包量线性涨。到上限
+// 就拒绝为新源地址开会话（丢包），已有会话不受影响。
+const maxUDPSessions = 4096
+
+// maxReplySocksPerSession 是一条 UDP 会话能缓存的回包 socket 数量。会话按源地址
+// 复用，而目的地由对端决定：旧写法每个新目的地 append 一个 socket 且只增不删，
+// 会话结束才统一回收——一条长期活跃的会话就是一个 fd 放大器。超过上限按 FIFO
+// 淘汰最旧的（它对应的多半是早已过去的流）。
+const maxReplySocksPerSession = 32
+
+// replySockKey 是回包 socket 的复用键。刻意不用字符串——这条是每包一次的查找，
+// 格式化一次就是每包一次分配。v4-mapped-v6 经 Unmap 归一后与纯 v4 同键，与旧的
+// addr.String() 分组口径一致（那串字符串本来就把两种写法渲染成同一个键）。
+func replySockKey(m *tunnel.Metadata) (netip.AddrPort, bool) {
+	if len(m.IP) == 0 {
+		return netip.AddrPort{}, false
+	}
+	addr, ok := netip.AddrFromSlice(m.IP)
+	if !ok {
+		return netip.AddrPort{}, false
+	}
+	return netip.AddrPortFrom(addr.Unmap(), uint16(m.Port)), true // Port 由 wire 解析而来，恒在 0..65535
+}
 
 // udpSessionQueueSize 是每个 UDP 会话收发队列的深度，与 dokodemo/socks 的 16 对齐。
 // 旧的 128 配上最大 8KB 的负载，两条通道就是每会话 2MB 的驻留上限，而 mapping
@@ -175,12 +202,23 @@ func (s *Server) packetDispatchLoop() {
 			return
 		}
 
+		srcKey := info.src.String()
 		s.mappingLock.RLock()
-		conn, found := s.mapping[info.src.String()]
+		conn, found := s.mapping[srcKey]
 		s.mappingLock.RUnlock()
 
 		if !found {
+			// 容量检查和登记在同一把写锁里做完：dispatch 主循环只有一个消费者，
+			// 不存在"两个包双双 miss 抢注同一源地址"，但条目总数必须在这里就闸住
+			// （见 maxUDPSessions）。
 			ctx, cancel := context.WithCancel(s.ctx)
+			s.mappingLock.Lock()
+			if len(s.mapping) >= maxUDPSessions {
+				s.mappingLock.Unlock()
+				cancel()
+				log.Error("tproxy udp session limit reached, dropping packet from", srcKey)
+				continue
+			}
 			conn = &PacketConn{
 				input:      make(chan *packetInfo, udpSessionQueueSize),
 				output:     make(chan *packetInfo, udpSessionQueueSize),
@@ -190,11 +228,10 @@ func (s *Server) packetDispatchLoop() {
 				src:        info.src,
 			}
 
-			s.mappingLock.Lock()
-			s.mapping[info.src.String()] = conn
+			s.mapping[srcKey] = conn
 			s.mappingLock.Unlock()
 
-			log.Info("new tproxy udp session from", info.src.String(), "metadata", info.dst.String())
+			log.Info("new tproxy udp session from", srcKey, "metadata", info.dst.String())
 			select {
 			case s.packetChan <- conn:
 			case <-s.ctx.Done():
@@ -217,19 +254,16 @@ func (s *Server) packetDispatchLoop() {
 				// 回包 socket 按目的地缓存在这条会话自己身上。旧写法每个包都要走一遍
 				// socket()+IP_TRANSPARENT+bind+connect+os.NewFile+FileConn 再 Close，
 				// 一条会话几十包就是几十套系统调用加同数量的一次性 fd。
-				// 存活期改成跟随会话即可，不需要全局缓存也不需要 TTL：会话表本身有
-				// 空闲超时与源地址上限，最多让一个 socket 多活到会话结束。
-				// 目的地取的是 metadata 里的 IP:port，一条会话里通常是固定那一个，
-				// 所以线性比较足够，且刻意不拿字符串当键（那又是每包一次格式化）。
-				type replySock struct {
-					conn *net.UDPConn
-					ip   net.IP
-					port int
-				}
-				var replySocks []replySock
+				// 存活期跟随会话即可，不需要全局缓存也不需要 TTL。
+				//
+				// 上限是必须的：会话按**源地址**复用，目的地却由对端决定，一条会话可以
+				// 轮番打向任意多个目的地；只 append 不删的缓存等于把 fd 数交给对端。
+				// 超了按 FIFO 淘汰最旧的一条。键用 netip.AddrPort，这条是每包一次的查找。
+				replySocks := make(map[netip.AddrPort]*net.UDPConn)
+				var replyOrder []netip.AddrPort
 				defer func() {
 					for _, rs := range replySocks {
-						rs.conn.Close() //gosec:disable -- 错误忽略：会话结束尽力关闭
+						rs.Close() //gosec:disable -- 错误忽略：会话结束尽力关闭
 					}
 				}()
 				for {
@@ -240,14 +274,21 @@ func (s *Server) packetDispatchLoop() {
 							log.Error("tproxy invalid response metadata address", info.metadata)
 							continue
 						}
-						var back *net.UDPConn
-						for _, rs := range replySocks {
-							if rs.port == info.metadata.Port && rs.ip.Equal(info.metadata.IP) {
-								back = rs.conn
-								break
-							}
+						key, keyOK := replySockKey(info.metadata)
+						if !keyOK {
+							log.Error("tproxy unrepresentable response address", info.metadata)
+							continue
 						}
-						if back == nil {
+						back, cached := replySocks[key]
+						if !cached {
+							for len(replyOrder) >= maxReplySocksPerSession {
+								oldest := replyOrder[0]
+								replyOrder = replyOrder[1:]
+								if old, existed := replySocks[oldest]; existed {
+									delete(replySocks, oldest)
+									old.Close() //gosec:disable -- 错误忽略：淘汰过期目的地
+								}
+							}
 							var err error
 							back, err = dialUDP(
 								"udp",
@@ -261,7 +302,8 @@ func (s *Server) packetDispatchLoop() {
 								log.Error(common.NewError("failed to dial tproxy udp").Base(err))
 								return
 							}
-							replySocks = append(replySocks, replySock{conn: back, ip: info.metadata.IP, port: info.metadata.Port})
+							replySocks[key] = back
+							replyOrder = append(replyOrder, key)
 						}
 						n, err := back.Write(info.payload)
 						if err != nil {
