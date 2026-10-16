@@ -49,7 +49,6 @@ func NewConnectionTracker(module, action string) *ConnectionTracker {
 		module:    module,
 		action:    action,
 		startTime: time.Now(),
-		fields:    make(map[string]any),
 	}
 }
 
@@ -59,7 +58,6 @@ func NewConnectionTrackerWithID(connID, module, action string) *ConnectionTracke
 		module:    module,
 		action:    action,
 		startTime: time.Now(),
-		fields:    make(map[string]any),
 	}
 }
 
@@ -73,6 +71,12 @@ func (t *ConnectionTracker) StartTime() time.Time {
 
 func (t *ConnectionTracker) WithField(key string, value any) *ConnectionTracker {
 	t.mu.Lock()
+	// fields 延迟分配：tracker 是每条连接、每条 mux 流各一个（mux/client.go 一条流
+	// 就用两个），而 Success/Error 的打印在 ShouldLog 不通过时整段跳过——
+	// 默认级别下那个 map 是纯白付的（一个空 map 也要 48B 头部 + 一个桶）。
+	if t.fields == nil {
+		t.fields = make(map[string]any)
+	}
 	t.fields[key] = value
 	t.mu.Unlock()
 	return t
@@ -80,6 +84,9 @@ func (t *ConnectionTracker) WithField(key string, value any) *ConnectionTracker 
 
 func (t *ConnectionTracker) WithFields(fields map[string]any) *ConnectionTracker {
 	t.mu.Lock()
+	if t.fields == nil {
+		t.fields = make(map[string]any)
+	}
 	maps.Copy(t.fields, fields)
 	t.mu.Unlock()
 	return t

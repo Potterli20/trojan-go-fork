@@ -16,6 +16,7 @@ import (
 	terminal "golang.org/x/term"
 
 	"github.com/Potterli20/trojan-go-fork/log"
+	"github.com/Potterli20/trojan-go-fork/log/golog/buffer"
 	"github.com/Potterli20/trojan-go-fork/log/golog/colorful"
 )
 
@@ -29,6 +30,14 @@ type FdWriter interface {
 	io.Writer
 	Fd() uintptr
 }
+
+// logBufferKeepLimit / logBufferResetSize 是行缓冲的保留上限与回落尺寸：
+// 正常日志行连前缀带调用点也就几十字节到一两千，超过 8KB 说明这一行本身就是异常值，
+// 不该让它的容量在之后每一次写日志时都被重复付一次。
+const (
+	logBufferKeepLimit = 8 * 1024
+	logBufferResetSize = 1 * 1024
+)
 
 // Logger struct define the underlying storage for single logger
 type Logger struct {
@@ -234,6 +243,14 @@ func (l *Logger) Output(depth int, prefix Prefix, data string) error {
 	defer l.mu.Unlock()
 	// Reset buffer so it start from the beginning
 	l.buf.Reset()
+	// 这条行缓冲是整个 logger 唯一的，而 Reset 只把长度归零、不动容量
+	// （buffer.Buffer.Reset 就是 b[:0]）：只要出现过一条超长日志行，容量就被永久
+	// 顶在那个高度，等于"单条最长行"直接变成进程常驻内存。日志里带上对端可控内容
+	// （长 URL、长 SNI、握手失败的原始字节）是能做到的，所以这里在超过保留阈值时
+	// 换回一小块，不记住峰值。
+	if cap(l.buf.Buffer) > logBufferKeepLimit {
+		l.buf.Buffer = make(buffer.Buffer, 0, logBufferResetSize)
+	}
 	// Write prefix to the buffer
 	if l.color {
 		l.buf.Append(prefix.Color)
