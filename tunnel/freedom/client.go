@@ -3,6 +3,8 @@ package freedom
 import (
 	"context"
 	"net"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Potterli20/socks5-fork"
@@ -29,6 +31,88 @@ type Client struct {
 	outboundFwmark  int
 }
 
+// forwardHandshakeTimeout 覆盖 forward-proxy 这一跳的整个过程：连上配置里那个
+// SOCKS 代理、走完 SOCKS 认证、再把 CONNECT 的应答读回来。直连路径走的是
+// common.Dial(c.ctx, 30s)，而这一条原先交给 x/net/proxy 的默认 dialer——既没有
+// 超时，也完全不看 c.ctx。代理收下 TCP 却不回握手字节（半死的上游链路正是这个
+// 形态）时 DialConn 永不返回，而它的调用方是 relay 的会话协程：一次撞死就永久占用
+// 一条协程加一个半开 socket，Proxy.Close 的 5s waitBounded 也只是放弃等待，叫不醒它。
+//
+// 做成 var 是给判据留的注入口：forward_dial_test.go 把它缩到几百毫秒，用来区分
+// "握手截止到底解除没有"。理由同 tunnel/tproxy 的 `var dialUDP = DialUDP`，
+// 别当冗余代码删掉。
+var forwardHandshakeTimeout = 30 * time.Second
+
+// forwardDialer 给 x/net/proxy 补上它自己没有的两件事：把"连代理"这一跳接回
+// c.ctx（域名代理地址的 DNS 解析也一并接回去），以及给紧随其后的 SOCKS 握手挂一个
+// 截止时间。x/net 的 socks 实现对这个 conn 是裸 read/write，所以整体截止就是它的
+// 终点；context.AfterFunc 再让 Client.Close 能当场打断阻塞中的握手。
+type forwardDialer struct {
+	ctx context.Context
+
+	mu       sync.Mutex
+	tunneled *handshakeConn
+}
+
+// Dial 是 proxy.Dialer 的实现：x/net 用它去连配置的代理，拿到的 conn 随后就是
+// SOCKS 握手与会话隧道的载体。
+func (d *forwardDialer) Dial(network, address string) (net.Conn, error) {
+	conn, err := common.Dial(d.ctx, common.DialConfig{
+		Network: network,
+		Address: address,
+		Timeout: forwardHandshakeTimeout,
+	})
+	if err != nil {
+		return nil, err
+	}
+	hs := &handshakeConn{Conn: conn}
+	if err := hs.arm(d.ctx, forwardHandshakeTimeout); err != nil {
+		conn.Close() //gosec:disable -- 错误忽略：握手尚未建立
+		return nil, err
+	}
+	d.mu.Lock()
+	d.tunneled = hs
+	d.mu.Unlock()
+	return hs, nil
+}
+
+// finish 撤掉握手时限与 ctx 监视。DialConn 一返回就必须做（含错误路径）：这条 conn
+// 马上要被当作会话隧道交给中继长期持有，残留的截止会在几十秒后凭空掐断一条好端端
+// 的会话；而 AfterFunc 不停掉的话，将来 Client.Close 会去掐一条与本次拨号无关的活连接。
+func (d *forwardDialer) finish() {
+	d.mu.Lock()
+	hs := d.tunneled
+	d.tunneled = nil
+	d.mu.Unlock()
+	if hs != nil {
+		hs.disarm()
+	}
+}
+
+type handshakeConn struct {
+	net.Conn
+	stopWatch func() bool
+	disarmed  atomic.Bool
+}
+
+func (h *handshakeConn) arm(ctx context.Context, timeout time.Duration) error {
+	if err := h.Conn.SetDeadline(time.Now().Add(timeout)); err != nil {
+		return err
+	}
+	h.stopWatch = context.AfterFunc(ctx, func() {
+		// 取消即打断：让阻塞在握手读上的这次调用当场带错误返回
+		h.Conn.SetDeadline(time.UnixMilli(1)) //gosec:disable -- 错误忽略：取消路径打断阻塞中的握手
+	})
+	return nil
+}
+
+func (h *handshakeConn) disarm() {
+	if h.disarmed.CompareAndSwap(false, true) {
+		h.stopWatch()
+		h.Conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：交出隧道前解除握手时限
+	}
+}
+
 func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, error) {
 	// forward proxy
 	if c.forwardProxy {
@@ -39,10 +123,12 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 				Password: c.password,
 			}
 		}
-		dialer, err := proxy.SOCKS5("tcp", c.proxyAddr.String(), auth, proxy.Direct)
+		fd := &forwardDialer{ctx: c.ctx}
+		dialer, err := proxy.SOCKS5("tcp", c.proxyAddr.String(), auth, fd)
 		if err != nil {
 			return nil, common.NewError("freedom failed to init socks dialer")
 		}
+		defer fd.finish()
 		conn, err := dialer.Dial("tcp", addr.String())
 		if err != nil {
 			return nil, common.NewError("freedom failed to dial target address via socks proxy " + addr.String()).Base(err)
