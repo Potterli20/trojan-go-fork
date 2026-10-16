@@ -165,8 +165,23 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   另两处已核实但**没动**的热点，改之前先掂量：① `tunnel/tproxy/udp.go` 的 `DialUDP` 是**每个回包**
   新建 socket + `os.NewFile`，按源地址缓存连接能省掉大量 fd  churn，但要引入 TTL 与 NAT 语义；
   ② socks/tproxy/dokodemo 的 UDP 会话表以 `addr.String()` 为键，每包一次格式化，换成
-  `netip.AddrPort` 能省掉，但 IPv4-in-IPv6 与 v6 zone 的键相等语义会改变现有会话归属，
-  必须先有判据再动。
+  `netip.AddrPort` 能省掉；键相等语义（v4-mapped-v6 与 zone）已经由
+  `tunnel/udp_session_key_test.go` 钉住，改之前先跑它——实测结论见下面那条 bullet。
+- **`Write` / `WriteWithMetadata` 返回之后不得再碰调用方的切片**（跨层契约，写在
+  `tunnel/tunnel.go` 的接口注释上）。`proxy/proxy.go` 的 `relayConnLoop` 把
+  `boundedBufPool` 的 buffer 喂给 `io.CopyBuffer`、`relayPacketLoop` 则是
+  `WriteWithMetadata(buf[:n], m)` 一返回就 `packetPool.Put(buf)`，下一个包大概率拿到
+  同一块底层数组。所以"存引用、晚点发"这类写法不会当场出错——出错是在包与包之间把
+  别人的负载串进来。判据：`tunnel/socks/no_retain_test.go`、
+  `tunnel/dokodemo/no_retain_test.go`、`tunnel/trojan/packet_write_test.go`（涂脏 p 再核对
+  上线/入队的字节；把 socks 的 `copy` 删掉，三条里对应那条立刻红）。
+  `ReadWithMetadata` 交回的 `*Metadata` 同理，不得引用那块 payload buffer
+  （`tunnel/freedom/pool_alias_test.go` 钉的就是这条）。
+- **UDP 会话表的键语义已经钉成判据**（`tunnel/udp_session_key_test.go`）：三层入站都拿
+  `addr.String()` 当键，换 `netip` 之前必须知道"哪些地址今天算同一条会话"。实测
+  （go1.27.1）两个要点：① v4 与 v4-mapped-v6 同键，netip 侧要 `Unmap()` 才等价；
+  ② **`(*net.UDPAddr).AddrPort()` 会保住 zone**（写判据之前我以为它会丢，判据把它
+  抓出来了），所以直接用 `AddrPort()` 当键与现有语义一致——这条热点现在可以放心换。
 - **`recorder.Add` 在零订阅者时直接返回**（`subscriberCount` 短路）。它是每连接、每 UDP 包都会
   被 `tunnel/trojan/packet.go` 调到的路径，旧实现先付 2 次 `addr.String()` + 2 次 `SplitHostPort`
   + 时间戳才发现在 range 空表。计数由 `Swap`/`LoadAndDelete` 的返回值维护，同 uid 重复
