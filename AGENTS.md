@@ -149,6 +149,31 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   （`ErrInvalidGeodataLength`）。损坏的 geoip.dat 曾直接 `make([]byte, 1<<60)` ⇒
   `makeslice: len out of range` panic，而 router 是在启动时加载它的。改这里时别退回"一次 `f.Read`
   读不满就报硬错误"：`io.Reader` 允许短读，必须用 `io.ReadFull`。
+- **入站串行 AcceptConn 的握手窗口必须双向限时**。`tunnel/websocket` 的 `AcceptConn` 直接被入站
+  accept 循环串行调用，卡住它等于这个入站不再接纳任何新连接。旧实现只给"读升级请求"设了
+  `SetReadDeadline`，读完就把写方向裸交出去，而 `websocket.Accept` 会同步 flush 101 响应——对端把
+  请求发完就不再读取（TCP 零窗口）时这次写永久阻塞，且这条连接早已离开下层的待处理队列，排空逻辑
+  够不着它的 fd。修法是 `conn.SetDeadline(handshakeTimeout)` 覆盖整个握手窗口、移交上游前解除，
+  再加 `pendingConns` 在途登记让 `Close` 立刻关掉它（`tunnel/tls/server.go` 早就是这套形状）。
+  判据：`tunnel/websocket/handshake_stall_test.go`，用 `net.Pipe` 造"读完请求就不再读"的对端，
+  在白盒包装连接上盯 `Write` 被调用那一刻有没有落在有效写时限内。
+- **Markdown 站内锚点由 `.github/check-md-anchors.py` 把关**（挂在 config-examples 工作流）。
+  GitHub 的 slug 规则：小写、丢掉标点/符号/控制字符（**下划线保留**，所以
+  `#中继缓冲区-relay_buffer_` 是活的）、空格换连字符，标题里的序号也会进锚点
+  （`### 3. URL 模式（客户端）` → `#3-url-模式客户端`）。带空格的 `(#cdn 中转配置)` 是死链，
+  页面不报错、测试不变红，能活到下次改版。门还要抓"括号丢了"的畸形链接——那种写法根本不构成
+  链接，只查锚点是否存在会把它当成没有链接而放过（我自己踩过：批量替换把 `(...)` 一起吃掉，
+  门照样 PASS）。
+- **README 里的 ```yaml 代码块是会被实喂给二进制的**（`.github/extract-doc-yaml.py` 只取
+  ```yaml 围栏，```json 块一律漏过）。所以文档里的示例配置尽量写成 yaml：写 JSON 等于放在
+  没有任何门检查的散文里。CDN 一节已改成 yaml，并纠正了三处与代码不符的说法：服务端栈是
+  `transport → tls → websocket → shadowsocks → trojan`，**只有 `transport-plugin` 开启才跳过
+  `tls`**（`proxy/server/server.go`），因此 CDN 回源这一跳必须仍是 TLS 或 L4 直通；`local-port`
+  不能和同机 nginx 抢 443；服务端 `websocket.host` 不参与任何校验（`InsecureSkipVerify`），
+  只在 `remote-addr` 留空时充当诱饵地址兜底。
+- **coder/websocket 的 `Conn.Close` 会发 close 帧并等对端回执**，哑对端不回就白等满库内写超时
+  （实测 5s）。这是测试夹具现象，不是生产泄露：真实对端回 close 帧，`NetConn` 的读上限与定时器
+  都在 `Close` 里停掉。写测试时要让对端先撤、或持续读到 EOF，再关 ws 连接，否则单用例白加 5 秒。
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 

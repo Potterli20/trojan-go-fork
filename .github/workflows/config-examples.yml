@@ -13,6 +13,8 @@ on:
 #   * 前一步把 config/*.yaml 与文档里的 ```yaml 代码块逐段还原出来，一起喂给真实二进制，
 #     只有这条路能抓到值类型错误（`log-level: info`）——Python 侧算不出 int/bool 的期望类型。
 #   * 后一步 check-config-keys.py 按 (父节, 键) 比名字，抓的是放错节的编造键。
+#   * 最后一步 check-md-anchors.py 重算标题 id，抓目录里的死锚点（与配置无关，
+#     只是同属"文档写了但没人验证"这一类，共用这道工作流）。
 jobs:
   config-examples:
     runs-on: ubuntu-24.04
@@ -91,3 +93,9 @@ jobs:
 
       - name: Check config keys in docs and examples
         run: python3 .github/check-config-keys.py
+
+      # 目录里的站内锚点没有任何测试会去点：`(#cdn 中转配置)` 这种带空格的写法
+      # 从 GitHub 上线那天起就是死链，页面不报错、CI 不变红，可以一路烂到文档改版。
+      # check-md-anchors.py 按 github-slugger 的规则重算每个标题的 id 并逐个比对。
+      - name: Check markdown anchors in docs
+        run: python3 .github/check-md-anchors.py

@@ -14,16 +14,16 @@ Trojan-Go Fork 是基于 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/troj
 - [与原版的差异](#与原版的差异)
 - [Docker 部署](#docker-部署)
 - [快速开始](#快速开始)
-  - [简易模式（命令行参数）](#简易模式命令行参数)
-  - [配置文件模式](#配置文件模式)
-  - [URL 模式（客户端）](#url 模式客户端)
+  - [简易模式（命令行参数）](#1-简易模式命令行参数)
+  - [配置文件模式](#2-配置文件模式)
+  - [URL 模式（客户端）](#3-url-模式客户端)
 - [特性介绍](#特性介绍)
   - [可移植性](#可移植性)
   - [简易配置](#简易配置)
   - [WebSocket](#websocket)
   - [HTTP/2 代理入口（h2c）](#http2-代理入口h2c)
   - [重定向（诱饵）与客户端地址注入](#重定向诱饵与客户端地址注入)
-  - [HTTP/3 QUIC 隧道](#http3-quic 隧道)
+  - [HTTP/3 QUIC 隧道](#http3-quic-隧道)
   - [多路复用](#多路复用)
   - [路由模块](#路由模块)
   - [AEAD 加密](#aead-加密)
@@ -31,8 +31,8 @@ Trojan-Go Fork 是基于 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/troj
   - [管理接口与流量后端](#管理接口与流量后端)
 - [配置示例](#配置示例)
   - [Cloudflare HTTP/3 配置](#cloudflare-http3-配置)
-  - [CDN 中转配置](#cdn 中转配置)
-  - [IPv6 专用配置](#ipv6 专用配置)
+  - [CDN 中转配置](#cdn-中转配置)
+  - [IPv6 专用配置](#ipv6-专用配置)
 - [构建指南](#构建指南)
 - [故障排查](#故障排查)
 - [图形界面客户端](#图形界面客户端)
@@ -236,7 +236,10 @@ Trojan-Go Fork 支持 TLS + WebSocket 承载 Trojan 协议，可利用 CDN 进�
 }
 ```
 
-`host` 可以省略，但服务端和客户端的 `path` 必须一致。开启 WebSocket 后，服务端可同时兼容 WebSocket 和标准 Trojan 流量。
+`host` 可以省略，但服务端和客户端的 `path` 必须一致。开启 WebSocket 后，服务端可同时兼容
+WebSocket 和标准 Trojan 流量。两侧的 `host` 含义并不相同：客户端这一侧它被写进握手的
+`Host` 头（CDN 按这个头回源），服务端这一侧它**不参与任何校验**，只在 `remote-addr` 留空时
+被拿去当诱饵地址兜底。完整链路和 Nginx/CDN 回源写法见 [CDN 中转配置](#cdn-中转配置)。
 
 > 键名是 `host`，**不是 `hostname`**：`tunnel/websocket/config.go` 没声明 `hostname`，
 > 写错不报错、只是被静默忽略（Go 的 json 行为）。
@@ -664,57 +667,109 @@ TCP 降级（真的用 `run-type: client`）见 `config/cloudflare_tcp_fallback.
 
 ### CDN 中转配置
 
-通过 WebSocket + CDN 实现流量中转，隐藏真实 IP：
+用 WebSocket 把流量藏在 CDN 后面，隐藏源站真实 IP。
+
+先记住栈的顺序，很多"照着配就是连不上"都栽在这里：服务端是
+`transport → tls → websocket → shadowsocks → trojan`（`proxy/server/server.go`），
+**只有启用 `transport-plugin` 才会跳过 `tls` 那一层**。所以 CDN 回源到源站这一跳
+要么继续说 TLS，要么只做 L4 直通，不能在 nginx 上终结 TLS 之后用明文 `http://` 回源——
+那一层的对端是个 TLS 端口，明文进去握手必挂。
+
+同理，`local-port` 不能再写 443：nginx 已经在监听 443，同机再绑一次就是
+`address already in use`。让 trojan-go 只监听回环上的 8443，公网侧只暴露 nginx。
 
 **服务端配置**：
 
-```json
-{
-  "run_type": "server",
-  "local_addr": "0.0.0.0",
-  "local_port": 443,
-  "remote_addr": "127.0.0.1",
-  "remote_port": 80,
-  "password": ["your_password"],
-  "ssl": {
-    "cert": "fullchain.pem",
-    "key": "privkey.pem",
-    "sni": "your-domain.com"
-  },
-  "websocket": {
-    "enabled": true,
-    "path": "/trojan-ws",
-    "host": "your-domain.com"
-  },
-  "shadowsocks": {
-    "enabled": true,
-    "method": "AES-128-GCM",
-    "password": "ws-password"
-  }
+```yaml
+run-type: server
+local-addr: 127.0.0.1     # 只监听回环：公网必须从 CDN 进来
+local-port: 8443
+remote-addr: 127.0.0.1    # 诱饵地址：路径不匹配、也不是 WS 升级的请求都转去这里，
+remote-port: 8080         # 这个端口上必须真有个站点在听，否则探测者直接吃 connection refused
+password:
+    - your_password
+ssl:
+    cert: /path/to/fullchain.pem
+    key: /path/to/privkey.pem
+    sni: your-domain.com
+websocket:
+    enabled: true
+    path: /trojan-ws      # 只认这一条路径；服务端没有"校验 Host"这回事
+shadowsocks:
+    enabled: true
+    method: AES-128-GCM
+    password: ws-password
+```
+
+`websocket.host` 在服务端**不是**要匹配的 Host 头：它只在 `remote-addr` 留空时被拿去
+当诱饵地址兜底（`tunnel/websocket/server.go`）。Host/Origin 对不上是 CDN 回源的常态，
+一律放行，真正的鉴权在 trojan 层的密码上。要写诱饵就直接写 `remote-addr`/`remote-port`。
+
+**Nginx 回源（二选一）**：
+
+形态 A —— L4 直通，TLS 仍然由 trojan-go 终结。改动最小，也最省 CPU，
+Cloudflare 这类只允许 HTTPS 回 443 的 CDN 用这种：
+
+```nginx
+stream {
+    server {
+        listen 443;
+        proxy_pass 127.0.0.1:8443;
+        proxy_timeout 3600s;   # 空闲隧道不要被 10 分钟默认值掐掉
+    }
 }
 ```
 
-**Nginx CDN 配置示例**：
+形态 B —— nginx 终结 TLS 并转发 HTTP，只在需要和静态站共用一个 location 时用。
+回源这一跳仍然必须是 `https://`，并且长连接要放宽读超时，否则空闲会话会被 60s 默认值杀掉：
 
 ```nginx
 server {
     listen 443 ssl http2;
     server_name your-domain.com;
 
-    ssl_certificate /path/to/fullchain.pem;
+    ssl_certificate     /path/to/fullchain.pem;
     ssl_certificate_key /path/to/privkey.pem;
 
     location /trojan-ws {
-        # 服务端这侧是 TLS 之上的 websocket，上游必须是 https://：
-        # 写 http:// 等于拿明文去戳 TLS 端口，握手必挂
-        proxy_pass https://127.0.0.1:443;
+        proxy_pass https://127.0.0.1:8443;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
-        proxy_ssl_server_name on;
+        proxy_ssl_server_name on;      # 回源也要带上 SNI
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+
+    location / {                     # 其余路径就是普通站点，兼作探测者的诱饵
+        root /var/www/html;
     }
 }
+```
+
+**客户端配置**：`remote-addr` 写 CDN 域名而不是源站 IP，WS 的 path/host 跟 CDN 上的
+location 对齐，两边 `shadowsocks` 的 method/password 必须成对一致。
+
+```yaml
+run-type: client
+local-addr: 127.0.0.1
+local-port: 1080
+remote-addr: your-domain.com   # CDN 边缘，不是源站
+remote-port: 443
+password:
+    - your_password
+ssl:
+    sni: your-domain.com
+    verify: true
+websocket:
+    enabled: true
+    path: /trojan-ws
+    host: your-domain.com      # 客户端这一侧的 host 才是真正写进 Host 头的
+shadowsocks:
+    enabled: true
+    method: AES-128-GCM
+    password: ws-password
 ```
 
 ### IPv6 专用配置
