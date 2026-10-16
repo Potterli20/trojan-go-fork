@@ -230,7 +230,12 @@ func (s *ServerAPI) GetRecords(req *GetRecordsRequest, stream TrojanServerServic
 	log.Debug("API: GetRecords")
 	// 标准库 uuid（Go 1.27 新增）：New 基于 crypto/rand 生成 v4 UUID 且不会失败，无需错误处理
 	uid := uuid.New().String()
-	recordChan := recorder.Subscribe(uid, req.Transport, req.TargetPort, req.IncludePayload)
+	recordChan, err := recorder.Subscribe(uid, req.Transport, req.TargetPort, req.IncludePayload)
+	if err != nil {
+		// 订阅者数量到上限（recorder.maxSubscribers）。如实报错，不要退化成一条
+		// 永远收不到记录的流——那对调用方看起来和"暂时没有记录"一模一样。
+		return common.NewError("failed to subscribe recorder").Base(err)
+	}
 	defer recorder.Unsubscribe(uid)
 
 	for {

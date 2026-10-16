@@ -23,7 +23,10 @@ func TestOversizedCapacityIsClampedAtSubscribe(t *testing.T) {
 		if got := subscriberCapacity.Load(); got != maxSubscriberCapacity {
 			t.Fatalf("SetCapacity(%d) 后全局容量 = %d，期望钳制到 %d", n, got, maxSubscriberCapacity)
 		}
-		ch := Subscribe("clamp-check", "", "", false)
+		ch, err := Subscribe("clamp-check", "", "", false)
+		if err != nil {
+			t.Fatalf("Subscribe: %v", err)
+		}
 		if cap(ch) != maxSubscriberCapacity {
 			t.Fatalf("Subscribe 实际分配了 cap=%d，期望 %d", cap(ch), maxSubscriberCapacity)
 		}

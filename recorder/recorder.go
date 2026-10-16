@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
 )
 
@@ -44,6 +45,19 @@ func SetCapacity(n int) {
 }
 
 var subscribers sync.Map
+
+// maxSubscribers 限制同时存活的订阅者数量。`api/service` 的 GetRecords 每条流现生成一个
+// UUID 当 uid，所以条目数 = 并发尾随流数，而 **gRPC API 自身没有鉴权**：任何能连上 API
+// 的客户端开 N 条流，就是 N × 最多 0.5MB 的缓冲加 N 个协程。maxSubscriberCapacity 管住了
+// 单个订阅者的缓冲，管不住数量——这一条管数量。
+//
+// 超出上限时 Subscribe 返回错误而不是静默丢记录：调用方（API handler）要能把它变成一条
+// 明确的 gRPC 错误，而不是让客户端以为在尾随、其实一条都收不到。
+const maxSubscribers = 64
+
+// subscribeMu 让"查计数 + 登记"成为一步。只靠 subscriberCount.Load() 判断的话，
+// 并发的 Subscribe 可以一起挤过闸门，上限就成了软约束。
+var subscribeMu sync.Mutex
 
 // subscriberCount 只为 Add 的空订阅短路存在：sync.Map 没有 O(1) 的"是否为空"，
 // 而 Range 一遍要分配迭代器。计数由 Swap/LoadAndDelete 的返回值维护，
@@ -92,7 +106,15 @@ func Add(hash string, clientAddr, targetAddr net.Addr, transport string, payload
 	broadcast(record)
 }
 
-func Subscribe(uid string, transport, targetPort string, includePayload bool) chan Record {
+// Subscribe 登记一个尾随订阅者，返回它的记录通道。超出 maxSubscribers 时返回错误，
+// 调用方必须把错误如实上报（不要退化成一个永远收不到记录的通道）。
+func Subscribe(uid string, transport, targetPort string, includePayload bool) (chan Record, error) {
+	subscribeMu.Lock()
+	defer subscribeMu.Unlock()
+	if subscriberCount.Load() >= maxSubscribers {
+		log.Warn("recorder subscriber limit reached, rejecting", uid)
+		return nil, common.NewError("recorder subscriber limit reached")
+	}
 	log.Debug("New recorder subscriber", uid)
 	opt := option{
 		recordChan:     make(chan Record, subscriberCapacity.Load()),
@@ -103,7 +125,7 @@ func Subscribe(uid string, transport, targetPort string, includePayload bool) ch
 	if _, loaded := subscribers.Swap(uid, opt); !loaded {
 		subscriberCount.Add(1)
 	}
-	return opt.recordChan
+	return opt.recordChan, nil
 }
 
 func Unsubscribe(uid string) {
