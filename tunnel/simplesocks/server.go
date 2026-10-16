@@ -27,6 +27,30 @@ func (s *Server) Close() error {
 	s.cancel()
 	err := s.underlay.Close()
 	s.wg.Wait()
+	// wg.Wait 之后生产者已退出、不会再向队列投递；这里排空"已完成握手但没被
+	// 上层取走"的连接。留在缓冲里的每一条都攥着一个 fd（读过头的 mux 流），
+	// 不关就只能等进程退出，反复建栈（api、测试、热重载）时是实打实的堆积。
+drain:
+	for {
+		select {
+		case c := <-s.connChan:
+			c.Close() //gosec:disable -- 关闭滞留连接，忽略 close 错误
+		default:
+			break drain
+		}
+	}
+	// wg.Wait 之后生产者已退出、不会再向队列投递；这里排空"已完成握手但没被
+	// 上层取走"的连接。留在缓冲里的每一条都攥着一个 fd（UDP 会话），
+	// 不关就只能等进程退出，反复建栈（api、测试、热重载）时是实打实的堆积。
+drainPacket:
+	for {
+		select {
+		case c := <-s.packetChan:
+			c.Close() //gosec:disable -- 关闭滞留连接，忽略 close 错误
+		default:
+			break drainPacket
+		}
+	}
 	return err
 }
 

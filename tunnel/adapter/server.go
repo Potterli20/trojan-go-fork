@@ -148,6 +148,28 @@ func (s *Server) close() error {
 	s.tcpListener.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	err := s.udpListener.Close()
 	s.wg.Wait()
+	// wg.Wait 之后生产者已退出、不会再向队列投递；这里排空"已经嗅完协议、但上层还
+	// 没 AcceptConn 取走"的连接。每条都攥着一根已经 Accept 出来的客户端 TCP 连接，
+	// 不关就只能等进程退出，反复建栈（api、测试、热重载）时是实打实的堆积。
+drain:
+	for {
+		select {
+		case c := <-s.socksConn:
+			c.Close() //gosec:disable -- 关闭滞留连接，忽略 close 错误
+		default:
+			break drain
+		}
+	}
+	// 同上，http 那条队列同样攥着客户端连接。
+drainHTTP:
+	for {
+		select {
+		case c := <-s.httpConn:
+			c.Close() //gosec:disable -- 关闭滞留连接，忽略 close 错误
+		default:
+			break drainHTTP
+		}
+	}
 	return err
 }
 

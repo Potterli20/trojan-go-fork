@@ -146,6 +146,30 @@ func (s *Server) Close() error {
 	s.listenPacketConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	err := s.underlay.Close()
 	s.wg.Wait()
+	// wg.Wait 之后生产者已退出、不会再向队列投递；这里排空"已完成握手但没被
+	// 上层取走"的连接。留在缓冲里的每一条都攥着一个 fd（已完成握手的客户端 TCP 连接），
+	// 不关就只能等进程退出，反复建栈（api、测试、热重载）时是实打实的堆积。
+drain:
+	for {
+		select {
+		case c := <-s.connChan:
+			c.Close() //gosec:disable -- 关闭滞留连接，忽略 close 错误
+		default:
+			break drain
+		}
+	}
+	// wg.Wait 之后生产者已退出、不会再向队列投递；这里排空"已完成握手但没被
+	// 上层取走"的连接。留在缓冲里的每一条都攥着一个 fd（UDP 会话（含两条通道与在途包）），
+	// 不关就只能等进程退出，反复建栈（api、测试、热重载）时是实打实的堆积。
+drainPacket:
+	for {
+		select {
+		case c := <-s.packetChan:
+			c.Close() //gosec:disable -- 关闭滞留连接，忽略 close 错误
+		default:
+			break drainPacket
+		}
+	}
 	return err
 }
 

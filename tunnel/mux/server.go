@@ -162,6 +162,18 @@ func (s *Server) Close() error {
 	s.closeSessions()
 	err := s.underlay.Close()
 	s.wg.Wait()
+	// wg.Wait 之后生产者已退出、不会再向队列投递；这里排空"已完成握手但没被
+	// 上层取走"的连接。留在缓冲里的每一条都攥着一个 fd（已 AcceptStream 成功、带着 smux 流状态），
+	// 不关就只能等进程退出，反复建栈（api、测试、热重载）时是实打实的堆积。
+drain:
+	for {
+		select {
+		case c := <-s.connChan:
+			c.Close() //gosec:disable -- 关闭滞留连接，忽略 close 错误
+		default:
+			break drain
+		}
+	}
 	return err
 }
 
