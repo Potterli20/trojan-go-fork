@@ -122,8 +122,7 @@ func feed(conn *multiSrcListenConn, src net.Addr, payload string) {
 // 一个子 ctx 和一个守护协程。闸门必须卡在**造会话对象之前**。
 // 口径同 tunnel/tproxy/session_bound_test.go（那一层先补的）。
 func TestUDPSessionCountIsBounded(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	conn := &multiSrcListenConn{feed: make(chan srcPacket, 4), closed: make(chan struct{})}
 	s, existing, overCap := newSeededServer(ctx, conn, maxUDPSessions)
@@ -196,8 +195,7 @@ func TestUDPSocketErrorBacksOff(t *testing.T) {
 // 打崩（relay 这条链上没有 recover，只有 mux/tls/trojan 三处有）。闸门还必须卡在
 // 建会话之前，否则 n=3 这种"不 panic 但也投递不出负载"的包会先攒出一条死会话。
 func TestUDPServerDropsShortFrames(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	conn := &multiSrcListenConn{feed: make(chan srcPacket, 8), closed: make(chan struct{})}
 	s, _, _ := newSeededServer(ctx, conn, 0)

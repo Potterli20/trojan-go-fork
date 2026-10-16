@@ -1,7 +1,6 @@
 package socks
 
 import (
-	"context"
 	"net"
 	"testing"
 	"time"
@@ -32,8 +31,7 @@ func waitOutstanding(want int64) bool {
 func TestPacketBufsAreReturnedOnBothDirections(t *testing.T) {
 	base := borrowedPacketBufs()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	conn := &multiSrcListenConn{feed: make(chan srcPacket, 32), closed: make(chan struct{})}
 	s, _, _ := newSeededServer(ctx, conn, 0)
 	go s.packetDispatchLoop()
@@ -98,8 +96,7 @@ func TestPacketBufsAreReturnedOnBothDirections(t *testing.T) {
 func TestQueueDropReturnsBuffer(t *testing.T) {
 	base := borrowedPacketBufs()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	conn := &multiSrcListenConn{feed: make(chan srcPacket, 64), closed: make(chan struct{})}
 	s, _, _ := newSeededServer(ctx, conn, 0)
 
