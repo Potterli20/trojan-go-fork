@@ -211,6 +211,10 @@ def extract(path):
         for b in re.findall(r"```json\n(.*?)```", src, re.S):
             pairs += pairs_from_json(b)
         return pairs
+    if path.endswith(".json"):
+        # example/ 下有一批 JSON 形态的样例配置，同一套结构体、另一套标签拼法。
+        # 它们此前不在门里，所以 quic.enabled 这种"已删除的键"在 example/ 里活了很久。
+        return pairs_from_json(src)
     return pairs_from_yaml(src)
 
 
@@ -242,7 +246,8 @@ def main():
         print("[FAIL] 节只提取到 %d（下限 %d）—— 嵌套解析可能已失效" % (len(children), MIN_SECTIONS))
         return 1
 
-    targets = list(DOC_FILES) + sorted(glob.glob("config/*.yaml"))
+    targets = (list(DOC_FILES) + sorted(glob.glob("config/*.yaml"))
+               + sorted(glob.glob("example/*.yaml")) + sorted(glob.glob("example/*.json")))
     missing = [t for t in targets if not os.path.exists(t)]
     if missing:
         print("[FAIL] 待检文件缺失: %s" % missing)
