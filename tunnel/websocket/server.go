@@ -105,6 +105,14 @@ func (s *Server) cleanupFailedHandshake(conn tunnel.Conn, tracker *log.Connectio
 	return err
 }
 
+// acceptHandshake 是 websocket.Accept 的注入点。真实实现不用 ctx——coder 的 Accept
+// 只从响应写入器和请求上工作；ctx 存在的唯一理由是让判据能拿到握手期间创建的那个
+// 子 ctx，从而在库内 panic 时验证它确实被取消了（handshake_panic_test.go）。
+// 参照 tunnel/tproxy 的 `var dialUDP = DialUDP`：这类注入点是刻意留给测试的，别当冗余删掉。
+var acceptHandshake = func(ctx context.Context, w http.ResponseWriter, req *http.Request, opts *websocket.AcceptOptions) (*websocket.Conn, error) {
+	return websocket.Accept(w, req, opts)
+}
+
 func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	conn, err := s.underlay.AcceptConn(&Tunnel{})
 	if err != nil {
@@ -161,16 +169,32 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		return nil, common.NewError("websocket server is closing")
 	}
 	connCtx, cancel := context.WithCancel(s.ctx)
-	wsConn, err := websocket.Accept(&fakeHTTPResponseWriter{Conn: conn, ReadWriter: rw}, req, &websocket.AcceptOptions{
-		// Host/Origin 不匹配是代理场景常态(如 CDN 回源),鉴权由 trojan 层完成
-		InsecureSkipVerify: true,
-	})
-	s.untrackPending(conn)
-	// 连接即将移交上游长期持有，必须解除握手时限，否则一条正常会话会在
-	// 30s 后被自己没做完的握手截止时间掐断
-	conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	// 握手期间的三件收尾（注销在途登记、解除握手时限、取消子 ctx）必须成对，
+	// 而且要在 panic 下也跑完。原先是三段裸顺序调用：Accept 解析的是对端可控的
+	// 升级请求，一旦库内 panic，本函数上面的调用方（trojan/server.go:339 与
+	// tls/server.go:157 都带 recover）会把进程救活，但 pendingConns 的表项和这个
+	// 挂在 s.ctx 下的子 ctx 就永久留着——cancel 没人调，父 ctx 不退出它就不断子节点，
+	// 每命中一次多一份，直到进程结束。
+	handedOff := false
+	defer func() {
+		if !handedOff {
+			cancel()
+		}
+	}()
+	var wsConn *websocket.Conn
+	err = func() error {
+		defer s.untrackPending(conn)
+		// 连接要么移交上游长期持有，要么在这之后被关掉重定向，两种都要解除握手时限；
+		// 留在原地的话，一条正常会话会在 30s 后被自己没做完的握手截止时间掐断。
+		defer conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		var err error
+		wsConn, err = acceptHandshake(connCtx, &fakeHTTPResponseWriter{Conn: conn, ReadWriter: rw}, req, &websocket.AcceptOptions{
+			// Host/Origin 不匹配是代理场景常态(如 CDN 回源),鉴权由 trojan 层完成
+			InsecureSkipVerify: true,
+		})
+		return err
+	}()
 	if err != nil {
-		cancel()
 		err = common.NewError("websocket failed to handshake: " + remoteAddr).Base(err)
 		return nil, s.cleanupFailedHandshake(conn, tracker, err)
 	}
@@ -180,6 +204,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 
 	_ = tracker.Success()
 	log.Debugf("[WebSocket] [conn=%s] Handshake completed, remote=%s", tracker.ConnID(), remoteAddr)
+	handedOff = true
 	return &InboundConn{
 		Conn:    stream,
 		tcpConn: conn,
