@@ -54,6 +54,13 @@ var currentLogLevel atomic.Int32
 
 // ShouldLog 报告这个级别的消息会不会真的被输出。级别常量是「越小越啰嗦」。
 func ShouldLog(level LogLevel) bool {
+	// TraceLevel(-1) 比最啰嗦的合法级别 AllLevel(0) 还小，按大小直接比就恒为 false，
+	// 于是 log.Trace/Tracef 的 7 个调用点（router 的规则命中、freedom 拨号直连、
+	// tls 握手信息）永远静默——而 golog 内部是按 `logLevel == 0` 输出 Trace 的，
+	// 卡住它的只有这一道门禁。Trace 不单独设档：它就是 AllLevel 那一档里最细的部分。
+	if level == TraceLevel {
+		level = DebugLevel
+	}
 	return int32(level) >= currentLogLevel.Load()
 }
 
