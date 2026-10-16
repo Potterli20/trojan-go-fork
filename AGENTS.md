@@ -125,8 +125,15 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   fd 放大器，现在按 `netip.AddrPort` 索引、超过 `maxReplySocksPerSession` 走 FIFO 淘汰；
   ② `mapping` 只有空闲超时，条目数 = `UDPTimeout × 新源地址到达速率`，而源地址可伪造，
   现在建会话前卡 `maxUDPSessions`（旧注释谎称"有空闲超时与源地址上限"，代码里根本没有后者）。
-  判据 `tunnel/tproxy/session_bound_test.go`。`socks`/`dokodemo` 的会话表**仍然只有空闲超时**，
-  同一形态没修，动它们前照这个判据补。
+  判据 `tunnel/tproxy/session_bound_test.go`。同日按同一形态给 `socks`/`dokodemo` 也补上了
+  `maxUDPSessions`（判据 `tunnel/socks/session_bound_test.go`、`tunnel/dokodemo/session_bound_test.go`），
+  三个入站的会话表现在都有闸。**新增同类入站时照这三条抄，别只给自己那层加。**
+  顺带同轮修掉 `socks` 的两处：读错误过去直接 `continue`（socket 持续报错 = 满 CPU 热循环，
+  实测 400ms 内读 3500 万次；现在 100ms 退避 + 每 10 次才打一条 Error——这层不拥有
+  `listenPacketConn`，是 `underlay.AcceptPacket` 给的，所以不能像 tproxy 那样自杀式关监听），
+  以及拆帧闸门：`bytes.NewReader(buf[3:n])` 在 n<3 时切片越界 panic，而对端是**未认证的 UDP 源**，
+  一个零长度数据报就能把进程打崩；闸门卡在 4 字节、**建会话之前**（n=3 那种不 panic 但投递不出
+  负载的包过去会先攒出一条死会话），口径同 `tunnel/freedom/conn.go`。
 - **只监听 `s.ctx` 的"关停唤醒 watcher"必须再给一个自身退出条件**。`tunnel/http` 的
   `closeRawConn` watcher 与 `quic` 服务端的包泵都是这个形态：只 `select { case <-s.ctx.Done() }`
   的话，每条连接留一个 park 到 `Server.Close` 的 goroutine，还经由闭包留住裸连接对象。
