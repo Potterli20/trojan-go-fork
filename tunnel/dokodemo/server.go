@@ -12,6 +12,12 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
+// maxUDPSessions 是会话表条目数的硬上限。mapping 只有空闲超时，条目数等于
+// UDPTimeout × 新源地址到达速率，而源地址是可以伪造的；每条会话攥着两条深度 16 的
+// 通道、一个 ctx 和一个守护协程。口径与 socks/tproxy 一致（tproxy 2026-10-16 先补，
+// 判据见 tunnel/tproxy/session_bound_test.go）。
+const maxUDPSessions = 4096
+
 type Server struct {
 	tunnel.Server
 	tcpListener net.Listener
@@ -51,6 +57,13 @@ func (s *Server) dispatchLoop() {
 		s.mappingLock.Lock()
 		conn, found := s.mapping[addr.String()]
 		if !found {
+			if len(s.mapping) >= maxUDPSessions {
+				s.mappingLock.Unlock()
+				// 这一包直接丢掉：toInput 还没交给任何会话，也没有半建的会话对象要回收
+				// （闸卡在造对象之前）。
+				log.Error("dokodemo udp session limit reached, dropping packet from", addr.String())
+				continue
+			}
 			ctx, cancel := context.WithCancel(s.ctx)
 			conn = &PacketConn{
 				input:      make(chan []byte, 16),
