@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/coder/websocket"
@@ -20,7 +21,8 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel/transport"
 )
 
-// handshakeTimeout 限定等待客户端发出 WebSocket 升级请求的时限
+// handshakeTimeout 限定整个 WebSocket 握手窗口的时限：既包括等对端把升级请求
+// 发完，也包括把 101 响应写出去。两个方向都可能被对端拖着不动，缺一不可。
 const handshakeTimeout = 30 * time.Second
 
 type Server struct {
@@ -31,11 +33,56 @@ type Server struct {
 	redir     *redirector.Redirector
 	ctx       context.Context
 	cancel    context.CancelFunc
+
+	// 在途握手登记。连接一旦被 AcceptConn 取走，下层就再也握不到它的句柄：
+	// 队列排空、监听关闭都够不着。握手卡住时只有这份登记表能让 Close 生效。
+	pendingMutex sync.Mutex
+	pendingConns map[tunnel.Conn]struct{}
+	closing      bool
+}
+
+// trackPending 登记一条还在握手里的连接，返回 false 表示服务已进入关停，
+// 调用方应立刻关掉该连接并退出（closing 与登记在同一把锁下判定，
+// 避免和 closePending 的遍历互相插队）。
+func (s *Server) trackPending(conn tunnel.Conn) bool {
+	s.pendingMutex.Lock()
+	defer s.pendingMutex.Unlock()
+	if s.closing {
+		return false
+	}
+	s.pendingConns[conn] = struct{}{}
+	return true
+}
+
+func (s *Server) untrackPending(conn tunnel.Conn) {
+	s.pendingMutex.Lock()
+	delete(s.pendingConns, conn)
+	s.pendingMutex.Unlock()
+}
+
+// closePending 置 closing 并关掉所有在途握手的连接。关闭动作在锁外做，
+// 避免和被叫醒的 AcceptConn 里 untrackPending 的加锁互相等待。
+func (s *Server) closePending() {
+	s.pendingMutex.Lock()
+	s.closing = true
+	pending := make([]tunnel.Conn, 0, len(s.pendingConns))
+	for c := range s.pendingConns {
+		pending = append(pending, c)
+	}
+	s.pendingMutex.Unlock()
+
+	for _, c := range pending {
+		c.Close() //gosec:disable -- 错误忽略：关停路径叫醒阻塞在握手响应上的写
+	}
 }
 
 func (s *Server) Close() error {
 	s.cancel()
 	err := s.underlay.Close()
+	// 先关掉在途握手的连接：只靠 handshakeTimeout(30s) 的时限自己退出的话，
+	// Close 要白等半分钟，真实进程里只会被 proxy 的 5s 兜底遮住，看似"停机慢一点"。
+	// 顺带这条连接在被关掉之前一直占着 fd、TLS 会话状态和一个 accept 协程。
+	s.closePending()
 	// 重定向器只有在这里被显式关闭才会取消它的 ctx：worker 不排空队列就退出，
 	// 队列里（容量 64）和在中继中的会话都攥着未认证对端的活连接，最长要等满
 	// redirectionIdleTimeout 才松开。
@@ -86,27 +133,42 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	bounded := common.NewBoundedReader(conn)
 	bounded.Limit(common.MaxSniffRequestBytes)
 	rw := bufio.NewReadWriter(bufio.NewReader(bounded), bufio.NewWriter(conn))
-	// 等待 WebSocket 升级请求限时:对端静默时不让本调用永久阻塞
-	conn.SetReadDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	// 握手窗口内双向限时。原先只设了读时限，读完请求就把写方向裸交出去：
+	// 对端把升级请求发完之后不再读取任何一个字节（TCP 零窗口）时，下面
+	// websocket.Accept 里写 101 响应的 Flush 会永久阻塞。AcceptConn 是被入站的
+	// accept 循环串行调用的，一条卡死等于这个入站从此不再接纳任何新连接；
+	// 而这条连接已经离开下层的待处理队列，排空逻辑再也够不着它攥着的 fd。
+	conn.SetDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	req, err := http.ReadRequest(rw.Reader)
 	bounded.Unlimited()
-	conn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	if err != nil {
+		conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		log.Debug("invalid http request")
 		err = common.NewError("not a valid http request: " + remoteAddr).Base(err)
 		return nil, s.cleanupFailedHandshake(conn, tracker, err)
 	}
 	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" || req.URL.Path != s.path {
+		conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		log.Debug("invalid http websocket handshake request")
 		err = common.NewError("not a valid websocket handshake request: " + remoteAddr).Base(err)
 		return nil, s.cleanupFailedHandshake(conn, tracker, err)
 	}
 
+	// 登记在途后才会被 Close 关掉；没有这一步，阻塞在 101 写上的 AcceptConn
+	// 只能等满 30s 时限，期间这个入站不再接纳任何新连接。
+	if !s.trackPending(conn) {
+		conn.Close() //gosec:disable -- 错误忽略：服务已进入关停
+		return nil, common.NewError("websocket server is closing")
+	}
 	connCtx, cancel := context.WithCancel(s.ctx)
 	wsConn, err := websocket.Accept(&fakeHTTPResponseWriter{Conn: conn, ReadWriter: rw}, req, &websocket.AcceptOptions{
 		// Host/Origin 不匹配是代理场景常态(如 CDN 回源),鉴权由 trojan 层完成
 		InsecureSkipVerify: true,
 	})
+	s.untrackPending(conn)
+	// 连接即将移交上游长期持有，必须解除握手时限，否则一条正常会话会在
+	// 30s 后被自己没做完的握手截止时间掐断
+	conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	if err != nil {
 		cancel()
 		err = common.NewError("websocket failed to handshake: " + remoteAddr).Base(err)
@@ -150,13 +212,14 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	log.Debug("websocket server created")
 
 	return &Server{
-		enabled:   cfg.Websocket.Enabled,
-		path:      cfg.Websocket.Path,
-		ctx:       ctx,
-		cancel:    cancel,
-		underlay:  underlay,
-		redir:     redirector.NewRedirector(ctx),
-		redirAddr: tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort),
+		enabled:      cfg.Websocket.Enabled,
+		path:         cfg.Websocket.Path,
+		ctx:          ctx,
+		cancel:       cancel,
+		underlay:     underlay,
+		redir:        redirector.NewRedirector(ctx),
+		redirAddr:    tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort),
+		pendingConns: make(map[tunnel.Conn]struct{}),
 	}, nil
 }
 
