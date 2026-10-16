@@ -184,18 +184,29 @@ func (s *Server) acceptLoop() {
 					conn.Close() //gosec:disable -- 错误忽略：关停唤醒路径，错误无处可报
 				})
 				defer closeRawConn()
+				// connDone 是"这个 handler 已经返回"的信号。watcher 只监听 s.ctx 的话，
+				// 它要一直 park 到整个 Server.Close：每条连接留下一个 goroutine，而且它
+				// 经由这个闭包留住裸连接对象（TLS/websocket 的读写缓冲都在里面），
+				// 连接数一多就线性堆积、运行期永不回收。对端用"一个请求一条连接"
+				// （Connection: close、curl、扫描器）时最容易撞上。
+				connDone := make(chan struct{})
+				defer close(connDone)
 				// 关停唤醒：handler 可能停在「把响应写回客户端」上——对端不再读取时
 				// 那一句会无限阻塞；也可能停在 keep-alive 的下一个请求读上（要等满
 				// handshakeTimeout=30s）。两种都会让 Close 里的 wg.Wait 收不了尾，只能靠
 				// Proxy.Close 的 5s 兜底掐断——实测空闲 keep-alive 场景关停正好 5.001s。
 				// 所以 s.ctx 取消时直接关掉裸连接，让在途读写立刻报错返回（修复后约 1ms）。
-				// 只监听 s.ctx：单个请求结束时的 newConn.Close() 只关管道，绝不能关裸
-				// 连接，否则 keep-alive 退化成一条连接只服务一个请求。
+				// 裸连接仍然只在 s.ctx 取消时才关：单个请求结束时的 newConn.Close()
+				// 只关管道，绝不能关裸连接，否则 keep-alive 退化成一条连接只服务一个请求。
 				// 这里的 wg.Go 是合法的：本 goroutine 自身还占着一个计数，所以 Add 时
 				// 计数必然 >0，Close 的 Wait 也必然等到这个 watcher 退出。
 				s.wg.Go(func() {
-					<-s.ctx.Done()
-					closeRawConn()
+					select {
+					case <-s.ctx.Done():
+						closeRawConn()
+					case <-connDone:
+						// handler 自己走完了（正常结束或报错），不再需要这个唤醒者
+					}
 				})
 				for {
 					reqReader, reqWriter := io.Pipe()
@@ -298,6 +309,18 @@ func (s *Server) Close() error {
 	s.cancel()
 	err := s.underlay.Close()
 	s.wg.Wait()
+	// wg.Wait 之后生产者已退出、不会再向队列投递；这里排空"已完成握手但没被
+	// 上层取走"的连接。留在缓冲里的每一条都攥着一个 fd（CONNECT 之后已经双向打通的裸 TCP 连接），
+	// 不关就只能等进程退出，反复建栈（api、测试、热重载）时是实打实的堆积。
+drain:
+	for {
+		select {
+		case c := <-s.connChan:
+			c.Close() //gosec:disable -- 关闭滞留连接，忽略 close 错误
+		default:
+			break drain
+		}
+	}
 	return err
 }
 

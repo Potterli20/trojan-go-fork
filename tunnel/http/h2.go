@@ -101,9 +101,17 @@ func (s *Server) serveH2Conn(conn tunnel.Conn, br *bufio.Reader) {
 		conn.Close() //gosec:disable -- 错误忽略：关停唤醒路径，错误无处可报
 	})
 	defer closeRawConn()
+	// connDone 与 h1 那侧同一形态：watcher 只监听 s.ctx 的话，每条连接都会留一个
+	// park 到 Server.Close 的 goroutine，并且经由闭包留住这条裸连接（TLS 缓冲都在
+	// 里面）。ServeConn 返回即代表这条连接结束，此时唤醒者就没用了。
+	connDone := make(chan struct{})
+	defer close(connDone)
 	s.wg.Go(func() {
-		<-s.ctx.Done()
-		closeRawConn()
+		select {
+		case <-s.ctx.Done():
+			closeRawConn()
+		case <-connDone:
+		}
 	})
 
 	hs := &http2.Server{
