@@ -100,6 +100,31 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
 - `tunnel/router/` uses v2ray's geosite/geoip data format; bundles no data — user supplies `.dat`.
 - **配置解析是"同一份文档喂给所有已注册模块"**（`config.parseJSON`/`parseYAML` 遍历整个 registry）。因此只要两个模块把**同一个 JSON 路径**绑到不同类型，整份配置就会在启动时被第一个 `Unmarshal` 错误拒掉，而且报错的模块取决于用户没写的那个模块——排查起来很怪。2026-10-12 全仓核过：同名键 `alpn` / `password` / `path` / `ssl` 都分属不同路径（`quic.alpn` vs `ssl.alpn`、`mysql.password` vs 顶层 `password`、`inbound.path` vs `websocket.path`、`api.ssl` vs `ssl`），今天无碰撞；**新增模块时要照这个约束检查**（注意 `full`/`mini`/`api` 等 build tag 会改变注册了哪些模块，同一份配置在不同构建下的成败可能不同）。
 - **`redirector` 的客户端地址注入由顶层开关 `redirect-client-ip`（JSON `redirect_client_ip`）控制，默认关**。2026-10-12 启用：此前 `Redirection.ClientIP` 全仓没有任何赋值点，整条注入路径不可达（文档只记录、不顺手删）。打开后 `worker()` 取 `InboundConn` 的 TCP 对端地址（调用侧显式给了 `ClientIP` 就用它），并且只有当头部块能被 `http.ReadRequest` 判成合法 HTTP 请求时，才追加 `X-Forwarded-For` / `X-Real-IP`。非 HTTP 载荷、以及读不出完整头部块（含 64KB 上限）这两条出口**原样中继并保持连接**——旧实现分别是加坏字节、以及直接关连接（对探测者自曝）。开关放在 `redirector` 自己注册的 `REDIRECTION` 配置段上，所以 trojan / shadowsocks / tls / websocket 四个入站不必各加一份键（各加一份会踩「同一路径必须同类型」那条约束）。注意这里拿到的是 TCP 对端地址：`trust-headers` 那条 `GetRealIP` 走不通，因为到重定向时认证已失败、那个 IP 还没解析出来。
+- **入站层 Close 的三件必做事**：`cancel` → 关底层监听（顺序不能反，否则 `wg.Wait` 死锁）→
+  `wg.Wait` → **排空投递缓冲队列**。最后这件在 `trojan`/`tls`/`transport` 早就有，其余层
+  （`adapter`/`http`/`simplesocks`/`mux`/`socks`）是 2026-10-15 才补齐的：队列里每条连接都攥着一个
+  已 Accept 出来的 fd，上层还没来得及 `AcceptConn` 就关停的话只能等进程退出兜底，库化/热重载场景是
+  真堆积。判据形态见 `tunnel/adapter/drain_on_close_test.go`。
+- **只监听 `s.ctx` 的"关停唤醒 watcher"必须再给一个自身退出条件**。`tunnel/http` 的
+  `closeRawConn` watcher 与 `quic` 服务端的包泵都是这个形态：只 `select { case <-s.ctx.Done() }`
+  的话，每条连接留一个 park 到 `Server.Close` 的 goroutine，还经由闭包留住裸连接对象。
+  修法是加一个 per-conn 的 `connDone`，在 handler 的 defer 里关掉它
+  （判据 `TestOneShotConnectionsDoNotParkWatchers`，实测 40 条一次性连接 = 40 个孤儿协程）。
+  注意 QUIC 服务端反过来要小心：`packetDone` 只能在**连接级**结束点亮，会话级点亮会拆掉整条连接。
+- **`statistic/memory.AddUser` 必须用 `LoadOrStore`**，不能先 `Load` 判存在再 `Store`。
+  窗口里两个并发调用会各自起 `speedUpdater` + `ipCleaner` 再互相覆盖，被覆盖那个 `User` 的
+  `cancel` 永不被调（`DelUser` 只关 map 里那一个）→ 每撞一次永久漏 2 goroutine + 2 ticker +
+  1 ctx + 1 张 ipTable。API `SetUsers(Add)` 与 mysql `syncUsers` 都会对同一 hash 撞上来。
+  后台协程在登记**之前**起，抢输的那份自己 `Close()`（cancel + Wait）收尾。
+- **API handler 里别留未判空的二级解引用**：`SetUsers` 原先只判 `req.Status == nil`，
+  下一行就取 `req.Status.User.Hash`。protobuf 的 `Status`/`User` 是两个独立可选字段，
+  而 grpc-go 默认**不** recover handler 里的 panic（不挂 `RecoveryHandler` 时直接冒到传输层），
+  所以一条合法消息就能打挂整个进程。判据见 `api/service/setusers_nil_test.go`。
+- **`log.ShouldLog` 把 `TraceLevel` 归到 `DebugLevel` 那一档**：级别常量越小越啰嗦，
+  最啰嗦的合法配置值是 `AllLevel = 0`，而 `TraceLevel = -1`，按大小直接比会让
+  `log.Trace/Tracef` 恒为 false（golog 内部其实是按 `logLevel == 0` 输出 Trace 的，
+  卡的只有外层这一道门禁），router 规则命中、freedom 拨号直连、tls 握手信息因此长期静默。
+  新增级别常量时记得回到这里看一眼，别靠"看起来有调用点"判断日志是否生效。
 - **地址序列化只剩一条路**：生产代码里 `Address.WriteTo` / `Metadata.WriteTo` 已无调用点（只有
   `tunnel/metadata_*_test.go` 还拿它们当等价性判据），新代码请直接用 `AppendTo`。注意
   `Metadata.WriteTo` 还带一个 `Address.NetworkType = "tcp"` 的就地改写副作用，`AppendTo` 没有——

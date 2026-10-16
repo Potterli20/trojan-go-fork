@@ -4,7 +4,6 @@ import (
 	"context"
 	"io"
 	"net"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -56,58 +55,19 @@ func newQuietConn(t *testing.T) *PacketConn {
 	}
 }
 
-// countNewBufs 把 packetBufPool.New 换成可计数的版本，返回新增分配次数计数器。
-// 判据靠它：池被取空后，任何一次 Get 只要走了 New 就说明有 buffer 没能归还。
-func countNewBufs(t *testing.T) *atomic.Int64 {
-	t.Helper()
-	orig := packetBufPool.New
-	var created atomic.Int64
-	packetBufPool.New = func() any {
-		created.Add(1)
-		buf := make([]byte, MaxPacketSize)
-		return &buf
-	}
-	t.Cleanup(func() { packetBufPool.New = orig })
-	return &created
-}
-
-// drainBufPool 把池取空并把取走的 buffer 全部扣在 held 里（不让它们回到池），
-// 直到连续两次 Get 都走 New，据此确认池已彻底空（含其它 P 的窃取路径）。
-func drainBufPool(t *testing.T, created *atomic.Int64) {
-	t.Helper()
-	var held [][]byte
-	for emptyStreak := 0; emptyStreak < 2; {
-		before := created.Load()
-		held = append(held, getPacketBuf())
-		if created.Load() > before {
-			emptyStreak++
-		} else {
-			emptyStreak = 0
-		}
-		if len(held) > 4096 {
-			t.Fatal("取不空 packetBufPool：可能有 buffer 被永久扣在某个持有者手里")
-		}
-	}
-	t.Cleanup(func() {
-		// 归还测试扣下的 buffer，避免污染同包内其它用例的池状态
-		for _, b := range held {
-			putPacketBuf(b)
-		}
-	})
-	created.Store(0)
-}
-
-// TestCloseReturnsQueuedPacketBufs 钉住会话拆除时的池外滞留。
+// TestCloseDrainsQueuedPacketInfos 钉住会话拆除时的池外滞留。
 //
 // 两个 packetLoop 都遵守「从池借一个 buffer → 随 packetInfo 入队 → 由消费端 copy
 // 完再归还」。问题在拆除路径：Close 只 cancel + 关两端 + wg.Wait，队列里压着的
-// 那几个 *packetInfo 连同它们各自借出的 8KB buffer 一起变成垃圾——它们不会泄露
-// 堆内存，但会永久离开池，等于每拆一个会话就把池抽空一截。池容量按在途包数走，
-// 会话一多就得持续重新 make(8KB)，分配次数回到与包数同阶。
-func TestCloseReturnsQueuedPacketBufs(t *testing.T) {
-	created := countNewBufs(t)
-	drainBufPool(t, created)
-
+// 那几个 *packetInfo 连同它们各自借出的 8KB buffer 一起变成垃圾——堆内存能回收，
+// 但池被抽空一截，会话一多就得持续重新 make(8KB)。
+//
+// 判据刻意只看"队列被排空了"和"归还的切片是全长的"这两件确定性的事。
+// 早先的版本数的是「Close 后连着 Get 三次，一次都不该走 New」，在
+// `make test-race`（-race -tags full）下会假红：sync.Pool 的本地队列会在 P 之间被
+// 窃取，取回哪个对象、要不要新建都不由测试决定——实测同一份正确代码下新建了 2 个。
+// 那是拿调度器当判据，不是拿代码当判据。
+func TestCloseDrainsQueuedPacketInfos(t *testing.T) {
 	conn := newQuietConn(t)
 	const queued = 3
 	for range queued {
@@ -117,19 +77,26 @@ func TestCloseReturnsQueuedPacketBufs(t *testing.T) {
 			payload: buf[:16],
 		}
 	}
-	created.Store(0)
+	if len(conn.packetChan) != queued {
+		t.Fatalf("前置条件不成立：队列里 %d 项，期望 %d", len(conn.packetChan), queued)
+	}
 
 	if err := conn.Close(); err != nil {
 		t.Fatalf("Close: %v", err)
 	}
 
-	// Close 之后应当能不加新分配地把这 3 个 buffer 依次取回，且取回的是全长
-	for i := range queued {
-		if buf := getPacketBuf(); len(buf) != MaxPacketSize || cap(buf) != MaxPacketSize {
-			t.Fatalf("第 %d 个 buffer 归还尺寸不对：len=%d cap=%d", i, len(buf), cap(buf))
-		}
+	// 拆除之后队列必须是空的：压着的每一项都握着一个池化 buffer 的借用权
+	if n := len(conn.packetChan); n != 0 {
+		t.Fatalf("Close 之后 packetChan 仍压着 %d 项：这些 buffer 永久离开池，每拆一条会话抽空一截", n)
 	}
-	if n := created.Load(); n != 0 {
-		t.Fatalf("Close 没有把队列里 %d 个在途 buffer 归还进池：拆除会话后仍新建了 %d 个 8KB buffer", queued, n)
+
+	// 归还时必须还原成全长，否则下一个使用者拿到的是被 append 削短过的切片
+	for i := range queued + 1 {
+		buf := getPacketBuf()
+		if len(buf) != MaxPacketSize || cap(buf) != MaxPacketSize {
+			t.Fatalf("第 %d 次取到的 buffer 尺寸不对：len=%d cap=%d（期望都是 %d）",
+				i, len(buf), cap(buf), MaxPacketSize)
+		}
+		putPacketBuf(buf)
 	}
 }
