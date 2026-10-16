@@ -27,6 +27,12 @@ const (
 	// 只按空闲超时清理——一个源端口密集的客户端能把这份占用乘上会话数堆上去。
 	// 队列满时投递侧走 select/default 丢包：UDP 语义下丢包优于按会话无界占内存。
 	udpSessionQueueSize = 16
+
+	// maxUDPSessions 是会话表条目数的硬上限。mapping 只有空闲超时，条目数等于
+	// UDPTimeout × 新源地址到达速率，而源地址是可以伪造的：每条会话攥着两条深度 16
+	// 的通道、一个子 ctx 和一个守护协程。口径与 tproxy 一致（那边 2026-10-16 先补，
+	// 判据见 tunnel/tproxy/session_bound_test.go）。
+	maxUDPSessions = 4096
 )
 
 // handshakeTimeout 限定 socks 握手(version/method/command/address)整体时限
@@ -307,6 +313,7 @@ func (s *Server) closeAssociations() {
 
 func (s *Server) packetDispatchLoop() {
 	buf := make([]byte, MaxPacketSize)
+	readErrors := 0
 	for {
 		n, src, err := s.listenPacketConn.ReadFrom(buf)
 		if err != nil {
@@ -316,6 +323,31 @@ func (s *Server) packetDispatchLoop() {
 				log.Debug("exiting")
 				return
 			}
+			// 错误退避。旧写法这里直接 continue，而 socket 一旦进入持续报错状态（下层
+			// PacketConn 被关掉一半、内核错误码粘住）就是一整条满 CPU 的热循环，每轮还打
+			// 一条日志。socks 的 listenPacketConn 来自 underlay.AcceptPacket，本层没有权利
+			// 像 tproxy 那样自杀式关监听（那不是我们的 fd），所以只做退避 + 日志限流。
+			readErrors++
+			if readErrors%10 == 0 {
+				log.Error(common.NewError("socks udp socket persistently failing").Base(err))
+			} else {
+				log.Debug(common.NewError("socks udp read error").Base(err))
+			}
+			select {
+			case <-s.ctx.Done():
+				return
+			case <-time.After(time.Millisecond * 100):
+			}
+			continue
+		}
+		readErrors = 0
+		// SOCKS5 UDP 请求 = RSV(2) + FRAG(1) + ATYP(1) + 地址 + 端口。短于"分片头 + ATYP"
+		// 这 4 字节必须立刻丢掉，而且要卡在**建会话之前**：下面 `bytes.NewReader(buf[3:n])`
+		// 在 n<3 时是切片越界 panic，而这里的对端是未认证的 UDP 源——一个零长度数据报就能
+		// 把整个进程打崩（relay 这条链上没有 recover）；n=3 的包虽然不 panic，但会先建出一条
+		// 永远投递不出负载的会话。口径同 tunnel/freedom/conn.go 的同型闸门。
+		if n < 4 {
+			log.Debug("socks dropping short udp packet from", src.String())
 			continue
 		}
 		log.Debug("socks recv udp packet from", src)
@@ -324,6 +356,15 @@ func (s *Server) packetDispatchLoop() {
 		s.mappingLock.RUnlock()
 		if !found {
 			ctx, cancel := context.WithCancel(s.ctx)
+			// 容量检查与登记在同一把写锁里，并且卡在**造会话对象之前**：会话表条目数
+			// 原本只由空闲超时与新源地址到达速率决定，而源地址可伪造（见 maxUDPSessions）。
+			s.mappingLock.Lock()
+			if len(s.mapping) >= maxUDPSessions {
+				s.mappingLock.Unlock()
+				cancel()
+				log.Error("socks udp session limit reached, dropping packet from", src.String())
+				continue
+			}
 			conn = &PacketConn{
 				input:      make(chan *packetInfo, udpSessionQueueSize),
 				output:     make(chan *packetInfo, udpSessionQueueSize),
@@ -335,7 +376,6 @@ func (s *Server) packetDispatchLoop() {
 			// 必须先登记再启协程。协程可能立刻走超时或 ctx.Done 分支去 delete，
 			// 那时 delete 打空，随后的插入就留下一个永不释放的 stale 条目：
 			// 既占着内存，又让该源 IP 之后永远命中这个死会话、再也建不起 UDP
-			s.mappingLock.Lock()
 			s.mapping[src.String()] = conn
 			s.mappingLock.Unlock()
 
