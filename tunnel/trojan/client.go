@@ -1,7 +1,6 @@
 package trojan
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"io"
@@ -63,16 +62,24 @@ func (c *OutboundConn) WriteHeader(payload []byte) (bool, error) {
 		return false, common.NewError("trojan header write previously failed, connection is unusable")
 	}
 	hash := c.user.GetHash()
-	buf := bytes.NewBuffer(make([]byte, 0, MaxPacketSize))
-	crlf := []byte{0x0d, 0x0a}
-	buf.Write([]byte(hash))
-	buf.Write(crlf)
-	c.metadata.WriteTo(buf) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-	buf.Write(crlf)
-	if payload != nil {
-		buf.Write(payload)
+	// 头 = hash + CRLF + (CMD + ATYP + 地址 + 端口) + CRLF，后面直接跟 payload。
+	// 按实际长度一次性预留：len(hash)+2 + 64（CMD/ATYP/长度字节/IPv6/端口/常见长度域名）
+	// + 2 + len(payload)。旧写法固定预留 MaxPacketSize=8192，而这是**每条出站连接**一次；
+	// 更要紧的是原先 buf.Write([]byte(hash)) 与逐段 Write 还要额外几次小分配。
+	// 域名超过预留长度时 append 自己扩容，只影响性能，不影响一个字节的内容。
+	out := make([]byte, 0, len(hash)+len(payload)+68)
+	out = append(out, hash...)
+	out = append(out, '\r', '\n')
+	out, err := c.metadata.AppendTo(out)
+	if err != nil {
+		// 旧实现丢了 WriteTo 的错误：地址编不进线上格式时把缓冲区里那点残缺字节照发，
+		// 对端按状态机解就流错位。这里还没往流里写任何东西，判死这条连接比发出坏字节干净。
+		c.headerFailed = true
+		return false, common.NewError("trojan failed to serialize header").Base(err)
 	}
-	if _, err := c.Conn.Write(buf.Bytes()); err != nil {
+	out = append(out, '\r', '\n')
+	out = append(out, payload...)
+	if _, err := c.Conn.Write(out); err != nil {
 		c.headerFailed = true
 		log.Error("[Trojan] Failed to write header:", err)
 		return false, err

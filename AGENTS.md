@@ -148,8 +148,12 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   卡的只有外层这一道门禁），router 规则命中、freedom 拨号直连、tls 握手信息因此长期静默。
   新增级别常量时记得回到这里看一眼，别靠"看起来有调用点"判断日志是否生效。
 - **地址序列化只剩一条路**：生产代码里 `Address.WriteTo` / `Metadata.WriteTo` 已无调用点（只有
-  `tunnel/metadata_*_test.go` 还拿它们当等价性判据），新代码请直接用 `AppendTo`。注意
-  `Metadata.WriteTo` 还带一个 `Address.NetworkType = "tcp"` 的就地改写副作用，`AppendTo` 没有——
+  `tunnel/metadata_*_test.go` 还拿它们当等价性判据），新代码请直接用 `AppendTo`。最后两个调用点
+  是 2026-10-16 才拆掉的（`trojan.OutboundConn.WriteHeader` 与 `simplesocks.Conn.Write` 的出站帧头）：
+  两处过去都丢弃序列化返回值，地址编不进线上格式时残缺头照样连着 payload 上线，对端状态机永久
+  错位且全程无报错。"失败必须一个字都不发"的判据见 `tunnel/trojan/header_serialize_test.go` 与
+  `tunnel/simplesocks/header_wire_test.go`，里面还钉住了帧的线上字节与"头与首个负载合成一次 Write"。
+  注意 `Metadata.WriteTo` 还带一个 `Address.NetworkType = "tcp"` 的就地改写副作用，`AppendTo` 没有——
   全仓无人依赖它（`Address.Network()` 只被 `Metadata.Network()` 读，而后者无人调用）。
   另两处已核实但**没动**的热点，改之前先掂量：① `tunnel/tproxy/udp.go` 的 `DialUDP` 是**每个回包**
   新建 socket + `os.NewFile`，按源地址缓存连接能省掉大量 fd  churn，但要引入 TTL 与 NAT 语义；
