@@ -104,7 +104,29 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   `wg.Wait` → **排空投递缓冲队列**。最后这件在 `trojan`/`tls`/`transport` 早就有，其余层
   （`adapter`/`http`/`simplesocks`/`mux`/`socks`）是 2026-10-15 才补齐的：队列里每条连接都攥着一个
   已 Accept 出来的 fd，上层还没来得及 `AcceptConn` 就关停的话只能等进程退出兜底，库化/热重载场景是
-  真堆积。判据形态见 `tunnel/adapter/drain_on_close_test.go`。
+  真堆积。判据形态见 `tunnel/adapter/drain_on_close_test.go`。**`quic` 是最后一个漏排空的入站**
+  （2026-10-16 补上 `connChan`/`packetChan`）：它没有 per-conn fd，但队列里每条都攥着一个 stream
+  或一份深度 16 的数据报缓冲加父连接，判据见 `tunnel/quic/drain_on_close_test.go`。
+- **握手期挂出去的三份收尾（在途登记、时限、子 ctx）必须成对且覆盖 panic**。`tunnel/websocket`
+  原先在 `websocket.Accept` 前后是三段裸顺序调用：Accept 解析的是**对端可控**的升级请求，而这条
+  调用链上面 `trojan/server.go`与 `tls/server.go` 都带 recover，所以库内一旦 panic 进程照跑，
+  但 `pendingConns` 表项和挂在 `s.ctx` 下的握手子 ctx 就永久留着（cancel 没人调，每命中一次多一份）。
+  现在写成 `defer` + `handedOff` 标志，判据 `tunnel/websocket/handshake_panic_test.go`，注入点
+  是 `var acceptHandshake`（同 `var dialUDP`，别当冗余删）。
+- **`freedom` 的 forward-proxy 这一跳必须绑 `c.ctx` 并整体限时**。`router` 的 bypass 分支之外，
+  `DialConn` 的 socks 分支过去直接用 `x/net/proxy` 的默认 dialer：无超时、不看 ctx，而上游 SOCKS
+  代理受理 TCP 却不回握手字节是现实形态。它卡在 `dialer.Dial` 里 = 会话协程永久钉死，
+  `Proxy.Close` 的 5s `waitBounded` 只是放弃等待，叫不醒它，每次撞死留一条协程 + 一个半开 socket。
+  现在走 `forwardDialer`：`common.Dial(c.ctx, …)` 连代理（域名代理地址的 DNS 也一并接回 ctx）+
+  握手整体截止 + `context.AfterFunc` 让 Close 当场打断阻塞中的握手；**交出隧道前必须 `disarm()`**
+  （残留时限会几十秒后凭空掐断一条正常会话，`var forwardHandshakeTimeout` 就是测这个的注入点）。
+- **`tproxy` 两处按对端输入增长的表都有上限了**（2026-10-16）。① 会话内回包 socket 缓存：会话按
+  **源地址**复用而目的地由对端决定，旧写法只 append 不删、会话结束才统一回收 ⇒ 一条会话就是一个
+  fd 放大器，现在按 `netip.AddrPort` 索引、超过 `maxReplySocksPerSession` 走 FIFO 淘汰；
+  ② `mapping` 只有空闲超时，条目数 = `UDPTimeout × 新源地址到达速率`，而源地址可伪造，
+  现在建会话前卡 `maxUDPSessions`（旧注释谎称"有空闲超时与源地址上限"，代码里根本没有后者）。
+  判据 `tunnel/tproxy/session_bound_test.go`。`socks`/`dokodemo` 的会话表**仍然只有空闲超时**，
+  同一形态没修，动它们前照这个判据补。
 - **只监听 `s.ctx` 的"关停唤醒 watcher"必须再给一个自身退出条件**。`tunnel/http` 的
   `closeRawConn` watcher 与 `quic` 服务端的包泵都是这个形态：只 `select { case <-s.ctx.Done() }`
   的话，每条连接留一个 park 到 `Server.Close` 的 goroutine，还经由闭包留住裸连接对象。
@@ -143,7 +165,7 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   再立刻 `Close`，一条会话几十包就是几十套这套调用。注意 `DialUDP(network, laddr, raddr)` 的参数
   次序——`laddr` 是**伪造的原始目的地**（TPROXY 语义要绑上去，客户端才分不出代理），`raddr` 才是
   客户端；所以复用键取 metadata 里的目的地 IP:port，socket 存活期跟随会话（会话表有空闲超时与
-  源地址上限，不会无界增长）。这条路径靠 `var dialUDP = DialUDP` 这层注入点做判据
+  源地址上限（`maxUDPSessions`），不会无界增长）。这条路径靠 `var dialUDP = DialUDP` 这层注入点做判据
   （真实 `DialUDP` 需要 CAP_NET_ADMIN，CI 与本机都起不来），**别把它当冗余代码删掉**。
 - `common/geodata.EmitBytes` 的读取长度来自 `.dat` 里的 varint，**分配前必须用文件剩余长度卡住**
   （`ErrInvalidGeodataLength`）。损坏的 geoip.dat 曾直接 `make([]byte, 1<<60)` ⇒
