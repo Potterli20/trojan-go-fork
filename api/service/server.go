@@ -98,8 +98,12 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 		if err != nil {
 			return err
 		}
-		if req.Status == nil {
-			return common.NewError("status is unspecified")
+		if req.Status == nil || req.Status.User == nil {
+			// 只判 Status 不够：Status.User 是被直接解引用的（下一行取 .Hash），
+			// 而 grpc-go 默认不 recover handler 里的 panic（除非挂 RecoveryHandler），
+			// 所以一条 `SetUsers{Status:{}}` 就能把整个进程打挂。同文件的 GetUsers
+			// 判的是 req.User == nil，这里对齐。
+			return common.NewError("user is unspecified")
 		}
 		if req.Status.User.Hash == "" {
 			req.Status.User.Hash = common.SHA224String(req.Status.User.Password)
