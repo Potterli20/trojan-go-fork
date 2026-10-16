@@ -137,3 +137,45 @@ func TestSocksPacketConnWriteFraming(t *testing.T) {
 		}
 	}
 }
+
+// TestSocksPacketConnRejectsShortFrame 钉住读方向的长度闸门。旧的
+// `bytes.NewBuffer(buf[3:n])` 在 n<3 时是切片越界 panic，而这一层的对端是 UDP：
+// 任何能往 bind 端口投包的人都能靠一个短包把整个进程崩掉——relay 这条链上没有
+// recover。零长度数据报是合法的 UDP，所以它也在必须拒掉的集合里。
+func TestSocksPacketConnRejectsShortFrame(t *testing.T) {
+	a, err := net.ListenPacket("udp", "127.0.0.1:0")
+	common.Must(err)
+	defer a.Close() //gosec:disable -- 错误忽略：测试清理
+	b, err := net.ListenPacket("udp", "127.0.0.1:0")
+	common.Must(err)
+	defer b.Close() //gosec:disable -- 错误忽略：测试清理
+	aAddr := a.LocalAddr().(*net.UDPAddr)
+
+	c := &SocksPacketConn{PacketConn: a, socksAddr: aAddr}
+	buf := make([]byte, MaxPacketSize)
+
+	for _, frame := range [][]byte{nil, {0}, {0, 0}, {0, 0, 0}} {
+		_, err := b.WriteTo(frame, aAddr)
+		common.Must(err)
+		if _, _, err := c.ReadWithMetadata(buf); err == nil {
+			t.Fatalf("%d 字节的畸形分片帧竟然解析成功：这一层必须把它拒成错误", len(frame))
+		}
+	}
+
+	// 闸门不能把合法包也一起挡掉
+	addr := socksTestAddress()
+	frame := bytes.NewBuffer(nil)
+	frame.Write([]byte{0, 0, 0})
+	_, err = addr.WriteTo(frame)
+	common.Must(err)
+	frame.Write([]byte("ping"))
+	_, err = b.WriteTo(frame.Bytes(), aAddr)
+	common.Must(err)
+	n, meta, err := c.ReadWithMetadata(buf)
+	if err != nil {
+		t.Fatalf("合法包被长度闸门挡掉了: %v", err)
+	}
+	if n != 4 || string(buf[:n]) != "ping" || meta.Address.DomainName != "dns.example.com" {
+		t.Fatalf("合法包读错: n=%d payload=%q meta=%v", n, buf[:n], meta)
+	}
+}

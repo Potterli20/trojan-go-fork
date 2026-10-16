@@ -121,6 +121,13 @@ func (c *SocksPacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadat
 		log.Debug("recv udp packet from " + from.String())
 	}
 	addr := new(tunnel.Address)
+	// 分片头固定 3 字节，其后至少还要有 1 字节 ATYP 才谈得上一个合法地址字段。
+	// 短于此必须先拒掉：buf[3:n] 在 n<3 时直接切片越界 panic，而这一层的对端是
+	// UDP——任何能往这个 bind 端口投包的人都能把整个进程崩掉，relay 这条链上没有
+	// recover（只有 mux/tls/trojan 三处有）。
+	if n < 4 {
+		return 0, nil, common.NewError("socks5 udp packet shorter than the fragment header")
+	}
 	// 注意这里的别名关系：r 直接持有**池化 buf** 的切片，而上面 defer 会在本函数返回时
 	// 把它归还进池。之所以安全，是因为 Address.ReadFrom 只把字节读进本地数组、域名
 	// 走 string() 复制，解析结果不引用 buf；改成"直接持有底层切片的一段"就会跨包串数据。
