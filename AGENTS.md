@@ -217,15 +217,13 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   上线/入队的字节；把 socks 的 `copy` 删掉，三条里对应那条立刻红）。
   `ReadWithMetadata` 交回的 `*Metadata` 同理，不得引用那块 payload buffer
   （`tunnel/freedom/pool_alias_test.go` 钉的就是这条）。
-- **UDP 会话表的键语义已经钉成判据**（`tunnel/udp_session_key_test.go`）：三层入站都拿
-  `addr.String()` 当键，换 `netip` 之前必须知道"哪些地址今天算同一条会话"。实测
-  （go1.27.1）两个要点：① v4 与 v4-mapped-v6 同键，netip 侧要 `Unmap()` 才等价；
-  ② **`(*net.UDPAddr).AddrPort()` 会保住 zone**（写判据之前我以为它会丢，判据把它
-  抓出来了），所以直接用 `AddrPort()` 当键与现有语义一致——这条热点现在可以放心换。
 - **`recorder.Add` 在零订阅者时直接返回**（`subscriberCount` 短路）。它是每连接、每 UDP 包都会
   被 `tunnel/trojan/packet.go` 调到的路径，旧实现先付 2 次 `addr.String()` + 2 次 `SplitHostPort`
   + 时间戳才发现在 range 空表。计数由 `Swap`/`LoadAndDelete` 的返回值维护，同 uid 重复
-  Subscribe 不会重复计数。
+  Subscribe 不会重复计数。**数量也有上限了**（`maxSubscribers=64`，`Subscribe` 超限时返回错误
+  而不是给一条永远收不到记录的通道）：`GetRecords` 每条流现生成一个 UUID，条目数等于并发
+  尾随流数，而单订阅者的缓冲上限只管得住"一个"。判据 `recorder/subscriber_limit_test.go`，
+  里面还钉住上限值本身（调高就要先重算最坏驻留）。
 - **tproxy 的回包 socket 按目的地缓存在会话上**（`tunnel/tproxy/server.go` 的会话守护协程）。
   旧写法是**每个出向包**一次 `DialUDP`：`socket()+IP_TRANSPARENT+bind+connect+os.NewFile+FileConn`
   再立刻 `Close`，一条会话几十包就是几十套这套调用。注意 `DialUDP(network, laddr, raddr)` 的参数
