@@ -303,14 +303,21 @@ func TestH2CServerCloseWakesInflightStream(t *testing.T) {
 		},
 		Timeout: 15 * time.Second,
 	}
-	reqErr := make(chan error, 1)
+	type outcome struct {
+		status int
+		err    error
+	}
+	reqErr := make(chan outcome, 1)
 	go func() {
+		o := outcome{}
 		resp, err := client.Get("http://inflight.example.org/")
 		if err == nil {
 			_, err = io.Copy(io.Discard, resp.Body)
+			o.status = resp.StatusCode
 			resp.Body.Close() //gosec:disable -- 错误忽略：测试清理
 		}
-		reqErr <- err
+		o.err = err
+		reqErr <- o
 	}()
 
 	select {
@@ -333,9 +340,16 @@ func TestH2CServerCloseWakesInflightStream(t *testing.T) {
 	}
 
 	select {
-	case err := <-reqErr:
-		if err == nil {
-			t.Fatal("服务端已关停，在途请求却成功返回")
+	case o := <-reqErr:
+		// 关停唤醒这条在途流，正确的出口有两个：连接被拆掉（客户端拿到传输错误），
+		// 或者 handler 从 ReadResponse 醒来后按 h2.go 的失败出口明确回 502。
+		// 不能被接受的是"当成一个成功响应"——那说明响应是在会话本该收掉之后凭空补出来的。
+		// 旧断言把 err == nil 直接判死，于是 502 这个**正确**出口被当成失败：能不能撞上
+		// 取决于 502 有没有赶在连接拆掉之前刷出去，快机器上随机变红（2026-10-17 在干净
+		// HEAD 的独立 worktree 上复现过）。真正要钉的两件事是"有限时间内结束"与
+		// "不编造成功"，前者由下面的 3s 超时与本用例开头的 Close 耗时断言管着。
+		if o.err == nil && o.status < 500 {
+			t.Fatalf("服务端已关停，在途请求却拿到了 %d：期望传输错误或 5xx 明确失败", o.status)
 		}
 	case <-time.After(3 * time.Second):
 		t.Fatal("关停后在途请求既不成功也不报错：客户端那侧还挂着")
