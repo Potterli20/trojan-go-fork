@@ -38,15 +38,20 @@ type CongestionStatus struct {
 func ApplyCongestionControl(conn *quic.Conn, config CongestionConfig, role string) CongestionStatus {
 	startTime := time.Now()
 
-	log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] [ENTRY] Timestamp=%d, Role=%s, Algorithm=%q, BrutalUp=%d bps, BrutalDown=%d bps, Conn=%p",
-		startTime.Format("2006-01-02 15:04:05.000"),
-		startTime.UnixNano(),
-		role,
-		config.Algorithm,
-		config.BrutalUp,
-		config.BrutalDown,
-		conn,
-	))
+	// 本层的日志一律"先过级别门禁，再动参数"：log.Debug/Debugf 的门禁在函数内部，
+	// 而 fmt.Sprintf / time.Now().Format 在调用点就已经付掉了（口径见 AGENTS.md 的
+	// 日志约定与 tunnel/freedom/conn.go）。ENTRY/EXIT 这两条是每条 QUIC 连接一次。
+	if log.ShouldLog(log.DebugLevel) {
+		log.Debugf("[%s] [ApplyCongestionControl] [ENTRY] Timestamp=%d, Role=%s, Algorithm=%q, BrutalUp=%d bps, BrutalDown=%d bps, Conn=%p",
+			startTime.Format("2006-01-02 15:04:05.000"),
+			startTime.UnixNano(),
+			role,
+			config.Algorithm,
+			config.BrutalUp,
+			config.BrutalDown,
+			conn,
+		)
+	}
 
 	status := CongestionStatus{
 		Algorithm:  config.Algorithm,
@@ -58,8 +63,10 @@ func ApplyCongestionControl(conn *quic.Conn, config CongestionConfig, role strin
 
 	algorithm := config.Algorithm
 	if algorithm == "" {
-		log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] Algorithm not specified, defaulting to BBR",
-			time.Now().Format("2006-01-02 15:04:05.000")))
+		if log.ShouldLog(log.DebugLevel) {
+			log.Debugf("[%s] [ApplyCongestionControl] Algorithm not specified, defaulting to BBR",
+				time.Now().Format("2006-01-02 15:04:05.000"))
+		}
 		algorithm = "bbr"
 		status.Algorithm = "bbr"
 	}
@@ -67,9 +74,9 @@ func ApplyCongestionControl(conn *quic.Conn, config CongestionConfig, role strin
 	if conn == nil {
 		status.Success = false
 		status.ErrorMessage = "conn is nil"
-		log.Warn(fmt.Sprintf("[%s] [ApplyCongestionControl] Failed: %s",
+		log.Warnf("[%s] [ApplyCongestionControl] Failed: %s",
 			time.Now().Format("2006-01-02 15:04:05.000"),
-			status.ErrorMessage))
+			status.ErrorMessage)
 		return status
 	}
 
@@ -81,65 +88,77 @@ func ApplyCongestionControl(conn *quic.Conn, config CongestionConfig, role strin
 			// 传 false 保持旧版"丢包时维持固定速率"的 brutal 语义
 			xrayCongestion.UseBrutal(conn, speed, false)
 			status.EffectiveSpeed = speed
-			log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] [BRUTAL] Applied brutal congestion control with speed=%d bps, Conn=%p",
-				time.Now().Format("2006-01-02 15:04:05.000"),
-				speed,
-				conn))
+			if log.ShouldLog(log.DebugLevel) {
+				log.Debugf("[%s] [ApplyCongestionControl] [BRUTAL] Applied brutal congestion control with speed=%d bps, Conn=%p",
+					time.Now().Format("2006-01-02 15:04:05.000"),
+					speed,
+					conn)
+			}
 		} else {
 			status.Success = false
 			status.ErrorMessage = "Brutal congestion control requires both brutal_up and brutal_down to be set"
-			log.Warn(fmt.Sprintf("[%s] [ApplyCongestionControl] [BRUTAL] Failed: %s",
+			log.Warnf("[%s] [ApplyCongestionControl] [BRUTAL] Failed: %s",
 				time.Now().Format("2006-01-02 15:04:05.000"),
-				status.ErrorMessage))
+				status.ErrorMessage)
 		}
 	case "force-brutal":
 		if config.BrutalUp > 0 {
 			xrayCongestion.UseBrutal(conn, config.BrutalUp, false)
 			status.EffectiveSpeed = config.BrutalUp
-			log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] [FORCE-BRUTAL] Applied force-brutal congestion control with speed=%d bps, Conn=%p",
-				time.Now().Format("2006-01-02 15:04:05.000"),
-				config.BrutalUp,
-				conn))
+			if log.ShouldLog(log.DebugLevel) {
+				log.Debugf("[%s] [ApplyCongestionControl] [FORCE-BRUTAL] Applied force-brutal congestion control with speed=%d bps, Conn=%p",
+					time.Now().Format("2006-01-02 15:04:05.000"),
+					config.BrutalUp,
+					conn)
+			}
 		} else {
 			status.Success = false
 			status.ErrorMessage = "Force-brutal congestion control requires brutal_up to be set"
-			log.Warn(fmt.Sprintf("[%s] [ApplyCongestionControl] [FORCE-BRUTAL] Failed: %s",
+			log.Warnf("[%s] [ApplyCongestionControl] [FORCE-BRUTAL] Failed: %s",
 				time.Now().Format("2006-01-02 15:04:05.000"),
-				status.ErrorMessage))
+				status.ErrorMessage)
 		}
 	case "bbr":
 		xrayCongestion.UseBBR(conn, "standard")
-		log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] [BBR] Applied BBR congestion control, Conn=%p",
-			time.Now().Format("2006-01-02 15:04:05.000"),
-			conn))
+		if log.ShouldLog(log.DebugLevel) {
+			log.Debugf("[%s] [ApplyCongestionControl] [BBR] Applied BBR congestion control, Conn=%p",
+				time.Now().Format("2006-01-02 15:04:05.000"),
+				conn)
+		}
 	case "reno":
-		log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] [RENO] Applied Reno congestion control, Conn=%p",
-			time.Now().Format("2006-01-02 15:04:05.000"),
-			conn))
+		if log.ShouldLog(log.DebugLevel) {
+			log.Debugf("[%s] [ApplyCongestionControl] [RENO] Applied Reno congestion control, Conn=%p",
+				time.Now().Format("2006-01-02 15:04:05.000"),
+				conn)
+		}
 	default:
 		status.Success = false
 		status.ErrorMessage = fmt.Sprintf("Unknown congestion control: %s, falling back to BBR", algorithm)
-		log.Warn(fmt.Sprintf("[%s] [ApplyCongestionControl] [UNKNOWN] %s",
+		log.Warnf("[%s] [ApplyCongestionControl] [UNKNOWN] %s",
 			time.Now().Format("2006-01-02 15:04:05.000"),
-			status.ErrorMessage))
+			status.ErrorMessage)
 		xrayCongestion.UseBBR(conn, "standard")
 		status.Algorithm = "bbr"
-		log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] [BBR] Applied BBR congestion control as fallback, Conn=%p",
-			time.Now().Format("2006-01-02 15:04:05.000"),
-			conn))
+		if log.ShouldLog(log.DebugLevel) {
+			log.Debugf("[%s] [ApplyCongestionControl] [BBR] Applied BBR congestion control as fallback, Conn=%p",
+				time.Now().Format("2006-01-02 15:04:05.000"),
+				conn)
+		}
 	}
 
 	duration := time.Since(startTime)
-	log.Debug(fmt.Sprintf("[%s] [ApplyCongestionControl] [EXIT] Timestamp=%d, Role=%s, Algorithm=%q, Success=%t, EffectiveSpeed=%d bps, Duration=%v, Error=%q",
-		time.Now().Format("2006-01-02 15:04:05.000"),
-		time.Now().UnixNano(),
-		role,
-		status.Algorithm,
-		status.Success,
-		status.EffectiveSpeed,
-		duration,
-		status.ErrorMessage,
-	))
+	if log.ShouldLog(log.DebugLevel) {
+		log.Debugf("[%s] [ApplyCongestionControl] [EXIT] Timestamp=%d, Role=%s, Algorithm=%q, Success=%t, EffectiveSpeed=%d bps, Duration=%v, Error=%q",
+			time.Now().Format("2006-01-02 15:04:05.000"),
+			time.Now().UnixNano(),
+			role,
+			status.Algorithm,
+			status.Success,
+			status.EffectiveSpeed,
+			duration,
+			status.ErrorMessage,
+		)
+	}
 
 	return status
 }
