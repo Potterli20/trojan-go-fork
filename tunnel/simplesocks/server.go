@@ -2,6 +2,7 @@ package simplesocks
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
@@ -72,7 +73,15 @@ func (s *Server) readHeader(conn tunnel.Conn) (*tunnel.Metadata, error) {
 	result := make(chan outcome, 1)
 	go func() {
 		metadata := new(tunnel.Metadata)
-		_, err := metadata.ReadFrom(conn)
+		// 父层 accept 循环那道 panic 边界**够不着这里**：读头是为了"超时"才单起一个
+		// goroutine 的，panic 会在这个 goroutine 里冒出来，而全仓没有顶层 recover——
+		// 命中一次就是整个进程没了。所以必须在这里就把它变成 error 交回结果通道，
+		// 让调用点走既有的"记错误 + 关流 + 继续接纳"分支。
+		// 判据 tunnel/simplesocks/accept_panic_test.go 里的那条 panicReadConn。
+		err := tunnel.GuardPanic("simplesocks.readHeader", func() error {
+			_, err := metadata.ReadFrom(conn)
+			return err
+		})
 		result <- outcome{metadata: metadata, err: err}
 	}()
 
@@ -93,8 +102,14 @@ func (s *Server) readHeader(conn tunnel.Conn) (*tunnel.Metadata, error) {
 
 func (s *Server) acceptLoop() {
 	for {
-		conn, err := s.underlay.AcceptConn(&Tunnel{})
+		conn, err := tunnel.AcceptConnGuarded(s.underlay, &Tunnel{})
 		if err != nil {
+			// 下层解析未认证对端字节时的 panic 已被边界收住，本层继续接纳
+			// （见 tunnel/accept_guard.go）
+			if errors.Is(err, tunnel.ErrAcceptPanic) {
+				log.Error(common.NewError("simplesocks accept recovered from a panic in the underlay").Base(err))
+				continue
+			}
 			log.Error(common.NewError("simplesocks failed to accept connection from underlying tunnel").Base(err))
 			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中；
 			// 直接检查 ctx.Err()
@@ -103,6 +118,9 @@ func (s *Server) acceptLoop() {
 			}
 			continue
 		}
+		// readHeader 解析的是**对端可控的前几个字节**，panic 边界就在它自己为超时单起的那个
+		// goroutine 里（父循环这道边界够不着它）；错误带着 ErrAcceptPanic 回到这里，
+		// 走下面既有的"记错误 + 关流 + 继续接纳"分支即可。
 		metadata, err := s.readHeader(conn)
 		if err != nil {
 			log.Error(common.NewError("simplesocks server failed to read header").Base(err))

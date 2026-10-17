@@ -2,6 +2,7 @@ package trojan
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -324,8 +325,17 @@ drain:
 
 func (s *Server) acceptLoop() {
 	for {
-		conn, err := s.underlay.AcceptConn(&Tunnel{})
+		conn, err := tunnel.AcceptConnGuarded(s.underlay, &Tunnel{})
 		if err != nil {
+			// 下层（websocket 的升级请求解析、shadowsocks 的密文探测这一类）在
+			// **未认证对端字节**上冒出的 panic 已经被边界收住：本层还活着，继续接纳。
+			// 下面那个 per-conn recover 够不着这里——它在 s.wg.Go 里面，而 AcceptConn
+			// 是在循环体里串行调用的（旧文档"上层 recover 兜得住握手 panic"的说法
+			// 在这一点上与代码不符，见 tunnel/accept_guard.go）。
+			if errors.Is(err, tunnel.ErrAcceptPanic) {
+				log.Error(common.NewError("trojan accept recovered from a panic in the underlay").Base(err))
+				continue
+			}
 			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中，
 			// 会漏记错误；直接检查 ctx.Err()
 			if s.ctx.Err() != nil {

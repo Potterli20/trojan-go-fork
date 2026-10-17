@@ -2,6 +2,7 @@ package mux
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -60,8 +61,14 @@ func (s *Server) closeSessions() {
 
 func (s *Server) acceptConnWorker() {
 	for {
-		conn, err := s.underlay.AcceptConn(&Tunnel{})
+		conn, err := tunnel.AcceptConnGuarded(s.underlay, &Tunnel{})
 		if err != nil {
+			// 下层解析未认证对端字节时的 panic 已被边界收住，本层继续接纳
+			// （见 tunnel/accept_guard.go）
+			if errors.Is(err, tunnel.ErrAcceptPanic) {
+				log.Error(common.NewError("mux accept recovered from a panic in the underlay").Base(err))
+				continue
+			}
 			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中；
 			// 直接检查 ctx.Err()
 			if s.ctx.Err() != nil {

@@ -171,10 +171,10 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	connCtx, cancel := context.WithCancel(s.ctx)
 	// 握手期间的三件收尾（注销在途登记、解除握手时限、取消子 ctx）必须成对，
 	// 而且要在 panic 下也跑完。原先是三段裸顺序调用：Accept 解析的是对端可控的
-	// 升级请求，一旦库内 panic，本函数上面的调用方（trojan/server.go:339 与
-	// tls/server.go:157 都带 recover）会把进程救活，但 pendingConns 的表项和这个
-	// 挂在 s.ctx 下的子 ctx 就永久留着——cancel 没人调，父 ctx 不退出它就不断子节点，
-	// 每命中一次多一份，直到进程结束。
+	// 升级请求，一旦库内 panic，pendingConns 的表项和这个挂在 s.ctx 下的子 ctx
+	// 就永久留着——cancel 没人调，父 ctx 不退出它就不断子节点，每命中一次多一份，
+	// 直到进程结束。（调用方那侧另有一道边界：accept 循环里的 recover 早于本修复
+	// 存在，且**不在**这条调用链上——它只兜 per-conn handler，见 tunnel/accept_guard.go。）
 	handedOff := false
 	defer func() {
 		if !handedOff {

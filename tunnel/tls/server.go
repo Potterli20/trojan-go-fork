@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -140,8 +141,16 @@ func isDomainNameMatched(pattern string, domainName string) bool {
 
 func (s *Server) acceptLoop() {
 	for {
-		conn, err := s.underlay.AcceptConn(&Tunnel{})
+		conn, err := tunnel.AcceptConnGuarded(s.underlay, &Tunnel{})
 		if err != nil {
+			// 下层解析**未认证对端可控字节**时冒出的 panic 已经被边界收住
+			// （见 tunnel.ErrAcceptPanic）：本层与监听器都还活着，记一条错误继续接纳。
+			// 走到下面"底层已不可用"那条 return 的话，一次 panic 就把这个入站永久停摆——
+			// 没有退出码、没有重启，只是再也接纳不了新连接，比进程崩了更难发现。
+			if errors.Is(err, tunnel.ErrAcceptPanic) {
+				log.Error(common.NewError("tls accept recovered from a panic in the underlay").Base(err))
+				continue
+			}
 			// 注意：这里不能用 "select ctx.Done / default" 模式判断是否在关闭：
 			// default 永远就绪，当 ctx 恰已取消时两个分支同时就绪，runtime 随机二选一，
 			// 会以约 50% 概率在正常关闭路径上触发 Fatal（os.Exit）杀死整个进程。

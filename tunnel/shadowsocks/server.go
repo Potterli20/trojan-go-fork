@@ -24,11 +24,23 @@ type Server struct {
 // probeTimeout 限定 AEAD 探测读(等待首个有效加密载荷)的时限
 const probeTimeout = 10 * time.Second
 
-func (s *Server) AcceptConn(overlay tunnel.Tunnel) (tunnel.Conn, error) {
+func (s *Server) AcceptConn(overlay tunnel.Tunnel) (result tunnel.Conn, resultErr error) {
 	conn, err := s.underlay.AcceptConn(&Tunnel{})
 	if err != nil {
 		return nil, common.NewError("shadowsocks failed to accept connection from underlying tunnel").Base(err)
 	}
+	// 密文探测（下面的 StreamConn + Read）解析的是**未认证对端**的字节。父层的 accept
+	// 循环现在带着 panic 边界（tunnel.AcceptConnGuarded），循环不会再被带走，但栈展开
+	// 之后这条 fd 既没交出也没关闭的话就是每命中一次漏一条——所以在这里补最后一道
+	// 回收，口径同 tunnel/websocket 的 handedOff。
+	// takenOver 表示所有权已经交出去：成功返回给下游，或已交给 redirector 做误导中继
+	// （那条路径上 result 也是 nil，绝不能顺手关掉正在被拷贝的连接）。
+	takenOver := false
+	defer func() {
+		if !takenOver && result == nil {
+			conn.Close() //gosec:disable -- 错误忽略：panic 或未预期失败路径的兜底回收
+		}
+	}()
 	rewindConn := common.NewRewindConn(conn)
 	rewindConn.SetBufferSize(1024)
 	defer rewindConn.StopBuffering()
@@ -52,6 +64,7 @@ func (s *Server) AcceptConn(overlay tunnel.Tunnel) (tunnel.Conn, error) {
 			RedirectTo:  s.redirAddr,
 			InboundConn: rewindConn,
 		})
+		takenOver = true
 		return nil, common.NewError("invalid aead payload")
 	}
 	rewindConn.Rewind()
