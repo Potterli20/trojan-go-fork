@@ -33,6 +33,22 @@ const (
 	// 的通道、一个子 ctx 和一个守护协程。口径与 tproxy 一致（那边 2026-10-16 先补，
 	// 判据见 tunnel/tproxy/session_bound_test.go）。
 	maxUDPSessions = 4096
+
+	// maxAssociations 是在途 ASSOCIATE 控制连接条目数的硬上限，与 maxUDPSessions 同值。
+	// associations 过去只有 associationMaxLife 一个时限，条目数 = 发呆对端的到达速率 ×
+	// 600s，而这条 TCP 在握手阶段没有任何认证；每条登记攥着 1 个 fd、1 个守护协程、
+	// 1 个 AfterFunc 计时器和 1 个 map 条目。取同一个数的理由是控制连接再多也开不出
+	// 更多 UDP 会话（会话表已有同值闸），超出部分只会白占 fd——正是 mapping 那条
+	// 「新增同类表照这个形态抄」的不变量漏掉的姊妹表。
+	maxAssociations = maxUDPSessions
+
+	// responseFrameCap 是会话守护协程那块回包组帧缓冲的容量：一帧最坏是
+	// 「RSV+FRAG(3) + 地址块(ATYP(1)+长度字节(1)+域名(255)+端口(2)=259) + 负载(≤MaxPacketSize)」，
+	// 取整到 +264。只留 MaxPacketSize 的话满尺寸负载必然把 append 撑到界外——每包新造
+	// 一份 10880（实测的 Go size class），而缓冲本身永远停在 8192，下一包再撑一次；
+	// 远端只要按线上格式合法发满尺寸 datagram 就能逐包加压本地 GC。
+	// 口径同 tunnel/trojan/packet.go 的 packetBufCap。
+	responseFrameCap = MaxPacketSize + 264
 )
 
 // handshakeTimeout 限定 socks 握手(version/method/command/address)整体时限
@@ -84,6 +100,9 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (s *Server) acceptConnLoop() {
+	// ASSOCIATE 被容量闸拒掉的次数。对端只要不停地建连+握手就能按自己的速率顶这条
+	// 日志，形态与 packetDispatchLoop 的读错误限流一致：每 10 次才打一条 Error。
+	assocRefused := 0
 	for {
 		conn, err := s.underlay.AcceptConn(&Tunnel{})
 		if err != nil {
@@ -127,16 +146,28 @@ func (s *Server) acceptConnLoop() {
 				}
 			case Associate:
 				log.Info("socks associate request from", handledConn.RemoteAddr(), "metadata", handledConn.Metadata())
+				// 先登记再接管：登记里带容量闸（见 maxAssociations），超限或本层已关停时
+				// 这条连接还没回过任何字节，所以这里改得动口——回一条失败帧而不是"先答应
+				// 再默默断掉"。接管之后这条 TCP 连接按 RFC 就是 UDP 关联的生命周期凭据，
+				// 既不能交给下游也不能就此弃用。
+				if err := s.watchAssociation(handledConn); err != nil {
+					assocRefused++
+					if assocRefused%10 == 0 {
+						log.Error(common.NewError("socks associate refused").Base(err))
+					} else {
+						log.Debug(common.NewError("socks associate refused").Base(err))
+					}
+					declineAssociate(handledConn)
+					handledConn.Close() //gosec:disable -- 错误忽略：拒绝路径，登记没成功就没有人替它回收
+					return
+				}
 				err = s.associate(handledConn, handledConn.Metadata().Address)
 				if err != nil {
 					log.Error(common.NewError("socks failed to respond associate").Base(err))
+					// 守护协程已经攥着这条连接，Close 会让它的读循环报错退出并注销登记
 					handledConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 					return
 				}
-				// 响应已发出，这条 TCP 连接按 RFC 是 UDP 关联的生命周期凭据，既不能
-				// 交给下游也不能就此弃用：旧实现两件事都没做，每来一个 ASSOCIATE 就
-				// 永久留下一个 fd（没人再读它，对端 FIN 也不会让本端 socket 消失）。
-				s.watchAssociation(handledConn)
 			default:
 				log.Error("socks unknown command", handledConn.Metadata().Command)
 				handledConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
@@ -256,10 +287,22 @@ func (s *Server) associate(conn net.Conn, addr *tunnel.Address) error {
 	return err
 }
 
-// watchAssociation 接管一条已经回完 ASSOCIATE 响应的控制连接：读到对端关闭为止，
-// 然后回收这个 fd。读循环阻塞在 conn.Read 上、不看 ctx，所以连接登记在
-// associations 里，由 Close 显式关掉来唤醒——否则 Close 的 wg.Wait 挂死。
-func (s *Server) watchAssociation(conn tunnel.Conn) {
+// declineAssociate 回一条 SOCKS5 失败响应（REP=0x01 通用服务端失败）供被容量闸拒掉的
+// ASSOCIATE 使用。不能只写两字节就断：标准客户端会按 10 字节的定长回复解析 BND.ADDR/
+// BND.PORT，短回复会被当成协议错误；也让客户端明确知道是"这台服务器拒绝了关联"，
+// 而不是"答应了又莫名断开"。
+func declineAssociate(conn net.Conn) {
+	_, _ = conn.Write([]byte{0x05, 0x01, 0x00, 0x01, 0, 0, 0, 0, 0, 0})
+}
+
+// watchAssociation 接管一条已经收到 ASSOCIATE 请求的控制连接：登记进 associations、
+// 读到对端关闭为止，然后回收这个 fd。读循环阻塞在 conn.Read 上、不看 ctx，所以连接
+// 登记在 associations 里，由 Close 显式关掉来唤醒——否则 Close 的 wg.Wait 挂死。
+//
+// 容量检查与登记在同一把写锁里完成，并且调用点在**回成功响应之前**：登记失败(超限或
+// 已关停)时这条连接一个字都还没回，上游可以直接改回失败帧。返回非 nil 时调用方必须
+// 负责关闭 conn——登记没成功就没有守护协程，也就没人会替它注销。
+func (s *Server) watchAssociation(conn tunnel.Conn) error {
 	// 握手期设置的截止时间还挂着，必须解除：这条连接要靠对端 FIN 或
 	// associationMaxLife 结束，不能被 30s 的 handshakeTimeout 掐断
 	conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：失败时由 associationMaxLife 兜底
@@ -268,8 +311,11 @@ func (s *Server) watchAssociation(conn tunnel.Conn) {
 	if s.ctx.Err() != nil {
 		// 与 Close 的排空竞争：对方已经收完登记表了，这里不能再塞进去
 		s.assocLock.Unlock()
-		conn.Close() //gosec:disable -- 错误忽略：关停路径，尽力关闭
-		return
+		return common.NewError("socks server closed")
+	}
+	if len(s.associations) >= maxAssociations {
+		s.assocLock.Unlock()
+		return common.NewErrorf("socks association limit %d reached", maxAssociations)
 	}
 	if s.associations == nil {
 		s.associations = make(map[tunnel.Conn]struct{})
@@ -295,6 +341,7 @@ func (s *Server) watchAssociation(conn tunnel.Conn) {
 			}
 		}
 	})
+	return nil
 }
 
 // closeAssociations 关掉所有在途关联的控制连接，唤醒阻塞中的读循环。
@@ -314,6 +361,7 @@ func (s *Server) closeAssociations() {
 func (s *Server) packetDispatchLoop() {
 	buf := make([]byte, MaxPacketSize)
 	readErrors := 0
+	limitDrops := 0 // 会话上限丢弃计数，只用于日志限流
 	for {
 		n, src, err := s.listenPacketConn.ReadFrom(buf)
 		if err != nil {
@@ -365,7 +413,15 @@ func (s *Server) packetDispatchLoop() {
 			if len(s.mapping) >= maxUDPSessions {
 				s.mappingLock.Unlock()
 				cancel()
-				log.Error("socks udp session limit reached, dropping packet from", src.String())
+				// 限流：到上限之后这条路径的速率就等于**新源地址到达速率**，而源地址可
+				// 伪造；src.String() 还必须算在 ShouldLog 之后，否则默认级别下每丢一包
+				// 照样付一次格式化 + 整条脱敏链（口径同下面的读错误限流与 AGENTS.md）。
+				limitDrops++
+				if limitDrops%10 == 0 {
+					log.Error("socks udp session limit reached, dropping packet from", src.String())
+				} else if log.ShouldLog(log.DebugLevel) {
+					log.Debug("socks udp session limit reached, dropping packet from", src.String())
+				}
 				continue
 			}
 			conn = &PacketConn{
@@ -400,7 +456,7 @@ func (s *Server) packetDispatchLoop() {
 				timeout := s.timeout
 				timer := time.NewTimer(timeout)
 				defer timer.Stop()
-				responseBuf := make([]byte, MaxPacketSize)
+				responseBuf := make([]byte, responseFrameCap)
 				for {
 					select {
 					case info := <-conn.output:
