@@ -208,6 +208,8 @@ func (s *Server) packetDispatchLoop() {
 		}
 	})
 
+	// limitDrops 只用于会话上限丢弃路径的日志限流，必须在循环外
+	limitDrops := 0
 	for {
 		var info *tproxyPacketInfo
 		select {
@@ -231,7 +233,14 @@ func (s *Server) packetDispatchLoop() {
 			if len(s.mapping) >= maxUDPSessions {
 				s.mappingLock.Unlock()
 				cancel()
-				log.Error("tproxy udp session limit reached, dropping packet from", srcKey)
+				// 限流：到上限之后这条路径的速率就等于**新源地址到达速率**，而源地址可
+				// 伪造，每丢一包打一条 Error 就是把日志变成攻击面（口径同 tunnel/socks）。
+				limitDrops++
+				if limitDrops%10 == 0 {
+					log.Error("tproxy udp session limit reached, dropping packet from", srcKey)
+				} else if log.ShouldLog(log.DebugLevel) {
+					log.Debug("tproxy udp session limit reached, dropping packet from", srcKey)
+				}
 				continue
 			}
 			conn = &PacketConn{

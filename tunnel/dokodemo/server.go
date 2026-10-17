@@ -40,6 +40,7 @@ func (s *Server) dispatchLoop() {
 		Address: s.targetAddr,
 	}
 	buf := make([]byte, MaxPacketSize)
+	limitDrops := 0 // 会话上限丢弃计数，只用于日志限流
 	for {
 		n, addr, err := s.udpListener.ReadFrom(buf)
 		if err != nil {
@@ -68,7 +69,15 @@ func (s *Server) dispatchLoop() {
 				// 这一包直接丢掉：toInput 还没交给任何会话，也没有半建的会话对象要回收
 				// （闸卡在造对象之前）。借出的负载就地还回去。
 				putPacketBuf(toInput)
-				log.Error("dokodemo udp session limit reached, dropping packet from", addr.String())
+				// 限流：到上限之后这条路径的速率就等于**新源地址到达速率**，而源地址可
+				// 伪造；addr.String() 也必须算在 ShouldLog 之后，否则默认级别下每丢一包
+				// 照样付一次格式化 + 整条脱敏链（口径同 tunnel/socks 与 AGENTS.md）。
+				limitDrops++
+				if limitDrops%10 == 0 {
+					log.Error("dokodemo udp session limit reached, dropping packet from", addr.String())
+				} else if log.ShouldLog(log.DebugLevel) {
+					log.Debug("dokodemo udp session limit reached, dropping packet from", addr.String())
+				}
 				continue
 			}
 			ctx, cancel := context.WithCancel(s.ctx)
