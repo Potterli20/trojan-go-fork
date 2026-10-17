@@ -14,12 +14,20 @@ import (
 
 const MaxPacketSize = 1024 * 8
 
+// socksFrameBufCap 是每包缓冲的预留容量。写出方向要在同一块切片上就地攒
+// 「RSV+FRAG(3) + 地址块(ATYP(1)+长度字节(1)+域名(255)+端口(2)=259) + 负载(≤MaxPacketSize)」，
+// 取整到 +264。只留 MaxPacketSize 的话满尺寸负载必然把 append 撑到界外：池里那块永远
+// 停在 8192，每包另外新造一份 10880（实测的 Go size class），池化省下的分配又被加了
+// 回来（远端按线上格式合法发满尺寸 datagram 就能逐包触发）。口径同 tunnel/trojan/packet.go
+// 的 packetBufCap。
+const socksFrameBufCap = MaxPacketSize + 264
+
 // socksPacketBufPool 复用 SOCKS5 UDP 中继的每包缓冲：两个方向此前每搬一个包
 // 就 make 一次 8KB，分配次数与包数同阶。这里的 buffer 不逃出函数作用域，
 // 所以归还点就在同一个函数里，不需要跨 goroutine 的借用协议。
 var socksPacketBufPool = sync.Pool{
 	New: func() any {
-		buf := make([]byte, MaxPacketSize)
+		buf := make([]byte, socksFrameBufCap)
 		return &buf
 	},
 }
@@ -27,7 +35,7 @@ var socksPacketBufPool = sync.Pool{
 func getSocksPacketBuf() []byte { return *socksPacketBufPool.Get().(*[]byte) }
 
 func putSocksPacketBuf(buf []byte) {
-	if cap(buf) != MaxPacketSize {
+	if cap(buf) != socksFrameBufCap {
 		return
 	}
 	// 借出方可能拿着 buf[:n] 归还，必须还原成全长再入池
@@ -113,7 +121,9 @@ func (c *SocksPacketConn) WriteWithMetadata(payload []byte, metadata *tunnel.Met
 func (c *SocksPacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadata, error) {
 	buf := getSocksPacketBuf()
 	defer putSocksPacketBuf(buf)
-	n, from, err := c.PacketConn.ReadFrom(buf)
+	// 读侧只用前 MaxPacketSize 字节：缓冲为写出方向的组帧留了 headroom，这里不能顺带
+	// 把它抬高，否则内核在这一跳截断的语义就变了（见 socksFrameBufCap）。
+	n, from, err := c.PacketConn.ReadFrom(buf[:MaxPacketSize])
 	if err != nil {
 		return 0, nil, err
 	}
