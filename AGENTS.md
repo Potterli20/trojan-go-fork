@@ -156,6 +156,13 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   `cancel` 永不被调（`DelUser` 只关 map 里那一个）→ 每撞一次永久漏 2 goroutine + 2 ticker +
   1 ctx + 1 张 ipTable。API `SetUsers(Add)` 与 mysql `syncUsers` 都会对同一 hash 撞上来。
   后台协程在登记**之前**起，抢输的那份自己 `Close()`（cancel + Wait）收尾。
+- **gRPC API 默认失败关闭**（2026-10-16）：`api.enabled` 且监听地址非回环（`api_addr` 留空
+  就是通配）时，必须配 `api.token` 或 `api.ssl.enabled`+`verify_client`，否则**拒绝启动**；
+  `api.allow_insecure: true` 是显式逃生阀。关键是闸门要由 `tunnel/trojan.NewServer`/`NewClient`
+  在**任何资源分配之前**同步调用（`api.CheckExposure`，检查器由 `api/service/auth.go` 的 `init`
+  注册）：`api.RunService` 的返回值在两个调用点都被丢进 goroutine，在那里 return error 等于
+  什么都没发生——代理照常跑、API 悄悄不在、日志一行都没有。细节与判据见
+  `api/service/AGENTS.md` 的 Authentication 一节。
 - **API handler 里别留未判空的二级解引用**：`SetUsers` 原先只判 `req.Status == nil`，
   下一行就取 `req.Status.User.Hash`。protobuf 的 `Status`/`User` 是两个独立可选字段，
   而 grpc-go 默认**不** recover handler 里的 panic（不挂 `RecoveryHandler` 时直接冒到传输层），

@@ -57,10 +57,25 @@ Operations: `Add=0`, `Delete=1`, `Modify=2`.
 
 ## Authentication
 
-The gRPC service itself has no auth. Config 里的键是 **`api.ssl`**
-（`enabled` / `cert` / `key` / `verify_client` / `client_cert`；`api.api_tls` 这个键
-在本仓库不存在），实现在 `server.go:newAPIServer` 的 `cfg.API.SSL.*` 分支。
-**Do NOT expose on public interfaces without a firewall rule** — anyone can add users.
+两层可选凭据，实现在 `auth.go` 与 `server.go:newAPIServer`：
+
+- **`api.token`**：共享密钥。非空时 `newAPIServer` 挂上一元 + 流式两个拦截器，每个 RPC 都要带
+  `authorization: Bearer <token>`（裸 token 也接受），`subtle.ConstantTimeCompare` 比较。
+  内置命令行用 `-api-token` 传（`api/control/control.go` 的客户端拦截器注入 metadata）。
+- **`api.ssl`**（`enabled` / `cert` / `key` / `verify_client` / `client_cert`；`api.api_tls` 这个键
+  在本仓库不存在）：`verify_client` 才是鉴权，只开 `enabled` 只是加密。
+
+**默认失败关闭**：`api.enabled` 且监听地址不是回环（含 `api_addr` 留空 = 通配）时，两层都没配
+就拒绝启动，`api.allow_insecure: true` 是显式逃生阀。判据 `exposure_gate_test.go`（策略表）、
+`token_auth_test.go`（拦截器 + bufconn 端到端）、`wiring_test.go`（闸门确实被建栈同步调用）。
+
+**闸门必须由 `tunnel/trojan.NewServer`/`NewClient` 同步调用**（`api.CheckExposure`，检查器在
+`auth.go` 的 `init` 里按 `trojan.Name+"_SERVER"`/`+"_CLIENT"` 注册）。只在 `RunServerAPI` /
+`RunClientAPI` 里 return error 是无效的：那两个返回值在调用点被丢进 goroutine，等于什么都没
+发生——代理照常跑、API 悄悄不在、日志一行都没有。`Run*API` 里也各查一次，那是纵深防御，
+覆盖绕过建栈入口直接调 `api.RunService` 的调用方。
+
+`mini` 构建不含本包，`api.CheckExposure` 查不到检查器就放行，所以闸门不会把 mini 变成硬失败。
 
 ## Conventions
 

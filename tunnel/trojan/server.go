@@ -443,6 +443,13 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 
 func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
+	// API 暴露面检查放在**任何资源分配之前**（口径同 statistic/memory 拒绝空密码那条）：
+	// api.RunService 的返回值在下面那个 goroutine 里是被丢掉的，策略性拒绝只有在这里
+	// 同步返回才能让建栈失败、进程以非零退出码收场。放到后面就得补一堆 cancel/releaseAuth
+	// 的清理分支，而且那时监听已经 bind 上了。
+	if err := api.CheckExposure(ctx, Name+"_SERVER"); err != nil {
+		return nil, err
+	}
 	ctx, cancel := context.WithCancel(ctx)
 
 	ref, err := acquireAuth(ctx, cfg)

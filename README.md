@@ -553,12 +553,16 @@ gRPC 管理接口用于运行时查用户、看流量记录、增删改用户，
 
 1. **`api_addr` / `api_port` 没有默认值，省略不等于不监听**。实测只写
    `"api": {"enabled": true}` 会绑到 `*:40127`、`*:40439`——所有网卡 + 内核随机端口，而且不止一个。
-   API 本身**没有任何鉴权字段**（`api` 节里没有 user/passwd 这种键），所以 `api_addr` 要固定写死，
-   需要跨机管理再自己配合 TLS 与防火墙。
+   **这个形态现在直接拒绝启动**：非回环监听必须至少有一层凭据（`api.token`，或
+   `api.ssl.enabled` + `verify_client`），否则建栈失败、进程非零退出；`api.allow_insecure: true`
+   是显式逃生阀。本机管理就把 `api_addr` 固定写成 `127.0.0.1`，跨机管理配 token 并自己加上
+   TLS 与防火墙。配了 token 之后命令行要带 `-api-token`。
 2. **API 起不来是静默的**：它的返回值在 goroutine 里被丢弃，端口冲突时代理照常运行、日志里一句
    话都不说。确认在不在只看这行 `server-side api service is listening on <addr>`。
+   （上面那条暴露面闸门是例外：它在建栈阶段同步执行，所以是非零退出码而不是静默。）
 3. **`api.ssl.enabled: true` 之后内置 `-api` 连不上**：命令行客户端固定用明文传输
-   （`insecure.NewCredentials()`），实测报 `error reading server preface: EOF`。加密与内置工具二选一。
+   （`insecure.NewCredentials()`），实测报 `error reading server preface: EOF`。加密与内置工具二选一；
+   `-api-token` 也是明文 metadata，所以"TLS + token"这个组合内置命令行给不了。
 
 字段表、`api.ssl.verify_client` / `client_cert` 的 mTLS 用法、以及 `-api` 全部参数见
 [配置说明](docs/configuration.md)的「管理接口 (`api`)」与「用户与流量后端」两节。

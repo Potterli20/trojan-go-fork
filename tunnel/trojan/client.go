@@ -257,6 +257,12 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 func NewClient(ctx context.Context, client tunnel.Client) (*Client, error) {
 	log.Info("[Trojan] Creating client")
 
+	// API 暴露面检查放在任何资源分配之前，理由同 NewServer：api.RunService 的返回值
+	// 在下面那个 goroutine 里被丢掉，策略性拒绝只有在这里同步返回才有效。
+	if err := api.CheckExposure(ctx, Name+"_CLIENT"); err != nil {
+		return nil, err
+	}
+
 	ctx, cancel := context.WithCancel(ctx)
 	if log.ShouldLog(log.DebugLevel) {
 		log.Debug("[Trojan] Creating authenticator...")

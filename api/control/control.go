@@ -9,6 +9,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/Potterli20/trojan-go-fork/api/service"
 	"github.com/Potterli20/trojan-go-fork/common"
@@ -17,6 +18,7 @@ import (
 
 type apiController struct {
 	address *string
+	token   *string
 	hash    *string
 
 	cmd                *string
@@ -170,7 +172,26 @@ func (o *apiController) Handle() error {
 		// 命令行里没有 -api：本 handler 不适用，交给下一个 handler
 		return option.NotSet()
 	}
-	conn, err := grpc.NewClient(*o.address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	dialOpts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	// 服务端配了 api.token 就必须带上，否则每个 RPC 都会收到 Unauthenticated。
+	// 用客户端拦截器注入 metadata 而不是每次调用手动传，这样一元与流式（GetRecords /
+	// ListUsers / SetUsers / GetUsers）走的是同一条路径。
+	if token := *o.token; token != "" {
+		inject := func(ctx context.Context) context.Context {
+			return metadata.AppendToOutgoingContext(ctx, service.TokenMetadataKey, service.TokenPrefix+token)
+		}
+		dialOpts = append(dialOpts,
+			grpc.WithUnaryInterceptor(func(ctx context.Context, method string, req, reply any,
+				cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+				return invoker(inject(ctx), method, req, reply, cc, opts...)
+			}),
+			grpc.WithStreamInterceptor(func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn,
+				method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+				return streamer(inject(ctx), desc, cc, method, opts...)
+			}),
+		)
+	}
+	conn, err := grpc.NewClient(*o.address, dialOpts...)
 	if err != nil {
 		// 原来这里 log.Error 之后 return nil —— main 会把「nil」当成
 		// 「这个 handler 接管成功」，于是地址不合法也照样以退出码 0 结束
@@ -200,6 +221,7 @@ func init() {
 	option.RegisterHandler(&apiController{
 		cmd:                flag.String("api", "", "Connect to a Trojan-Go API service. \"-api set/get/list/record\""),
 		address:            flag.String("api-addr", "127.0.0.1:10000", "Address of Trojan-Go API service"),
+		token:              flag.String("api-token", "", "Shared token of the Trojan-Go API service (server-side api.token)"),
 		password:           flag.String("target-password", "", "Password of the target user"),
 		hash:               flag.String("target-hash", "", "Hash of the target user"),
 		add:                flag.Bool("add-profile", false, "Add a new profile with API"),

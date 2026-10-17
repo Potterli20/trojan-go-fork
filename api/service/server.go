@@ -291,7 +291,15 @@ func (s *ServerAPI) GetOutboundConfig(ctx context.Context, req *GetOutboundConfi
 }
 
 func newAPIServer(cfg *Config) (*grpc.Server, error) {
-	var server *grpc.Server
+	var opts []grpc.ServerOption
+	if cfg.API.Token != "" {
+		// 共享密钥：每个 RPC（含流式）都必须带 authorization: Bearer <token>
+		opts = append(opts,
+			grpc.UnaryInterceptor(tokenUnaryInterceptor(cfg.API.Token)),
+			grpc.StreamInterceptor(tokenStreamInterceptor(cfg.API.Token)),
+		)
+		log.Info("api token authentication enabled")
+	}
 	if cfg.API.SSL.Enabled {
 		log.Info("api tls enabled")
 		keyPair, err := tls.LoadX509KeyPair(cfg.API.SSL.CertPath, cfg.API.SSL.KeyPath)
@@ -316,18 +324,20 @@ func newAPIServer(cfg *Config) (*grpc.Server, error) {
 				}
 			}
 		}
-		creds := credentials.NewTLS(tlsConfig)
-		server = grpc.NewServer(grpc.Creds(creds))
-	} else {
-		server = grpc.NewServer()
+		opts = append(opts, grpc.Creds(credentials.NewTLS(tlsConfig)))
 	}
-	return server, nil
+	return grpc.NewServer(opts...), nil
 }
 
 func RunServerAPI(ctx context.Context, auth statistic.Authenticator) error {
 	cfg := config.FromContext(ctx, Name).(*Config)
 	if !cfg.API.Enabled {
 		return nil
+	}
+	// 纵深防御：正常路径上建栈时已经同步查过（tunnel/trojan.NewServer），这里再查一次，
+	// 覆盖任何绕过那个入口直接调 RunService 的调用方。
+	if err := checkAPIExposure(cfg); err != nil {
+		return err
 	}
 	service := &ServerAPI{
 		auth: auth,

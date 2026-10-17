@@ -491,6 +491,9 @@ mux:
     enabled: true
 api:
     enabled: true
+    # 必须显式绑回环：api_addr 留空是通配地址，而无凭据的非回环监听会被暴露面闸门
+    # 直接拒启（api/service/auth.go）。这份配置本来也不是在测跨机管理。
+    api-addr: 127.0.0.1
     api-port: 0
 `, socksPort, serverPort)
 	client, err := proxy.NewProxyFromConfigData([]byte(clientData), false)

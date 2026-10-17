@@ -434,7 +434,7 @@ outbound:
 | `sqlite` | `statistic/memory` | 给一个路径即启用 SQLite 持久化（无独立配置段，也没有 `statistic.type` 这种键）；平台限制见「用户与流量后端」 |
 | `MaxIPPerUser` | `statistic/memory` | 每用户并发 IP 上限，默认 0 = 不限；注意它的大小写就是这个拼法 |
 | `mysql` | `statistic/mysql` + `tunnel/trojan` | MySQL 后端整段；其中 `enabled` 由 trojan 入站读取用于选后端，见「用户与流量后端」 |
-| `api` | `api/service` + `tunnel/trojan` | gRPC 管理接口整段（`enabled` / `api_addr` / `api_port` / `ssl`，**没有** user/passwd）；见「管理接口」 |
+| `api` | `api/service` + `tunnel/trojan` | gRPC 管理接口整段（`enabled` / `api_addr` / `api_port` / `token` / `allow_insecure` / `ssl`）；非回环监听又没凭据时**拒绝启动**，见「管理接口」 |
 | `redirect_client_ip` | `redirector` | 是否把客户端地址注入重定向请求（`X-Forwarded-For` / `X-Real-IP`），默认关 |
 | `udp_timeout` | `tunnel/socks`、`tunnel/dokodemo`、`tunnel/tproxy` | UDP 会话空闲超时（秒），三处默认都是 60 |
 | `target_addr` / `target_port` | `tunnel/dokodemo` | 固定目标 |
@@ -563,26 +563,38 @@ gRPC 管理接口在 `component/api.go` 里由 `api || full` 标签引入，**`m
 | `ssl.cert` / `ssl.key` | string | 服务端证书与私钥 | 空 |
 | `ssl.verify_client` | bool | 要求并校验客户端证书（`RequireAndVerifyClientCert`） | false |
 | `ssl.client_cert` | []string | 放行的客户端证书，PEM 路径列表，逐个 `AppendCertsFromPEM` | 空 |
+| `token` | string | 共享密钥。非空时每个 RPC（含流式）都必须带 `authorization: Bearer <token>`，由 gRPC 拦截器常量时间比较；命令行客户端用 `-api-token` 传 | 空 |
+| `allow_insecure` | bool | 失败关闭策略的显式逃生阀：非回环监听又没有任何凭据时，默认**拒绝启动**，写了这一行才放行（只 Warn） | false |
 
-这一节**没有** `user` / `passwd` 之类的凭据字段——gRPC API 本身不带鉴权（`statistic/memory/memory.go:544`
-的注释就写着这件事，所以空密码那条护栏比配置文件更值得堵），能连上的人可以增删用户、读流量记录。
-暴露面只能靠 `api_addr` 与防火墙控制。
+这一节以前没有任何凭据字段，gRPC API 自身也不带鉴权——能连上的人可以增删用户、尾随流量
+记录。现在有两层可选凭据（`token`、`ssl.verify_client`），并且**默认失败关闭**：
+`api.enabled: true` 且监听地址不是回环时，两者都没配就直接拒绝启动，错误文案会列出三条出路
+（配 `api.token`、配 `api.ssl.enabled` + `verify_client`、或把 `api_addr` 写回回环地址），
+要硬开就显式写 `api.allow_insecure: true`。这条检查在**建栈阶段同步**执行
+（`tunnel/trojan.NewServer`/`NewClient` 的第一件事），所以它是非零退出码，不是日志里的一行
+警告——放在 `api.RunService` 里返回错误是无效的，那个返回值在两个调用点都被丢进 goroutine。
+
+注意 `api.ssl.enabled` 只加密、不鉴权：没开 `verify_client` 的话，任何能完成 TLS 握手的人
+照样能调 API，所以那种组合仍然会被闸门拦下。
 
 下面三条是 2026-10-13 用 `build/trojan-go-fork`（v0.10.0-4491）在 loopback 实测的结果：
 
 1. **省略 `api_addr` / `api_port` 会把 API 开到所有网卡上**。`net.ResolveIPAddr("ip", "")` 返回
    通配地址，端口 0 由内核随机分配。实测一份只写 `"api": {"enabled": true}` 的配置起在
    `*:40127` 和 `*:40439` 两个随机端口（trojan server 实例每创建一个就调一次 `api.RunService`，
-   `tunnel/trojan/server.go:482-485`）。所以 `api_addr` 不是可省的装饰——固定写
-   `"api_addr": "127.0.0.1"`，要跨机管理再上 TLS。
+   `tunnel/trojan/server.go:482-485`）。**这个形态现在起不来了**：通配地址属于非回环监听，
+   没有任何凭据就被闸门拒掉。要跨机管理就配 `token` 或 TLS 客户端证书，要在本机用就固定写
+   `"api_addr": "127.0.0.1"`。
 2. **API 起不来是静默的**。`api.RunService` 的返回值在 `s.wg.Go(...)` 里被丢弃。实测第二个进程
    的 `api_port` 被占用时，代理照常运行、日志里既没有 `server api failed to listen` 也没有别的
    报错。判断 API 到底在不在，只认这一行：`server-side api service is listening on <addr>`
    （客户端是 `client-side api service is listening on <addr>`）。
 3. **`api.ssl.enabled: true` 之后内置 `-api` 命令行连不上**。`api/control` 固定用
-   `insecure.NewCredentials()`（`api/control/control.go:167`），没有 TLS 客户端。实测报
+   `insecure.NewCredentials()`（`api/control/control.go`），没有 TLS 客户端。实测报
    `rpc error: code = Unavailable ... error reading server preface: EOF`。要加密就只能自己写
-   gRPC 客户端，或者让 API 只监听回环地址。
+   gRPC 客户端，或者让 API 只监听回环地址。`-api-token` 也是明文 metadata，所以"TLS + token"
+   这个组合内置命令行给不了：跨机管理要么走隧道/防火墙把 API 限制成内网可达 + token，
+   要么自己写带 TLS 的客户端。
 
 ### 服务与方法
 
@@ -599,6 +611,7 @@ gRPC 管理接口在 `component/api.go` 里由 `api || full` 标签引入，**`m
 |------|------|
 | `-api` | 取 `record` / `list` / `get` / `set`；其它值报 `unknown api command: <值>` |
 | `-api-addr` | 目标 API 地址，默认 `127.0.0.1:10000`；要和配置里的 `api_addr` + `api_port` 对上 |
+| `-api-token` | 服务端 `api.token` 配了就必须传，否则每个 RPC 都返回 `Unauthenticated`；以 `authorization: Bearer <token>` 发出，一元与流式方法走同一条注入路径 |
 | `-target-password` / `-target-hash` | 指定用户；只给明文密码时服务端自己算哈希（`Hash` 为空则 `SHA224String(Password)`，`api/service/server.go:105-107`） |
 | `--add-profile` / `--modify-profile` / `--delete-profile` | `-api set` 的操作，三者必须选且只选一个，都不给报 `Invalid operation` |
 | `--upload-speed-limit` / `--download-speed-limit` | 限速，单位字节/秒（令牌桶 burst 取该值的 2 倍），0 = 不限 |

@@ -52,6 +52,10 @@ func RunClientAPI(ctx context.Context, auth statistic.Authenticator) error {
 	if !cfg.API.Enabled {
 		return nil
 	}
+	// 纵深防御，理由同 RunServerAPI：建栈时（tunnel/trojan.NewClient）已同步查过一次。
+	if err := checkAPIExposure(cfg); err != nil {
+		return err
+	}
 	server, err := newAPIServer(cfg)
 	if err != nil {
 		return err
