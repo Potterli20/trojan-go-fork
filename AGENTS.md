@@ -108,11 +108,29 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   （2026-10-16 补上 `connChan`/`packetChan`）：它没有 per-conn fd，但队列里每条都攥着一个 stream
   或一份深度 16 的数据报缓冲加父连接，判据见 `tunnel/quic/drain_on_close_test.go`。
 - **握手期挂出去的三份收尾（在途登记、时限、子 ctx）必须成对且覆盖 panic**。`tunnel/websocket`
-  原先在 `websocket.Accept` 前后是三段裸顺序调用：Accept 解析的是**对端可控**的升级请求，而这条
-  调用链上面 `trojan/server.go`与 `tls/server.go` 都带 recover，所以库内一旦 panic 进程照跑，
-  但 `pendingConns` 表项和挂在 `s.ctx` 下的握手子 ctx 就永久留着（cancel 没人调，每命中一次多一份）。
+  原先在 `websocket.Accept` 前后是三段裸顺序调用：Accept 解析的是**对端可控**的升级请求，一旦库内
+  panic，`pendingConns` 表项和挂在 `s.ctx` 下的握手子 ctx 就永久留着（cancel 没人调，每命中一次多
+  一份）。旧文档在这里写过"调用链上面 `trojan/server.go` 与 `tls/server.go` 都带 recover，进程照跑"
+  ——**那句与代码不符**：那两处 recover 在 per-conn handler 的 goroutine 里，而 AcceptConn 是在
+  accept **循环体**里被串行调用的，panic 会冒出循环把进程带走；2026-10-17 由
+  `tunnel.AcceptConnGuarded` 补上这道边界（见下面那条）。
   现在写成 `defer` + `handedOff` 标志，判据 `tunnel/websocket/handshake_panic_test.go`，注入点
   是 `var acceptHandshake`（同 `var dialUDP`，别当冗余删）。
+- **accept 路径必须有 panic 边界，而且被收住之后要当成"这一层还活着"**（2026-10-17）。全仓原本只有
+  mux/tls/trojan 三处 `recover()`，且都在 **per-conn handler 的 goroutine 里**；各入站的 `acceptLoop`
+  却把 `s.underlay.AcceptConn(&Tunnel{})` 写在**循环体**里，而下层解析的是**未认证对端可控字节**
+  （websocket 的 `http.ReadRequest`+`Accept`、shadowsocks 的密文探测、simplesocks 的 `readHeader`），
+  panic 一路冒出 accept 协程、main 又没有顶层 recover ⇒ 命中一次整个进程没了。现在统一走
+  `tunnel.AcceptConnGuarded`（`tunnel/accept_guard.go`）：panic 变成以 `tunnel.ErrAcceptPanic` 包装的
+  error，六个循环（tls/trojan/socks/http/mux/simplesocks）在错误分支**先认这个哨兵**，认出来就
+  `log.Error` + `continue`。为什么不能沿用既有的"accept 出错就 return"：那样一次 panic 就把这个入站
+  **永久停摆**——没有退出码、没有重启、只是再也不接纳新连接，比崩了更难发现。panic 时的**资源**收尾
+  归抛 panic 的那一层（栈展开时它的 defer 跑完）：websocket 的 `handedOff`、shadowsocks 的 `takenOver`
+  （重定向那条路径 `result` 也是 nil，绝不能顺手关掉正在被拷贝的连接）、以及 simplesocks 的读头——
+  它**在自己为超时单起的那个 goroutine 里**，父循环这道边界够不着，是实测出来的（加之前测试二进制
+  当场 panic 退出）。判据 `tunnel/accept_guard_test.go` 与 `tunnel/simplesocks/accept_panic_test.go`
+  （后者带正向对照：把循环退回裸调用立刻崩二进制）。**新增入站照这六处抄，并在自己的 AcceptConn
+  里为对端字节留好资源收尾。**
 - **`freedom` 的 forward-proxy 这一跳必须绑 `c.ctx` 并整体限时**。`router` 的 bypass 分支之外，
   `DialConn` 的 socks 分支过去直接用 `x/net/proxy` 的默认 dialer：无超时、不看 ctx，而上游 SOCKS
   代理受理 TCP 却不回握手字节是现实形态。它卡在 `dialer.Dial` 里 = 会话协程永久钉死，
@@ -145,6 +163,29 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   以及拆帧闸门：`bytes.NewReader(buf[3:n])` 在 n<3 时切片越界 panic，而对端是**未认证的 UDP 源**，
   一个零长度数据报就能把进程打崩；闸门卡在 4 字节、**建会话之前**（n=3 那种不 panic 但投递不出
   负载的包过去会先攒出一条死会话），口径同 `tunnel/freedom/conn.go`。
+- **`socks` 的第三张表也有闸了**（2026-10-17）。`associations` 登记的是**已握手的 ASSOCIATE
+  控制连接**，过去只有 `associationMaxLife`(10min) 一个时限，条目数 = 发呆对端的到达速率 × 600s，
+  每条攥着 1 个 fd + 1 个守护协程 + 1 个 `AfterFunc` 计时器——正是上一条「新增同类表照这三条抄」
+  漏掉的姊妹表（这条 TCP 在握手阶段没有任何认证）。`maxAssociations` 取与 `maxUDPSessions` 同值：
+  控制连接再多也开不出更多 UDP 会话。**容量检查与登记在同一把写锁里，调用点在回成功响应之前**，
+  所以被拒的客户端收到的是 `REP=0x01` 定长 10 字节失败帧（`declineAssociate`），而不是"答应了
+  又默默断线"；短于 10 字节会被标准客户端读成协议错误。判据
+  `tunnel/socks/association_bound_test.go`（正向对照：把闸放开一格 `TestAssociationCountIsBounded`
+  立刻红）。
+- **回包组帧缓冲必须按最坏合法帧留 headroom**（2026-10-17）。`socks` 会话守护协程的 `responseBuf`
+  与 `freedom` 的 `socksPacketBufPool` 此前都只留 `MaxPacketSize`，而一帧是「RSV+FRAG(3) +
+  地址块(ATYP+长度字节+255 域名+端口 = 259) + 负载(≤8192)」= 10454 字节 ⇒ 满尺寸负载每包把
+  `append` 撑到界外、新造一份 10880（Go 的 size class），缓冲本身却永远停在 8192，下一包再撑一次；
+  远端按线上格式合法发满尺寸 datagram 就能逐包加压本地 GC。现在两处都留 `+264`
+  （`responseFrameCap` / `socksFrameBufCap`），口径同 trojan 的 `packetBufCap`；`freedom` 读侧显式
+  `ReadFrom(buf[:MaxPacketSize])`，不让这点 headroom 改动内核在这一跳截断的语义。判据钉的是**确定性
+  的容量事实**（`TestMaxSizeResponseFrameFitsReservedBuffer`、`TestMaxSizeSocksFrameFitsPooledCapacity`），
+  不用"再取一次池看有没有新建对象"，理由同 trojan 那条 `-race` 下假失效的注释。
+  顺带：`tunnel/socks`/`dokodemo`/`tproxy` 三个入站打到 `maxUDPSessions` 之后原来**每个被丢的包**
+  都记一条 `log.Error` 并顺带 `addr.String()`，而源地址可伪造 ⇒ 日志速率就等于攻击速率，且默认级别下
+  格式化和整条脱敏链照样付（门禁在 `log` 函数内部，参数在它之前就已算完）。现在每 10 次一条 Error，
+  其余走 `log.ShouldLog` 之后才格式化；同轮把 `tunnel/quic/congestion.go` 的 12 处
+  `log.Debug(fmt.Sprintf(...))` 改成门后的 `Debugf`/`Warnf`。
 - **只监听 `s.ctx` 的"关停唤醒 watcher"必须再给一个自身退出条件**。`tunnel/http` 的
   `closeRawConn` watcher 与 `quic` 服务端的包泵都是这个形态：只 `select { case <-s.ctx.Done() }`
   的话，每条连接留一个 park 到 `Server.Close` 的 goroutine，还经由闭包留住裸连接对象。
@@ -260,6 +301,13 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
 - **coder/websocket 的 `Conn.Close` 会发 close 帧并等对端回执**，哑对端不回就白等满库内写超时
   （实测 5s）。这是测试夹具现象，不是生产泄露：真实对端回 close 帧，`NetConn` 的读上限与定时器
   都在 `Close` 里停掉。写测试时要让对端先撤、或持续读到 EOF，再关 ws 连接，否则单用例白加 5 秒。
+- **h2c 关停用例的口径：502 是正确出口，不是失败**（2026-10-17）。`TestH2CServerCloseWakesInflightStream`
+  原先断言"客户端必须拿到 error"，于是把 `h2.go` 失败出口里那句 `http.Error(w, "bad gateway", 502)`
+  判成了红——而它到底能不能刷出去，取决于 502 有没有赶在连接拆掉之前写完，快机器上随机失败
+  （在干净 HEAD 的独立 worktree 上复现过：3 次里红 1 次）。现在只钉两件真的不变量：**有限时间内
+  结束**（Close 的耗时断言 + 客户端 3s 兜底）与**不编造成功响应**（`err == nil && status < 500` 才算红）。
+  正向对照：让夹具真的回一个 200，断言立刻红。写这一类"关停时在途"的用例照这个口径，别把
+  "传输错误"当成唯一可接受的结果。
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
