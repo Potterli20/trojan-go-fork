@@ -79,8 +79,8 @@ github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b h1:7bFUKsVEo0LmiYfbE
 github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20261014101318-83f621788ca8 h1:RjLnVvlzK4q6zWaSBPNRGsrgx2fbJDeUWffjw574uzs=
 github.com/xtls/reality v0.0.0-20261014101318-83f621788ca8/go.mod h1:ptlSkJ8k/7IDauNH0SA96JPOo+nYGLTv2Y3UMpwvAsY=
-github.com/xtls/xray-core v1.260327.1-0.20261017141357-95461cc14839 h1:Qm2E3FPugAo2AbFl5vG4RKpRdPxt/2/nE0Cnwd8TSTU=
-github.com/xtls/xray-core v1.260327.1-0.20261017141357-95461cc14839/go.mod h1:K9/USkul3qakG3i/i53FcMEmSBzc8YScZMa5vPZZtOg=
+github.com/xtls/xray-core v1.260327.1-0.20261017152356-92ccc939aaf4 h1:FlGykoNEWRZN5ExwxSEU5lnuEWU5CD3SJFyKKWLChl8=
+github.com/xtls/xray-core v1.260327.1-0.20261017152356-92ccc939aaf4/go.mod h1:K9/USkul3qakG3i/i53FcMEmSBzc8YScZMa5vPZZtOg=
 github.com/yuin/gopher-lua v0.0.0-20190206043414-8bfc7677f583/go.mod h1:gqRgreBUhTSL0GeU64rtZ3Uq3wtjOa/TB2YfrtkCbVQ=
 github.com/yuin/gopher-lua v1.1.2 h1:yF/FjE3hD65tBbt0VXLE13HWS9h34fdzJmrWRXwobGA=
 github.com/yuin/gopher-lua v1.1.2/go.mod h1:7aRmXIWl37SqRf0koeyylBEzJ+aPt8A+mmkQ4f1ntR8=
