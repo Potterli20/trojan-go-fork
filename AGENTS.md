@@ -138,6 +138,9 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   现在走 `forwardDialer`：`common.Dial(c.ctx, …)` 连代理（域名代理地址的 DNS 也一并接回 ctx）+
   握手整体截止 + `context.AfterFunc` 让 Close 当场打断阻塞中的握手；**交出隧道前必须 `disarm()`**
   （残留时限会几十秒后凭空掐断一条正常会话，`var forwardHandshakeTimeout` 就是测这个的注入点）。
+  `common.Dial` 的重试间隔也已接 ctx（timer+select 取代裸 `Sleep`，2026-10-20）：否则取消后
+  最多还要白等一个 `RetryInterval`，期间调用方卡在关停里。判据
+  `common/net_test.go` 的 `TestDialRetryWaitHonorsContext`（ctx 已取消 + 3×5s 间隔必须立即返回）。
 - **UDP 负载缓冲在三层入站都池化了，归还责任跟着借用权走**（2026-10-16，`socks`/`dokodemo`/
   `tproxy`）。口径抄 `tunnel/router`：Get 时计数加一，Put 时过 `cap` 闸门（超尺寸或根本不是池
   对象就丢给 GC，不顶高水位）再减一。归还点必须覆盖：消费端（守护协程写完、`ReadWithMetadata`
@@ -224,6 +227,11 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   另一处已核实但**没动**的热点：`tunnel/tproxy/udp.go` 的 `DialUDP` 是**每个回包**
   新建 socket + `os.NewFile`，按源地址缓存连接能省掉大量 fd churn，但要引入 TTL 与 NAT 语义
   （会话内按目的地缓存那半已经做了，见下面那条 bullet）。
+- **trojan 出站的首个负载必须计入流量**（2026-10-20）。`WriteHeader` 把帧头与首个 payload
+  合成**一次** Write（见上面的地址序列化条目），`OutboundConn.Write` 在 `written` 分支若直接
+  `return len(p)`，每条连接的首块（最多一个 relay buffer，8KB）就不进用户流量/限速与 tracker
+  的 sent——上行统计系统性偏低。判据 `tunnel/trojan/traffic_accounting_test.go`：首块与第二块
+  合计必须等于 `GetTraffic()` 的 sent。
 - **UDP 会话表的键已经是 `tunnel.SessionKey`**（2026-10-16，`tunnel/session_key.go`）。
   原先 socks/tproxy/dokodemo 三层都拿 `addr.String()` 当键，那是**每个 UDP 包**一次 IP
   格式化加一次字符串哈希；现在 `*net.UDPAddr` 走 `AddrPort()` + `Unmap()`，不碰字符串。
@@ -260,8 +268,10 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   （`tunnel/freedom/pool_alias_test.go` 钉的就是这条）。
 - **`recorder.Add` 在零订阅者时直接返回**（`subscriberCount` 短路）。它是每连接、每 UDP 包都会
   被 `tunnel/trojan/packet.go` 调到的路径，旧实现先付 2 次 `addr.String()` + 2 次 `SplitHostPort`
-  + 时间戳才发现在 range 空表。计数由 `Swap`/`LoadAndDelete` 的返回值维护，同 uid 重复
-  Subscribe 不会重复计数。**数量也有上限了**（`maxSubscribers=64`，`Subscribe` 超限时返回错误
+  + 时间戳才发现在 range 空表。计数由 `LoadOrStore`/`LoadAndDelete` 的返回值维护。**同一 uid
+  重复 `Subscribe` 返回错误**（2026-10-20）：旧实现用 `Swap` 就地替换表项，旧通道再没有任何人
+  关闭，原调用方永久阻塞在接收上；判据 `recorder/duplicate_subscribe_test.go`（退回 Swap 立刻红）。
+  **数量也有上限了**（`maxSubscribers=64`，`Subscribe` 超限时返回错误
   而不是给一条永远收不到记录的通道）：`GetRecords` 每条流现生成一个 UUID，条目数等于并发
   尾随流数，而单订阅者的缓冲上限只管得住"一个"。判据 `recorder/subscriber_limit_test.go`，
   里面还钉住上限值本身（调高就要先重算最坏驻留）。
@@ -308,6 +318,62 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   结束**（Close 的耗时断言 + 客户端 3s 兜底）与**不编造成功响应**（`err == nil && status < 500` 才算红）。
   正向对照：让夹具真的回一个 200，断言立刻红。写这一类"关停时在途"的用例照这个口径，别把
   "传输错误"当成唯一可接受的结果。
+- **h2 的请求体泵失败时必须关 `reqWriter`**（2026-10-20）。`h2Handler.ServeHTTP` 为流式请求体
+  单起一个 goroutine 跑 `r.Write(reqWriter)`，旧实现出错只打日志：客户端 RST_STREAM/断连或读
+  请求体失败后，relay 的 `OtherConn.Read` 永久堵在 `reqReader.Read`，而 `ServeHTTP` 本身又堵在
+  `http.ReadResponse` 上，`defer stream.Close()` 永远轮不到 ⇒ 每条被放弃的流留两个中继协程 +
+  两组 `io.Pipe` + 一个 ctx 到 Server 关停。修法是错误分支 `reqWriter.CloseWithError(err)`：
+  **只关写端，成功路径绝不能提前发 EOF**（relay「任一方向结束就拆会话」会砍断在途响应，h1 那侧
+  同理）。判据 `tunnel/http/h2_body_leak_test.go`：直接构造 `h2Handler`，请求体读立即报错，relay
+  侧循环 `Read` 必须在 3s 内拿到错误；去掉那句 Close 实测在 3.00s 处超时变红。注意泵在失败前
+  已经把请求头写进管道，单次 `Read` 会先拿到 nil error 的头部字节，判据必须读到错误为止。
+- **`DialConn` 与 `DialPacket` 是两条独立的路，修了一条别忘了姊妹**（2026-10-19）。forwardDialer
+  当年只覆盖了 `freedom.DialConn`，`DialPacket` 的 SOCKS5 UDP ASSOCIATE 分支仍旧把整段握手交给
+  `socks5-fork` 自己：`NewClient(..., tcpTimeout, udpTimeout)` 传的是 `0, 0`，而库只在
+  `TCPTimeout != 0` 时才 `SetDeadline`——上游代理受理 TCP 却不回握手字节时 `Negotiate`/`Request`
+  里的读永不返回，调用方是 relay 的会话协程，一次撞死永久占用一条协程加一个半开 socket，
+  `Client.Close` 只 cancel ctx 而这个拨号从头到尾不看 ctx。现在走 `socksAssociateTimeout`
+  （判据 `tunnel/freedom/udp_associate_test.go`：静默代理必须在几秒内带错误返回；正向对照是把
+  时限退回 0，那条用例会挂在 10s 兜底上判死；另有一条正常应答的假代理钉住"加了截止不许掐断
+  成功链路"）。两个坑记下来：① 库的超时粒度是**整秒**，所以 `socksTimeoutSeconds` 必须**向上**
+  取整——向下取整会把测试缩小的 300ms 变成 0，而 0 在库里恰好是"不设截止"，判据会静默变绿；
+  ② **连接这一跳仍然接不回 ctx**：`socks5.DialTCP` 是包级 var（无 ctx），freedom 是全仓唯一
+  调用方，改它等于 monkey-patch 一个全局量（`DialPacket` 是并发调用的，存"当前 ctx"会互相踩）。
+  所以黑洞型代理（SYN 丢弃）最坏仍要挂满内核那约 2 分钟才失败——有界、能自愈，但不是即时取消。
+  要拿到即时取消得给上游 fork 加 ctx 化的拨号注入点，那是跨仓库改动，先问再做。
+- **启动期的探测拨号也要接 ctx**（2026-10-19）。`trojan.NewServer` 的诱饵探测与 `tls.NewServer`
+  的 fallback 探测原本是裸 `net.Dial("tcp", …)`：无超时、不看 ctx，而它们在 `NewServer` 里是
+  **同步**调用——诱饵地址丢 SYN 时建栈主协程挂约 2 分钟，期间 Ctrl-C 与上层 cancel 全都无效
+  （域名还叠一轮不看 ctx 的 DNS）。同仓 `redirector.defaultDial` 早就改成 30s 超时了，这两处是漏网。
+  判据的形态值得照抄：不要去构造"连不上"（黑洞地址在 CI 上不可移植），而是拿一个**活着**的监听
+  当诱饵、配一个**已取消**的 ctx——不看 ctx 的旧实现照样连上并把探测判成通过，看了 ctx 的实现
+  必须立刻失败且错误文案指向这道探测（`strings.Contains(err, "invalid redirect address")`，
+  否则等于用后一步的副产物冒充判据）。见 `tunnel/trojan/misdirection_probe_test.go` 与
+  `tunnel/tls/fallback_probe_test.go`。
+- **池化负载的归还点要用账目核，但"看着漏还"要先确认变量到底赋值没有**（2026-10-19）。
+  `tproxy.packetDispatchLoop` 确实漏了两处：会话上限拒绝的 `continue`（**每丢一个包**永久离开池
+  一块 8KB，而丢弃速率等于新源地址到达速率、源地址可伪造，AGENTS.md 早就把"会话上限拒绝"列进
+  必须覆盖的丢包出口，dokodemo/socks 都做了，tproxy 是唯一违约方）和 `s.packetChan <- conn`
+  撞 `ctx.Done` 的 `return`（手里那条 info 已离开 packetQueue，`Close` 的排空够不着它）。
+  但同一份审计报告里的第三处——队列读的 `case <-s.ctx.Done(): return`——**核实不成立**：那是
+  `select { case info = <-s.packetQueue: … case <-ctx.Done(): return }`，走 ctx 分支时 `info`
+  还没被赋值，队列里剩下的由 `Close` 的排空负责；在这里补一句 `putPacketBuf(info.payload)`
+  不是修 bug，是造一个 nil 解引用或者双归还（后者比漏还严重：两个包共享同一块底层数组互相串数据）。
+  判据 `tunnel/tproxy/pool_account_test.go` 两条新增用例：上限分支用"灌满会话表 + 投 N 个新源地址
+  的包 + 拿已有会话的 input 当同步点"收成确定性的 N 块差额；关停分支把 `packetChan` 做成**无缓冲**
+  让发送必然阻塞，轮询到 mapping 出现那条会话再 cancel，这样判的是发送分支而不是队列读那条与取包
+  随机 select 的分支（拿后者当判据会偶发空转）。
+- **关停时"已建会话但还没交给下游"的分支要自己删表项**（2026-10-20）。`dokodemo` 与 `tproxy` 的
+  dispatch 在 `s.packetChan <- conn` 撞上 `ctx.Done` 时，负责 defer 删 mapping 的守护协程从没起来；
+  只 `conn.Close()` 会让 mapping 永久挂着一条已 Close 的死会话（两条队列 + 会话 ctx），Close 之后
+  仍被 Server 对象攥着。两处都在该分支的写锁内 `delete`。判据
+  `tunnel/dokodemo/shutdown_mapping_test.go` 与 tproxy 扩展后的
+  `TestPooledPayloadReturnedWhenDownstreamGone`：无缓冲 `packetChan` + 轮询到表项出现才 cancel；
+  去掉 delete，两条都在"关停后 mapping 还剩 1 条"处红，且 8KB 负载仍随 `conn.Close()` 的排空归还。
+  **判据别用包级借出计数的精确值跨用例量**：同包前一个用例的 dispatch/读泵若没等退出，会在下一条
+  用例中途归还手里的 buffer，把计数从 base 压到 -1（`-race` 全仓跑实测过）。tproxy 三个 dispatch
+  用例统一走 `startDispatch`/`stopDispatch`（cancel → 关 UDP 监听叫醒读泵 → `wg.Wait`），dokodemo
+  那条则改看会话自己的 `input` 队列长度（同步点 1 → 关停后 0），不碰全局计数。
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
