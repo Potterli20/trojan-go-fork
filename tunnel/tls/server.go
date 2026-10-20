@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -430,7 +429,15 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 			log.Warn("empty tls fallback address")
 		}
 		fallbackAddress = tunnel.NewAddressFromHostPort("tcp", cfg.TLS.FallbackHost, cfg.TLS.FallbackPort)
-		fallbackConn, err := net.Dial("tcp", fallbackAddress.String())
+		// 带超时且接 ctx 的探测拨号（口径同 redirector.defaultDial）：裸 net.Dial 在
+		// fallback 地址丢 SYN（黑洞 IP）时要挂满约 2 分钟才报错，而这是 NewServer 里的
+		// 同步调用——建栈的主协程被钉住期间 Ctrl-C 与上层 cancel 全都无效，域名还会再
+		// 叠一轮不看 ctx 的 DNS。
+		fallbackConn, err := common.Dial(ctx, common.DialConfig{
+			Network: "tcp",
+			Address: fallbackAddress.String(),
+			Timeout: 30 * time.Second,
+		})
 		if err != nil {
 			return nil, common.NewError("invalid fallback address").Base(err)
 		}

@@ -131,6 +131,30 @@ func TestTFODialTimeout(t *testing.T) {
 	t.Logf("Expected timeout error: %v", err)
 }
 
+// TestDialRetryWaitHonorsContext 钉住重试间隔对 ctx 的响应：ctx 已取消时，
+// Dial 不能在两次尝试之间白等满 RetryInterval（那段时间调用方卡在关停里）。
+// 判据取"总耗时"，不依赖具体错误文案：旧实现会睡 3×5s，新实现立即返回。
+func TestDialRetryWaitHonorsContext(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	cfg := DialConfig{
+		Network:       "tcp",
+		Address:       "127.0.0.1:1",
+		Timeout:       100 * time.Millisecond,
+		RetryCount:    3,
+		RetryInterval: 5 * time.Second,
+	}
+
+	start := time.Now()
+	if _, err := Dial(ctx, cfg); err == nil {
+		t.Fatal("ctx 已取消，Dial 却成功返回")
+	}
+	if elapsed := time.Since(start); elapsed > time.Second {
+		t.Fatalf("ctx 已取消，Dial 仍耗时 %s：重试间隔没有接 ctx", elapsed)
+	}
+}
+
 func TestTFOListenSuccess(t *testing.T) {
 	cfg := ListenConfig{
 		EnableTFO: true,

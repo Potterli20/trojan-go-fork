@@ -43,6 +43,32 @@ type Client struct {
 // 别当冗余代码删掉。
 var forwardHandshakeTimeout = 30 * time.Second
 
+// socksAssociateTimeout 覆盖 UDP ASSOCIATE 这一跳的整个握手：连上代理、方法与用户名
+// 口令协商、再把 ASSOCIATE 的应答读回来。
+//
+// 库（Potterli20/socks5-fork）只在 TCPTimeout != 0 时才 SetDeadline，而 DialPacket 过去
+// 传的是 0。代理受理 TCP 却不回握手字节（半死的上游链路正是这个形态）时 Negotiate/Request
+// 里的读永不返回，而调用方是 relay 的会话协程：一次撞死就永久占用一条协程加一个半开 socket，
+// Client.Close 的 cancel 叫不醒它——AGENTS.md 里 forwardDialer 那条修复只覆盖了 DialConn
+// 这个姊妹分支，DialPacket 漏了。
+//
+// 做成 var 是给判据留注入口（同 forwardHandshakeTimeout）。时限粒度是**秒**，因为库的
+// TCPTimeout 字段就是秒；换算见 socksTimeoutSeconds。
+var socksAssociateTimeout = 30 * time.Second
+
+// socksTimeoutSeconds 把 socksAssociateTimeout 换算成库要的整秒。向上取整：向下取整会把
+// 300ms 变成 0，而 0 在库里恰好是"不设截止"——判据缩小的时限会静默退回被测的那个缺陷。
+func socksTimeoutSeconds() int {
+	sec := int(socksAssociateTimeout / time.Second)
+	if socksAssociateTimeout%time.Second != 0 {
+		sec++
+	}
+	if sec < 1 {
+		sec = 1
+	}
+	return sec
+}
+
 // forwardDialer 给 x/net/proxy 补上它自己没有的两件事：把"连代理"这一跳接回
 // c.ctx（域名代理地址的 DNS 解析也一并接回去），以及给紧随其后的 SOCKS 握手挂一个
 // 截止时间。x/net 的 socks 实现对这个 conn 是裸 read/write，所以整体截止就是它的
@@ -179,7 +205,10 @@ func (c *Client) DialConnDirect(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.C
 
 func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	if c.forwardProxy {
-		socksClient, err := socks5.NewClient(c.proxyAddr.String(), c.username, c.password, 0, 0)
+		// udpTimeout 留 0：库里的 UDPTimeout 只作用于 Client.Read/Write/SetDeadline，
+		// 而本层的 UDP 负载走的是 SocksPacketConn 自己那块 PacketConn，不经过这个 Client，
+		// 给它加截止只会让 Close 路径上的行为更难推断。
+		socksClient, err := socks5.NewClient(c.proxyAddr.String(), c.username, c.password, socksTimeoutSeconds(), 0)
 		if err != nil {
 			return nil, common.NewError("freedom failed to create socks client").Base(err)
 		}

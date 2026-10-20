@@ -492,7 +492,15 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	}
 
 	if !cfg.DisableHTTPCheck {
-		redirConn, err := net.Dial("tcp", redirAddr.String())
+		// 带超时且接 ctx 的探测拨号（口径同 redirector.defaultDial）：裸 net.Dial 在
+		// 诱饵地址丢 SYN（黑洞 IP）时要挂满约 2 分钟才报错，而这是 NewServer 里的同步
+		// 调用——建栈的主协程被钉住期间 Ctrl-C 与上层 cancel 全都无效，域名还会再叠一轮
+		// 不看 ctx 的 DNS。这里的 ctx 已经是上面 WithCancel 派生出来的那一个。
+		redirConn, err := common.Dial(ctx, common.DialConfig{
+			Network: "tcp",
+			Address: redirAddr.String(),
+			Timeout: 30 * time.Second,
+		})
 		if err != nil {
 			cancel()
 			releaseAuth(ref)

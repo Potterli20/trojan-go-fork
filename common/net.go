@@ -146,7 +146,16 @@ func Dial(ctx context.Context, cfg DialConfig) (net.Conn, error) {
 
 	for attempt := 0; attempt <= cfg.RetryCount; attempt++ {
 		if attempt > 0 {
-			time.Sleep(cfg.RetryInterval)
+			// 重试间隔也要接 ctx：Dial 是关停路径的一部分（freedom 的 forward-proxy
+			// 拨号绑的是会话 ctx），裸 Sleep 会让一次取消最多白等一个 RetryInterval，
+			// 而这期间调用方要么卡在自己的 Close 里，要么只能靠外层兜底。
+			timer := time.NewTimer(cfg.RetryInterval)
+			select {
+			case <-ctx.Done():
+				timer.Stop()
+				return nil, fmt.Errorf("dial cancelled: %w", ctx.Err())
+			case <-timer.C:
+			}
 		}
 
 		if cfg.EnableTFO {
