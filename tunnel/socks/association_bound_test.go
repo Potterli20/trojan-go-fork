@@ -54,14 +54,13 @@ func (c *stubAssocConn) Metadata() *tunnel.Metadata       { return nil }
 // 这里是「新增同类表照这个形态抄」那条不变量漏掉的姊妹表。
 // 判据形态同 TestUDPSessionCountIsBounded：闸门卡在登记之前，且拒绝时不留残留。
 func TestAssociationCountIsBounded(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	s := &Server{
 		ctx:          ctx,
 		associations: make(map[tunnel.Conn]struct{}, maxAssociations+1),
 	}
-	for i := 0; i < maxAssociations; i++ {
+	for range maxAssociations {
 		s.associations[newStubAssocConn()] = struct{}{}
 	}
 
