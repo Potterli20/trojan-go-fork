@@ -41,15 +41,31 @@ func (s *Server) dispatchLoop() {
 	}
 	buf := make([]byte, MaxPacketSize)
 	limitDrops := 0 // 会话上限丢弃计数，只用于日志限流
+	readErrors := 0 // 连续读错误计数，同样只用于日志限流
 	for {
 		n, addr, err := s.udpListener.ReadFrom(buf)
 		if err != nil {
 			// 同 tls/server.go：不能用 select/default 判断关闭（default 恒就绪会被随机选中）
-			if s.ctx.Err() == nil {
-				log.Error(common.NewError("dokodemo failed to read from udp socket").Base(err))
+			if s.ctx.Err() != nil {
+				return
 			}
-			return
+			// 不能直接 return：一次瞬时读错误（部分平台会把 ICMP 相关错误冒到
+			// PacketConn 上）就会让 dokodemo 的 UDP 转发永久停摆，直到进程重启。
+			// 退避 100ms 后重试，日志按 10 次限流（口径同 socks/tproxy 的同型循环）。
+			readErrors++
+			if readErrors%10 == 0 {
+				log.Error(common.NewError("dokodemo failed to read from udp socket").Base(err))
+			} else if log.ShouldLog(log.DebugLevel) {
+				log.Debug(common.NewError("dokodemo udp read error").Base(err))
+			}
+			select {
+			case <-s.ctx.Done():
+				return
+			case <-time.After(100 * time.Millisecond):
+			}
+			continue
 		}
+		readErrors = 0
 		log.Debug("udp packet from", addr)
 		// 从池里借一块装这个包的负载；借用权随 input 队列交给会话，最后由
 		// ReadWithMetadata 归还，或会话被拆时由 Close 的排空归还。

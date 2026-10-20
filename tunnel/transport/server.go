@@ -29,9 +29,16 @@ type Server struct {
 	wsChan      chan tunnel.Conn
 	httpLock    sync.RWMutex
 	nextHTTP    bool
-	ctx         context.Context
-	cancel      context.CancelFunc
-	wg          sync.WaitGroup
+	// directConsumer 表示是否有非 websocket 的下游在消费 connChan（tls 或 trojan）。
+	// 只在 AcceptConn 里按 overlay 名字登记。为什么需要：明文插件 + websocket 的栈是
+	// `transport → websocket → trojan`，此时 connChan **没有任何消费者**；旧实现在
+	// 嗅探失败时一律把连接投进 connChan，32 条之后每个新连接都卡在发送上，协程与 fd
+	// 随扫描流量无界堆积，直到 Server 关停才释放。这种栈里垃圾连接应该交给
+	// websocket 的 fallback（它会重放字节并重定向到诱饵）。
+	directConsumer bool
+	ctx            context.Context
+	cancel         context.CancelFunc
+	wg             sync.WaitGroup
 	// closeOnce/closeErr：服务端栈里多个端点会共用同一个 transport 实例
 	// （tls 层之下），Close 因此可能被调用多次。整个关闭流程只跑一次，
 	// 后续调用复用首次结果。
@@ -101,6 +108,7 @@ func (s *Server) handleConnection(tcpConn net.Conn) {
 	log.Debug("tcp connection from", tcpConn.RemoteAddr())
 	s.httpLock.RLock()
 	isHTTP := s.nextHTTP
+	directConsumer := s.directConsumer
 	s.httpLock.RUnlock()
 
 	if isHTTP { // plaintext mode enabled
@@ -118,24 +126,29 @@ func (s *Server) handleConnection(tcpConn net.Conn) {
 		rewindConn.StopBuffering()
 		// 连接即将移交下游长期使用，必须解除截止时间
 		tcpConn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+
+		// 目的通道按"谁在消费"决定：有非 websocket 下游（tls/trojan）时，解析失败
+		// 的字节交给它继续解析；只有 websocket 在消费时（明文插件 + websocket 栈）
+		// 必须交给 wsChan——投进无人读取的 connChan 会让 handler 在 32 条之后永久
+		// 阻塞，扫描流量即可把协程和 fd 堆起来。websocket 收到非 HTTP 字节会重放后
+		// 走诱饵重定向，正是这条流量的归宿。
+		target := s.wsChan
 		if err != nil {
 			log.Debug("failed to parse http request, treating as trojan connection:", err)
-			select {
-			case s.connChan <- &Conn{
-				Conn: rewindConn,
-			}:
-			case <-s.ctx.Done():
-				rewindConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			if directConsumer {
+				target = s.connChan
+			} else {
+				log.Debug("no direct consumer for a non-http connection, passing it to the websocket fallback")
 			}
 		} else {
 			log.Debug("plaintext http request: ", httpReq)
-			select {
-			case s.wsChan <- &Conn{
-				Conn: rewindConn,
-			}:
-			case <-s.ctx.Done():
-				rewindConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-			}
+		}
+		select {
+		case target <- &Conn{
+			Conn: rewindConn,
+		}:
+		case <-s.ctx.Done():
+			rewindConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		}
 	} else {
 		select {
@@ -163,6 +176,11 @@ func (s *Server) AcceptConn(overlay tunnel.Tunnel) (tunnel.Conn, error) {
 			return nil, common.NewError("transport server closed")
 		}
 	}
+	// 非 websocket 下游（tls/trojan，或 custom 栈里的 nil overlay）：connChan 有人
+	// 消费，嗅探失败的非 HTTP 连接应继续交给它解析。
+	s.httpLock.Lock()
+	s.directConsumer = true
+	s.httpLock.Unlock()
 	select {
 	case conn := <-s.connChan:
 		return conn, nil

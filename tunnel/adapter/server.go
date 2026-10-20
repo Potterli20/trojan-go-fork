@@ -49,46 +49,56 @@ func (s *Server) acceptConnLoop() {
 			}
 			continue
 		}
-		rewindConn := common.NewRewindConn(conn)
-		rewindConn.SetBufferSize(16)
-		// 对端静默时不设截止时间会让 accept 循环永久阻塞，Close() 的 wg.Wait() 随之挂起
-		rewindConn.SetReadDeadline(time.Now().Add(firstByteTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-		buf := [3]byte{}
-		_, err = rewindConn.Read(buf[:])
-		rewindConn.Rewind()
-		rewindConn.StopBuffering()
-		rewindConn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-		if err != nil {
-			log.Error(common.NewError("failed to detect proxy protocol type").Base(err))
-			rewindConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-			continue
-		}
-		s.socksLock.RLock()
-		isSocks := buf[0] == 5 && s.nextSocks
-		s.socksLock.RUnlock()
+		// 嗅探必须放独立 goroutine：它要等对端发够首字节，而 Accept 是串行的。
+		// 旧写法把 Read 直接写在循环体里，对端只连接不发数据就能让整个 socks/http
+		// 入口停止接纳新连接，最长 firstByteTimeout(10s)——一个慢速扫描器就能做到。
+		s.wg.Go(func() {
+			s.sniffConn(conn)
+		})
+	}
+}
 
-		freedomConn := &freedom.Conn{
-			Conn: rewindConn,
-		}
+// sniffConn 读走前几个字节判断协议，再把连接投递给对应的下游。
+func (s *Server) sniffConn(conn net.Conn) {
+	rewindConn := common.NewRewindConn(conn)
+	rewindConn.SetBufferSize(16)
+	// 对端静默时不设截止时间会让这条嗅探永久阻塞，Close() 的 wg.Wait() 随之挂起
+	rewindConn.SetReadDeadline(time.Now().Add(firstByteTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	buf := [3]byte{}
+	_, err := rewindConn.Read(buf[:])
+	rewindConn.Rewind()
+	rewindConn.StopBuffering()
+	rewindConn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	if err != nil {
+		log.Error(common.NewError("failed to detect proxy protocol type").Base(err))
+		rewindConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		return
+	}
+	s.socksLock.RLock()
+	isSocks := buf[0] == 5 && s.nextSocks
+	s.socksLock.RUnlock()
 
-		if isSocks {
-			log.Debug("socks5 connection")
-			select {
-			case s.socksConn <- freedomConn:
-			case <-s.ctx.Done():
-				freedomConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-				log.Debug("exiting")
-				return
-			}
-		} else {
-			log.Debug("http connection")
-			select {
-			case s.httpConn <- freedomConn:
-			case <-s.ctx.Done():
-				freedomConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-				log.Debug("exiting")
-				return
-			}
+	freedomConn := &freedom.Conn{
+		Conn: rewindConn,
+	}
+
+	if isSocks {
+		log.Debug("socks5 connection")
+		select {
+		case s.socksConn <- freedomConn:
+		case <-s.ctx.Done():
+			freedomConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			log.Debug("exiting")
+			return
+		}
+	} else {
+		log.Debug("http connection")
+		select {
+		case s.httpConn <- freedomConn:
+		case <-s.ctx.Done():
+			freedomConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			log.Debug("exiting")
+			return
 		}
 	}
 }

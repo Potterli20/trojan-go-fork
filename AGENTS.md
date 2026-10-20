@@ -116,6 +116,17 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   `tunnel.AcceptConnGuarded` 补上这道边界（见下面那条）。
   现在写成 `defer` + `handedOff` 标志，判据 `tunnel/websocket/handshake_panic_test.go`，注入点
   是 `var acceptHandshake`（同 `var dialUDP`，别当冗余删）。
+- **入站的串行嗅探必须挪进 per-conn 协程**（2026-10-20）。`tunnel/adapter` 的 `acceptConnLoop`
+  过去在循环体里读前 3 字节判 socks/http，一条只连接不发数据的对端就能让整个入口停摆满
+  `firstByteTimeout(10s)`，慢速扫描即可让 socks/http 不可用。现在循环只做 `Accept`，嗅探交给
+  `s.wg.Go(sniffConn)`；判据 `tunnel/adapter/sniff_parallel_test.go`（先挂静默连接、再发完整
+  SOCKS5 握手，必须在 2s 内被接走；退回串行立刻红）。
+- **`transport` 嗅探失败后的去向要看有没有直接消费者**（2026-10-20）。明文插件 + websocket 的栈是
+  `transport → websocket → trojan`，`connChan` 没有消费者，旧实现把非 HTTP 连接一律投进
+  `connChan`，32 条填满后每个新连接都卡在发送上（协程 + fd 随扫描流量堆积）。现在 `AcceptConn`
+  按 overlay 登记 `directConsumer`（tls/trojan 消费时置位）：有就直接投 `connChan`，没有就交给
+  `wsChan` 让 websocket 重放后走诱饵重定向。判据 `tunnel/transport/fallback_route_test.go`
+  （无直接消费者 → wsChan；有 → connChan，正反两条）。
 - **accept 路径必须有 panic 边界，而且被收住之后要当成"这一层还活着"**（2026-10-17）。全仓原本只有
   mux/tls/trojan 三处 `recover()`，且都在 **per-conn handler 的 goroutine 里**；各入站的 `acceptLoop`
   却把 `s.underlay.AcceptConn(&Tunnel{})` 写在**循环体**里，而下层解析的是**未认证对端可控字节**
@@ -374,6 +385,11 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   用例中途归还手里的 buffer，把计数从 base 压到 -1（`-race` 全仓跑实测过）。tproxy 三个 dispatch
   用例统一走 `startDispatch`/`stopDispatch`（cancel → 关 UDP 监听叫醒读泵 → `wg.Wait`），dokodemo
   那条则改看会话自己的 `input` 队列长度（同步点 1 → 关停后 0），不碰全局计数。
+- **UDP dispatch 的读错误出口是退避重试，不是 return**（2026-10-20）。`dokodemo` 旧实现遇到任何
+  `ReadFrom` 错误就返回，一次瞬时错误（部分平台会把 ICMP 相关错误冒到 `PacketConn` 上）就让 UDP
+  转发永久停摆，直到重启进程；`socks`/`tproxy` 的同型循环早就是 100ms 退避 + 日志限流，现在三处
+  一致。判据 `tunnel/dokodemo/read_error_test.go`（首次读失败、随后必须仍有包被投递出来；退回
+  `return` 实测在 2s 处转红）。
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
