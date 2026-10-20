@@ -108,6 +108,11 @@ func Add(hash string, clientAddr, targetAddr net.Addr, transport string, payload
 
 // Subscribe 登记一个尾随订阅者，返回它的记录通道。超出 maxSubscribers 时返回错误，
 // 调用方必须把错误如实上报（不要退化成一个永远收不到记录的通道）。
+//
+// 同一 uid 重复订阅同样返回错误，而不是就地替换：旧实现用 Swap 换掉表项，旧通道
+// 再没有任何人关闭，原调用方会永久阻塞在接收上（通道不关 = 等不到零值/ok=false），
+// 而它还占着一条自己的 goroutine 与缓冲。唯一的生产调用方（api/service 的
+// GetRecords）每条流现生成 UUID，正常情况下不会撞上这里。
 func Subscribe(uid string, transport, targetPort string, includePayload bool) (chan Record, error) {
 	subscribeMu.Lock()
 	defer subscribeMu.Unlock()
@@ -122,9 +127,11 @@ func Subscribe(uid string, transport, targetPort string, includePayload bool) (c
 		targetPort:     targetPort,
 		includePayload: includePayload,
 	}
-	if _, loaded := subscribers.Swap(uid, opt); !loaded {
-		subscriberCount.Add(1)
+	if _, loaded := subscribers.LoadOrStore(uid, opt); loaded {
+		log.Warn("recorder subscriber already exists, rejecting", uid)
+		return nil, common.NewError("recorder subscriber already exists")
 	}
+	subscriberCount.Add(1)
 	return opt.recordChan, nil
 }
 

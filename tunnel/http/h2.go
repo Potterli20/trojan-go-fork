@@ -190,6 +190,13 @@ func (h *h2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		if err := r.Write(reqWriter); err != nil {
 			log.Error(common.NewError("http2 failed to write request downstream").Base(err))
+			// 客户端中途放弃（RST_STREAM/断连）或读请求体失败时，relay 还堵在
+			// reqReader.Read 上。这里不关管道，那条会话的两个中继协程、两组管道与
+			// ctx 就一直留到整个 Server 关停——h2 的流可能每秒建几十条，而
+			// ServeHTTP 后面还阻塞在读响应上，defer stream.Close() 永远轮不到。
+			// 只关写端（带原因）而不是整条 stream：成功路径上不能发 EOF，那会触发
+			// relay「任一方向结束就拆会话」把在途响应砍断。
+			reqWriter.CloseWithError(err) //gosec:disable -- 错误忽略：管道已关时该调用无副作用
 		}
 	}()
 

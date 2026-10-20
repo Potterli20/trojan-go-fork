@@ -40,7 +40,8 @@ func BenchmarkAddressReadFromDomain(b *testing.B) {
 		}
 	}
 	if a.DomainName != "www.example.com" || a.Port != 443 {
-		b.Fatalf("解析结果不对: %v", a)
+		// 传指针：Address 内嵌 sync.Mutex，按值塞进接口会被 go vet 判 copylocks
+		b.Fatalf("解析结果不对: %v", &a)
 	}
 }
 
@@ -60,6 +61,6 @@ func BenchmarkAddressReadFromIPv4(b *testing.B) {
 		}
 	}
 	if a.Port != 443 {
-		b.Fatalf("解析结果不对: %v", a)
+		b.Fatalf("解析结果不对: %v", &a)
 	}
 }

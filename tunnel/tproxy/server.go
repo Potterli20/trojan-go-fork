@@ -233,6 +233,12 @@ func (s *Server) packetDispatchLoop() {
 			if len(s.mapping) >= maxUDPSessions {
 				s.mappingLock.Unlock()
 				cancel()
+				// 借出的负载就地还回去：AGENTS.md 要求"归还点覆盖所有丢包出口（含会话
+				// 上限拒绝）"，dokodemo 与 socks 都做了，这一条漏了。漏它不是"少复用一点"
+				// 而是**每包**永久离开池一块 8KB——闸门后面的丢弃速率等于新源地址到达
+				// 速率，而源地址可伪造，于是池被抽干、之后每个包都重新 make 8KB。
+				// info 不在任何队列里（会话没建、input 没投），Close 的排空够不着它。
+				putPacketBuf(info.payload)
 				// 限流：到上限之后这条路径的速率就等于**新源地址到达速率**，而源地址可
 				// 伪造，每丢一包打一条 Error 就是把日志变成攻击面（口径同 tunnel/socks）。
 				limitDrops++
@@ -259,8 +265,16 @@ func (s *Server) packetDispatchLoop() {
 			select {
 			case s.packetChan <- conn:
 			case <-s.ctx.Done():
-				// 下游已停止消费，关闭会话并退出，否则 Close() 的 wg.Wait() 死锁
+				// 下游已停止消费，关闭会话并退出，否则 Close() 的 wg.Wait 死锁。
+				// 守护协程从没起来，表项只能在这里删；否则 mapping 永久挂着一条
+				// 已 Close 的会话（携带两条队列与 ctx），Close 之后仍不释放。
+				s.mappingLock.Lock()
+				delete(s.mapping, srcKey)
+				s.mappingLock.Unlock()
 				conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+				// 手上这条 info 已经从 packetQueue 取走了，Close 的排空只覆盖队列里
+				// 没取走的，所以这一块必须自己还（口径同上面的会话上限分支）
+				putPacketBuf(info.payload)
 				return
 			}
 

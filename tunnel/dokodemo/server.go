@@ -107,7 +107,12 @@ func (s *Server) dispatchLoop() {
 		select {
 		case s.packetChan <- conn:
 		case <-s.ctx.Done():
-			// 下游已停止消费，退出以免 Close() 的 wg.Wait() 死锁
+			// 下游已停止消费，退出以免 Close() 的 wg.Wait() 死锁。
+			// 这条会话的守护协程从没起来，删表只能由这里做：否则 mapping 里
+			// 永久留一条已 Close 的死表项，Close 之后 Server 对象仍被它攥着。
+			s.mappingLock.Lock()
+			delete(s.mapping, addrKey)
+			s.mappingLock.Unlock()
 			conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			return
 		}

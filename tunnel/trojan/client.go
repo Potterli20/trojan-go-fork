@@ -99,6 +99,11 @@ func (c *OutboundConn) Write(p []byte) (int, error) {
 		return 0, common.NewError("trojan failed to flush header with payload").Base(err)
 	}
 	if written {
+		// 首个负载是跟帧头合成一次 Write 发出去的，同样要计流量。旧实现在这里直接
+		// return len(p)：每条连接的首块（最多一个 relay buffer，8KB）既不计入用户
+		// 流量/限速，也不计入 tracker 的 sent，统计与限速会系统性偏低。
+		c.user.AddSentTraffic(len(p))
+		c.sent.Add(uint64(len(p)))
 		return len(p), nil
 	}
 	n, err := c.Conn.Write(p)
