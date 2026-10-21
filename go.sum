@@ -4,10 +4,10 @@ github.com/HyNetworks/quic-go v0.63.1-0.20261004180939-a10df75c260c h1:spAvK8Tcu
 github.com/HyNetworks/quic-go v0.63.1-0.20261004180939-a10df75c260c/go.mod h1:J7UZVOMF2M1LiE3iiUZWPuy8YCPAcLJOwVURrfJCvc0=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261009220355-dfd95367d331 h1:4q4/NrBlmIuAM3QqHEjrGSOzvb19I5RYmnNtl45aXVE=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261009220355-dfd95367d331/go.mod h1:cmWbxmkh+Idfsq6Q9n7V36aa91JucBaXxwDMgfnWwUo=
-github.com/Potterli20/socks5-fork v0.0.0-20261021113232-ced0d5382cc3 h1:tgtCYSBXVpry5qRICqJ7/HJmtuBLc091QHz49xzOEEs=
-github.com/Potterli20/socks5-fork v0.0.0-20261021113232-ced0d5382cc3/go.mod h1:OgXAFmeCEcp0xGkpakZzAxL+Sd6A5vJzEw/CazqfbYg=
-github.com/Potterli20/sqlite v0.0.0-20261021141132-2dc25a37f579 h1:DClSwhq5ZALfW4No5iJCwnoSvmDYz/ogldvhAK55I+s=
-github.com/Potterli20/sqlite v0.0.0-20261021141132-2dc25a37f579/go.mod h1:amNGudCniNM14YQt1l6VI7W+bmZSNgVCx7FiNhgsN7s=
+github.com/Potterli20/socks5-fork v0.0.0-20261021165909-351a1414be75 h1:3fsJtT690qOjcHvgo7spBA3ZVhiES+9XT28XJzgoov0=
+github.com/Potterli20/socks5-fork v0.0.0-20261021165909-351a1414be75/go.mod h1:T97VRhfyLM64sgCm+soTZ1ZfJ8R3xF+SrdChQXEXbA8=
+github.com/Potterli20/sqlite v0.0.0-20261021190028-9d4670cbe322 h1:ZKxpdnvI9iR0ErtaUFe+ob4b50Z0c3aL75weWfmJ2Os=
+github.com/Potterli20/sqlite v0.0.0-20261021190028-9d4670cbe322/go.mod h1:amNGudCniNM14YQt1l6VI7W+bmZSNgVCx7FiNhgsN7s=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
