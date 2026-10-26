@@ -95,6 +95,12 @@ func init() {
 						}
 						root.Server = s
 					} else {
+						// 只支持一棵以首个 path 的首个 tag 为根的树（FindAllEndpoints 只从
+						// 一个 root 遍历）。后续 path 若以别的节点开头，静默接到 root 上会
+						// 丢配置、错配链路，直接报错。
+						if nodes[tag] != root {
+							return nil, common.NewError("only the first path may define the root; this path starts with a different tag: " + tag)
+						}
 						lastNode = root
 					}
 				} else {

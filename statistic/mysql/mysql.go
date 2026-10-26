@@ -100,9 +100,9 @@ func (a *Authenticator) updater() {
 	}
 }
 
-// syncUsers 将内存中的流量增量写入数据库，并从数据库同步用户列表到内存。
-// 查询中途出错时直接放弃本轮同步：userMap 不完整，据此清理会误删合法用户。
-func (a *Authenticator) syncUsers() {
+// writeBackTraffic 把内存中自上次同步以来的流量增量写回 users 表。
+// syncUsers 的前半段与关停前的最终 flush 都走它（口径只有一处，避免分叉）。
+func (a *Authenticator) writeBackTraffic() {
 	for _, user := range a.ListUsers() {
 		// swap upload and download for users
 		hash := user.GetHash()
@@ -121,8 +121,14 @@ func (a *Authenticator) syncUsers() {
 		// `r != 1` 判定“该用户已从库中删除”，于是每一个空闲用户都会在每轮同步里被
 		// DelUser 一次——连同它的限速器与 IP 表一并 Close，而活跃连接手里的旧 User
 		// 指针仍在记账，却已不在 users 表中，那段流量再也写不回库。
-		// 库侧用户的增减由下面“DB→内存”的同步统一处理，这里不需要也不应该删。
+		// 库侧用户的增减由 syncUsers 后半段“DB→内存”的同步统一处理，这里不删。
 	}
+}
+
+// syncUsers 将内存中的流量增量写入数据库，并从数据库同步用户列表到内存。
+// 查询中途出错时直接放弃本轮同步：userMap 不完整，据此清理会误删合法用户。
+func (a *Authenticator) syncUsers() {
+	a.writeBackTraffic()
 	log.Info("buffered data has been written into the database")
 
 	// update memory
@@ -177,6 +183,11 @@ func (a *Authenticator) Close() error {
 	// 顺序至关重要：必须先停本层 updater 再关内层 memory 认证器。
 	// 若先关用户，ResetTraffic 清零后仍在运行的 updater 会把下溢值写进数据库；
 	// 且 updater 每轮都会撞上这种脏数据。
+	// cancel 之前必须先做一次最终 flush：cancel 之后 updater 退出，而内层
+	// memory.Close 的“关停最终 flush”只在配了 sqlite（pst != nil）时才跑，mysql
+	// 路径会被整段跳过；紧接着 users.Range(Close) 里的 ResetTraffic 会把最后一轮的
+	// 增量清零——不在这里写回，这段流量（最多一个 check_rate 周期）就永久消失。
+	a.writeBackTraffic()
 	a.cancel()
 	a.wg.Wait()
 	if err := a.Authenticator.Close(); err != nil {

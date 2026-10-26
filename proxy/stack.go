@@ -3,6 +3,7 @@ package proxy
 import (
 	"context"
 
+	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
@@ -43,6 +44,13 @@ func (n *Node) LinkNextNode(next *Node) (*Node, error) {
 		return found, nil
 	}
 	n.Next[next.Name] = next
+	if next.Server != nil {
+		// 同一个节点被链到第二个父下面：覆盖 Server 会把第一条链路的 underlay 换成
+		// 新父（静默错配），而且该节点会被 FindAllEndpoints 收集两次、起两个 relay
+		// 接受循环。拒绝而不是重写——配置里出现这种情况应当显式报错。
+		delete(n.Next, next.Name)
+		return nil, common.NewError("node is already linked to another parent: " + next.Name)
+	}
 	t, err := tunnel.GetTunnel(next.Name)
 	if err != nil {
 		delete(n.Next, next.Name)
