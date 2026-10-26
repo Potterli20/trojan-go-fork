@@ -56,6 +56,9 @@ type User struct {
 	ctx           context.Context
 	wg            sync.WaitGroup
 	cancel        context.CancelFunc
+	// expire 是到期时间（Unix 秒，<= 0 = 永不过期）。只有从持久化后端装载的用户会带值，
+	// 配置里的内存用户恒为 0。用 atomic：装载时写一次，AuthUser 并发读。
+	expire atomic.Int64
 }
 
 func (u *User) Close() error {
@@ -159,8 +162,21 @@ func (u *User) setIPLimit(n int) {
 
 func (u *User) setPassword(pwd string) {
 	u.passLock.Lock()
-	defer u.passLock.Unlock()
 	u.password = pwd
+	u.passLock.Unlock()
+}
+
+func (u *User) setExpire(expire int64) {
+	u.expire.Store(expire)
+}
+
+func (u *User) GetExpire() int64 {
+	return u.expire.Load()
+}
+
+// isExpired 判定到期；expire <= 0 表示永不过期（与 MySQL 端 users.expire 的语义一致）。
+func isExpired(expire int64) bool {
+	return expire > 0 && time.Now().Unix() >= expire
 }
 
 func (u *User) GetIPLimit() int {
@@ -540,7 +556,13 @@ type Authenticator struct {
 
 func (a *Authenticator) AuthUser(hash string) (bool, statistic.User) {
 	if user, found := a.users.Load(hash); found {
-		return true, user.(*User)
+		u := user.(*User)
+		// 到期即拒绝认证。不在这里 DelUser：对 SQLite 后端，DelUser 会连数据库里的
+		// 那一行一起删掉，而“到期”不等于“删除”，管理员续期还要用这行。
+		if isExpired(u.GetExpire()) {
+			return false, nil
+		}
+		return true, u
 	}
 	return false, nil
 }
@@ -550,6 +572,9 @@ func (a *Authenticator) AuthUserWithPassword(password string) (bool, statistic.U
 	found := false
 	a.users.Range(func(k, v any) bool {
 		user := v.(*User)
+		if isExpired(user.GetExpire()) {
+			return true
+		}
 		if common.CheckPasswordHash(password, user.Hash) {
 			foundUser = user
 			found = true
@@ -798,6 +823,7 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 			user.SetSpeedLimit(u.GetSpeedLimit())
 			user.setTraffic(u.GetTraffic())
 			user.setPassword(u.GetKeyShare())
+			user.setExpire(u.GetExpire())
 			user.wg.Go(func() {
 				user.speedUpdater()
 			})

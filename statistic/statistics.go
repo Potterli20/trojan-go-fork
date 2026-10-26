@@ -18,6 +18,9 @@ type Metadata interface {
 	GetTraffic() (sent, recv uint64)
 	GetSpeedLimit() (sent, recv int)
 	GetIPLimit() int
+	// GetExpire 返回到期时间（Unix 秒，<= 0 表示永不过期）。持久化后端用它把
+	// “按时到期”带给内存认证器；配置里的内存用户恒为 0。
+	GetExpire() int64
 }
 
 type TrafficMeter interface {

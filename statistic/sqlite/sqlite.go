@@ -50,6 +50,7 @@ func (p *Persistencer) SaveUser(u statistic.Metadata) error {
 		Password:  u.GetKeyShare(),
 		SendLimit: ls,
 		RecvLimit: lr,
+		Expire:    u.GetExpire(),
 		Sent:      make([]byte, 8),
 		Recv:      make([]byte, 8),
 	}

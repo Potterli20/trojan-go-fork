@@ -13,6 +13,9 @@ type User struct {
 	Password  string
 	SendLimit int
 	RecvLimit int
+	// Expire 是到期时间（Unix 秒，<= 0 表示永不过期）。语义与 MySQL 后端的
+	// users.expire 一致；gorm 的 AutoMigrate 会为新库和已有库补上这一列。
+	Expire int64
 }
 
 func (u *User) setSent(sent uint64) {
@@ -43,6 +46,10 @@ func (u *User) GetSpeedLimit() (sent, recv int) {
 
 func (u *User) GetIPLimit() int {
 	return u.MaxIPNum
+}
+
+func (u *User) GetExpire() int64 {
+	return u.Expire
 }
 
 func (u *User) GetKeyShare() string {

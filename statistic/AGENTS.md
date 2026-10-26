@@ -67,6 +67,11 @@ so a zero-increment user reports 0 and would be wrongly dropped every cycle.
 - Hash format = SHA224 hex (56 chars), lowercase. Mismatched case = auth fail.
 - `IPLimit=0` means unlimited. `SpeedLimit=0` means unlimited.
 - Traffic counters are monotonic bytes. Rate is a windowed derivative.
+- Expiry (`expire`, Unix seconds, `0` = never) comes from the persistence backends and is surfaced
+  through `statistic.Metadata.GetExpire`: **mysql** drops expired users during each sync round
+  (same exit as `quota` exhaustion); **sqlite** refuses them in `AuthUser` but keeps the row
+  (expiry ≠ deletion — renewals still need it). In-memory users (config `password` array) are
+  always `0`, i.e. permanent.
 
 ## 启动期与运行时校验
 

@@ -524,7 +524,8 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
 服务端用户默认只存在内存里（顶层 `password` 数组），进程重启即丢流量计数。两种落盘方式：
 
 - **SQLite**：顶层给一枚 `sqlite` 路径即可，没有独立配置节。仅 linux amd64/386/arm/arm64
-  有实现，其它平台在启动期直接失败而不是静默降级。不需要额外 build tag。
+  有实现，其它平台在启动期直接失败而不是静默降级。不需要额外 build tag。表的 `expire` 列
+  （Unix 秒，0 = 永不过期）由 AutoMigrate 自动补上，装载时判定；改完库里的值要重启后端才生效。
 - **MySQL**：`mysql.enabled: true` 后 trojan 入站改用 MySQL 认证器，按 `check_rate` 秒与
   `users` 表双向同步。启动时会**幂等建表并给旧表自动补列**（缺 `maxip` / `expire` 都能补上），
   表结构为 `username,password,quota,download,upload,maxip,expire` 七列：
