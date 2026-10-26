@@ -121,43 +121,60 @@ func (c *SocksPacketConn) WriteWithMetadata(payload []byte, metadata *tunnel.Met
 func (c *SocksPacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadata, error) {
 	buf := getSocksPacketBuf()
 	defer putSocksPacketBuf(buf)
-	// 读侧只用前 MaxPacketSize 字节：缓冲为写出方向的组帧留了 headroom，这里不能顺带
-	// 把它抬高，否则内核在这一跳截断的语义就变了（见 socksFrameBufCap）。
-	n, from, err := c.PacketConn.ReadFrom(buf[:MaxPacketSize])
-	if err != nil {
-		return 0, nil, err
+	for {
+		// 读侧只用前 MaxPacketSize 字节：缓冲为写出方向的组帧留了 headroom，这里不能顺带
+		// 把它抬高，否则内核在这一跳截断的语义就变了（见 socksFrameBufCap）。
+		n, from, err := c.PacketConn.ReadFrom(buf[:MaxPacketSize])
+		if err != nil {
+			return 0, nil, err
+		}
+		// 只接受来自代理 UDP relay 端点的数据报。这个 socket 绑在 0.0.0.0 的随机端口上，
+		// 不校验来源的话，任何能观测到该端口的主机都能注入伪造的「源地址 + 负载」，客户端
+		// 会把它当成代理的响应交给上层应用（对 DNS 就是投毒）。socksAddr 由 ASSOCIATE
+		// 响应解析而来、0.0.0.0 已换成代理真实 IP；为空（不该发生）时退回旧行为、不校验。
+		if c.socksAddr != nil {
+			u, ok := from.(*net.UDPAddr)
+			if !ok || u.Port != c.socksAddr.Port || !u.IP.Equal(c.socksAddr.IP) {
+				if log.ShouldLog(log.DebugLevel) {
+					log.Debug("dropping udp packet from unexpected source " + from.String() + ", want " + c.socksAddr.String())
+				}
+				continue
+			}
+		}
+		if log.ShouldLog(log.DebugLevel) {
+			log.Debug("recv udp packet from " + from.String())
+		}
+		addr := new(tunnel.Address)
+		// 分片头固定 3 字节，其后至少还要有 1 字节 ATYP 才谈得上一个合法地址字段。
+		// 短于此必须先拒掉：buf[3:n] 在 n<3 时直接切片越界 panic，而这一层的对端是
+		// UDP——任何能往这个 bind 端口投包的人都能把整个进程崩掉，relay 这条链上没有
+		// recover（只有 mux/tls/trojan 三处有）。
+		if n < 4 {
+			return 0, nil, common.NewError("socks5 udp packet shorter than the fragment header")
+		}
+		// 注意这里的别名关系：r 直接持有**池化 buf** 的切片，而上面 defer 会在本函数返回时
+		// 把它归还进池。之所以安全，是因为 Address.ReadFrom 只把字节读进本地数组、域名
+		// 走 string() 复制，解析结果不引用 buf；改成"直接持有底层切片的一段"就会跨包串数据。
+		// 这条不变量由 TestParsedAddressDoesNotAliasPooledBuffer 钉住（涂脏归还后的 buf，
+		// 断言已返回的地址与负载不变），改 ReadFrom 前先想清楚它。
+		r := bytes.NewBuffer(buf[3:n])
+		_, err = addr.ReadFrom(r)
+		if err != nil {
+			return 0, nil, common.NewError("socks5 failed to parse addr in the packet").Base(err)
+		}
+		length, err := r.Read(payload)
+		if err != nil {
+			return 0, nil, err
+		}
+		return length, &tunnel.Metadata{
+			Address: addr,
+		}, nil
 	}
-	if log.ShouldLog(log.DebugLevel) {
-		log.Debug("recv udp packet from " + from.String())
-	}
-	addr := new(tunnel.Address)
-	// 分片头固定 3 字节，其后至少还要有 1 字节 ATYP 才谈得上一个合法地址字段。
-	// 短于此必须先拒掉：buf[3:n] 在 n<3 时直接切片越界 panic，而这一层的对端是
-	// UDP——任何能往这个 bind 端口投包的人都能把整个进程崩掉，relay 这条链上没有
-	// recover（只有 mux/tls/trojan 三处有）。
-	if n < 4 {
-		return 0, nil, common.NewError("socks5 udp packet shorter than the fragment header")
-	}
-	// 注意这里的别名关系：r 直接持有**池化 buf** 的切片，而上面 defer 会在本函数返回时
-	// 把它归还进池。之所以安全，是因为 Address.ReadFrom 只把字节读进本地数组、域名
-	// 走 string() 复制，解析结果不引用 buf；改成"直接持有底层切片的一段"就会跨包串数据。
-	// 这条不变量由 TestParsedAddressDoesNotAliasPooledBuffer 钉住（涂脏归还后的 buf，
-	// 断言已返回的地址与负载不变），改 ReadFrom 前先想清楚它。
-	r := bytes.NewBuffer(buf[3:n])
-	_, err = addr.ReadFrom(r)
-	if err != nil {
-		return 0, nil, common.NewError("socks5 failed to parse addr in the packet").Base(err)
-	}
-	length, err := r.Read(payload)
-	if err != nil {
-		return 0, nil, err
-	}
-	return length, &tunnel.Metadata{
-		Address: addr,
-	}, nil
 }
 
 func (c *SocksPacketConn) Close() error {
-	c.socksClient.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	if c.socksClient != nil {
+		c.socksClient.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	}
 	return c.PacketConn.Close()
 }

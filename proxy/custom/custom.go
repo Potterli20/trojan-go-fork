@@ -97,9 +97,15 @@ func init() {
 					}
 				}
 			}
+			if lastNode == nil {
+				return nil, common.NewError("empty path entry in inbound.path")
+			}
 			lastNode.IsEndpoint = true
 		}
 
+		if root == nil {
+			return nil, common.NewError("inbound.path is empty: nothing to serve")
+		}
 		servers := proxy.FindAllEndpoints(root)
 
 		if len(cfg.Outbound.Path) != 1 {
@@ -130,6 +136,9 @@ func init() {
 			client = next
 		}
 
+		if client == nil {
+			return nil, common.NewError("outbound.path is empty")
+		}
 		success = true
 		return proxy.NewProxy(ctx, cancel, servers, client), nil
 	})

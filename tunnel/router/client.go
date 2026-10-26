@@ -35,26 +35,34 @@ const (
 const MaxPacketSize = 1024 * 8
 
 func matchDomain(list []*v2geodata.Domain, regexCache map[string]*regexp.Regexp, target string) bool {
+	// 域名比较大小写不敏感：规则值在构造时已经 ToLower（domain:/keyword:/full: 三处），
+	// 目标也必须同样归一化，否则客户端发来大写主机名时这些规则会静默失配。
+	// regex 规则仍对原始 target 匹配（大小写由用户自己的正则声明）。
+	lower := strings.ToLower(target)
 	for _, d := range list {
 		switch d.Type {
 		case v2geodata.Domain_Full:
 			domain := d.Value
-			if domain == target {
-				log.Tracef("domain %s hit domain(full) rule: %s", target, domain)
+			if domain == lower {
+				log.Tracef("domain %s hit domain(full) rule: %s", lower, domain)
 				return true
 			}
 		case v2geodata.Domain_Domain:
 			domain := d.Value
-			if strings.HasSuffix(target, domain) {
-				idx := strings.Index(target, domain)
-				if idx == 0 || target[idx-1] == '.' {
-					log.Tracef("domain %s hit domain rule: %s", target, domain)
+			if strings.HasSuffix(lower, domain) {
+				// 标签边界必须取**后缀那次**出现的位置：strings.Index 返回的是第一次
+				// 出现，当 domain 在目标里更早也出现过时会判错——例如 target 为
+				// "google.com.evilgoogle.com"、规则为 domain:google.com 时 HasSuffix 为真、
+				// Index 返回 0，于是被误判成命中（本应因后缀前的字符不是 '.' 而不匹配）。
+				idx := len(lower) - len(domain)
+				if idx == 0 || lower[idx-1] == '.' {
+					log.Tracef("domain %s hit domain rule: %s", lower, domain)
 					return true
 				}
 			}
 		case v2geodata.Domain_Substr:
-			if strings.Contains(target, d.Value) {
-				log.Tracef("domain %s hit keyword rule: %s", target, d.Value)
+			if strings.Contains(lower, d.Value) {
+				log.Tracef("domain %s hit keyword rule: %s", lower, d.Value)
 				return true
 			}
 		case v2geodata.Domain_Regex:

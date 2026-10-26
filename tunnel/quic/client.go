@@ -347,17 +347,25 @@ func (c *PacketConn) ReadWithMetadata(p []byte) (int, *tunnel.Metadata, error) {
 		c.recv.Add(int64(n))
 		return n, &tunnel.Metadata{}, nil
 	}
-	data, err := c.conn.ReceiveDatagram(c.receiveCtx())
-	if err != nil {
-		c.noteReadFailure(err)
-		return 0, nil, err
+	for {
+		data, err := c.conn.ReceiveDatagram(c.receiveCtx())
+		if err != nil {
+			c.noteReadFailure(err)
+			return 0, nil, err
+		}
+		// 与同包的 ReadFrom 一致：零长度数据报绝不上交。RFC 9221 允许空数据报，
+		// 对端发一个就能让上层（trojan/packet.go、proxy/proxy.go）把“读到 0 字节”
+		// 当成会话结束，等于单包拆掉一条 UDP 会话——不在这里丢弃就是留了这条路径。
+		if len(data) == 0 {
+			continue
+		}
+		if err := oversized(len(data), len(p)); err != nil {
+			return 0, nil, err
+		}
+		n := copy(p, data)
+		c.recv.Add(int64(n))
+		return n, &tunnel.Metadata{}, nil
 	}
-	if err := oversized(len(data), len(p)); err != nil {
-		return 0, nil, err
-	}
-	n := copy(p, data)
-	c.recv.Add(int64(n))
-	return n, &tunnel.Metadata{}, nil
 }
 
 // receiveCtx 返回用于 ReceiveDatagram 的上下文;若未设置(服务端 packetBuffer 路径)

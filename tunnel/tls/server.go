@@ -395,7 +395,12 @@ func loadKeyPair(keyPath string, certPath string, password string) (*tls.Certifi
 			return nil, common.NewError("failed to decode cert file").Base(err)
 		}
 
-		keyPair, err := tls.X509KeyPair(certBlock.Bytes, decryptedKey)
+		// pem.Decode 与 x509.DecryptPEMBlock 交回的都是 DER，而 tls.X509KeyPair 要求的是
+		// PEM 文本（它内部第一件事就是 pem.Decode）。直接把 DER 传进去必然报
+		// "failed to find any PEM data in certificate input"，key_password 分支 100% 失败。
+		certPEM := pem.EncodeToMemory(certBlock)
+		keyPEM := pem.EncodeToMemory(&pem.Block{Type: keyBlock.Type, Bytes: decryptedKey})
+		keyPair, err := tls.X509KeyPair(certPEM, keyPEM)
 		if err != nil {
 			return nil, err
 		}
