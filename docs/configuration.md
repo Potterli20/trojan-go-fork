@@ -522,14 +522,24 @@ MySQL `users` 表里 `password` 列存的值，都是这个哈希串，不是明
 - `cert` / `key` 只给一个 ⇒ 启动失败并报 `set both key and cert, or set neither`。
 - `check_rate` ≤ 0 兜底成 30s（`time.NewTicker` 对非正周期会 panic）。
 - 连接池固定 `MaxOpenConns=5` / `MaxIdleConns=2` / 连接最长存活 5 分钟。
-- 每轮同步执行 `SELECT username,password,quota,download,upload,maxip FROM users`，
-  **这 6 列必须都在**；写回是 `UPDATE users SET upload=upload+?, download=download+? WHERE
+- 启动时（`ensureUsersTable`）会幂等执行 `CREATE TABLE IF NOT EXISTS users (...)`，并对
+  已存在的旧表补 `maxip` / `expire` 两列；表已存在且账号只有 DML 权限时建表语句会失败，
+  此时只要关键列齐全就只告警、继续运行，否则启动失败并提示手动 ALTER。
+  新建表以 `password` 列为主键（即要求哈希唯一）；已存在的旧表结构不动，请自行保证该列唯一，
+  否则 `UPDATE ... WHERE password=?` 会命中多行、把同一份增量记到多行上。
+- 每轮同步执行 `SELECT username,password,quota,download,upload,maxip,expire FROM users`，
+  **这 7 列必须都在**；写回是 `UPDATE users SET upload=upload+?, download=download+? WHERE
   password=?`，匹配的是密码哈希。
 - 写回时两个方向的取值是**刻意互换**的（`syncUsers` 里的原注释 "swap upload and download for
   users"）：`upload` 列累加的是 `recv`、`download` 列累加的是 `sent`。对着表里的数字排查时先记
-  住这条，不然会觉得上下行反了（`statistic/mysql/mysql.go:57-63`）。
+  住这条，不然会觉得上下行反了（`statistic/mysql/mysql.go` 的 `syncUsers`）。
 - `quota < 0` 视为不限流量；已用流量达到 quota 的用户会被从内存表里删掉（即拒绝认证）。
 - 表里的 `maxip` 是**每用户**的并发 IP 上限，与顶层 `MaxIPPerUser`（对所有用户生效）是两条路径。
+- 表里的 `expire` 是**到期时间**（Unix 秒级时间戳，`0` 或负数 = 永不过期）。到期后该用户会从内存
+  里被移除、拒绝认证，与 `quota` 用尽是同一个出口。注意这是 **MySQL 后端专属**：内存与 SQLite
+  后端没有到期概念。
+- 每轮写回失败时会把这轮已经从内存取走的流量**原样加回**（`RestoreTraffic`），不会因为一次
+  数据库抖动就丢掉这段统计；库侧用户的增减由「DB→内存」的同步统一处理（不再依据 `RowsAffected`）。
 - 同步中途 `db.Query` 出错时**整轮放弃**，不据此清理用户——所以 MySQL 抖动不会误删合法用户。
 
 ```json

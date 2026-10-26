@@ -526,8 +526,10 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
 - **SQLite**：顶层给一枚 `sqlite` 路径即可，没有独立配置节。仅 linux amd64/386/arm/arm64
   有实现，其它平台在启动期直接失败而不是静默降级。不需要额外 build tag。
 - **MySQL**：`mysql.enabled: true` 后 trojan 入站改用 MySQL 认证器，按 `check_rate` 秒与
-  `users` 表双向同步（表必须含 `username,password,quota,download,upload,maxip` 六列，
-  `password` 列存的是密码的 SHA224 十六进制串）。`full` / `mini` 构建本来就带这个后端。
+  `users` 表双向同步。启动时会**幂等建表并给旧表自动补列**（缺 `maxip` / `expire` 都能补上），
+  表结构为 `username,password,quota,download,upload,maxip,expire` 七列：
+  `password` 列存的是密码的 SHA224 十六进制串，`expire` 是 Unix 秒级到期时间戳（0 = 永不过期）。
+  `full` / `mini` 构建本来就带这个后端。
 
 gRPC 管理接口用于运行时查用户、看流量记录、增删改用户，以及读写出站配置：
 

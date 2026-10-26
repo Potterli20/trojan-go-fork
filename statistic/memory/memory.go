@@ -195,6 +195,14 @@ func (u *User) AddRecvTraffic(recv int) {
 	}
 }
 
+// RestoreTraffic 把 ResetTraffic 取走、但写库失败的流量增量原样加回。
+// 它是账目回滚，不是新产生的流量：刻意不经过 SendLimiter/RecvLimiter——
+// 否则同一段流量会被限速两次，且可能把持久化 updater 阻塞在 WaitN 上。
+func (u *User) RestoreTraffic(sent, recv uint64) {
+	u.Sent.Add(sent)
+	u.Recv.Add(recv)
+}
+
 func (u *User) SetSpeedLimit(send, recv int) {
 	u.limiterLock.Lock()
 	defer u.limiterLock.Unlock()

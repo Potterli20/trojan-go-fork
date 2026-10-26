@@ -26,6 +26,55 @@ import (
 
 const Name = "MYSQL"
 
+// usersTableDDL 是 users 表的期望结构。旧版本（stat/db.go 的 TrafficMeter 时代）会在
+// 启动时自动建表，后来重构把这段删掉了，于是沿用旧表的部署在缺列（maxip / expire）时
+// 同步静默失效。这里恢复幂等建表，并对已存在的旧表补列（见 ensureUsersTable）。
+const usersTableDDL = "CREATE TABLE IF NOT EXISTS `users` (" +
+	"`username` VARCHAR(64) NOT NULL," +
+	"`password` CHAR(56) NOT NULL," +
+	"`quota` BIGINT NOT NULL DEFAULT 0," +
+	"`download` BIGINT UNSIGNED NOT NULL DEFAULT 0," +
+	"`upload` BIGINT UNSIGNED NOT NULL DEFAULT 0," +
+	"`maxip` INT NOT NULL DEFAULT 0," +
+	"`expire` BIGINT NOT NULL DEFAULT 0," +
+	"PRIMARY KEY (`password`)" +
+	")"
+
+// usersTableExtraColumns 是升级过程中可能从旧表缺失的列。语句对“列已存在”是幂等的
+// 兜底：先执行 ALTER，失败时用一次探测区分“已经加过了”和“真的加不上”。
+var usersTableExtraColumns = []struct{ name, ddl string }{
+	{"maxip", "ALTER TABLE `users` ADD COLUMN `maxip` INT NOT NULL DEFAULT 0"},
+	{"expire", "ALTER TABLE `users` ADD COLUMN `expire` BIGINT NOT NULL DEFAULT 0"},
+}
+
+// ensureUsersTable 在认证器启动前把 users 表准备到可用状态：缺表则建，缺列则补。
+// 注意日志里不要出现敏感关键词（password 等），否则整行会被脱敏成 [REDACTED]。
+func ensureUsersTable(ctx context.Context, db *sql.DB) error {
+	_, createErr := db.ExecContext(ctx, usersTableDDL)
+	for _, col := range usersTableExtraColumns {
+		if _, err := db.ExecContext(ctx, col.ddl); err != nil {
+			if probeErr := probeUsersColumn(ctx, db, col.name); probeErr != nil {
+				return common.NewError("failed to add required column `" + col.name + "` to users table; run the ALTER TABLE manually").Base(err)
+			}
+		}
+	}
+	if createErr != nil {
+		// 建表语句失败但关键列齐全：多半是表已存在、而当前账号只有 DML 权限。
+		// 这种情况放行，但明确告警，不要让它再次变成静默问题。
+		log.Warn(common.NewError("cannot create users table (likely missing DDL privilege); required columns are present, continuing").Base(createErr))
+	}
+	return nil
+}
+
+// probeUsersColumn 探测 users 表是否已有某列（列名只来自上面的常量，非外部输入）。
+func probeUsersColumn(ctx context.Context, db *sql.DB, name string) error {
+	rows, err := db.QueryContext(ctx, "SELECT `"+name+"` FROM `users` LIMIT 0") //gosec:disable -- name 只来自包内常量，非外部输入
+	if err != nil {
+		return err
+	}
+	return rows.Close()
+}
+
 type Authenticator struct {
 	*memory.Authenticator
 	db             *sql.DB
@@ -59,36 +108,52 @@ func (a *Authenticator) syncUsers() {
 		hash := user.GetHash()
 		sent, recv := user.ResetTraffic()
 
-		s, err := a.db.ExecContext(a.ctx, "UPDATE `users` SET `upload`=`upload`+?, `download`=`download`+? WHERE `password`=?;", recv, sent, hash)
+		_, err := a.db.ExecContext(a.ctx, "UPDATE `users` SET `upload`=`upload`+?, `download`=`download`+? WHERE `password`=?;", recv, sent, hash)
 		if err != nil {
+			// ResetTraffic 已经把增量清零，写库失败必须原样加回去，否则这段流量
+			// 在本轮被丢弃、下一轮从 0 重新累计，永远补不回来（RestoreTraffic 不过限速器）。
+			user.RestoreTraffic(sent, recv)
 			log.Error(common.NewError("failed to update data to user table").Base(err))
 			continue
 		}
-		if r, err := s.RowsAffected(); err == nil && r != 1 {
-			a.DelUser(hash) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-		}
+		// 刻意不检查 RowsAffected。MySQL 默认返回“实际改变的行数”（DSN 未启用
+		// CLIENT_FOUND_ROWS），本轮增量为 0 的合法用户，UPDATE 影响 0 行；旧代码用
+		// `r != 1` 判定“该用户已从库中删除”，于是每一个空闲用户都会在每轮同步里被
+		// DelUser 一次——连同它的限速器与 IP 表一并 Close，而活跃连接手里的旧 User
+		// 指针仍在记账，却已不在 users 表中，那段流量再也写不回库。
+		// 库侧用户的增减由下面“DB→内存”的同步统一处理，这里不需要也不应该删。
 	}
 	log.Info("buffered data has been written into the database")
 
 	// update memory
-	rows, err := a.db.QueryContext(a.ctx, "SELECT username,password,quota,download,upload,maxip FROM users")
+	rows, err := a.db.QueryContext(a.ctx, "SELECT username,password,quota,download,upload,maxip,expire FROM users")
 	if err != nil {
-		log.Error(common.NewError("failed to pull data from the database").Base(err))
+		// 缺列时这里会每轮失败，表现为“流量不回写、用户增减不同步”却又不报致命错。
+		// 正常路径下 ensureUsersTable 已在启动期把 maxip / expire 补好，走到这里
+		// 说明补列也失败了，需要人工按 ensureUsersTable 里的 ALTER 语句处理。
+		log.Error(common.NewError("failed to pull data from the database (users 表缺列；见启动期 ensureUsersTable 的 ALTER TABLE 语句)").Base(err))
 		return
 	}
 	defer rows.Close()
 
+	now := time.Now().Unix()
 	userMap := make(map[string]bool)
 	for rows.Next() {
 		var username, hash string
 		var maxip int
-		var quota, download, upload int64
-		err := rows.Scan(&username, &hash, &quota, &download, &upload, &maxip)
+		var expireAt, quota, download, upload int64
+		err := rows.Scan(&username, &hash, &quota, &download, &upload, &maxip, &expireAt)
 		if err != nil {
 			log.Error(common.NewError("failed to obtain data from the query result").Base(err))
 			return
 		}
 		userMap[hash] = true
+		// expire 是 Unix 秒级时间戳，0（或负数）表示永不过期。到期即从内存移除、
+		// 拒绝认证，与 quota 用尽是同一个出口。
+		if expireAt > 0 && now >= expireAt {
+			a.DelUser(hash) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			continue
+		}
 		if download+upload < quota || quota < 0 {
 			a.AddUser(hash)               //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			a.SetKeyShare(hash, username) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
@@ -188,6 +253,11 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 	db.SetMaxIdleConns(2)
 	db.SetConnMaxLifetime(5 * time.Minute)
 	db.SetConnMaxIdleTime(time.Minute)
+	// 在任何资源分配（memory 认证器、后台协程）之前把表准备好；失败即 fail fast。
+	if err := ensureUsersTable(ctx, db); err != nil {
+		db.Close() //gosec:disable -- 错误忽略：失败路径回收，真实错误由返回值给出
+		return nil, err
+	}
 	memoryAuth, err := memory.NewAuthenticator(ctx)
 	if err != nil {
 		db.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理

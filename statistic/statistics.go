@@ -24,6 +24,9 @@ type TrafficMeter interface {
 	io.Closer
 	AddSentTraffic(sent int)
 	AddRecvTraffic(recv int)
+	// RestoreTraffic 与 ResetTraffic 对称：把 ResetTraffic 取走、但写库失败的增量
+	// 原样加回计数器。它是账目回滚、不是新流量，所以不经过限速器。
+	RestoreTraffic(sent, recv uint64)
 	ResetTraffic() (sent, recv uint64)
 	GetSpeed() (sent, recv uint64)
 }

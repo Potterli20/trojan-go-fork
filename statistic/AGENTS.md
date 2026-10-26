@@ -38,7 +38,7 @@ Registered via `RegisterAuthenticatorCreator(name, fn)`.
 | Backend | Build tag | Notes |
 |---|---|---|
 | `memory/` | always (base) | Static password list from config; no runtime changes except via gRPC |
-| `mysql/` | `mysql` | Polls DB every N seconds; syncs users; writes traffic back |
+| `mysql/` | `mysql` | Polls DB every N seconds; syncs users; writes traffic back. Idempotently creates the `users` table and adds missing `maxip` / `expire` columns at startup (`ensureUsersTable`) |
 | `sqlite/` | no build tag; platform-gated: linux + (amd64\|386\|arm\|arm64) | Pure-Go driver (`Potterli20/sqlite` + `modernc.org/sqlite`), no CGO needed. Enabled by the `sqlite` field of the memory config, not by a tag |
 
 SQLite is linux-only because the platform build tags in `statistic/sqlite` restrict it; on every other platform
@@ -54,6 +54,13 @@ SQLite is linux-only because the platform build tags in `statistic/sqlite` restr
 ## Polling (mysql)
 
 `mysql/mysql.go` polls every `check_rate` seconds. Traffic uploaded back in same interval. Batched — not per-conn. Lost traffic on crash.
+
+Table is `username,password,quota,download,upload,maxip,expire`. `expire` is a Unix-second
+deadline (`0` = never); an expired row is dropped from memory and auth is refused, the same exit
+as `quota` exhaustion. On a failed `UPDATE` the already-reset increment is added back via
+`RestoreTraffic` (deliberately bypasses the rate limiters). Do **not** use `RowsAffected` to infer
+"user was deleted from the DB" — MySQL reports *changed* rows by default (`ClientFoundRows` off),
+so a zero-increment user reports 0 and would be wrongly dropped every cycle.
 
 ## Conventions
 
