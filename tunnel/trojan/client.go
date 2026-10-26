@@ -333,7 +333,11 @@ func NewClient(ctx context.Context, client tunnel.Client) (*Client, error) {
 
 	if cfg.API.Enabled {
 		c.wg.Go(func() {
-			api.RunService(ctx, Name+"_CLIENT", auth)
+			// 返回值必须记下来：RunService 失败（如端口被占）时只 return error，
+			// 丢进 goroutine 就等于 API 悄悄不在、日志一行都没有。
+			if err := api.RunService(ctx, Name+"_CLIENT", auth); err != nil {
+				log.Error(common.NewError("client-side api service stopped").Base(err))
+			}
 		})
 	}
 

@@ -108,8 +108,11 @@ func (s *Server) dispatchLoop() {
 			}
 			s.mapping[addrKey] = conn
 		}
-		s.mappingLock.Unlock()
-		// Close() 从不 close channel,旧会话对象与新发送物理隔离,最坏只是丢包
+		// 投递放在解锁之前、与 daemon 的“删表项 + Close 排空”互斥：daemon 的 defer
+		// 先 delete（持写锁）再 conn.Close()（排空 input）。dispatch 若在解锁后才投递，
+		// 可能落在“已 delete、排空也跑完”之后——那一包会成功入队却再无读者，借出的
+		// 负载永久不归还。锁内投递用 select/default 非阻塞，不会把会话读端/超时清理/
+		// Close 卡在 mappingLock 上（旧注释担心的正是阻塞发送）。
 		select {
 		case conn.input <- toInput:
 		default:
@@ -117,6 +120,7 @@ func (s *Server) dispatchLoop() {
 			// 丢包的同时必须把借出的负载还回去，否则每次投递失败漏一块 8KB。
 			putPacketBuf(toInput)
 		}
+		s.mappingLock.Unlock()
 		if found {
 			continue
 		}

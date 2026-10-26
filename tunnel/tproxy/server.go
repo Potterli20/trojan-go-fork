@@ -220,8 +220,35 @@ func (s *Server) packetDispatchLoop() {
 		}
 
 		srcKey := tunnel.NewSessionKey(info.src)
+		// 目的地地址先构建：found 与非 found 两条分支都要用，而 found 分支的投递必须
+		// 在持 RLock 期间完成（见下）。
+		dstAddr, addrErr := tunnel.NewAddressFromNetAddr("udp", info.dst)
+		if addrErr != nil {
+			log.Error("tproxy failed to build destination address", addrErr)
+			putPacketBuf(info.payload)
+			continue
+		}
 		s.mappingLock.RLock()
 		conn, found := s.mapping[srcKey]
+		if found {
+			// 投递与 daemon 的“删表项 + Close 排空”必须互斥：daemon 的 defer 先 delete
+			// （持写锁）再排空 input。dispatch 若在解锁后才投递，就可能落在“已 delete、
+			// 排空也跑完”之后——那一包会成功入队却再无读者，借出的负载永久不归还。
+			// select/default 非阻塞，锁内投递不会把会话端卡在 mappingLock 上。
+			select {
+			case conn.input <- &packetInfo{
+				metadata: &tunnel.Metadata{
+					Address: dstAddr,
+				},
+				payload: info.payload,
+			}:
+			default:
+				putPacketBuf(info.payload)
+			}
+			s.mappingLock.RUnlock()
+			log.Debug("tproxy packet sent with metadata", info.dst, "size", len(info.payload))
+			continue
+		}
 		s.mappingLock.RUnlock()
 
 		if !found {
@@ -259,6 +286,17 @@ func (s *Server) packetDispatchLoop() {
 			}
 
 			s.mapping[srcKey] = conn
+			// 同 found 分支：投递也放在锁内，避免与 daemon 的关闭排空错位。
+			select {
+			case conn.input <- &packetInfo{
+				metadata: &tunnel.Metadata{
+					Address: dstAddr,
+				},
+				payload: info.payload,
+			}:
+			default:
+				putPacketBuf(info.payload)
+			}
 			s.mappingLock.Unlock()
 
 			log.Info("new tproxy udp session from", srcKey, "metadata", info.dst.String())
@@ -378,28 +416,6 @@ func (s *Server) packetDispatchLoop() {
 			})
 		}
 
-		// 手里已经有 *net.UDPAddr，别拼成字符串再解析一遍：这条是**每 UDP 包**一次的
-		// 路径，旧写法每包多付一次 IP.String() 格式化 + 一次地址解析（口径同 6857b3f2）
-		dstAddr, addrErr := tunnel.NewAddressFromNetAddr("udp", info.dst)
-		if addrErr != nil {
-			log.Error("tproxy failed to build destination address", addrErr)
-			putPacketBuf(info.payload)
-			continue
-		}
-
-		select {
-		case conn.input <- &packetInfo{
-			metadata: &tunnel.Metadata{
-				Address: dstAddr,
-			},
-			payload: info.payload,
-		}:
-		default:
-			// 会话可能刚超时清理、已无读者；丢包优于阻塞整个 dispatch 循环。
-			// 丢包的同时必须把借出的负载还回去，否则每次投递失败就永久漏一块 8KB。
-			putPacketBuf(info.payload)
-		}
-		log.Debug("tproxy packet sent with metadata", info.dst, "size", len(info.payload))
 	}
 }
 

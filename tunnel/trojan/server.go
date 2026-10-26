@@ -224,7 +224,9 @@ func (c *InboundConn) Auth() error {
 
 	valid, user := c.auth.AuthUser(string(userHash[:]))
 	if !valid {
-		return common.NewError("invalid hash:" + string(userHash[:]))
+		// 不要把对端给的原始 56 字节拼进错误串：它经 .Base() 会进 Warn 日志，而这是
+		// 未认证输入（可含换行/控制字符）——既是日志注入面，hash 本身也等价凭据。
+		return common.NewError("invalid hash")
 	}
 	c.hash = string(userHash[:])
 	c.user = user
@@ -520,7 +522,11 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 
 	if cfg.API.Enabled {
 		s.wg.Go(func() {
-			api.RunService(ctx, Name+"_SERVER", auth)
+			// 返回值必须记下来：RunService 失败（如端口被占、地址解析失败）时只
+			// return error，丢进 goroutine 就等于 API 悄悄不在、日志里一行都没有。
+			if err := api.RunService(ctx, Name+"_SERVER", auth); err != nil {
+				log.Error(common.NewError("server-side api service stopped").Base(err))
+			}
 		})
 	}
 

@@ -126,6 +126,19 @@ func (s *Server) acceptLoop() {
 		}
 
 		s.wg.Go(func() {
+			// 首请求读取窗口（含 h2c 嗅探）也要能被 Server.Close 立即唤醒：GET/POST
+			// 分支的 watcher 是在首个请求读完、进入转发循环才建立的，这段之前若对端
+			// 静默，Close 的 wg.Wait 要白等满 handshakeTimeout(30s)。
+			firstReadDone := make(chan struct{})
+			stopFirstRead := sync.OnceFunc(func() { close(firstReadDone) })
+			defer stopFirstRead()
+			s.wg.Go(func() {
+				select {
+				case <-s.ctx.Done():
+					conn.Close() //gosec:disable -- 关停唤醒路径，错误无处可报
+				case <-firstReadDone:
+				}
+			})
 			// 预算读取器挂在 conn 与 bufio 之间：每个请求头单独计预算，解析成功后立刻
 			// 解除限制，这样请求体和 keep-alive 的后续请求都不受影响。不能把
 			// io.LimitReader 直接包在 conn 外面——那限制的是整条连接的累计字节数，
@@ -148,6 +161,9 @@ func (s *Server) acceptLoop() {
 			req, err := http.ReadRequest(reqBufReader)
 			boundedReader.Unlimited()
 			conn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			// 首请求读取窗口到此结束，那个唤醒者的使命完成（后面 GET/POST 分支会按
+			// 转发循环的需要另建自己的 watcher）。
+			stopFirstRead()
 			if err != nil {
 				log.Error(common.NewError("not a valid http request").Base(err))
 				conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
@@ -250,36 +266,41 @@ func (s *Server) acceptLoop() {
 						return
 					}
 
-					// reqWriter 不能在这里关：本仓库的 relay 是「任一方向结束就拆掉整个
-					// 会话」，而 HTTP 请求写完必然 EOF —— 提前 EOF 会让响应在传输途中被
-					// 砍断（实测 64KB 响应只过去了 4KB）。会话的结束统一由 newConn.Close()
-					// 表示，所以每个出口都必须关掉它，否则两个转发方向会永远阻塞在管道上。
-					err = req.Write(reqWriter)
-					if err != nil {
-						log.Error(common.NewError("http failed to write http request").Base(err))
-						newConn.Close()  //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-						req.Body.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-						return
-					}
+					// 请求体泵单独起 goroutine：同步写会在“目标端提前回响应且不再读请求体”
+					// 时死锁——req.Write 阻塞在无缓冲 io.Pipe 上，而主 goroutine 还没进
+					// ReadResponse 去排空响应方向，两个方向互等。h2 分支就是这么解决的
+					// （有 TestH2CEarlyResponseWithBodyInFlight 兜底）。
+					// reqWriter 仍不能在这里关：请求写完即 EOF 会触发 relay「任一方向结束
+					// 就拆会话」把在途响应砍断，EOF 统一由 newConn.Close() 发出。
+					// 请求体由泵独占并负责回收（主 goroutine 不再碰 req.Body，避免与
+					// req.Write 并发访问同一个 body）。
+					reqToWrite := req
+					go func() {
+						writeErr := reqToWrite.Write(reqWriter)
+						reqToWrite.Body.Close() //gosec:disable -- 请求体由泵独占并负责回收
+						if writeErr != nil {
+							log.Error(common.NewError("http failed to write http request").Base(writeErr))
+							// 只关写端（带原因）：客户端放弃/请求体读失败时 relay 还堵在
+							// reqReader.Read 上，不唤醒它会一直留到 Server 关停。
+							reqWriter.CloseWithError(writeErr) //gosec:disable -- 管道已关时该调用无副作用
+						}
+					}()
 
 					respBufReader := bufio.NewReader(io.NopCloser(respReader))
 					resp, err := http.ReadResponse(respBufReader, req)
 					if err != nil {
 						log.Error(common.NewError("http failed to read http response").Base(err))
-						newConn.Close()  //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-						req.Body.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+						newConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 						return
 					}
 					err = resp.Write(conn)
 					if err != nil {
 						log.Error(common.NewError("http failed to write the response back").Base(err))
 						newConn.Close()   //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-						req.Body.Close()  //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 						resp.Body.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 						return
 					}
 					newConn.Close()   //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-					req.Body.Close()  //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 					resp.Body.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 
 					// keep-alive:等待下一个请求同样限时，读完即解除

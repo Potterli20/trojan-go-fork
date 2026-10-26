@@ -44,6 +44,12 @@ type Server struct {
 	// 后续调用复用首次结果。
 	closeOnce sync.Once
 	closeErr  error
+	// acceptOnce 保证 acceptLoop 只在首次 AcceptConn 时启动。为什么不在 NewServer 里
+	// 就启动：acceptLoop 会立刻开始 Accept，而决定投递去向的 nextHTTP/directConsumer
+	// 要等下游首次调用 AcceptConn 才登记——这中间窗口里到达的连接会在 nextHTTP 仍为
+	// false 时被投进 connChan，可 websocket 栈里 connChan 没有消费者，那些连接（连同
+	// fd）只能滞留到关停。把启动推迟到标志登记之后即可消除这个启动期竞态。
+	acceptOnce sync.Once
 }
 
 func (s *Server) Close() error {
@@ -165,10 +171,26 @@ func (s *Server) AcceptConn(overlay tunnel.Tunnel) (tunnel.Conn, error) {
 	// 使用 overlay.Name() 字符串比较而非类型断言：
 	// tunnel/transport 导入 tunnel/websocket/tunnel/http 会形成 import cycle，
 	// 字符串比较是合理的解耦方式，无需引入新接口。
-	if overlay != nil && (overlay.Name() == "WEBSOCKET" || overlay.Name() == "HTTP") {
-		s.httpLock.Lock()
+	isWS := overlay != nil && (overlay.Name() == "WEBSOCKET" || overlay.Name() == "HTTP")
+	// 先登记“谁在消费”再启动 acceptLoop：acceptLoop 一旦跑起来就会立刻 Accept，
+	// 而在标志登记之前到达的连接会被投进错误的队列（见 acceptOnce 的注释）。
+	s.httpLock.Lock()
+	if isWS {
 		s.nextHTTP = true
-		s.httpLock.Unlock()
+	} else {
+		// 非 websocket 下游（tls/trojan，或 custom 栈里的 nil overlay）：connChan 有人
+		// 消费，嗅探失败的非 HTTP 连接应继续交给它解析。
+		s.directConsumer = true
+	}
+	s.httpLock.Unlock()
+
+	s.acceptOnce.Do(func() {
+		s.wg.Go(func() {
+			s.acceptLoop()
+		})
+	})
+
+	if isWS {
 		select {
 		case conn := <-s.wsChan:
 			return conn, nil
@@ -176,11 +198,6 @@ func (s *Server) AcceptConn(overlay tunnel.Tunnel) (tunnel.Conn, error) {
 			return nil, common.NewError("transport server closed")
 		}
 	}
-	// 非 websocket 下游（tls/trojan，或 custom 栈里的 nil overlay）：connChan 有人
-	// 消费，嗅探失败的非 HTTP 连接应继续交给它解析。
-	s.httpLock.Lock()
-	s.directConsumer = true
-	s.httpLock.Unlock()
 	select {
 	case conn := <-s.connChan:
 		return conn, nil
@@ -268,8 +285,7 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 		connChan:    make(chan tunnel.Conn, 32),
 		wsChan:      make(chan tunnel.Conn, 32),
 	}
-	server.wg.Go(func() {
-		server.acceptLoop()
-	})
+	// acceptLoop 不在构造期启动，改由首次 AcceptConn 触发（见 acceptOnce 注释）：
+	// 早于此的连接会因为 nextHTTP 尚未登记而被投进无人消费的 connChan。
 	return server, nil
 }

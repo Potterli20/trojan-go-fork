@@ -274,6 +274,14 @@ func (p *Proxy) relayConnLoop() {
 					if p.ctx.Err() != nil {
 						return
 					}
+					// 退避再试：某入站在自身故障时可能单方面关掉监听（如 tproxy 连续
+					// 读失败后自关），此后 AcceptConn 立刻返回错误而 p.ctx 并未取消，
+					// 不退避就是满 CPU 热循环 + 日志洪水。
+					select {
+					case <-time.After(100 * time.Millisecond):
+					case <-p.ctx.Done():
+						return
+					}
 					continue
 				}
 				p.wg.Go(func() {
@@ -339,6 +347,12 @@ func (p *Proxy) relayPacketLoop() {
 				if err != nil {
 					log.Error(common.NewError("failed to accept packet").Base(err))
 					if p.ctx.Err() != nil {
+						return
+					}
+					// 同 relayConnLoop：入站自关监听后避免无退避热循环。
+					select {
+					case <-time.After(100 * time.Millisecond):
+					case <-p.ctx.Done():
 						return
 					}
 					continue
