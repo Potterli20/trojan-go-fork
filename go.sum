@@ -75,8 +75,8 @@ github.com/stretchr/testify v1.12.1 h1:EuwCh5fleGS7H32xRwO3wRGT7DxrDhLAT6FF8MpWD
 github.com/stretchr/testify v1.12.1/go.mod h1:MDEgiDPPsNp5cuIrHPPCyornHKgEVbtFUmoNlxoYthg=
 github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae h1:ArVM1jICfm7g4E4dBet+KHUFMLuxmj1Nxdp/tr3ByCU=
 github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
-github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b h1:7bFUKsVEo0LmiYfbEEq9itlG3yttGw9MNlRyeMwfVWY=
-github.com/xtaci/smux v1.5.58-0.20260515062718-ae956bb8d67b/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
+github.com/xtaci/smux v1.5.58-0.20261026022411-3bba3ce98d74 h1:HA3EJvGWDt8SNu2uhELM6vHsOoC9eSwZxsRPkmKMRqU=
+github.com/xtaci/smux v1.5.58-0.20261026022411-3bba3ce98d74/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20261014101318-83f621788ca8 h1:RjLnVvlzK4q6zWaSBPNRGsrgx2fbJDeUWffjw574uzs=
 github.com/xtls/reality v0.0.0-20261014101318-83f621788ca8/go.mod h1:ptlSkJ8k/7IDauNH0SA96JPOo+nYGLTv2Y3UMpwvAsY=
 github.com/xtls/xray-core v1.260327.1-0.20261021115930-1b1647cd9ddf h1:Eqz6sj4Up2NtymyVY2UtXNpHZqJGrMwKsXnGOySyUNI=
