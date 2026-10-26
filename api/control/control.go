@@ -120,10 +120,20 @@ func (o *apiController) setUsers(apiClient service.TrojanServerServiceClient) er
 	}
 	defer stream.CloseSend()
 
-	// 使用安全类型转换，避免整数溢出
-	ipLimitVal, _ := common.SafeInt32FromInt(*o.ipLimit)
-	ulSpeed, _ := common.SafeUint64FromInt(*o.uploadSpeedLimit)
-	dlSpeed, _ := common.SafeUint64FromInt(*o.downloadSpeedLimit)
+	// 使用安全类型转换，避免整数溢出。早先这里把错误吞掉了：越界/负值会被静默
+	// 变成 0（即“不限”），用户以为设了限制、实际什么也没设——改成显式失败。
+	ipLimitVal, err := common.SafeInt32FromInt(*o.ipLimit)
+	if err != nil {
+		return common.NewError("ip-limit out of range").Base(err)
+	}
+	ulSpeed, err := common.SafeUint64FromInt(*o.uploadSpeedLimit)
+	if err != nil {
+		return common.NewError("upload-speed-limit out of range").Base(err)
+	}
+	dlSpeed, err := common.SafeUint64FromInt(*o.downloadSpeedLimit)
+	if err != nil {
+		return common.NewError("download-speed-limit out of range").Base(err)
+	}
 	req := &service.SetUsersRequest{
 		Status: &service.UserStatus{
 			User: &service.User{

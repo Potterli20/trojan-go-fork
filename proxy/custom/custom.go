@@ -69,7 +69,15 @@ func init() {
 		// build server tree（root 已在前面声明，失败回收的 defer 需要看得到它）
 		for _, path := range cfg.Inbound.Path {
 			var lastNode *proxy.Node
+			// 同一 path 里重复出现同一个 tag 会把节点链成环（LinkNextNode 以 protocol
+			// 作键，且不校验 next 是否为祖先），随后 FindAllEndpoints 对环无限递归 →
+			// 栈溢出崩进程。在配置层就拒掉，把它变成一条可读的启动错误。
+			seen := make(map[string]bool, len(path))
 			for _, tag := range path {
+				if seen[tag] {
+					return nil, common.NewError("duplicate node tag in one path would create a cycle: " + tag)
+				}
+				seen[tag] = true
 				if _, found := nodes[tag]; !found {
 					return nil, common.NewError("invalid node tag: " + tag)
 				}

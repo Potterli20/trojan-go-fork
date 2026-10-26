@@ -98,12 +98,14 @@ func (u *User) sweepStaleIPs(now time.Time) {
 }
 
 func (u *User) AddIP(ip string) bool {
+	// MaxIPNum 会被 setIPLimit 并发写（API 的 SetUsers 与每轮 mysql syncUsers），必须
+	// 与写端配对；所以“不限流快速返回”也放进锁里判——否则这里就是一处无同步的读。
+	u.ipLock.Lock()
+	defer u.ipLock.Unlock()
+
 	if u.MaxIPNum <= 0 {
 		return true
 	}
-
-	u.ipLock.Lock()
-	defer u.ipLock.Unlock()
 
 	if slot, found := u.ipTable[ip]; found {
 		// 已经有别的连接占着这个源 IP：加引用、刷新时限，**不**增加计数
@@ -124,12 +126,12 @@ func (u *User) AddIP(ip string) bool {
 }
 
 func (u *User) DelIP(ip string) bool {
+	u.ipLock.Lock()
+	defer u.ipLock.Unlock()
+
 	if u.MaxIPNum <= 0 {
 		return true
 	}
-
-	u.ipLock.Lock()
-	defer u.ipLock.Unlock()
 
 	slot, found := u.ipTable[ip]
 	if !found {
