@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Potterli20/trojan-go-fork/common"
@@ -70,6 +71,10 @@ type Server struct {
 	// 所以必须单独登记，否则 Server.Close 没有任何办法把它们关掉。
 	assocLock    sync.Mutex
 	associations map[tunnel.Conn]struct{}
+	// assocRefused 只用于给“ASSOCIATE 被容量闸拒绝”的日志限流。处理每条连接的是
+	// acceptConnLoop 里 s.wg.Go 起的独立 goroutine，这些 goroutine 会并发读改写它，
+	// 所以必须是原子量——裸局部 int 会构成 data race（-race 下会红）。
+	assocRefused atomic.Int64
 	ctx          context.Context
 	cancel       context.CancelFunc
 	wg           sync.WaitGroup
@@ -101,9 +106,6 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (s *Server) acceptConnLoop() {
-	// ASSOCIATE 被容量闸拒掉的次数。对端只要不停地建连+握手就能按自己的速率顶这条
-	// 日志，形态与 packetDispatchLoop 的读错误限流一致：每 10 次才打一条 Error。
-	assocRefused := 0
 	for {
 		conn, err := tunnel.AcceptConnGuarded(s.underlay, &Tunnel{})
 		if err != nil {
@@ -158,8 +160,10 @@ func (s *Server) acceptConnLoop() {
 				// 再默默断掉"。接管之后这条 TCP 连接按 RFC 就是 UDP 关联的生命周期凭据，
 				// 既不能交给下游也不能就此弃用。
 				if err := s.watchAssociation(handledConn); err != nil {
-					assocRefused++
-					if assocRefused%10 == 0 {
+					// ASSOCIATE 被容量闸拒掉的次数只用于日志限流：对端只要不停地建连+握手
+					// 就能按自己的速率顶这条日志。计数走原子字段（被每连接的 handler 并发写），
+					// 形态与 packetDispatchLoop 的读错误限流一致：每 10 次才打一条 Error。
+					if n := s.assocRefused.Add(1); n%10 == 0 {
 						log.Error(common.NewError("socks associate refused").Base(err))
 					} else {
 						log.Debug(common.NewError("socks associate refused").Base(err))

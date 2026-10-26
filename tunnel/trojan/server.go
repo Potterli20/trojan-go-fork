@@ -126,6 +126,11 @@ type InboundConn struct {
 	ip           string
 	ipX          string
 	trustHeaders bool
+	// closeOnce 保证 Close 的副作用只跑一次：trojan 的 UDP 会话里 packet.go 读到
+	// 错误时会 Close 一次，relay 的 defer inbound.Close() 还会再 Close 一次，
+	// 而 InboundConn.Close 每次都调 user.DelIP(ipX)。DelIP 是按调用次数递减的 IP
+	// 引用计数，多减一次会提前释放槽位、绕过 MaxIPNum（同源 IP 上还有别的活跃会话时）。
+	closeOnce sync.Once
 }
 
 func (c *InboundConn) Metadata() *tunnel.Metadata {
@@ -153,15 +158,19 @@ func (c *InboundConn) Read(p []byte) (int, error) {
 }
 
 func (c *InboundConn) Close() error {
-	log.Debug("Closing connection for user", c.hash, "RealIP", c.ipX, "from", c.Conn.RemoteAddr(), "tunneling to", c.metadata.Address,
-		"sent:", common.HumanFriendlyTraffic(c.sent.Load()), "recv:", common.HumanFriendlyTraffic(c.recv.Load()))
-	// Auth() 成功时会调用 AddIP(RealIP) 占用 IP 槽，关闭时必须释放，
-	// 否则只能靠 memory.User 的 10 秒过期扫描清理，短连接频繁切换 IP 时会提前触顶 MaxIPNum。
-	// c.user 可能为 nil（Close 在 Auth 之前被调用），需做 nil 检查。
-	if c.user != nil {
-		c.user.DelIP(c.ipX)
-	}
-	return c.Conn.Close()
+	var err error
+	c.closeOnce.Do(func() {
+		log.Debug("Closing connection for user", c.hash, "RealIP", c.ipX, "from", c.Conn.RemoteAddr(), "tunneling to", c.metadata.Address,
+			"sent:", common.HumanFriendlyTraffic(c.sent.Load()), "recv:", common.HumanFriendlyTraffic(c.recv.Load()))
+		// Auth() 成功时会调用 AddIP(RealIP) 占用 IP 槽，关闭时必须释放，
+		// 否则只能靠 memory.User 的 10 秒过期扫描清理，短连接频繁切换 IP 时会提前触顶 MaxIPNum。
+		// c.user 可能为 nil（Close 在 Auth 之前被调用），需做 nil 检查。
+		if c.user != nil {
+			c.user.DelIP(c.ipX)
+		}
+		err = c.Conn.Close()
+	})
+	return err
 }
 
 func extractRealIPFromHeaders(header http.Header) string {
