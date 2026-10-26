@@ -41,6 +41,13 @@ func (n *Node) BuildNext(name string) (*Node, error) {
 
 func (n *Node) LinkNextNode(next *Node) (*Node, error) {
 	if found, ok := n.Next[next.Name]; ok {
+		if found != next {
+			// 同一个父下已经挂了一个**同名（protocol）但不同 tag** 的节点。Next 以
+			// protocol 作键，旧行为是把新节点静默丢弃、直接返回旧节点——配置被吞、
+			// 链路错配且不报错。这里显式拒绝。found == next（同一节点被重复链接）
+			// 仍按原样返回。
+			return nil, common.NewError("node with the same protocol is already linked under this parent: " + next.Name)
+		}
 		return found, nil
 	}
 	n.Next[next.Name] = next
