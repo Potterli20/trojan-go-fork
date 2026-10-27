@@ -462,6 +462,17 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   转发永久停摆，直到重启进程；`socks`/`tproxy` 的同型循环早就是 100ms 退避 + 日志限流，现在三处
   一致。判据 `tunnel/dokodemo/read_error_test.go`（首次读失败、随后必须仍有包被投递出来；退回
   `return` 实测在 2s 处转红）。
+- **`Proxy.Close` 必须排空转发缓冲池**（2026-10-27）。`boundedBufPool` 的两个池默认驻留
+  8KB × 1024，`packetPool` 独立时再一份，合计最多约 16MB。进程退出时无所谓，但库化调用方
+  （反复建栈 / 热重载）会一直攥着已关闭的 `Proxy`，这部分就成了常驻内存。`Close` 在
+  `wg.Wait` 与隧道释放之后用非阻塞取空（**不关闭 channel**：关停超时留下的一两条中继协程
+  仍可能 `Put`，关 channel 会 panic）。判据 `proxy/proxy_test.go` 的
+  `TestCloseDrainsPooledRelayBuffers`，看的是池队列长度而不是"有没有复用"。
+- **给测试留的包级可调阈值必须用原子**（2026-10-27）。`simplesocks.headerTimeout` 原本是裸
+  `time.Duration`，测试用 `defer` 恢复它，而 accept 已改为 worker 池：测试返回时某些 worker
+  仍在 `readHeader` 里读它，`go test -race` 实测报 Write/Read 竞争（两条并发读头用例同时红）。
+  现在存 `atomic.Int64`、0 表示取默认值，测试统一走 `setHeaderTimeoutForTest`（`t.Cleanup`
+  恢复，排在 `server.Close` 之后）。新增"测试可调"的进程级阈值照这个形态写。
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 

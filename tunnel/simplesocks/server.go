@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Potterli20/trojan-go-fork/common"
@@ -55,11 +56,23 @@ drainPacket:
 	return err
 }
 
-// headerTimeout 限定读取 simplesocks 头的时限。acceptLoop 是**单个串行** goroutine：
-// 一条被打开却始终不下发字节的流会把它整个卡住，此后所有 mux 会话都建不起来，
-// 而 Close() 的 wg.Wait() 也只能靠 proxy 的 5s 有界兜底才返回。
-// 与 trojan 的 authTimeout 同型；声明成 var 是为了让测试能把等待压到毫秒级。
-var headerTimeout = 10 * time.Second
+// defaultHeaderTimeout 是读取 simplesocks 头的默认时限。
+const defaultHeaderTimeout = 10 * time.Second
+
+// headerTimeoutNanos 是读头时限（纳秒），0 表示取默认值。
+//
+// 为什么不是普通 time.Duration：测试需要把它压到毫秒级，而 acceptLoop 现在是一组
+// worker，测试结束、defer 恢复这个值时，某些 worker 可能仍在 readHeader 里读它——
+// `go test -race` 实测报 Write/Read 竞争。这类"进程级可调阈值"的读写必须自带同步。
+var headerTimeoutNanos atomic.Int64
+
+// headerTimeout 返回当前生效的读头时限。
+func headerTimeout() time.Duration {
+	if ns := headerTimeoutNanos.Load(); ns > 0 {
+		return time.Duration(ns)
+	}
+	return defaultHeaderTimeout
+}
 
 // readHeader 把读头放到独立 goroutine 里，超时或关停时关闭该流。
 // 这里不能用 SetDeadline：smux 的 Stream 没有 deadline 方法，而 mux.Conn 上解析到的
@@ -85,7 +98,7 @@ func (s *Server) readHeader(conn tunnel.Conn) (*tunnel.Metadata, error) {
 		result <- outcome{metadata: metadata, err: err}
 	}()
 
-	timer := time.NewTimer(headerTimeout)
+	timer := time.NewTimer(headerTimeout())
 	defer timer.Stop()
 
 	select {
@@ -100,59 +113,107 @@ func (s *Server) readHeader(conn tunnel.Conn) (*tunnel.Metadata, error) {
 	}
 }
 
+// acceptWorkers 是并发执行"读 simplesocks 头"的协程数。
+//
+// 读头解析的是**已认证 mux 会话里的对端字节**，而旧写法把 s.readHeader 写在 accept
+// 循环体里串行执行：一条被打开却始终不下发字节的流会占满 headerTimeout(10s)，而
+// mux/server.go 的 connChan 深度只有 32 且被**所有会话共用**——循环被拖住之后队列填满，
+// 每个新流都卡在发送上，全服 mux 流建立速率塌到约 0.1 条/秒，而攻击成本是"每 10 秒
+// 开一条静默流"。同型缺陷在 tunnel/adapter（2026-10-20）与 tunnel/trojan（2026-10-27）
+// 都已按"循环只做 Accept、per-conn 处理挪进协程"修过。
+//
+// 并发数固定成 N 而不是"每来一条派一个协程"：那样在途读头的数量就交给对端决定了。
+const acceptWorkers = 64
+
+// 下层永久坏掉时，N 个 worker 会各自转成满 CPU 热循环（实测同型问题 400ms 内能读
+// 3500 万次），所以退避与日志限流必须跟并行化一起上，口径同 tunnel/socks。
+const (
+	acceptBackoffStep = 100 * time.Millisecond
+	acceptBackoffCap  = 3 * time.Second
+)
+
 func (s *Server) acceptLoop() {
+	for range acceptWorkers {
+		s.wg.Go(s.acceptWorker)
+	}
+}
+
+func (s *Server) acceptWorker() {
+	failures := 0
 	for {
 		conn, err := tunnel.AcceptConnGuarded(s.underlay, &Tunnel{})
 		if err != nil {
-			// 下层解析未认证对端字节时的 panic 已被边界收住，本层继续接纳
-			// （见 tunnel/accept_guard.go）
-			if errors.Is(err, tunnel.ErrAcceptPanic) {
-				log.Error(common.NewError("simplesocks accept recovered from a panic in the underlay").Base(err))
-				continue
-			}
-			log.Error(common.NewError("simplesocks failed to accept connection from underlying tunnel").Base(err))
-			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中；
-			// 直接检查 ctx.Err()
+			isPanic := errors.Is(err, tunnel.ErrAcceptPanic)
 			if s.ctx.Err() != nil {
 				return
 			}
-			continue
-		}
-		// readHeader 解析的是**对端可控的前几个字节**，panic 边界就在它自己为超时单起的那个
-		// goroutine 里（父循环这道边界够不着它）；错误带着 ErrAcceptPanic 回到这里，
-		// 走下面既有的"记错误 + 关流 + 继续接纳"分支即可。
-		metadata, err := s.readHeader(conn)
-		if err != nil {
-			log.Error(common.NewError("simplesocks server failed to read header").Base(err))
-			conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-			continue
-		}
-		switch metadata.Command {
-		case Connect:
+			failures++
+			if failures%10 == 1 {
+				if isPanic {
+					log.Error(common.NewError("simplesocks accept recovered from a panic in the underlay").Base(err))
+				} else {
+					log.Error(common.NewError("simplesocks failed to accept connection from underlying tunnel").Base(err))
+				}
+			} else if log.ShouldLog(log.DebugLevel) {
+				log.Debug("simplesocks accept failed (suppressed) x", failures)
+			}
+			delay := time.Duration(failures) * acceptBackoffStep
+			if delay > acceptBackoffCap {
+				delay = acceptBackoffCap
+			}
 			select {
-			case s.connChan <- &Conn{
-				metadata: metadata,
-				Conn:     conn,
-			}:
+			case <-time.After(delay):
 			case <-s.ctx.Done():
-				// 下游已停止消费，关闭连接并退出，否则 Close() 的 wg.Wait() 死锁
-				conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				return
 			}
-			Record(conn, metadata)
-		case Associate:
-			select {
-			case s.packetChan <- &PacketConn{
-				Conn: conn,
-			}:
-			case <-s.ctx.Done():
-				conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-				return
-			}
-		default:
-			log.Error(common.NewErrorf("simplesocks unknown command %d", metadata.Command))
-			conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			continue
 		}
+		failures = 0
+		// 这条 worker 顺序做完"读头 + 投递"，**不再往下派协程**：本层的慢点是
+		// readHeader（不是 AcceptConn）。如果把读头交给派生协程，在途读头数就又回到
+		// 由对端决定，上面那个并发上界形同虚设——第一版就犯了这个错，判据
+		// TestHeaderReadConcurrencyIsBounded 当场抓到 128 > acceptWorkers。
+		// 投递本身带 ctx.Done 分支，关停时 worker 能干净退出，不会拖住 wg.Wait。
+		s.serveConn(conn)
+	}
+}
+
+// serveConn 读头并按命令把这条流交给对应的下游队列（原 acceptLoop 循环体的后半段）。
+func (s *Server) serveConn(conn tunnel.Conn) {
+	// readHeader 解析的是**对端可控的前几个字节**，panic 边界就在它自己为超时单起的那个
+	// goroutine 里（外层这道边界够不着它）；错误带着 ErrAcceptPanic 回到这里，
+	// 走下面既有的"记错误 + 关流 + 继续接纳"分支即可。
+	metadata, err := s.readHeader(conn)
+	if err != nil {
+		log.Error(common.NewError("simplesocks server failed to read header").Base(err))
+		conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		return
+	}
+	switch metadata.Command {
+	case Connect:
+		select {
+		case s.connChan <- &Conn{
+			metadata: metadata,
+			Conn:     conn,
+		}:
+		case <-s.ctx.Done():
+			// 下游已停止消费，关闭连接并退出，否则 Close() 的 wg.Wait() 死锁
+			conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			return
+		}
+		Record(conn, metadata)
+	case Associate:
+		select {
+		case s.packetChan <- &PacketConn{
+			Conn: conn,
+		}:
+		case <-s.ctx.Done():
+			conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			return
+		}
+	default:
+		log.Error(common.NewErrorf("simplesocks unknown command %d", metadata.Command))
+		conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	}
 }
 

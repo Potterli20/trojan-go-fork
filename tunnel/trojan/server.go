@@ -334,103 +334,150 @@ drain:
 	return err
 }
 
+// 并发握手的工作池大小。下层的 AcceptConn 里跑着 tls 握手、websocket 的
+// `http.ReadRequest` + `websocket.Accept`、shadowsocks 的密文探测——全都在等
+// **未认证对端**发字节。旧写法把这次调用写在 accept 循环体里串行执行：一条只完成
+// TCP/TLS 连接却始终不发数据的对端，就能让整个入站停摆最长 30s（ws 握手时限），
+// 慢速扫描即可让所有合法用户连不上——同型缺陷在 `tunnel/adapter`（2026-10-20，
+// 判据 sniff_parallel_test.go）已经按"挪进 per-conn 协程"修过，这里是漏网的姊妹。
+//
+// 不写成"每 Accept 一次就派一个协程"，因为那样在途未认证握手的协程/fd 数就交给
+// 对端决定了。固定 N 个 acceptor 既把握手并行化，又把它钉在一个常数上。
+const acceptWorkers = 64
+
+// acceptBackoffStep 与 acceptBackoffCap 是 accept 出错后的退避参数（线性、封顶 3s）。
+// 下层永久坏掉时，N 个 acceptor 会各自转成满 CPU 热循环——socks 的同型问题实测
+// 400ms 内读了 3500 万次，所以退避与日志限流必须一起加，不能只并行不背压。
+const (
+	acceptBackoffStep = 100 * time.Millisecond
+	acceptBackoffCap  = 3 * time.Second
+)
+
 func (s *Server) acceptLoop() {
+	for range acceptWorkers {
+		s.wg.Go(s.acceptWorker)
+	}
+}
+
+// acceptWorker 只负责"取一条已握手的连接"并交给 handler；握手本身在它自己的
+// AcceptConn 调用里，因此一个静默对端最多占住一个 worker，而不是整个入站。
+func (s *Server) acceptWorker() {
+	failures := 0
 	for {
 		conn, err := tunnel.AcceptConnGuarded(s.underlay, &Tunnel{})
 		if err != nil {
 			// 下层（websocket 的升级请求解析、shadowsocks 的密文探测这一类）在
 			// **未认证对端字节**上冒出的 panic 已经被边界收住：本层还活着，继续接纳。
-			// 下面那个 per-conn recover 够不着这里——它在 s.wg.Go 里面，而 AcceptConn
-			// 是在循环体里串行调用的（旧文档"上层 recover 兜得住握手 panic"的说法
-			// 在这一点上与代码不符，见 tunnel/accept_guard.go）。
-			if errors.Is(err, tunnel.ErrAcceptPanic) {
-				log.Error(common.NewError("trojan accept recovered from a panic in the underlay").Base(err))
-				continue
-			}
-			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中，
-			// 会漏记错误；直接检查 ctx.Err()
+			// 下面那个 per-conn recover 够不着握手本身，见 tunnel/accept_guard.go。
+			isPanic := errors.Is(err, tunnel.ErrAcceptPanic)
 			if s.ctx.Err() != nil {
 				return
 			}
-			log.Error(common.NewError("trojan failed to accept conn").Base(err))
-			continue
-		}
-		s.wg.Go(func() {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Error(common.NewError("panic in trojan handler: " + fmt.Sprintf("%v", r)))
-					conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			failures++
+			// 限流：出错速率由对端决定，每条都记 Error 就等于把日志变成攻击面；
+			// 每 10 次一条 Error，其余走门禁后再格式化（口径同 tunnel/socks）。
+			if failures%10 == 1 {
+				if isPanic {
+					log.Error(common.NewError("trojan accept recovered from a panic in the underlay").Base(err))
+				} else {
+					log.Error(common.NewError("trojan failed to accept conn").Base(err))
 				}
-			}()
-
-			rewindConn := common.NewRewindConn(conn)
-			rewindConn.SetBufferSize(128)
-
-			inboundConn := &InboundConn{
-				Conn:         rewindConn,
-				auth:         s.auth,
-				trustHeaders: s.trustHeaders,
+			} else if log.ShouldLog(log.DebugLevel) {
+				log.Debug("trojan accept failed (suppressed) x", failures)
 			}
-
-			// 对端静默时不设截止时间会让 handler 永久阻塞在 Auth，Close() 的 wg.Wait() 随之挂起
-			rewindConn.SetReadDeadline(time.Now().Add(authTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-			if err := inboundConn.Auth(); err != nil {
-				// 先 Rewind 保留已读字节供重定向方回放，再停止累积：
-				// 只 Rewind 不 StopBuffering 会让重定向中继的全部流量
-				// 继续被无界 append 进 buf，长连接下内存无限增长
-				rewindConn.Rewind()
-				rewindConn.StopBuffering()
-				rewindConn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-				log.Warn(common.NewError("connection with invalid trojan header from " + rewindConn.RemoteAddr().String()).Base(err))
-				s.redir.Redirect(&redirector.Redirection{
-					RedirectTo:  s.redirAddr,
-					InboundConn: rewindConn,
-				})
+			delay := time.Duration(failures) * acceptBackoffStep
+			if delay > acceptBackoffCap {
+				delay = acceptBackoffCap
+			}
+			select {
+			case <-time.After(delay):
+			case <-s.ctx.Done():
 				return
 			}
-			rewindConn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			continue
+		}
+		failures = 0
+		s.wg.Go(func() {
+			s.serveConn(conn)
+		})
+	}
+}
 
-			rewindConn.StopBuffering()
-			switch inboundConn.metadata.Command {
-			case Connect:
-				if inboundConn.metadata.DomainName == "MUX_CONN" {
-					select {
-					case s.muxChan <- inboundConn:
-						log.Debug("mux(r) connection")
-					case <-s.ctx.Done():
-						inboundConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-					}
-				} else {
-					select {
-					case s.connChan <- inboundConn:
-						log.Debug("normal trojan connection")
-						inboundConn.Record()
-					case <-s.ctx.Done():
-						inboundConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-					}
-				}
+// serveConn 就是一条已握手连接的处理流程（原 acceptLoop 里的闭包体，逐字搬过来）。
+func (s *Server) serveConn(conn tunnel.Conn) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Error(common.NewError("panic in trojan handler: " + fmt.Sprintf("%v", r)))
+			conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		}
+	}()
 
-			case Associate:
-				select {
-				case s.packetChan <- &PacketConn{
-					Conn: inboundConn,
-				}:
-					log.Debug("trojan udp connection")
-				case <-s.ctx.Done():
-					inboundConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-				}
-			case Mux:
-				select {
-				case s.muxChan <- inboundConn:
-					log.Debug("mux connection")
-				case <-s.ctx.Done():
-					inboundConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-				}
-			default:
-				log.Error(common.NewErrorf("unknown trojan command %d", inboundConn.metadata.Command))
+	rewindConn := common.NewRewindConn(conn)
+	rewindConn.SetBufferSize(128)
+
+	inboundConn := &InboundConn{
+		Conn:         rewindConn,
+		auth:         s.auth,
+		trustHeaders: s.trustHeaders,
+	}
+
+	// 对端静默时不设截止时间会让 handler 永久阻塞在 Auth，Close() 的 wg.Wait() 随之挂起
+	rewindConn.SetReadDeadline(time.Now().Add(authTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	if err := inboundConn.Auth(); err != nil {
+		// 先 Rewind 保留已读字节供重定向方回放，再停止累积：
+		// 只 Rewind 不 StopBuffering 会让重定向中继的全部流量
+		// 继续被无界 append 进 buf，长连接下内存无限增长
+		rewindConn.Rewind()
+		rewindConn.StopBuffering()
+		rewindConn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		log.Warn(common.NewError("connection with invalid trojan header from " + rewindConn.RemoteAddr().String()).Base(err))
+		s.redir.Redirect(&redirector.Redirection{
+			RedirectTo:  s.redirAddr,
+			InboundConn: rewindConn,
+		})
+		return
+	}
+	rewindConn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+
+	rewindConn.StopBuffering()
+	switch inboundConn.metadata.Command {
+	case Connect:
+		if inboundConn.metadata.DomainName == "MUX_CONN" {
+			select {
+			case s.muxChan <- inboundConn:
+				log.Debug("mux(r) connection")
+			case <-s.ctx.Done():
 				inboundConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			}
-		})
+		} else {
+			select {
+			case s.connChan <- inboundConn:
+				log.Debug("normal trojan connection")
+				inboundConn.Record()
+			case <-s.ctx.Done():
+				inboundConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			}
+		}
+
+	case Associate:
+		select {
+		case s.packetChan <- &PacketConn{
+			Conn: inboundConn,
+		}:
+			log.Debug("trojan udp connection")
+		case <-s.ctx.Done():
+			inboundConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		}
+	case Mux:
+		select {
+		case s.muxChan <- inboundConn:
+			log.Debug("mux connection")
+		case <-s.ctx.Done():
+			inboundConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		}
+	default:
+		log.Error(common.NewErrorf("unknown trojan command %d", inboundConn.metadata.Command))
+		inboundConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	}
 }
 

@@ -100,9 +100,8 @@ func TestHeaderPanicClosesConnAndLoopKeepsServing(t *testing.T) {
 	if md.Address == nil || md.Address.DomainName != "after-header-panic.example.com" {
 		t.Fatalf("放行的会话地址不对：%v", md.Address)
 	}
-	if !bad.closed.Load() {
-		t.Fatal("panic 的那条连接没有被回收：循环活着但每命中一次漏一个 fd")
-	}
+	// 同上：读头并行后，"panic 的连接被关闭"与"下一条会话被放行"没有先后保证。
+	waitFlag(t, "panic 的那条连接", func() bool { return bad.closed.Load() }, 3*time.Second)
 }
 
 func waitMetadata(server *Server, within time.Duration) (*tunnel.Metadata, error) {

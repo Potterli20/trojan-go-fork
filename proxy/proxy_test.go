@@ -62,6 +62,40 @@ func TestBoundedBufPoolDisabled(t *testing.T) {
 	}
 }
 
+// TestCloseDrainsPooledRelayBuffers 钉住「Close 之后不再替转发期常驻缓冲」：
+// 默认 relay_buffer_count=1024、size=8KB，两个池合起来最多约 16MB。进程退出时无所谓，
+// 但库化调用方（反复建栈、热重载）会一直攥着一个已关闭的 Proxy，这部分内存就成了
+// 实打实的常驻占用。判据看的是池队列长度，不是"有没有复用"。
+func TestCloseDrainsPooledRelayBuffers(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	p := NewProxy(ctx, cancel, []tunnel.Server{&fakeServer{}}, &fakeClient{})
+	// 刻意让两个池是不同对象，覆盖 Close 里的两条排空分支
+	p.packetPool = newBoundedBufPool(MaxPacketSize, 16)
+
+	for range 16 {
+		p.bufPool.Put(make([]byte, p.bufPool.size))
+		p.packetPool.Put(make([]byte, MaxPacketSize))
+	}
+	if len(p.bufPool.bufs) == 0 || len(p.packetPool.bufs) == 0 {
+		t.Fatal("前置条件不成立：池里没有驻留缓冲")
+	}
+
+	if err := p.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+	if n := len(p.bufPool.bufs); n != 0 {
+		t.Fatalf("关闭后转发池仍驻留 %d 块缓冲", n)
+	}
+	if n := len(p.packetPool.bufs); n != 0 {
+		t.Fatalf("关闭后 UDP 池仍驻留 %d 块缓冲", n)
+	}
+	// 重复 Close 不得因为池已空而出错（关闭流程允许被上层调用多次）
+	if err := p.Close(); err != nil {
+		t.Fatalf("second Close: %v", err)
+	}
+}
+
 func TestNewProxyPacketPoolCoversMaxPacketSize(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

@@ -97,6 +97,17 @@ func (f *fakeUnderlay) Close() error {
 	return nil
 }
 
+// setHeaderTimeoutForTest 把读头时限压到 d，并在测试结束时恢复。
+//
+// 恢复走 t.Cleanup 而不是裸 defer：defer 在测试函数返回时执行，而 t.Cleanup 在
+// 之后（LIFO）——先关 Server、再恢复默认值，worker 就不会在 Close 之前撞上一个
+// 半恢复的包级配置。写入本身走 atomic，即便顺序仍有交错也不构成数据竞争。
+func setHeaderTimeoutForTest(t *testing.T, d time.Duration) {
+	t.Helper()
+	old := headerTimeoutNanos.Swap(int64(d))
+	t.Cleanup(func() { headerTimeoutNanos.Store(old) })
+}
+
 // TestAcceptLoopIsNotBlockedBySilentStream 盯的是 acceptLoop 的单串行结构：
 // 它读头原先没有任何时限，一条被打开却不下发字节的流会把它永久卡住 ——
 // 之后所有 mux 会话都建不起来（simplesocks 只在这条链上服务 mux 内的流），
@@ -104,8 +115,7 @@ func (f *fakeUnderlay) Close() error {
 //
 // 判据：静默流必须在 headerTimeout 内被关闭并放行，下一个合法会话的头仍要被读到。
 func TestAcceptLoopIsNotBlockedBySilentStream(t *testing.T) {
-	defer func(old time.Duration) { headerTimeout = old }(headerTimeout)
-	headerTimeout = 100 * time.Millisecond // 把等待压到测试可接受的范围
+	setHeaderTimeoutForTest(t, 100*time.Millisecond) // 把等待压到测试可接受的范围
 
 	ctx := t.Context()
 
@@ -157,7 +167,23 @@ func TestAcceptLoopIsNotBlockedBySilentStream(t *testing.T) {
 		t.Fatal("acceptLoop 被一条静默流永久卡住：读头没有时限，后续 mux 会话全部无法建立")
 	}
 
-	if !silent.closed.Load() {
-		t.Fatal("超时的静默流没有被关闭——它会在 headerTimeout 之后继续占着资源")
+	// 读头已经并行了（acceptLoop 是工作池），所以"合法会话被放行"与"静默流被判超时"
+	// 之间没有先后关系了：这里必须等，而不是假设它已经发生。
+	waitFlag(t, "超时的静默流", func() bool { return silent.closed.Load() }, 3*time.Second)
+}
+
+// waitFlag 有界地等到 cond 成立。并行化之后，"某条流被判超时/panic 并被关闭"不再与
+// "下一条会话被放行"存在顺序关系，所以这类断言必须自己等，否则就是拿时序巧合当判据。
+func waitFlag(t *testing.T, what string, cond func() bool, within time.Duration) {
+	t.Helper()
+	deadline := time.Now().Add(within)
+	for time.Now().Before(deadline) {
+		if cond() {
+			return
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	if !cond() {
+		t.Fatalf("%s 没有在 %v 内被回收：它会继续占着 fd/会话资源", what, within)
 	}
 }

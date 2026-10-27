@@ -92,6 +92,25 @@ func (p *boundedBufPool) Put(buf []byte) {
 	}
 }
 
+// drain 丢弃池内驻留的全部 buffer，让 Close 之后的 Proxy 不再替已结束的转发期
+// 常驻一块内存（默认 8KB × 1024 ≈ 8MB，packetPool 独立时再一份）。
+//
+// 只做非阻塞取空、不关闭 channel：关闭后任何延迟到达的 Put 都会 panic。关停超时
+// 留下的一两条中继协程仍可能在稍后 Put，那最多让池里重新出现一两块，属可接受残余；
+// 把整块常驻内存立即交还 GC 是这里的目标。
+func (p *boundedBufPool) drain() {
+	if p == nil {
+		return
+	}
+	for {
+		select {
+		case <-p.bufs:
+		default:
+			return
+		}
+	}
+}
+
 // shutdownTimeout 是关闭阶段单个环节的最长等待时间（等中继 goroutine 退出、
 // 等底层 tunnel 关闭各算一次）。io.CopyBuffer 不感知 ctx，且每个 tunnel Server
 // 的 Close 内部还有自己的 wg.Wait：对端半开、mux/QUIC 会话卡死时这些等待都可能
@@ -227,6 +246,14 @@ func (p *Proxy) Close() error {
 		if err := <-released; err != nil {
 			errs = append(errs, err)
 		}
+	}
+	// 释放池里驻留的转发缓冲。转发环已在上面的 wg.Wait 之后停掉（超时放弃时可能还
+	// 有一两条在途协程，它们稍后 Put 回来的那几块无法避免）。不排空的话，一个已经
+	// Close 的 Proxy 仍替两个池攥着默认约 8MB（packetPool 独立时翻倍），库化调用方
+	// 反复建栈/热重载时这部分是实打实的常驻内存。
+	p.bufPool.drain()
+	if p.packetPool != p.bufPool {
+		p.packetPool.drain()
 	}
 	// detachLogFile 已经把输出切回 stderr，所以这条错误既写得出去，也不会再写进
 	// 一个关闭中的文件；置 nil 让重复 Close 不会二次交还输出
