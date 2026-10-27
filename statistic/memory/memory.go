@@ -231,10 +231,7 @@ func (u *User) GetIPLimit() int {
 func waitPaced(ctx context.Context, l *rate.Limiter, n int) error {
 	burst := l.Burst()
 	for n > 0 {
-		take := n
-		if take > burst {
-			take = burst
-		}
+		take := min(n, burst)
 		if err := l.WaitN(ctx, take); err != nil {
 			return err
 		}
