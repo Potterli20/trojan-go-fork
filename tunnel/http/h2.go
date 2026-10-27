@@ -131,6 +131,26 @@ type h2Handler struct {
 	conn tunnel.Conn
 }
 
+// clampOriginStatusCode 把目标站给出的、不能交给 HTTP/2 的状态码钳成 502。
+//
+// 这不是假想的健壮性：实测（go1.27.3）stdlib 的 http.ReadResponse 接受
+// "HTTP/1.1 000 x" 与 "HTTP/1.1 099 x"，分别得到 StatusCode 0 与 99（只有四位数
+// 才被 "malformed HTTP status code" 拒掉）。而 x/net/http2 的 checkWriteHeaderCode
+// 对 code < 100 **直接 panic**。那个 panic 被库的每流 recover 兜住（连接不死），
+// 但客户端拿到的是 RST_STREAM 而不是一个干净的 5xx，并且 panic 文案会经 stdlib log
+// 落到日志口——绕过本项目的级别门禁与脱敏链。
+//
+// 判据说明：这条**没法**用端到端用例证红——去掉钳制后 httptest.ResponseRecorder
+// 与错误分支都会给出一个 5xx 形状的出口，端到端断言因此恒真（我第一次就踩在这里，
+// 变异测试报绿才发现）。所以这里钉的是纯函数本身，另加一条结构性门禁确认
+// ServeHTTP 真的经过它。
+func clampOriginStatusCode(code int) int {
+	if code < 100 || code > 999 {
+		return http.StatusBadGateway
+	}
+	return code
+}
+
 func (h *h2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodConnect {
 		// 见上面的能力边界：没有 Hijack 就桥不出裸隧道，显式拒绝比假装支持安全。
@@ -217,7 +237,11 @@ func (h *h2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add(k, v)
 		}
 	}
-	w.WriteHeader(resp.StatusCode)
+	status := clampOriginStatusCode(resp.StatusCode)
+	if status != resp.StatusCode {
+		log.Errorf("h2 origin returned an unusable status code %d, mapped to %d", resp.StatusCode, status)
+	}
+	w.WriteHeader(status)
 	copyBuf := getH2CopyBuf()
 	defer putH2CopyBuf(copyBuf)
 	if _, err := io.CopyBuffer(w, resp.Body, copyBuf); err != nil {

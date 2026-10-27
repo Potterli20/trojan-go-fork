@@ -454,6 +454,13 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		EnableDatagrams: true,
 	}
 
+	if err := ValidateBrutalParams(CongestionConfig{
+		Algorithm:  cfg.QUIC.Congestion,
+		BrutalUp:   cfg.QUIC.BrutalUp,
+		BrutalDown: cfg.QUIC.BrutalDown,
+	}); err != nil {
+		return nil, err
+	}
 	log.Debug("QUIC client created with ALPN:", cfg.QUIC.ALPN)
 	log.Debug("QUIC congestion control:", cfg.QUIC.Congestion)
 	if cfg.QUIC.Congestion == "brutal" || cfg.QUIC.Congestion == "force-brutal" {

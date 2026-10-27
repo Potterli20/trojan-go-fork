@@ -145,7 +145,8 @@ JSON / YAML 皆可，逐字段说明见 [配置说明](docs/configuration.md)。
 只接受 `trojan-go://` scheme——传 `trojan://` 会在启动期报 `url does not have a trojan-go:// scheme`
 （实测）。`type=ws` 时 `path` 必填且必须以 `/` 开头。
 
-配套开关 `-url-option` 只认三个键：`mux` / `listen` / `api`，默认值是
+配套开关 `-url-option` 只认三个键：`mux` / `listen` / `api`（写第四种键会被拒绝启动，
+过去是无声忽略——`listne=...` 这类拼错会让你以为改了监听地址，实际用的还是默认值），默认值是
 `mux=true;listen=127.0.0.1:1080`——**不写 `-url-option` 也会开多路复用**，想关掉要显式传：
 
 ```shell
@@ -153,7 +154,8 @@ JSON / YAML 皆可，逐字段说明见 [配置说明](docs/configuration.md)。
 ```
 
 `mux` 的值不是合法 bool 时报 `invalid mux value: <值>`；键值对之间用 `;` 分隔，少写 `=`
-报 `invalid option format: <pair>. expected key=value`（两条错误文案都实测过）。
+报 `invalid option format: <pair>. expected key=value`（两条错误文案都实测过）。尾随的 `;`
+与 `;;` 只当空段跳过——一个纯书写习惯不该把一次可用的启动判成硬失败。
 
 ---
 
@@ -711,6 +713,10 @@ shadowsocks:
 `websocket.host` 在服务端**不是**要匹配的 Host 头：它只在 `remote-addr` 留空时被拿去
 当诱饵地址兜底（`tunnel/websocket/server.go`）。Host/Origin 对不上是 CDN 回源的常态，
 一律放行，真正的鉴权在 trojan 层的密码上。要写诱饵就直接写 `remote-addr`/`remote-port`。
+
+两个都为空时**拒绝启动**。留空过去会拼出 `":80"` 这样的地址，而 `net.Dial("tcp", ":80")`
+连的是 **127.0.0.1**——认证失败的流量会被代打到代理自己主机的本地服务，配置写错却没有任何
+症状。trojan 服务端同样要求 `remote-addr`（`shadowsocks`/`quic` 早就这么拦了）。
 
 **Nginx 回源（二选一）**：
 

@@ -71,11 +71,26 @@ func parseOptions(optStr string) (map[string]string, error) {
 	}
 	pairs := strings.SplitSeq(optStr, ";")
 	for pair := range pairs {
+		if pair = strings.TrimSpace(pair); pair == "" {
+			// 尾随 ';' 或 ';;' 只是书写习惯，不该把一次可用启动判成硬失败。
+			continue
+		}
 		key, value, found := strings.Cut(pair, "=")
 		if !found {
 			return nil, common.NewError("invalid option format: " + pair + ". expected key=value")
 		}
-		result[strings.TrimSpace(key)] = strings.TrimSpace(value)
+		key = strings.TrimSpace(key)
+		// 键集合必须校验：过去 result[key]=value 无脑收下，listne=/muxx= 这类拼错
+		// 一律无声忽略，用户以为改了监听地址，实际用的还是默认值。
+		// 键集合必须与 Handle 实际读取的一致（listen / mux / api）：过去
+		// result[key]=value 无脑收下，listne= 这类拼错一律无声忽略，
+		// 用户以为改了监听地址，实际用的还是默认值。
+		switch key {
+		case "listen", "mux", "api":
+			result[key] = strings.TrimSpace(value)
+		default:
+			return nil, common.NewErrorf("unknown url option %q (supported: listen, mux, api)", key)
+		}
 	}
 	return result, nil
 }

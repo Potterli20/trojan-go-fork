@@ -233,6 +233,12 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		log.Warn("empty websocket redirection port")
 		cfg.RemotePort = 80
 	}
+	// remote-addr 与 websocket.host 都为空时不能再往下走：拼出来的诱饵地址是 ":80"，
+	// 而实测 net.Dial("tcp", ":80") 连的是 127.0.0.1 —— 未认证对端的字节会被中继进
+	// 代理自己主机的本地服务。两次 Warn 之后必须有闸，否则这份配置永远没有症状。
+	if cfg.RemoteHost == "" {
+		return nil, common.NewError("invalid websocket redirection address: both remote-addr and websocket.host are empty")
+	}
 	ctx, cancel := context.WithCancel(ctx)
 	log.Debug("websocket server created")
 

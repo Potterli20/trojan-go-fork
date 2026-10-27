@@ -86,6 +86,11 @@ inbound:
       tag: trojan
       config:
         disable-http-check: true
+        # trojan 服务端现在要求显式诱饵地址：空 remote-addr 会拼出 ":port"，
+        # 而 net.Dial("tcp", ":port") 连的是 127.0.0.1（本用例里探测已关、认证也不会失败，
+        # 所以这个地址只是声明出来，不会被拨）
+        remote-addr: 127.0.0.1
+        remote-port: 8443
         password:
           - "12345678"
 
@@ -221,6 +226,11 @@ inbound:
       tag: trojan
       config:
         disable-http-check: true
+        # trojan 服务端现在要求显式诱饵地址：空 remote-addr 会拼出 ":port"，
+        # 而 net.Dial("tcp", ":port") 连的是 127.0.0.1（本用例里探测已关、认证也不会失败，
+        # 所以这个地址只是声明出来，不会被拨）
+        remote-addr: 127.0.0.1
+        remote-port: 8443
         password:
           - "12345678"
 
@@ -228,6 +238,10 @@ inbound:
       tag: trojan2
       config:
         disable-http-check: true
+        # trojan 服务端现在要求显式诱饵地址：空 remote-addr 会拼出 ":port"，
+        # 而 net.Dial("tcp", ":port") 连的是 127.0.0.1（这里探测已关、认证也不会失败，地址只是声明出来）
+        remote-addr: 127.0.0.1
+        remote-port: 8443
         password:
           - "12345678"
 

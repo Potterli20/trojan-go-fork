@@ -2,6 +2,7 @@ package quic
 
 import (
 	"fmt"
+	"github.com/Potterli20/trojan-go-fork/common"
 	"time"
 
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -35,6 +36,23 @@ type CongestionStatus struct {
 //
 // 出口结果：
 //   - 返回CongestionStatus结构，包含算法应用状态和相关参数
+//
+// ValidateBrutalParams 在建栈期就拦住"选了 brutal 却没给码率"。
+// 过去这种配置只在运行期打一行 Warn，连接照常用库默认 BBR 上线——用户以为链路被
+// 固定码率整形（brutal 存在的唯一理由），实际没有任何东西生效，运行期也没有观测点。
+// 口径同 api.CheckExposure / 空密码那两条：策略性拒绝必须由 NewClient/NewServer 同步
+// 返回，让建栈失败、进程以非零退出码收场。
+func ValidateBrutalParams(c CongestionConfig) error {
+	if c.Algorithm != "brutal" && c.Algorithm != "force-brutal" {
+		return nil
+	}
+	if c.BrutalUp == 0 || c.BrutalDown == 0 {
+		return common.NewErrorf("congestion %q requires positive brutal-up and brutal-down (got up=%d down=%d)",
+			c.Algorithm, c.BrutalUp, c.BrutalDown)
+	}
+	return nil
+}
+
 func ApplyCongestionControl(conn *quic.Conn, config CongestionConfig, role string) CongestionStatus {
 	startTime := time.Now()
 

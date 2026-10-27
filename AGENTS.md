@@ -243,6 +243,23 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   后果是 CR/LF 可伪造整行日志（域名/SNI/目的地是 `metadata.go` 里长度前缀的任意字节，
   `freedom` 的拨号错误又会把 `addr.String()` 拼进文案），并且凭据脱敏链一起被绕过。
   判据 `log/log_injection_test.go`。
+- **「接受但不生效」和「退化成连本机」都算缺陷**（2026-10-27）。本轮三处同一味道：
+  ① trojan / websocket 服务端在 `remote-addr` 为空时不再继续启动——空主机会拼出 `":port"`，
+  而实测 `net.Dial("tcp", ":port")` **连的是 127.0.0.1**，认证失败的流量被代打到代理自己
+  主机的本地服务；`disable-http-check: true` 时连那道探测都不跑，全程静默。口径抄
+  `shadowsocks`/`quic`（它们早就显式拒绝空 RemoteHost）。注意这道闸必须排在
+  `api.CheckExposure` **之后**：`api/service/wiring_test.go` 钉的是"无凭据公网监听"那条
+  文案优先，排前面会把既有断言改红（踩过）。
+  ② quic 的 `congestion: brutal` 缺 `brutal-up`/`brutal-down` 时改为建栈失败——过去只 Warn，
+  连接照常用库默认 BBR 上线，用户以为链路被固定码率整形（brutal 的唯一理由）实际没有。
+  ③ `-url-option` 的键集合按 `Handle` 真正读取的 `listen`/`mux`/`api` 校验，未知键报错；
+  尾随 `;`/`;;` 只当空段跳过（一个书写习惯不该判死一次可用启动）。
+  另有一处判据教训：h2 的目标站状态码钳制**做不出端到端判据**——去掉钳制后
+  `httptest.ResponseRecorder` 与错误分支都给出 5xx 形状的出口，端到端断言恒真
+  （变异测试报绿才发现）。改成纯函数 `clampOriginStatusCode` + 一条接线用的结构性门禁，
+  并把"为什么不能端到端"写进注释。实测 stdlib 的 `http.ReadResponse` 接受
+  `HTTP/1.1 000 x`（StatusCode=0）与 `099`（99），只有四位数才被拒——所以 x/net 的
+  `checkWriteHeaderCode` 对 `code < 100` 的 panic 是真可达路径。
 - **`statistic/memory.AddUser` 必须用 `LoadOrStore`**，不能先 `Load` 判存在再 `Store`。
   窗口里两个并发调用会各自起 `speedUpdater` + `ipCleaner` 再互相覆盖，被覆盖那个 `User` 的
   `cancel` 永不被调（`DelUser` 只关 map 里那一个）→ 每撞一次永久漏 2 goroutine + 2 ticker +

@@ -471,6 +471,16 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	if err := api.CheckExposure(ctx, Name+"_SERVER"); err != nil {
 		return nil, err
 	}
+
+	// 诱饵地址缺主机名时必须拒绝启动，而不是拿空主机去拼地址：
+	// NewAddressFromHostPort("tcp", "", port) 的 String() 是 ":port"，而实测
+	// net.Dial("tcp", ":port") **连的是 127.0.0.1** —— 认证失败的流量会被代打到
+	// 代理自己主机上的本地服务，且空域名匹配不上任何按域路由的规则。
+	// disable-http-check: true 时下面那个探测不会跑，这条路径就完全是静默的。
+	// 姊妹入站早就拦了（shadowsocks/quic 显式拒绝空 RemoteHost），trojan 是漏的那个。
+	if cfg.RemoteHost == "" {
+		return nil, common.NewError("invalid trojan redirection address: remote-addr is empty")
+	}
 	ctx, cancel := context.WithCancel(ctx)
 
 	ref, err := acquireAuth(ctx, cfg)

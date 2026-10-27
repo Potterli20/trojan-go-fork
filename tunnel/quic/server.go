@@ -302,6 +302,18 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		InitialConnectionReceiveWindow: uint64(cfg.QUIC.InitialConnWindow),
 	}
 
+	// 选了 brutal 却没给码率时必须建栈失败。过去这里只打一行 Warn，连接照常用库默认
+	// BBR 上线——用户以为链路被固定码率整形（brutal 存在的唯一理由），实际没有任何东西
+	// 生效，运行期也没有观测点。口径同 api.CheckExposure / 空密码：策略性拒绝要由
+	// NewServer 同步返回，而且必须在 cert 加载与 UDP bind 之前，否则失败路径要自己拆监听。
+	if err := ValidateBrutalParams(CongestionConfig{
+		Algorithm:  cfg.QUIC.Congestion,
+		BrutalUp:   cfg.QUIC.BrutalUp,
+		BrutalDown: cfg.QUIC.BrutalDown,
+	}); err != nil {
+		return nil, err
+	}
+
 	// 服务端把 remote-addr 当**要绑定的地址**用，所以这里必须是 IP 字面量。
 	// 旧实现是 net.ParseIP(cfg.RemoteHost) 直接塞进 UDPAddr：域名解析出 nil，而
 	// &net.UDPAddr{IP: nil} 的含义是"监听所有网卡"。客户端那侧的 remote-addr 本来就是
