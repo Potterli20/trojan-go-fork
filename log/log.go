@@ -300,10 +300,21 @@ func SanitizeString(s string) string {
 	return s
 }
 
+// SanitizeLogInput 清洗日志实参。只认 string 是不够的：全仓主流写法是
+// log.Error(common.NewError(...).Base(err))，error 不是 string，于是过去原样穿过
+// fmt.Sprintln，落到 golog 的行缓冲上（Output 只 Append，不再二次清洗）。
+// 后果有两条：① 对端可控字节里的 CR/LF 能伪造整行日志——域名/SNI/地址是
+// metadata.go 里长度前缀的任意字节，而 freedom 的拨号错误又会把 addr.String() 拼进
+// 错误文案；② 凭据脱敏链一并被绕过（ObfuscateSensitiveData 只在 SanitizeString 里跑）。
 func SanitizeLogInput(v []any) []any {
 	for i, val := range v {
-		if str, ok := val.(string); ok {
-			v[i] = SanitizeString(str)
+		switch x := val.(type) {
+		case string:
+			v[i] = SanitizeString(x)
+		case error:
+			if x != nil {
+				v[i] = SanitizeString(x.Error())
+			}
 		}
 	}
 	return v

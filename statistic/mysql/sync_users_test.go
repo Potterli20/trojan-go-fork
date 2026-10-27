@@ -384,6 +384,13 @@ func TestEnsureUsersTableCreatesTableAndAddsMissingColumns(t *testing.T) {
 			t.Errorf("缺少一次 %q 的语句执行（实际调用：%s）", want, dumpCalls(db))
 		}
 	}
+	// quota 的默认值必须是 -1。判定语义里 0 = 无额度，写成 DEFAULT 0 的话，
+	// 面板只填 (username, password) 的新用户会在首个同步轮被静默删掉——密码永远不通，
+	// 且没有任何报错指向这一点。
+	if got := db.callsWith("CREATE TABLE"); len(got) != 1 ||
+		!strings.Contains(got[0].query, "`quota` BIGINT NOT NULL DEFAULT -1") {
+		t.Fatalf("usersTableDDL 里 quota 的默认值不是 -1：%s", dumpCalls(db))
+	}
 }
 
 func TestEnsureUsersTableToleratesColumnsThatAlreadyExist(t *testing.T) {

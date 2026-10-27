@@ -90,6 +90,20 @@ func matchDomain(list []*v2geodata.Domain, regexCache map[string]*regexp.Regexp,
 	return false
 }
 
+// validateCIDRPrefix 校验前缀位数是否落在该地址族的范围内。
+// 越界值过去能一路走到 matchIP，然后 net.CIDRMask 返回 nil、规则静默不命中，
+// 流量落到 defaultPolicy——默认是 proxy，所以"写错的 block 规则"等于悄悄放行。
+func validateCIDRPrefix(ip net.IP, prefix int) error {
+	bits := 8 * net.IPv6len
+	if ip.To4() != nil {
+		bits = 8 * net.IPv4len
+	}
+	if prefix < 0 || prefix > bits {
+		return common.NewErrorf("invalid cidr prefix %d: this address takes 0..%d", prefix, bits)
+	}
+	return nil
+}
+
 func matchIP(list []*v2geodata.CIDR, target net.IP) bool {
 	isIPv6 := true
 	len := net.IPv6len
@@ -97,9 +111,18 @@ func matchIP(list []*v2geodata.CIDR, target net.IP) bool {
 		len = net.IPv4len
 		isIPv6 = false
 	}
+	bits := 8 * len
 	for _, c := range list {
 		n := int(c.Prefix)
-		mask := net.CIDRMask(n, 8*len)
+		mask := net.CIDRMask(n, bits)
+		if mask == nil {
+			// net.CIDRMask 对越界位数直接返回 nil，而拿 nil 掩码拼出的 IPNet 恒不命中：
+			// 写错的 cidr:1.2.3.0/33 于是**静默永不生效**，流量落到 defaultPolicy
+			// （默认 proxy = 悄悄放行）。装载侧已经拦过一道（validateCIDRPrefix），
+			// 这里是结构兜底——geosite/geoip 的 .dat 由用户提供，位数同样没人保证。
+			log.Debugf("router: 跳过前缀位数越界的 CIDR 条目 prefix=%d（该族位数是 %d）", n, bits)
+			continue
+		}
 		cidrIP := net.IP(c.Ip)
 		if cidrIP.To4() != nil {
 			if isIPv6 {
@@ -371,8 +394,23 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		if err != nil {
 			log.Error(err)
 		} else {
+			// .dat 里的 Prefix 由用户提供的文件决定，同样没人保证落在合法位数区间。
+			// 越界条目在这里就剔掉并计数——混进表里只会在 matchIP 那条 nil 掩码分支上
+			// 静默失效，而静默失效的规则比报错危险得多（block 规则失效等于放行）。
+			kept := cidrs[:0]
+			var dropped int
+			for _, entry := range cidrs {
+				if err := validateCIDRPrefix(net.IP(entry.Ip), int(entry.Prefix)); err != nil {
+					dropped++
+					continue
+				}
+				kept = append(kept, entry)
+			}
+			if dropped > 0 {
+				log.Errorf("geoip:%s 里有 %d 条 CIDR 前缀位数越界，已跳过（这些规则不会生效）", code, dropped)
+			}
 			log.Infof("geoip:%s loaded", code)
-			client.cidrs[c.strategy] = append(client.cidrs[c.strategy], cidrs...)
+			client.cidrs[c.strategy] = append(client.cidrs[c.strategy], kept...)
 		}
 	}
 
@@ -486,9 +524,14 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		if err != nil {
 			return nil, common.NewError("invalid prefix").Base(err)
 		}
+		// ParseInt 的位宽限制在 int32，跟 CIDR 的合法位数区间不是一回事：
+		// /33、/129、负数都能过，然后 net.CIDRMask 返回 nil，规则静默失效。
+		if err := validateCIDRPrefix(ip, int(prefix)); err != nil {
+			return nil, common.NewError("invalid cidr: " + info.code).Base(err)
+		}
 		client.cidrs[info.strategy] = append(client.cidrs[info.strategy], &v2geodata.CIDR{
 			Ip:     ip,
-			Prefix: uint32(prefix), //gosec:disable -- prefix 来自 ParseInt(b, 10, 32)，已限制在 int32 范围内
+			Prefix: uint32(prefix), //gosec:disable -- 已由 validateCIDRPrefix 限定在该地址族的位数区间内
 		})
 	}
 

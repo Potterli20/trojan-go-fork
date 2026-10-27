@@ -36,6 +36,12 @@ const (
 	// 判据见 tunnel/tproxy/session_bound_test.go）。
 	maxUDPSessions = 4096
 
+	// udpDefaultTimeout 是 UDP 会话空闲超时的兜底值，与配置创建器的默认值同源。
+	// 非正数必须落回它：time.NewTimer(0) 立即就绪，会话守护协程首轮 select 必走 timer
+	// 分支，于是每条 UDP 会话在建立的那一刻就被删表 + Close —— UDP 静默全废，
+	// 日志只有 Info 一行。同型的 mux idle-timeout 缺陷已按"非正数落文档默认值"修过。
+	udpDefaultTimeout = 60 * time.Second
+
 	// maxAssociations 是在途 ASSOCIATE 控制连接条目数的硬上限，与 maxUDPSessions 同值。
 	// associations 过去只有 associationMaxLife 一个时限，条目数 = 发呆对端的到达速率 ×
 	// 600s，而这条 TCP 在握手阶段没有任何认证；每条登记攥着 1 个 fd、1 个守护协程、
@@ -52,6 +58,14 @@ const (
 	// 口径同 tunnel/trojan/packet.go 的 packetBufCap。
 	responseFrameCap = MaxPacketSize + 264
 )
+
+// resolveUDPTimeout 把配置里的秒数换算成会话空闲超时，非正数落回文档默认值。
+func resolveUDPTimeout(seconds int) time.Duration {
+	if seconds <= 0 {
+		return udpDefaultTimeout
+	}
+	return time.Duration(seconds) * time.Second
+}
 
 // handshakeTimeout 限定 socks 握手(version/method/command/address)整体时限
 const handshakeTimeout = 30 * time.Second
@@ -558,7 +572,7 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		underlay:         underlay,
 		localHost:        cfg.LocalHost,
 		localPort:        cfg.LocalPort,
-		timeout:          time.Duration(cfg.UDPTimeout) * time.Second,
+		timeout:          resolveUDPTimeout(cfg.UDPTimeout),
 		connChan:         make(chan tunnel.Conn, 32),
 		packetChan:       make(chan tunnel.PacketConn, 32),
 		mapping:          make(map[tunnel.SessionKey]*PacketConn),

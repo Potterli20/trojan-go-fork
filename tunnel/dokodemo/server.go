@@ -18,6 +18,19 @@ import (
 // 判据见 tunnel/tproxy/session_bound_test.go）。
 const maxUDPSessions = 4096
 
+// udpDefaultTimeout 是 UDP 会话空闲超时的兜底值，与配置创建器的默认值同源。
+// 非正数必须落回它：time.NewTimer(0) 立即就绪，会话守护协程首轮 select 必走 timer 分支，
+// 于是每条 UDP 会话在建立的那一刻就被删表 + Close —— UDP 静默全废，日志只有 Info 一行。
+// 同型的 mux idle-timeout 缺陷已按"非正数落文档默认值"修过，这里是另外三个姊妹入站。
+const udpDefaultTimeout = 60 * time.Second
+
+func resolveUDPTimeout(seconds int) time.Duration {
+	if seconds <= 0 {
+		return udpDefaultTimeout
+	}
+	return time.Duration(seconds) * time.Second
+}
+
 type Server struct {
 	tunnel.Server
 	tcpListener net.Listener
@@ -249,7 +262,7 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 		targetAddr:  targetAddr,
 		mapping:     make(map[tunnel.SessionKey]*PacketConn),
 		packetChan:  make(chan tunnel.PacketConn, 32),
-		timeout:     time.Second * time.Duration(cfg.UDPTimeout),
+		timeout:     resolveUDPTimeout(cfg.UDPTimeout),
 		ctx:         ctx,
 		cancel:      cancel,
 	}

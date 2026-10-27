@@ -380,9 +380,14 @@ func (p *Proxy) relayPacketLoop() {
 								return
 							}
 							if n == 0 {
+								// 空数据报是 UDP 的合法负载，不是会话结束。旧写法把它当成 EOF
+								// 直接拆掉整条会话（且一行日志都没有）：dokodemo/socks/tproxy 的
+								// copy(p, payload) 在负载为空时返回 (0,nil)，trojan 的 packet.go
+								// 在远端写 length=0 时也返回 (0,nil)——本地任何 app 发一个空
+								// datagram 就能自拆会话，客户端模式下远端还能逐包拆。
+								// 口径与 tunnel/quic 那条已写进注释的不变量一致（那边是 continue）。
 								p.packetPool.Put(buf)
-								closeDone()
-								return
+								continue
 							}
 							// relay 的两个方向在写出去之前都要能拿到目标地址。QUIC 数据报没有
 							// in-band 地址（tunnel/quic/client.go 的 ReadWithMetadata 交回的是空
@@ -417,9 +422,14 @@ func (p *Proxy) relayPacketLoop() {
 								return
 							}
 							if n == 0 {
+								// 空数据报是 UDP 的合法负载，不是会话结束。旧写法把它当成 EOF
+								// 直接拆掉整条会话（且一行日志都没有）：dokodemo/socks/tproxy 的
+								// copy(p, payload) 在负载为空时返回 (0,nil)，trojan 的 packet.go
+								// 在远端写 length=0 时也返回 (0,nil)——本地任何 app 发一个空
+								// datagram 就能自拆会话，客户端模式下远端还能逐包拆。
+								// 口径与 tunnel/quic 那条已写进注释的不变量一致（那边是 continue）。
 								p.packetPool.Put(buf)
-								closeDone()
-								return
+								continue
 							}
 							// 空地址拦截，理由见上一个方向那处
 							if metadata == nil || metadata.Address == nil {

@@ -1,6 +1,10 @@
 package dokodemo
 
-import "github.com/Potterli20/trojan-go-fork/config"
+import (
+	"time"
+
+	"github.com/Potterli20/trojan-go-fork/config"
+)
 
 type Config struct {
 	LocalHost  string `json:"local_addr" yaml:"local-addr"`
@@ -13,7 +17,7 @@ type Config struct {
 func init() {
 	config.RegisterConfigCreator(Name, func() any {
 		return &Config{
-			UDPTimeout: 60,
+			UDPTimeout: int(udpDefaultTimeout / time.Second),
 		}
 	})
 }

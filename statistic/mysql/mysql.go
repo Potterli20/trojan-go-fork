@@ -24,13 +24,21 @@ import (
 
 const Name = "MYSQL"
 
-// usersTableDDL 是 users 表的期望结构。旧版本（stat/db.go 的 TrafficMeter 时代）会在
+// usersTableDDL 是 users 表的期望结构。
+//
+// quota 的默认值是 -1（不限流量），不是 0：判定语义里 0 = 无额度，所以面板只填
+// (username, password) 时，默认值 0 会让这个新用户在首个同步轮就被静默删掉、
+// 密码永远不通，而且没有任何报错指向这一点。maxip/expire 的"不设 = 不限/永不"
+// 已经是这个口径，quota 也必须一致。已有表的列默认值不会被 ALTER 改动，
+// 沿用旧表的部署请照 example/mysql.sql 手工改一次。
+//
+// 旧版本（stat/db.go 的 TrafficMeter 时代）会在
 // 启动时自动建表，后来重构把这段删掉了，于是沿用旧表的部署在缺列（maxip / expire）时
 // 同步静默失效。这里恢复幂等建表，并对已存在的旧表补列（见 ensureUsersTable）。
 const usersTableDDL = "CREATE TABLE IF NOT EXISTS `users` (" +
 	"`username` VARCHAR(64) NOT NULL," +
 	"`password` CHAR(56) NOT NULL," +
-	"`quota` BIGINT NOT NULL DEFAULT 0," +
+	"`quota` BIGINT NOT NULL DEFAULT -1," +
 	"`download` BIGINT UNSIGNED NOT NULL DEFAULT 0," +
 	"`upload` BIGINT UNSIGNED NOT NULL DEFAULT 0," +
 	"`maxip` INT NOT NULL DEFAULT 0," +

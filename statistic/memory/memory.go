@@ -220,14 +220,37 @@ func (u *User) GetIPLimit() int {
 	return u.MaxIPNum
 }
 
+// waitPaced 按限速器允许的粒度把 n 个字节排队。
+//
+// rate.Limiter.WaitN 在 n > burst 时**立即返回错误**，而不是等待——而中继每块最大可以到
+// relay_buffer_size（默认 8192，上限 1MB），burst 只有 2*limit。于是 speed_limit 低于
+// 4096 B/s 的用户过去**完全不设限**，错误又被调用点丢弃，运营方以为限额生效了。
+// 拆成不超过 burst 的若干次等待之后，限额才真正落到字节上。
+// 剩下的唯一错误来源是 ctx 被取消（会话正在拆除），那时流量物理上已经发生，
+// 账目照记，所以这里不把它当失败处理。
+func waitPaced(ctx context.Context, l *rate.Limiter, n int) error {
+	burst := l.Burst()
+	for n > 0 {
+		take := n
+		if take > burst {
+			take = burst
+		}
+		if err := l.WaitN(ctx, take); err != nil {
+			return err
+		}
+		n -= take
+	}
+	return nil
+}
+
 func (u *User) AddSentTraffic(sent int) {
 	u.limiterLock.RLock()
 	limiter := u.SendLimiter
 	u.limiterLock.RUnlock()
-	// WaitN 可能长时间阻塞（限速生效期间），不能持有 limiterLock 等待，
+	// 等待可能长时间阻塞（限速生效期间），不能持有 limiterLock 等待，
 	// 否则 SetSpeedLimit 的写锁会长期饥饿，运行中修改限速迟迟不生效。
 	if limiter != nil && sent >= 0 {
-		limiter.WaitN(u.ctx, sent) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		waitPaced(u.ctx, limiter, sent) //gosec:disable -- 错误忽略：ctx 取消即会话正在拆除，账目仍照记
 	}
 	if sent >= 0 {
 		u.Sent.Add(uint64(sent)) //gosec:disable -- sent >= 0 已保证安全
@@ -239,7 +262,7 @@ func (u *User) AddRecvTraffic(recv int) {
 	limiter := u.RecvLimiter
 	u.limiterLock.RUnlock()
 	if limiter != nil && recv >= 0 {
-		limiter.WaitN(u.ctx, recv) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+		waitPaced(u.ctx, limiter, recv) //gosec:disable -- 错误忽略：ctx 取消即会话正在拆除，账目仍照记
 	}
 	if recv >= 0 {
 		u.Recv.Add(uint64(recv)) //gosec:disable -- recv >= 0 已保证安全
@@ -628,9 +651,11 @@ func (a *Authenticator) SetKeyShare(hash string, pwd string) error {
 	user := u.(*User)
 	user.setPassword(pwd)
 	if a.pst != nil {
-		err := a.pst.SaveUser(user)
-		if err != nil {
-			log.Errorf("Save user %s failed: %s", hash, err)
+		if err := a.pst.SaveUser(user); err != nil {
+			// 内存已经改好、库里没落，重启就回落到旧值。必须把失败交给调用方
+			// （gRPC 的 SetUsers 会回 Success:false，命令行退出码接实），
+			// 不能再只打一行日志然后返回 nil —— 那等于对运维报告"改成功了"。
+			return common.NewErrorf("failed to persist user %v", hash).Base(err)
 		}
 	}
 	return nil
@@ -765,9 +790,11 @@ func (a *Authenticator) SetUserTraffic(hash string, sent, recv uint64) error {
 	user := u.(*User)
 	user.setTraffic(sent, recv)
 	if a.pst != nil {
-		err := a.pst.SaveUser(user)
-		if err != nil {
-			log.Errorf("Save user %s failed: %s", hash, err)
+		if err := a.pst.SaveUser(user); err != nil {
+			// 内存已经改好、库里没落，重启就回落到旧值。必须把失败交给调用方
+			// （gRPC 的 SetUsers 会回 Success:false，命令行退出码接实），
+			// 不能再只打一行日志然后返回 nil —— 那等于对运维报告"改成功了"。
+			return common.NewErrorf("failed to persist user %v", hash).Base(err)
 		}
 	}
 	return nil
@@ -781,9 +808,11 @@ func (a *Authenticator) SetUserSpeedLimit(hash string, send, recv int) error {
 	user := u.(*User)
 	user.SetSpeedLimit(send, recv)
 	if a.pst != nil {
-		err := a.pst.SaveUser(user)
-		if err != nil {
-			log.Errorf("Save user %s failed: %s", hash, err)
+		if err := a.pst.SaveUser(user); err != nil {
+			// 内存已经改好、库里没落，重启就回落到旧值。必须把失败交给调用方
+			// （gRPC 的 SetUsers 会回 Success:false，命令行退出码接实），
+			// 不能再只打一行日志然后返回 nil —— 那等于对运维报告"改成功了"。
+			return common.NewErrorf("failed to persist user %v", hash).Base(err)
 		}
 	}
 	return nil
@@ -797,9 +826,11 @@ func (a *Authenticator) SetUserIPLimit(hash string, limit int) error {
 	user := u.(*User)
 	user.setIPLimit(limit)
 	if a.pst != nil {
-		err := a.pst.SaveUser(user)
-		if err != nil {
-			log.Errorf("Save user %s failed: %s", hash, err)
+		if err := a.pst.SaveUser(user); err != nil {
+			// 内存已经改好、库里没落，重启就回落到旧值。必须把失败交给调用方
+			// （gRPC 的 SetUsers 会回 Success:false，命令行退出码接实），
+			// 不能再只打一行日志然后返回 nil —— 那等于对运维报告"改成功了"。
+			return common.NewErrorf("failed to persist user %v", hash).Base(err)
 		}
 	}
 	return nil

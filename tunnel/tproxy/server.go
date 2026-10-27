@@ -24,6 +24,19 @@ const MaxPacketSize = 1024 * 8
 // 就拒绝为新源地址开会话（丢包），已有会话不受影响。
 const maxUDPSessions = 4096
 
+// udpDefaultTimeout 是 UDP 会话空闲超时的兜底值，与配置创建器的默认值同源。
+// 非正数必须落回它：time.NewTimer(0) 立即就绪，会话守护协程首轮 select 必走 timer 分支，
+// 于是每条 UDP 会话在建立的那一刻就被删表 + Close —— UDP 静默全废，日志只有 Info 一行。
+// 同型的 mux idle-timeout 缺陷已按"非正数落文档默认值"修过，这里是另外三个姊妹入站。
+const udpDefaultTimeout = 60 * time.Second
+
+func resolveUDPTimeout(seconds int) time.Duration {
+	if seconds <= 0 {
+		return udpDefaultTimeout
+	}
+	return time.Duration(seconds) * time.Second
+}
+
 // maxReplySocksPerSession 是一条 UDP 会话能缓存的回包 socket 数量。会话按源地址
 // 复用，而目的地由对端决定：旧写法每个新目的地 append 一个 socket 且只增不删，
 // 会话结束才统一回收——一条长期活跃的会话就是一个 fd 放大器。超过上限按 FIFO
@@ -466,7 +479,7 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 		udpListener: udpListener,
 		ctx:         ctx,
 		cancel:      cancel,
-		timeout:     time.Duration(cfg.UDPTimeout) * time.Second,
+		timeout:     resolveUDPTimeout(cfg.UDPTimeout),
 		mapping:     make(map[tunnel.SessionKey]*PacketConn),
 		packetChan:  make(chan tunnel.PacketConn, 32),
 		packetQueue: make(chan *tproxyPacketInfo, 1024),
