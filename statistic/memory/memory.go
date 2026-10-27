@@ -59,6 +59,13 @@ type User struct {
 	// expire 是到期时间（Unix 秒，<= 0 = 永不过期）。只有从持久化后端装载的用户会带值，
 	// 配置里的内存用户恒为 0。用 atomic：装载时写一次，AuthUser 并发读。
 	expire atomic.Int64
+	// quotaChecked 为关时，下面两个字段完全不参与判定。之所以不拿 quotaLimit 的零值当"没配额"：
+	// MySQL 的 users.quota 语义里 **0 = 无额度**、负数 = 不限流量，零值恰好是最严的那一档，
+	// 缺省就会把所有内存用户和 SQLite 用户全部拒掉。atomic.Bool 的零值是 false，
+	// 所以新增用户构造点不需要记得初始化它。
+	quotaChecked atomic.Bool
+	quotaLimit   atomic.Int64  // 与 MySQL users.quota 同义：0 = 无额度，< 0 = 不限流量
+	quotaBase    atomic.Uint64 // 上一轮同步时库里的 download+upload（已刷新的部分）
 }
 
 func (u *User) Close() error {
@@ -176,9 +183,35 @@ func (u *User) GetExpire() int64 {
 	return u.expire.Load()
 }
 
-// isExpired 判定到期；expire <= 0 表示永不过期（与 MySQL 端 users.expire 的语义一致）。
+// isExpired 判定到期；expire <= 0 表示永不过期（与 MySQL 端 users.quota/expire 的语义一致）。
 func isExpired(expire int64) bool {
 	return expire > 0 && time.Now().Unix() >= expire
+}
+
+// setQuota 登记「按时长/额度」的准入判定：limit 与 MySQL users.quota 同义（0 = 无额度，
+// < 0 = 不限流量），usedBase 是同步那一刻库里已累计的 download+upload。
+// 不写 persistencer：这些值来自后端本身（MySQL 每轮从 users 表读），内存用户对象只是缓存。
+func (u *User) setQuota(limit int64, usedBase uint64) {
+	u.quotaBase.Store(usedBase)
+	u.quotaLimit.Store(limit)
+	u.quotaChecked.Store(true)
+}
+
+// isOverQuota 用「库侧基线 + 内存里尚未刷库的增量」判定额度是否用尽。
+// 只看库里的 download+upload 会少算当前 check_rate 周期内的流量（MySQL 是批量写回的），
+// 那正好是要堵的这段窗口。基线在 writeBackTraffic 之后读，所以极少数落在这两步之间的
+// 包会被计两次——偏向提前拒绝，不会反向放宽额度。
+func (u *User) isOverQuota() bool {
+	if !u.quotaChecked.Load() {
+		return false
+	}
+	limit := u.quotaLimit.Load()
+	if limit < 0 { // 不限流量
+		return false
+	}
+	sent, recv := u.GetTraffic()
+	used := u.quotaBase.Load() + sent + recv
+	return used >= uint64(limit)
 }
 
 func (u *User) GetIPLimit() int {
@@ -559,9 +592,9 @@ type Authenticator struct {
 func (a *Authenticator) AuthUser(hash string) (bool, statistic.User) {
 	if user, found := a.users.Load(hash); found {
 		u := user.(*User)
-		// 到期即拒绝认证。不在这里 DelUser：对 SQLite 后端，DelUser 会连数据库里的
+		// 到期或额度用尽即拒绝认证。不在这里 DelUser：对 SQLite 后端，DelUser 会连数据库里的
 		// 那一行一起删掉，而“到期”不等于“删除”，管理员续期还要用这行。
-		if isExpired(u.GetExpire()) {
+		if isExpired(u.GetExpire()) || u.isOverQuota() {
 			return false, nil
 		}
 		return true, u
@@ -574,7 +607,7 @@ func (a *Authenticator) AuthUserWithPassword(password string) (bool, statistic.U
 	found := false
 	a.users.Range(func(k, v any) bool {
 		user := v.(*User)
-		if isExpired(user.GetExpire()) {
+		if isExpired(user.GetExpire()) || user.isOverQuota() {
 			return true
 		}
 		if common.CheckPasswordHash(password, user.Hash) {
@@ -769,6 +802,31 @@ func (a *Authenticator) SetUserIPLimit(hash string, limit int) error {
 			log.Errorf("Save user %s failed: %s", hash, err)
 		}
 	}
+	return nil
+}
+
+// SetUserExpire 把后端（MySQL users.expire）的到期时刻推进内存用户，让 AuthUser 当场拒绝，
+// 而不是等下一轮同步把它 DelUser 掉。
+// 刻意不写 persistencer：这两个值本来就是持久化后端每轮读出来的事实，回写会形成
+// 「读出来再写回去」的往返，并且在同时配了 sqlite 与 mysql 的部署里把 MySQL 的值盖进
+// SQLite 的表。
+func (a *Authenticator) SetUserExpire(hash string, expire int64) error {
+	u, exist := a.users.Load(hash)
+	if !exist {
+		return common.NewErrorf("user %v not found", hash)
+	}
+	u.(*User).setExpire(expire)
+	return nil
+}
+
+// SetUserQuota 登记额度准入判定，语义同 SetUserExpire：usedBase 是这一轮同步从库里读到的
+// download+upload，内存里尚未刷库的增量由 isOverQuota 自己加上（见 setQuota）。
+func (a *Authenticator) SetUserQuota(hash string, limit int64, usedBase uint64) error {
+	u, exist := a.users.Load(hash)
+	if !exist {
+		return common.NewErrorf("user %v not found", hash)
+	}
+	u.(*User).setQuota(limit, usedBase)
 	return nil
 }
 
