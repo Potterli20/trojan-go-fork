@@ -319,6 +319,10 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	// &net.UDPAddr{IP: nil} 的含义是"监听所有网卡"。客户端那侧的 remote-addr 本来就是
 	// 域名，于是照抄/改一份配置就会一声不响地把服务从"只绑这个地址"扩成"全接口可达"——
 	// 绑定成功、无告警、无报错，运维在日志里看不出来。想监听全部就显式写 0.0.0.0 / ::。
+	// 同 tls 层：曲线偏好里有认不出的名字就拒绝启动，不静默丢。
+	if err := fingerprint.ValidateCurvePreferences(tlsCfg.TLS.CurvePreferences); err != nil {
+		return nil, err
+	}
 	listenIP := net.ParseIP(cfg.RemoteHost)
 	if listenIP == nil {
 		return nil, common.NewErrorf("QUIC server listen address %q is not an IP literal; "+

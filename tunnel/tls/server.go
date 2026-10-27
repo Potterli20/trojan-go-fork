@@ -480,6 +480,10 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		cipherSuite = fingerprint.ParseCipher(strings.Split(cfg.TLS.Cipher, ":"))
 	}
 
+	// 校验理由同 client：静默丢名字比报错更难发现。
+	if err := fingerprint.ValidateCurvePreferences(cfg.TLS.CurvePreferences); err != nil {
+		return nil, err
+	}
 	curvePrefs := fingerprint.ParseCurvePreferences(cfg.TLS.CurvePreferences)
 
 	ctx, cancel := context.WithCancel(ctx)

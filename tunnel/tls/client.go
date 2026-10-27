@@ -194,6 +194,12 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
+	// 曲线偏好必须在建栈期校验：两个 Parse* 对认不出的名字过去直接 continue，拼错的
+	// "X25519MLKEM768"（少个 8）或只有一侧认的名字会被无声丢掉——用户以为密钥交换换成了
+	// 后量子，实际用的是 Go 默认集合，而握手照样成功、毫无症状。
+	if err := fingerprint.ValidateCurvePreferences(cfg.TLS.CurvePreferences); err != nil {
+		return nil, err
+	}
 
 	log.Info("[TLS] Creating client")
 	if log.ShouldLog(log.DebugLevel) {

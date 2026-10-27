@@ -88,7 +88,7 @@ Trojan-Go-Fork 支持 JSON 和 YAML 两种配置文件格式。配置文件通�
 | `cipher` | string | 加密套件（留空使用默认） | - |
 | `reuse_session` | bool | 复用 TLS 会话（映射到 `SessionTicketsDisabled` 取反） | false |
 | `alpn` | []string | ALPN 协议列表 | ["http/1.1"] |
-| `curve_preferences` | []string | 密钥交换偏好（如 `X25519MLKEM768`、`X25519`）；留空用 Go 默认 | - |
+| `curve_preferences` | []string | 密钥交换偏好：`X25519`、`CurveP256/384/521`，以及后量子的 `X25519MLKEM768`、`SecP256r1MLKEM768`、`SecP384r1MLKEM1024`、`MLKEM1024`（最后这个是 Go 1.27 在 `crypto/tls` 里新增的纯 ML-KEM 组，码点 514）；留空用 Go 默认。写不认识的名称**拒绝启动**（过去是静默跳过：拼错一个字符就以为开了后量子，实际发的还是默认集合，握手照样成功） | - |
 | `fingerprint` | string | TLS 指纹（客户端常用 `chrome`） | - |
 | `key_log` | string | TLS 密钥日志文件路径（用于调试） | - |
 | `cert_check_rate` | int | 服务端定期重检证书的间隔（秒）；**0 表示不做定时重检** | 0 |

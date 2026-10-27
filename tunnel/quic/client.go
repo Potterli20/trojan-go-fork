@@ -461,6 +461,10 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	}); err != nil {
 		return nil, err
 	}
+	// 同 tls 层：曲线偏好里有认不出的名字就拒绝启动，不静默丢。
+	if err := fingerprint.ValidateCurvePreferences(tlsCfg.TLS.CurvePreferences); err != nil {
+		return nil, err
+	}
 	log.Debug("QUIC client created with ALPN:", cfg.QUIC.ALPN)
 	log.Debug("QUIC congestion control:", cfg.QUIC.Congestion)
 	if cfg.QUIC.Congestion == "brutal" || cfg.QUIC.Congestion == "force-brutal" {

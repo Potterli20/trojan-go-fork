@@ -188,7 +188,7 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   立刻红）。
 - **回包组帧缓冲必须按最坏合法帧留 headroom**（2026-10-17）。`socks` 会话守护协程的 `responseBuf`
   与 `freedom` 的 `socksPacketBufPool` 此前都只留 `MaxPacketSize`，而一帧是「RSV+FRAG(3) +
-  地址块(ATYP+长度字节+255 域名+端口 = 259) + 负载(≤8192)」= 10454 字节 ⇒ 满尺寸负载每包把
+  地址块(ATYP+长度字节+255 域名+端口 = 259) + 负载(≤8192)」= 8454 字节（原文写的 10454 是算错的，2026-10-27 复核：3+259+8192=8454，代码里的 +264 headroom 是对的） ⇒ 满尺寸负载每包把
   `append` 撑到界外、新造一份 10880（Go 的 size class），缓冲本身却永远停在 8192，下一包再撑一次；
   远端按线上格式合法发满尺寸 datagram 就能逐包加压本地 GC。现在两处都留 `+264`
   （`responseFrameCap` / `socksFrameBufCap`），口径同 trojan 的 `packetBufCap`；`freedom` 读侧显式
@@ -260,6 +260,23 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   并把"为什么不能端到端"写进注释。实测 stdlib 的 `http.ReadResponse` 接受
   `HTTP/1.1 000 x`（StatusCode=0）与 `099`（99），只有四位数才被拒——所以 x/net 的
   `checkWriteHeaderCode` 对 `code < 100` 的 panic 是真可达路径。
+- **`curve_preferences` 的名字表两侧必须同集合，未知名字拒绝启动**（2026-10-27）。
+  `fingerprint.ParseCurvePreferences` 与 `ParseUTLSCurvePreferences` 过去对认不出的名字直接
+  `continue`：拼错的 `X25519MLKEM768`（少个 8）、或只在 stdlib 侧有名字（Go 1.27 新加的
+  `MLKEM1024`，码点 514；utls 那个 pin 也已定义）都会被无声丢掉——用户以为密钥交换换成了
+  后量子，实际发的还是默认集合，而握手照样成功、毫无症状；带 fingerprint 与不带走标准库
+  两条路还会发出**不同**的集合。现在 `ValidateCurvePreferences` 由 tls/quic 四个建栈点同步
+  调用，并钉住两侧码点一致（判据 `curve_prefs_test.go`，其中"两侧名称集合必须相同"这条
+  直接复现了本轮发现的缺口）。
+- **不采纳 `encoding/json/v2`（已实测，别再重复评估）**（2026-10-27）。Go 1.27 把
+  `encoding/json/v2` 与 `jsontext` 放进 stdlib 且**不需要 GOEXPERIMENT** 就能编译运行，
+  但这里没有它的用武之地：① 本项目的 JSON 只在启动时解析一次配置，API 走 protobuf，
+  没有 JSON 热路径；本机对 `example/server.json`（1948 B）两轮 20000 次解析实测
+  v2 比 v1 **慢 6%~33%**（噪声大，方向一致：没有性能可赚）。② v2 默认**区分大小写**匹配
+  字段名，v1 不区分——实测同一个 `{"PASSWORD":"x"}`：v1 命中 `password` 字段并报类型错误，
+  v2 直接忽略该键返回 nil。叠加"同一份文档喂给所有已注册模块"这条既有特性，
+  切换会把今天能用的写法变成静默失效。③ 要保住兼容就得把 legacy 选项全开，
+  那就只剩风险没有收益。结论：配置解析继续用 `encoding/json`（v1）。
 - **`statistic/memory.AddUser` 必须用 `LoadOrStore`**，不能先 `Load` 判存在再 `Store`。
   窗口里两个并发调用会各自起 `speedUpdater` + `ipCleaner` 再互相覆盖，被覆盖那个 `User` 的
   `cancel` 永不被调（`DelUser` 只关 map 里那一个）→ 每撞一次永久漏 2 goroutine + 2 ticker +
