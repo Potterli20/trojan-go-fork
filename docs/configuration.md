@@ -516,32 +516,71 @@ MySQL `users` 表里 `password` 列存的值，都是这个哈希串，不是明
 | `cert` / `key` | string | 客户端证书与私钥，**必须成对** | 空 |
 | `check_rate` | int | 与 `users` 表同步的间隔（秒） | 30 |
 
+#### users 表结构
+
+权威定义在 `statistic/mysql/mysql.go` 的 `usersTableDDL`，可直接执行的同一份文本落在
+[`example/mysql.sql`](../example/mysql.sql)。新建部署不必手工建表——`ensureUsersTable`
+会在启动时幂等地「缺表就建、缺列就补」。
+
+| 列 | 类型 | 默认 | 语义 |
+|----|------|------|------|
+| `username` | `VARCHAR(64)` | — | 可读名字，只用于指代用户，不参与认证 |
+| `password` | `CHAR(56)` | — | `SHA224(口令)` 的小写十六进制，**不是明文**；主键，要求哈希唯一 |
+| `quota` | `BIGINT` | `-1` | 累计流量额度（字节）：`<0` 不限、`=0` 无额度、`>0` 用满即拒 |
+| `download` | `BIGINT UNSIGNED` | `0` | 累计下行（用户视角），由进程批量累加 |
+| `upload` | `BIGINT UNSIGNED` | `0` | 累计上行（用户视角），由进程批量累加 |
+| `maxip` | `INT` | `0` | **该用户**的并发源 IP 上限，`0` = 不限 |
+| `expire` | `BIGINT` | `0` | 到期时间，Unix **秒**；`0` 或负数 = 永不过期 |
+
+`password` 是主键，所以它必须唯一。旧表如果这列有重复行，
+`UPDATE ... WHERE password=?` 会把同一份流量增量记到多行上，程序不替你查重，请自行去重。
+
+`quota` 的默认值刻意取 `-1` 而不是 `0`：判定语义里 `0` 表示**无额度**，写成 `DEFAULT 0`
+的话，面板只填 `(username, password)` 插出来的新用户会在首个同步轮就被静默删掉——
+密码永远不通，而且没有任何报错指向这一点。**已有表的列默认值不会被 ALTER 改动**，
+沿用旧表的部署需要照 `example/mysql.sql` 手工改一次。
+
+这七列里只有 `download` / `upload` 由进程写（且只累加），其余全部由你写；
+表就是用户增减的权威来源：删一行，下一轮同步该用户即失效。
+
 代码里定死的行为（`statistic/mysql/mysql.go`）：
 
 - `ca` 为空 ⇒ 完全不启用 TLS；`ca` 非空 ⇒ 强制 `MinVersion = TLS 1.2`。
 - `cert` / `key` 只给一个 ⇒ 启动失败并报 `set both key and cert, or set neither`。
 - `check_rate` ≤ 0 兜底成 30s（`time.NewTicker` 对非正周期会 panic）。
-- 连接池固定 `MaxOpenConns=5` / `MaxIdleConns=2` / 连接最长存活 5 分钟。
+- 连接池固定 `MaxOpenConns=5` / `MaxIdleConns=2` / 连接最长存活 5 分钟 / 空闲 1 分钟。
+- 连接参数用 `mysql.NewConfig` + `NewConnector` 结构化给出（不再手拼 DSN 字符串），因此：
+  口令里的 `?`、`&`、`@`、`:` 不会被切进参数段（手拼时驱动按第一个 `?` 分段，连接目标可被
+  改写、驱动参数可被注入）；IPv6 主机经 `JoinHostPort` 正确加方括号；并且**连接 5s、读写各
+  30s** 的有界时限始终带着——没有这三段时，MySQL 半开会让每轮同步那次查询永久阻塞
+  （它的 ctx 只在关停时取消），用户增减、`quota`、`expire` 与流量写回从此静默停摆。
+  TLS 配置随连接器走，不再写 `mysql.RegisterTLSConfig` 那张按名字覆盖的全局表。
 - 启动时（`ensureUsersTable`）会幂等执行 `CREATE TABLE IF NOT EXISTS users (...)`，并对
   已存在的旧表补 `maxip` / `expire` 两列；表已存在且账号只有 DML 权限时建表语句会失败，
   此时只要关键列齐全就只告警、继续运行，否则启动失败并提示手动 ALTER。
-  新建表以 `password` 列为主键（即要求哈希唯一）；已存在的旧表结构不动，请自行保证该列唯一，
-  否则 `UPDATE ... WHERE password=?` 会命中多行、把同一份增量记到多行上。
+  新建表以 `password` 列为主键（即要求哈希唯一）；已存在的旧表结构不动。
 - 每轮同步执行 `SELECT username,password,quota,download,upload,maxip,expire FROM users`，
   **这 7 列必须都在**；写回是 `UPDATE users SET upload=upload+?, download=download+? WHERE
   password=?`，匹配的是密码哈希。
 - 写回时两个方向的取值是**刻意互换**的（`syncUsers` 里的原注释 "swap upload and download for
   users"）：`upload` 列累加的是 `recv`、`download` 列累加的是 `sent`。对着表里的数字排查时先记
   住这条，不然会觉得上下行反了（`statistic/mysql/mysql.go` 的 `syncUsers`）。
-- `quota < 0` 视为不限流量；已用流量达到 quota 的用户会被从内存表里删掉（即拒绝认证）。
+- `quota < 0` 视为不限流量；已用流量达到 `quota` 的用户会被从内存表里删掉（即拒绝认证）。
+  每轮同步还会把「库里的 `quota` 与当时已用量」推进内存用户，于是**额度用尽当场就拒**，
+  不等下一轮：判定用的是「库侧基线 + 内存里尚未刷库的增量」，只看库里的数字正是要堵的那段窗口。
 - 表里的 `maxip` 是**每用户**的并发 IP 上限，与顶层 `MaxIPPerUser`（对所有用户生效）是两条路径。
 - 表里的 `expire` 是**到期时间**（Unix 秒级时间戳，`0` 或负数 = 永不过期）。到期后该用户会被拒绝
-  认证：**MySQL** 后端在每轮同步时把它从内存移除（与 `quota` 用尽同一出口）；**SQLite** 后端在
-  `AuthUser` 时直接拒绝、但不删库里的行（“到期”不等于“删除”，续期还要用这行）。SQLite 的 `expire`
-  列由 `AutoMigrate` 自动补上，但值只在装载时读一次——改完库里的 `expire` 需要重启后端才生效。
+  认证，两个后端现在语义一致：**MySQL** 每轮把到期时刻同步进内存用户，`AuthUser` 当场拒绝，
+  同时在下一轮把它从内存移除；**SQLite** 在 `AuthUser` 时直接拒绝、但不删库里的行
+  （“到期”不等于“删除”，续期还要用这行）。SQLite 的 `expire` 列由 `AutoMigrate` 自动补上，
+  但值只在装载时读一次——改完库里的 `expire` 需要重启后端才生效。
   内存（配置 `password` 数组）用户没有到期概念，恒视为永久。
+  注意到期/超额只拦**新连接**：trojan 没有会话中途重新认证，已建立的连接不受影响。
 - 每轮写回失败时会把这轮已经从内存取走的流量**原样加回**（`RestoreTraffic`），不会因为一次
   数据库抖动就丢掉这段统计；库侧用户的增减由「DB→内存」的同步统一处理（不再依据 `RowsAffected`）。
+- 三条「库里不该再有这个用户」的出口（到期 / 超额 / 整行被删）**先补一次写回再删**：
+  `DelUser` 会调 `User.Close()`，而 `Close` 里的 `ResetTraffic` 只把计数器清零、不写库，
+  本轮写回之后又跑进来的那段流量否则就随对象一起永久消失。
 - 同步中途 `db.Query` 出错时**整轮放弃**，不据此清理用户——所以 MySQL 抖动不会误删合法用户。
 
 ```json

@@ -28,8 +28,9 @@ HandlerCount() int
   不再往下试。
 
 判定用的是错误文本（`option.IsNotSet` 比较 `err.Error() == "not set"`），不是
-`errors.Is`——本项目的 `common.Error` 用 `" | "` 拼接且没有 `Unwrap` 链，一旦把
-`NotSet()` 再 `.Base()` 一层就识别不出来。所以：**handler 必须直接
+`errors.Is`——`NotSet()` 一旦被 `.Base()` 包住，`err.Error()` 就变成 `"something | not set"`，
+识别不出来（`common.Error` 现在**有** `Unwrap`，但这里比的是文本不是错误链，
+所以 `errors.Is` 也救不了）。所以：**handler 必须直接
 `return option.NotSet()`，不能包装。**
 
 > 这条约定以前只是文档：`main.go` 从不比较错误文本，任何错误都「试下一个」。

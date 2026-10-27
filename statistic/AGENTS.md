@@ -38,7 +38,7 @@ Registered via `RegisterAuthenticatorCreator(name, fn)`.
 | Backend | Build tag | Notes |
 |---|---|---|
 | `memory/` | always (base) | Static password list from config; no runtime changes except via gRPC |
-| `mysql/` | `mysql` | Polls DB every N seconds; syncs users; writes traffic back. Idempotently creates the `users` table and adds missing `maxip` / `expire` columns at startup (`ensureUsersTable`) |
+| `mysql/` | `mysql` | Polls DB every N seconds; syncs users; writes traffic back. Idempotently creates the `users` table and adds missing `maxip` / `expire` columns at startup (`ensureUsersTable`). Connection params go through `mysql.NewConfig` + `NewConnector` (escaping + dial/read/write timeouts); TLS rides on the connector, not `RegisterTLSConfig`. Tests: `sync_users_test.go`, `dsn_config_test.go` via the `mysqlDB` seam |
 | `sqlite/` | no build tag; platform-gated: linux + (amd64\|386\|arm\|arm64) | Pure-Go driver (`Potterli20/sqlite` + `modernc.org/sqlite`), no CGO needed. Enabled by the `sqlite` field of the memory config, not by a tag |
 
 SQLite is linux-only because the platform build tags in `statistic/sqlite` restrict it; on every other platform
@@ -55,10 +55,15 @@ SQLite is linux-only because the platform build tags in `statistic/sqlite` restr
 
 `mysql/mysql.go` polls every `check_rate` seconds. Traffic uploaded back in same interval. Batched — not per-conn. Lost traffic on crash.
 
-Table is `username,password,quota,download,upload,maxip,expire`. `expire` is a Unix-second
-deadline (`0` = never); an expired row is dropped from memory and auth is refused, the same exit
-as `quota` exhaustion. On a failed `UPDATE` the already-reset increment is added back via
-`RestoreTraffic` (deliberately bypasses the rate limiters). Do **not** use `RowsAffected` to infer
+Table is `username,password,quota,download,upload,maxip,expire` (authoritative copy:
+`example/mysql.sql`). `expire` is a Unix-second deadline (`0` = never) and `quota` is a byte
+allowance (`<0` unlimited, `0` = no allowance), so the DDL default for `quota` is **-1**.
+Each round pushes `expire` and `quota`+used-base into the in-memory user, so auth is refused
+**at once** rather than at the next round (the old behaviour left a `check_rate` window).
+The three "this user must not stay" exits (expired / over quota / row deleted) **flush before
+deleting** — `DelUser` runs `User.Close()`, whose `ResetTraffic` zeroes without writing.
+On a failed `UPDATE` the already-reset increment is added back via `RestoreTraffic`
+(deliberately bypasses the rate limiters). Do **not** use `RowsAffected` to infer
 "user was deleted from the DB" — MySQL reports *changed* rows by default (`ClientFoundRows` off),
 so a zero-increment user reports 0 and would be wrongly dropped every cycle.
 
@@ -68,10 +73,11 @@ so a zero-increment user reports 0 and would be wrongly dropped every cycle.
 - `IPLimit=0` means unlimited. `SpeedLimit=0` means unlimited.
 - Traffic counters are monotonic bytes. Rate is a windowed derivative.
 - Expiry (`expire`, Unix seconds, `0` = never) comes from the persistence backends and is surfaced
-  through `statistic.Metadata.GetExpire`: **mysql** drops expired users during each sync round
-  (same exit as `quota` exhaustion); **sqlite** refuses them in `AuthUser` but keeps the row
-  (expiry ≠ deletion — renewals still need it). In-memory users (config `password` array) are
-  always `0`, i.e. permanent.
+  through `statistic.Metadata.GetExpire`. Both backends now refuse expired users **in `AuthUser`**:
+  `memory.AuthUser` checks `isExpired || isOverQuota`, and mysql/sqlite push their column values
+  into the in-memory user (`SetUserExpire` / `SetUserQuota`, which deliberately do not write back
+  to the persistencer). sqlite additionally keeps the row (expiry ≠ deletion — renewals need it).
+  In-memory users (config `password` array) are always `0`/unchecked, i.e. permanent.
 
 ## 启动期与运行时校验
 

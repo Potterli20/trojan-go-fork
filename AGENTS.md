@@ -2,7 +2,7 @@
 
 # trojan-go
 
-Go implementation of the Trojan proxy protocol. Unmaintained upstream (archived), but still built/released via CI. Module: `github.com/Potterli20/trojan-go-fork`, `go 1.27.1`（go.mod 与 CI 的 `^1.27` 一致），CGO disabled by default.
+Go implementation of the Trojan proxy protocol. Unmaintained upstream (archived), but still built/released via CI. Module: `github.com/Potterli20/trojan-go-fork`, `go 1.27.3`（go.mod 与 CI 的 `^1.27` 一致），CGO disabled by default.
 
 ## Architecture
 
@@ -53,7 +53,7 @@ All modules self-register in `init()`. Nothing is wired explicitly in `main.go` 
 
 ## Conventions
 
-- **Errors**: use `common.NewError(msg)` and `.Base(err)` — concatenates `" | " + err.Error()`. No `Unwrap` chain. `errors.Is`/`errors.As` DO NOT WORK across `.Base()` boundaries. 见 `common/error.go` 里的 `NewError` 与 `(*Error).Base`。
+- **Errors**: use `common.NewError(msg)` and `.Base(err)` — concatenates `" | " + err.Error()`. `(*Error).Unwrap` **现在有**（`common/error.go`），所以 `errors.Is`/`errors.As` **能**穿过 `.Base()` 边界（实测：`errors.Is(NewError("outer").Base(sentinel), sentinel)` 为 true，而 `Error()` 仍是 `"outer | sentinel"`）。旧文档写的"没有 Unwrap 链、Is/As 不工作"是改造前的状态，已不成立——但别由此把 `option.IsNotSet` 换成 `errors.Is`：它比的是错误文本（见 `option/AGENTS.md`）。
 - **Panics via `Must`**: `common.Must(err)`, `common.Must2(x, err)` panic on non-nil err. 用于启动期不可恢复的接线（`common/error.go` 的 `Must`/`Must2`）。
 - **Log levels are INVERTED**: `0=AllLevel, 1=InfoLevel, 2=WarnLevel, 3=ErrorLevel, 4=FatalLevel, 5=OffLevel`，另有 `TraceLevel = -1` 与 `DebugLevel == AllLevel == 0`（见 `log/log.go` 的级别常量块）。Lower = more verbose.
 - **日志的凭据脱敏是"尽力而为"，不要当护栏用**（`log/log.go` 的 `ObfuscateSensitiveData`）：命中 `SensitiveKeywords`（password/token/secret/credential…）是**整行**替换成 `[REDACTED]`；只命中 `SensitivePatterns` 时**只遮命中的那段**，保留错误链上下文（旧实现连 32+ 位字母数字都要整行打码，把可诊断性一起丢了）。两个后果要记住：① 任何短于 32 字符、又不带关键词上下文的凭据**不会**被遮；② 含关键词的行整行没意义了，所以别把有用的诊断信息和 "token" 之类词写在同一条日志里。凭据要保密就**根本不要写进日志**。
@@ -206,6 +206,43 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   修法是加一个 per-conn 的 `connDone`，在 handler 的 defer 里关掉它
   （判据 `TestOneShotConnectionsDoNotParkWatchers`，实测 40 条一次性连接 = 40 个孤儿协程）。
   注意 QUIC 服务端反过来要小心：`packetDone` 只能在**连接级**结束点亮，会话级点亮会拆掉整条连接。
+- **到期与额度是「认证时」判定，不是「同步轮」判定**（2026-10-27，issue #102）。持久化后端把
+  `expire`（Unix 秒，`0`/负 = 永不）与 `quota`+库侧已用量推进内存用户（`memory.SetUserExpire` /
+  `SetUserQuota`，刻意**不**回写 persistencer——这些值本来就是后端每轮读出来的事实），
+  `memory.AuthUser` 用 `isExpired || isOverQuota` 当场拒绝。额度判定用「库侧基线 + 内存里尚未
+  刷库的增量」：只看库里的 `download+upload` 恰好漏掉整个 `check_rate` 窗口。两条推论要记住：
+  ① `quotaChecked` 必须是独立的 `atomic.Bool`，不能拿 `quotaLimit` 的零值当「没有额度概念」——
+  MySQL 语义里 `0 = 无额度`，零值缺省会把内存用户和 SQLite 用户全部拒掉；② 三条「库里不该再有
+  这个用户」的出口（到期 / 超额 / 整行被删）必须**先补一次写回再删**，因为 `DelUser` 会
+  `User.Close()`，而 `Close` 里的 `ResetTraffic` 只清零、不写库。
+  同轮的 MySQL 改动：`usersTableDDL` 的 `quota` 默认值取 `-1` 而不是 `0`（`DEFAULT 0` 会让面板只填
+  `(username, password)` 的新用户在首个同步轮被静默删掉，密码永远不通且不报任何错）；连接参数改用
+  `mysql.NewConfig` + `NewConnector`，于是自带转义（手拼 DSN 时口令里的 `?` 会被驱动按第一个 `?`
+  切进参数段，IPv6 主机拼成 `tcp(::1:3306)`）、有 `Timeout`/`ReadTimeout`/`WriteTimeout`（没有它们时
+  MySQL 半开会永久卡住每轮查询，用户增减 / `quota` / `expire` / 流量写回整体静默停摆，因为那个 ctx
+  只在关停时取消）、并且 TLS 随连接器走而不写 `RegisterTLSConfig` 那张按名字覆盖的全局表。
+  `statistic/mysql` 此前零测试，注入点是新增的 `mysqlDB` 接口（真实 `*sql.DB` 经 `sqlBackend`
+  满足）；判据见 `sync_users_test.go` 与 `dsn_config_test.go`。
+- **限速器必须按 burst 拆分等待**（2026-10-27）。`rate.Limiter.WaitN(ctx, n)` 在 `n > burst`
+  时**立即返回错误、而不是等待**，而 `burst = 2*limit`、中继每块最大能到 `relay_buffer_size`
+  （默认 8192，上限 1MB）——所以 `speed_limit` 低于 4096 B/s 的用户过去**完全不设限**，错误还被
+  调用点丢掉。`memory.waitPaced` 把 `n` 拆成不超过 burst 的若干次等待。判据用 Go 1.27 的
+  `testing/synctest` 假时钟（`limiter_pace_test.go`）：气泡内时间只在所有 goroutine 都
+  durably blocked 时才前进，所以「等了多久」是精确读数，不吃墙钟也不 flaky——这条是本项目里
+  计时类判据的正确形态。
+- **空数据报不是会话结束**（2026-10-27）。`proxy.relayPacketLoop` 两个方向过去把
+  `n == 0 && err == nil` 当 EOF，`closeDone()` 拆掉整条 UDP 会话且一行日志都不打。
+  `dokodemo`/`socks`/`tproxy` 的 `copy(p, payload)` 在负载为空时返回 `(0,nil)`，
+  `trojan/packet.go` 在远端写 `length=0` 时同样返回 `(0,nil)`——本地任意 app 发一个空
+  datagram 就能自拆会话，客户端模式下远端还能逐包拆。现在是 `continue`（口径同
+  `tunnel/quic` 那条「零长度数据报绝不上交」）。判据 `proxy/packet_empty_datagram_test.go`
+  用通道做 happens-before，不等墙钟。
+- **日志实参的清洗必须覆盖 `error`**（2026-10-27）。`log.SanitizeLogInput` 过去只重写
+  `string` 实参，而全仓主流写法是 `log.Error(common.NewError(...).Base(err))`——`*common.Error`
+  不是 string，原样穿过 `fmt.Sprintln` 落到 `golog` 的行缓冲（`Output` 只 `Append`，不二次清洗）。
+  后果是 CR/LF 可伪造整行日志（域名/SNI/目的地是 `metadata.go` 里长度前缀的任意字节，
+  `freedom` 的拨号错误又会把 `addr.String()` 拼进文案），并且凭据脱敏链一起被绕过。
+  判据 `log/log_injection_test.go`。
 - **`statistic/memory.AddUser` 必须用 `LoadOrStore`**，不能先 `Load` 判存在再 `Store`。
   窗口里两个并发调用会各自起 `speedUpdater` + `ipCleaner` 再互相覆盖，被覆盖那个 `User` 的
   `cancel` 永不被调（`DelUser` 只关 map 里那一个）→ 每撞一次永久漏 2 goroutine + 2 ticker +
@@ -366,6 +403,7 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   一块 8KB，而丢弃速率等于新源地址到达速率、源地址可伪造，AGENTS.md 早就把"会话上限拒绝"列进
   必须覆盖的丢包出口，dokodemo/socks 都做了，tproxy 是唯一违约方）和 `s.packetChan <- conn`
   撞 `ctx.Done` 的 `return`（手里那条 info 已离开 packetQueue，`Close` 的排空够不着它）。
+  （同一份报告里那句「`s.packetChan <- conn` 撞 `ctx.Done` 时手里那条 info 得自己还」**后来被证伪**：负载在那之前已在写锁内投进 `conn.input`，`conn.Close()` 的排空就是归还点，再 `putPacketBuf` 一次是**双归还**——2026-10-27 由 HEAD 上的稳定红灯用例抓到并删掉。判据同时改成能区分「漏还」与「双归还」，因为它原先把后者报成前者。）
   但同一份审计报告里的第三处——队列读的 `case <-s.ctx.Done(): return`——**核实不成立**：那是
   `select { case info = <-s.packetQueue: … case <-ctx.Done(): return }`，走 ctx 分支时 `info`
   还没被赋值，队列里剩下的由 `Close` 的排空负责；在这里补一句 `putPacketBuf(info.payload)`
