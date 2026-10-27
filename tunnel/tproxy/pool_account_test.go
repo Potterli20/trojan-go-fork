@@ -305,8 +305,13 @@ func TestPooledPayloadReturnedWhenDownstreamGone(t *testing.T) {
 		t.Fatal("cancel 之后 dispatch 没退出")
 	}
 	if !waitOutstanding(base) {
+		got := borrowedPacketBufs() - base
+		if got < 0 {
+			t.Fatalf("关停后借出计数比起点还低 %d 块：这是**双归还**，比漏还严重——两个包会共享同一块"+
+				"底层数组互相串数据。检查这个出口是否既调了 conn.Close()（它排空 input 并归还）又自己 put 了一次", -got)
+		}
 		t.Fatalf("关停时手里那条包的 8KB 没归还（还差 %d 块）：它已经离开 packetQueue，"+
-			"Close 的排空够不着它", borrowedPacketBufs()-base)
+			"Close 的排空够不着它", got)
 	}
 	// 守护协程从没起来，表项只能由这个出口删；否则 mapping 永久挂着一条已 Close 的会话
 	s.mappingLock.RLock()

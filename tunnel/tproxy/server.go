@@ -309,10 +309,11 @@ func (s *Server) packetDispatchLoop() {
 				s.mappingLock.Lock()
 				delete(s.mapping, srcKey)
 				s.mappingLock.Unlock()
+				// 负载不在这里还：上面锁内的投递已经把借用权交给会话（成功入队，或由
+				// select 的 default 分支就地归还）。conn.Close 排空 input/output 并把
+				// 池对象还回去，这里再 put 一次就是**双归还**——下个包会和它共用同一块
+				// 底层数组、互相串数据。口径同 tunnel/dokodemo 的同型分支（它没有这一步）。
 				conn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-				// 手上这条 info 已经从 packetQueue 取走了，Close 的排空只覆盖队列里
-				// 没取走的，所以这一块必须自己还（口径同上面的会话上限分支）
-				putPacketBuf(info.payload)
 				return
 			}
 
