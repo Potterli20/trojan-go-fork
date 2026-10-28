@@ -368,7 +368,11 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 		db.Close() //gosec:disable -- 错误忽略：失败路径回收，真实错误由返回值给出
 		return nil, err
 	}
-	memoryAuth, err := memory.NewAuthenticator(ctx)
+	// WithoutPersistencerRefresh：内嵌的 memory 认证器若同时配了 memory.sqlite，它会自起
+	// 一条「从 sqlite 读 expire/maxip/限速」的刷新轮。那两个后端推同一批内存用户就是互相
+	// 盖值——MySQL 里已到期的人会被 sqlite 那条镜像行（AddUser 顺手写进去的、expire=0）
+	// 复活成永不过期。限额的权威来源这张表，每轮 syncUsers 已经在推，所以这里关掉那一侧。
+	memoryAuth, err := memory.NewAuthenticator(memory.WithoutPersistencerRefresh(ctx))
 	if err != nil {
 		db.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		return nil, err

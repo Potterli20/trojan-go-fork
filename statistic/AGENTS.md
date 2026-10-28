@@ -51,6 +51,23 @@ SQLite is linux-only because the platform build tags in `statistic/sqlite` restr
 3. On success, holds returned `User` for the conn lifetime; calls `AddTraffic` per Read/Write.
 4. Speed/IP limits enforced via `common/ratelimiter`.
 
+## 限速排队的唤醒源（`statistic.PacedTrafficMeter`）
+
+`AddSentTraffic`/`AddRecvTraffic` 只有**用户级** ctx 可听，而按字节排队可能持续几十秒到几小时
+（`speed_limit: 1` 的 B/s 配 8KB 中继块 ≈ 2 小时）。relay 拆会话走的是关连接，`Proxy.Close` 的 5s
+预算只是放弃等待、叫不醒它——那条协程连同从 `boundedBufPool` 借走的中继 buffer 会一直留在池外。
+
+所以 `User` 额外实现可选接口 `PacedTrafficMeter`（`AddSentTrafficContext` / `AddRecvTrafficContext`，
+**不改** `TrafficMeter`，既有实现与替身不受影响）：会话侧传自己的 ctx，`memory.pacingContext` 用
+`context.WithCancel(u.ctx)` + `context.AfterFunc(session, cancel)` 把两个唤醒源合成**只活在这次等待里**
+的子 ctx，`defer release()` —— 子 ctx 挂在 `u.ctx` 的 children 上，不释放就是每块一次累积。
+`session == nil` 时逐字退回老行为。
+
+两条口径别踩：① 会话 ctx 只在 **Auth 成功之后**建立（失败路径不保证每个出口都走 Close）；
+② **等待被打断不等于流量没发生**，`u.Sent`/`u.Recv` 照记 —— 判据
+`statistic/memory/limiter_stop_test.go`（synctest 假时钟量取消后的返回耗时）与
+`tunnel/trojan/paced_session_ctx_test.go`（接线 + Close 幂等）都钉了这一点。
+
 ## Polling (mysql)
 
 `mysql/mysql.go` polls every `check_rate` seconds. Traffic uploaded back in same interval. Batched — not per-conn. Lost traffic on crash.
@@ -78,6 +95,18 @@ so a zero-increment user reports 0 and would be wrongly dropped every cycle.
   into the in-memory user (`SetUserExpire` / `SetUserQuota`, which deliberately do not write back
   to the persistencer). sqlite additionally keeps the row (expiry ≠ deletion — renewals need it).
   In-memory users (config `password` array) are always `0`/unchecked, i.e. permanent.
+- **`memory/refresh.go`: 配了持久化后端时起一条 `limitsRefresher`**（默认 60s，间隔存
+  `sqliteRefreshInterval` 原子值，判据在运行期调小它），用**一次** `ListUser` 全表读把
+  `expire` / `maxip` / 上下行限速重新推进已有内存用户——面板直接 `UPDATE` 库里这几列从此
+  **免重启**生效（原先只在 `NewAuthenticator` 装载时读一次，属于「接受但不生效」）。三条边界：
+  ① 不新增也不删除用户（库里多出的行不该把 `DelUser` 掉的人捞活）；② **绝不碰 `quota` /
+  `quotaChecked`** —— SQLite 表没有额度列，打开判定等于给所有 SQLite 用户设了 `quota=0`；
+  ③ 走 `User` 上的内部 setter 而不是 `SetUserIPLimit` / `SetUserSpeedLimit`，后两个是运维改值
+  的入口、会 `SaveUser` 整行写回，读侧调它们就是每轮重抄一遍并与 `batchTrafficUpdater` 抢流量列。
+  **MySQL 侧必须关掉这条轮**（`WithoutPersistencerRefresh(ctx)`）：`mysql.Authenticator` 内嵌同一个
+  memory 认证器，`mysql` 与 `memory.sqlite` 可以同时生效，两边推同一批用户就是互相盖值——
+  SQLite 那条 `expire=0` 的镜像行会把 MySQL 里已到期的人复活成永不过期。
+  判据 `sqlite_refresh_test.go`（到期/续期两个方向 + 抑制闸门 + 「不碰 quota」）。
 
 ## 启动期与运行时校验
 

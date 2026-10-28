@@ -126,6 +126,14 @@ type InboundConn struct {
 	ip           string
 	ipX          string
 	trustHeaders bool
+	// ctx/cancel 是会话级上下文，唯一用途是给限速排队当第二个唤醒源（见
+	// statistic.PacedTrafficMeter）：被限速的 Write 可以按 n/limit 排队到几十秒甚至几小时，
+	// 而 relay 拆会话只关连接、碰不到用户级 ctx —— 关停预算到期后那条协程连同它借走的
+	// 中继 buffer 会一直留在池外。
+	// 只在 Auth 成功之后建立：失败路径不保证每个出口都走 Close，先建就是往 s.ctx 的
+	// children 链上挂一节没人收的东西（AGENTS.md「挂出去的收尾必须成对」同型）。
+	ctx    context.Context
+	cancel context.CancelFunc
 	// closeOnce 保证 Close 的副作用只跑一次：trojan 的 UDP 会话里 packet.go 读到
 	// 错误时会 Close 一次，relay 的 defer inbound.Close() 还会再 Close 一次，
 	// 而 InboundConn.Close 每次都调 user.DelIP(ipX)。DelIP 是按调用次数递减的 IP
@@ -144,7 +152,7 @@ func (c *InboundConn) Write(p []byte) (int, error) {
 	}
 	// 流量方向必须与 API 契约一致：Sent = 服务端发出 = 用户下载（API 的 DownloadTraffic，受 SendLimiter 限制），
 	// Recv = 服务端收到 = 用户上传（API 的 UploadTraffic，受 RecvLimiter 限制）。对调会导致上下行限速互相打反。
-	c.user.AddSentTraffic(n)
+	c.accountSent(n)
 	return n, err
 }
 
@@ -153,8 +161,27 @@ func (c *InboundConn) Read(p []byte) (int, error) {
 	if n >= 0 {
 		c.recv.Add(uint64(n)) //gosec:disable -- n >= 0 已保证安全
 	}
-	c.user.AddRecvTraffic(n)
+	c.accountRecv(n)
 	return n, err
+}
+
+// accountSent / accountRecv 把会话 ctx 一起交给限速排队（见 statistic.PacedTrafficMeter）。
+// 走的是可选接口：不是每个 User 实现都认这个信号，c.ctx 也可能是 nil（Auth 之前就被写），
+// 两种情况都退回原来的 AddSentTraffic 语义。
+func (c *InboundConn) accountSent(n int) {
+	if paced, ok := c.user.(statistic.PacedTrafficMeter); ok {
+		paced.AddSentTrafficContext(c.ctx, n)
+		return
+	}
+	c.user.AddSentTraffic(n)
+}
+
+func (c *InboundConn) accountRecv(n int) {
+	if paced, ok := c.user.(statistic.PacedTrafficMeter); ok {
+		paced.AddRecvTrafficContext(c.ctx, n)
+		return
+	}
+	c.user.AddRecvTraffic(n)
 }
 
 func (c *InboundConn) Close() error {
@@ -167,6 +194,11 @@ func (c *InboundConn) Close() error {
 		// c.user 可能为 nil（Close 在 Auth 之前被调用），需做 nil 检查。
 		if c.user != nil {
 			c.user.DelIP(c.ipX)
+		}
+		// 会话 ctx 与这条连接同生同死：Close 是唯一认的取消点（closeOnce 保证只取消一次），
+		// 阻塞在限速排队里的 Read/Write 由此被叫醒。
+		if c.cancel != nil {
+			c.cancel()
 		}
 		err = c.Conn.Close()
 	})
@@ -435,6 +467,10 @@ func (s *Server) serveConn(conn tunnel.Conn) {
 		return
 	}
 	rewindConn.SetReadDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+
+	// 会话 ctx 建立在 Auth 成功之后：从这里开始的每一条出口，要么把连接交给下游
+	// （下游最终会 Close），要么当场 Close —— 所以这一节挂在 s.ctx 下的子 ctx 一定有人取消。
+	inboundConn.ctx, inboundConn.cancel = context.WithCancel(s.ctx)
 
 	rewindConn.StopBuffering()
 	switch inboundConn.metadata.Command {

@@ -240,14 +240,47 @@ func waitPaced(ctx context.Context, l *rate.Limiter, n int) error {
 	return nil
 }
 
+// pacingContext 把用户级 ctx（用户被删 / 后端关停）与会话级 ctx（这条连接正在被拆）合成
+// 一个**只在这次等待期间存在**的子 ctx：任一侧结束都立刻叫停排队。
+//
+// 为什么需要第二个唤醒源：AddSentTraffic 只有 u.ctx 可听，而按字节排队可能持续几十秒到
+// 几小时（1 B/s + 8KB 中继块 ≈ 2 小时）。relay 拆会话走的是关连接，它碰不到 u.ctx ——
+// 于是 Proxy.Close 的 5s 预算耗尽之后，这条协程连同它攥着的中继 buffer 仍在池外，
+// 库化/热重载调用方会一段段攒出来（DelUser 才是唯一的旧唤醒点）。
+//
+// 子 ctx 挂在 u.ctx 的 children 上，所以用完必须 cancel：这条路径跟着每次 Read/Write，
+// 少 cancel 一次就是往那条链上永久留一节（AGENTS.md「握手期挂出去的收尾必须成对」同型）。
+func (u *User) pacingContext(session context.Context) (context.Context, func()) {
+	if session == nil {
+		return u.ctx, func() {}
+	}
+	ctx, cancel := context.WithCancel(u.ctx)
+	stop := context.AfterFunc(session, cancel)
+	return ctx, func() {
+		stop()
+		cancel()
+	}
+}
+
 func (u *User) AddSentTraffic(sent int) {
+	u.addSentTraffic(nil, sent)
+}
+
+// AddSentTrafficContext 见 statistic.PacedTrafficMeter。session 为 nil 时等价于 AddSentTraffic。
+func (u *User) AddSentTrafficContext(session context.Context, sent int) {
+	u.addSentTraffic(session, sent)
+}
+
+func (u *User) addSentTraffic(session context.Context, sent int) {
 	u.limiterLock.RLock()
 	limiter := u.SendLimiter
 	u.limiterLock.RUnlock()
 	// 等待可能长时间阻塞（限速生效期间），不能持有 limiterLock 等待，
 	// 否则 SetSpeedLimit 的写锁会长期饥饿，运行中修改限速迟迟不生效。
 	if limiter != nil && sent >= 0 {
-		waitPaced(u.ctx, limiter, sent) //gosec:disable -- 错误忽略：ctx 取消即会话正在拆除，账目仍照记
+		ctx, release := u.pacingContext(session)
+		defer release()
+		waitPaced(ctx, limiter, sent) //gosec:disable -- 错误忽略：ctx 取消即会话正在拆除，账目仍照记
 	}
 	if sent >= 0 {
 		u.Sent.Add(uint64(sent)) //gosec:disable -- sent >= 0 已保证安全
@@ -255,11 +288,22 @@ func (u *User) AddSentTraffic(sent int) {
 }
 
 func (u *User) AddRecvTraffic(recv int) {
+	u.addRecvTraffic(nil, recv)
+}
+
+// AddRecvTrafficContext 见 statistic.PacedTrafficMeter。session 为 nil 时等价于 AddRecvTraffic。
+func (u *User) AddRecvTrafficContext(session context.Context, recv int) {
+	u.addRecvTraffic(session, recv)
+}
+
+func (u *User) addRecvTraffic(session context.Context, recv int) {
 	u.limiterLock.RLock()
 	limiter := u.RecvLimiter
 	u.limiterLock.RUnlock()
 	if limiter != nil && recv >= 0 {
-		waitPaced(u.ctx, limiter, recv) //gosec:disable -- 错误忽略：ctx 取消即会话正在拆除，账目仍照记
+		ctx, release := u.pacingContext(session)
+		defer release()
+		waitPaced(ctx, limiter, recv) //gosec:disable -- 错误忽略：ctx 取消即会话正在拆除，账目仍照记
 	}
 	if recv >= 0 {
 		u.Recv.Add(uint64(recv)) //gosec:disable -- recv >= 0 已保证安全
@@ -939,6 +983,13 @@ func NewAuthenticator(ctx context.Context) (statistic.Authenticator, error) {
 		// 用 wg.Go 而非裸 go:Close() 的 wg.Wait() 必须能等到 updater 退出,
 		// 否则 cancel 后它可能还在写库
 		a.wg.Go(a.batchTrafficUpdater)
+		// 同一份门禁里再起一条「读库里 expire / maxip / 限速」的刷新轮，让面板直接改库
+		// 免重启生效（见 refresh.go）。上层已经在每轮推同一批列时（MySQL）不启动它。
+		if persistencerRefreshSuppressed(ctx) {
+			log.Info("[memory-authenticator] 持久化后端的限额刷新轮未启动：上层后端每轮自行推送 expire/maxip/限速")
+		} else {
+			a.wg.Go(a.limitsRefresher)
+		}
 	} else {
 		log.Info("[memory-authenticator] 未配置持久化后端（sqlite/mysql），用户流量仅在内存中保存，进程退出后丢失")
 	}

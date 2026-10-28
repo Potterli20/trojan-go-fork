@@ -40,6 +40,20 @@ type IPRecorder interface {
 	GetIP() int
 }
 
+// PacedTrafficMeter 是 User 的可选扩展：会话侧把手上的 ctx 交给"按字节排队"的限速等待。
+//
+// 为什么单独开一条而不改 TrafficMeter：AddSentTraffic 只有用户级 ctx 可听，而它可能按
+// n/limit 排队几十秒到几小时（1 B/s + 8KB 中继块 ≈ 2 小时）。relay 拆会话走的是关连接，
+// 不会取消用户 ctx —— 于是关停预算(Proxy.Close 的 5s)到期后这条协程连同它攥着的中继
+// buffer 仍在池外，库化/热重载场景下会一段段攒出来。会话 ctx 才是那个"必然会发生"的信号。
+//
+// 实现必须在 ctx 为 nil 时退回与 AddSentTraffic 完全一致的行为，且**无论等待是否被中断**
+// 都要把流量记账照做（字节物理上已经发生）。
+type PacedTrafficMeter interface {
+	AddSentTrafficContext(ctx context.Context, sent int)
+	AddRecvTrafficContext(ctx context.Context, recv int)
+}
+
 type User interface {
 	Metadata
 	TrafficMeter

@@ -528,7 +528,9 @@ Trojan-Go Fork 支持基于 [smux](https://github.com/xtaci/smux) 的多路复�
 
 - **SQLite**：顶层给一枚 `sqlite` 路径即可，没有独立配置节。仅 linux amd64/386/arm/arm64
   有实现，其它平台在启动期直接失败而不是静默降级。不需要额外 build tag。表的 `expire` 列
-  （Unix 秒，0 = 永不过期）由 AutoMigrate 自动补上，装载时判定；改完库里的值要重启后端才生效。
+  （Unix 秒，0 = 永不过期）由 AutoMigrate 自动补上，装载时判定，之后认证器每 **60 秒**从库里
+  重新采纳 `expire` / `maxip` / 上下行限速——面板直接 `UPDATE` 这几列**不用重启进程**就生效。
+  额度（`quota`）不是 SQLite 的概念，那条只有 MySQL 有。
 - **MySQL**：`mysql.enabled: true` 后 trojan 入站改用 MySQL 认证器，按 `check_rate` 秒与
   `users` 表双向同步。启动时会**幂等建表并给旧表自动补列**（缺 `maxip` / `expire` 都能补上），
   表结构为 `username,password,quota,download,upload,maxip,expire` 七列：

@@ -102,12 +102,12 @@ func (c *OutboundConn) Write(p []byte) (int, error) {
 		// 首个负载是跟帧头合成一次 Write 发出去的，同样要计流量。旧实现在这里直接
 		// return len(p)：每条连接的首块（最多一个 relay buffer，8KB）既不计入用户
 		// 流量/限速，也不计入 tracker 的 sent，统计与限速会系统性偏低。
-		c.user.AddSentTraffic(len(p))
+		c.accountSent(len(p))
 		c.sent.Add(uint64(len(p)))
 		return len(p), nil
 	}
 	n, err := c.Conn.Write(p)
-	c.user.AddSentTraffic(n)
+	c.accountSent(n)
 	if n >= 0 {
 		c.sent.Add(uint64(n)) //gosec:disable -- n >= 0 已保证安全
 	}
@@ -119,11 +119,30 @@ func (c *OutboundConn) Read(p []byte) (int, error) {
 	if err != nil && err != io.EOF && log.ShouldLog(log.DebugLevel) {
 		log.Debug("[Trojan] Connection read error:", err)
 	}
-	c.user.AddRecvTraffic(n)
+	c.accountRecv(n)
 	if n >= 0 {
 		c.recv.Add(uint64(n)) //gosec:disable -- n >= 0 已保证安全
 	}
 	return n, err
+}
+
+// accountSent / accountRecv 把会话 ctx 一起交给限速排队（见 statistic.PacedTrafficMeter）。
+// c.ctx 由 NewClient/DialConn 派生、Close 里取消，正是"这条会话正在被拆"的信号；
+// 不带它的话，被限速的 Write 最坏要按 n/limit 排队到几小时后才知道自己该走。
+func (c *OutboundConn) accountSent(n int) {
+	if paced, ok := c.user.(statistic.PacedTrafficMeter); ok {
+		paced.AddSentTrafficContext(c.ctx, n)
+		return
+	}
+	c.user.AddSentTraffic(n)
+}
+
+func (c *OutboundConn) accountRecv(n int) {
+	if paced, ok := c.user.(statistic.PacedTrafficMeter); ok {
+		paced.AddRecvTrafficContext(c.ctx, n)
+		return
+	}
+	c.user.AddRecvTraffic(n)
 }
 
 func (c *OutboundConn) Close() error {
