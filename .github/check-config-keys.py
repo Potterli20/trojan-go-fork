@@ -31,6 +31,7 @@ DOC_FILES = [
     "README.md",
     "docs/quic_usage.md",
     "docs/configuration.md",
+    "docs/best-practices.md",
     "config/README_cloudflare.md",
 ]
 

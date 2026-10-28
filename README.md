@@ -35,6 +35,7 @@ Trojan-Go Fork 是基于 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/troj
   - [IPv6 专用配置](#ipv6-专用配置)
 - [构建指南](#构建指南)
 - [故障排查](#故障排查)
+- [部署与客户端最佳实践](docs/best-practices.md)
 - [图形界面客户端](#图形界面客户端)
 - [致谢](#致谢)
 
@@ -1058,10 +1059,20 @@ socks+shadowsocks+mux 的真实栈比对关停前后的泄露栈增量。
 
 ## 图形界面客户端
 
-Trojan-Go Fork 服务端兼容所有原版 Trojan 客户端（如 Igniter、ShadowRocket 等）。以下为支持扩展特性（WebSocket / Mux 等）的客户端：
+Trojan-Go Fork 服务端兼容所有标准 Trojan 客户端，不要求客户端支持 mux 等扩展特性。
+部署拓扑、诱饵站选型与 Clash / mihomo 的完整配置见
+[部署与客户端最佳实践](docs/best-practices.md)。
 
-- [Qv2ray](https://github.com/Qv2ray/Qv2ray)：跨平台客户端，支持 Windows / macOS / Linux，使用 Trojan-Go 核心。
-- [Igniter-Go](https://github.com/p4gefau1t/trojan-go-android)：Android 客户端，Fork 自 Igniter，支持所有 Trojan-Go 扩展特性。
+- Windows / macOS / Linux：[Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev)、
+  [Mihomo Party](https://github.com/mihomo-party-org/mihomo-party)、
+  [v2rayN](https://github.com/2dust/v2rayN)、[sing-box](https://github.com/SagerNet/sing-box)
+- Android：[Clash Meta for Android](https://github.com/MetaCubeX/ClashMetaForAndroid)、
+  [v2rayNG](https://github.com/2dust/v2rayNG)、[NekoBox](https://github.com/MatsuriDayo/NekoBoxForAndroid)
+- iOS：Shadowrocket、Stash、sing-box
+- 路由器：OpenClash、ShellClash
+
+需要支持 Trojan-Go 专有扩展（mux 等）时仍可用 [Igniter-Go](https://github.com/p4gefau1t/trojan-go-android)
+与 Trojan-Go 自带客户端。
 
 ---
 
