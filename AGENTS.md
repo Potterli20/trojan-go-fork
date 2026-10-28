@@ -136,7 +136,9 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   error，六个循环（tls/trojan/socks/http/mux/simplesocks）在错误分支**先认这个哨兵**，认出来就
   `log.Error` + `continue`。为什么不能沿用既有的"accept 出错就 return"：那样一次 panic 就把这个入站
   **永久停摆**——没有退出码、没有重启、只是再也不接纳新连接，比崩了更难发现。panic 时的**资源**收尾
-  归抛 panic 的那一层（栈展开时它的 defer 跑完）：websocket 的 `handedOff`、shadowsocks 的 `takenOver`
+  归抛 panic 的那一层（栈展开时它的 defer 跑完）：websocket 有**两条** defer——`connHandedOff` 负责关
+  连接（2026-10-28 才补上；此前只有 `handedOff` 取消握手子 ctx，旧文档把它写成"资源收尾"是与代码不符的）、
+  shadowsocks 的 `takenOver`
   （重定向那条路径 `result` 也是 nil，绝不能顺手关掉正在被拷贝的连接）、以及 simplesocks 的读头——
   它**在自己为超时单起的那个 goroutine 里**，父循环这道边界够不着，是实测出来的（加之前测试二进制
   当场 panic 退出）。判据 `tunnel/accept_guard_test.go` 与 `tunnel/simplesocks/accept_panic_test.go`
@@ -468,6 +470,59 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   `wg.Wait` 与隧道释放之后用非阻塞取空（**不关闭 channel**：关停超时留下的一两条中继协程
   仍可能 `Put`，关 channel 会 panic）。判据 `proxy/proxy_test.go` 的
   `TestCloseDrainsPooledRelayBuffers`，看的是池队列长度而不是"有没有复用"。
+- **「拆会话」与「删表项」是两个必须被下游看见的事件**（2026-10-28，第 8 轮审计，5 处都有判据）：
+  ① **`socks` 的 UDP 投递必须在 `mappingLock` 读锁内完成**（`deliverToSession`）。守护协程的收尾是
+  「写锁 delete → `Close` 排空 input」，在锁外投递就可能在排空已跑完之后挤进一个包——每命中一次永久
+  漏一块 8KB 池化负载，而触发它只需要客户端在拆会话的瞬间继续发包。tproxy（RLock 内投递）与
+  dokodemo（同一临界区）早就这么做，socks 是三条姊妹入站里唯一违约的一条；判据
+  `tunnel/socks/dispatch_teardown_race_test.go` 用包级同步点 `var dispatchGap`（形态同 `var dialUDP`，
+  别当冗余删掉）把守护协程的收尾顺序逐字插进"已查到会话、尚未投递"的窗口，所以红绿与墙钟无关。
+  ② **握手层 panic 之后要自己关连接**：`tunnel/websocket` 的 `AcceptConn` 新增 `connHandedOff` defer，
+  panic（对端可控的升级请求）发生在 `trackPending` **之前**时连接既不在在途登记表、也没有活引用，
+  fd 只能等运行时对 netFD 的 finalizer 回收；旧文档说的"handedOff 负责资源收尾"不成立，它只取消子
+  ctx。所有把所有权交出去的出口（移交上游、交给 redirector 继续拷贝）必须先置位，判据
+  `tunnel/websocket/handshake_panic_close_test.go`（含"重定向那条连接不许关"与"关停中被拒的握手必须关"
+  两条对照；注入点是新增的 `var readUpgradeRequest`）。
+  ③ **建栈失败路径上的句柄要跟着 success 标志兜住**：`tunnel/tls/server.go` 打开 keyLogger 之后还有
+  `ValidateCurvePreferences` 这一道错误返回，客户端 `client.go` 早有 `keyLoggerOwned` defer，服务端这条
+  姊妹路径漏了——实测 20 次失败留 20 个 fd（判据 `keylogger_fd_server_test.go`）。
+  ④ **accept 循环的错误分支不许裸 `continue`**：`tunnel/adapter` 是全仓最后一个没有退避的入口，监听
+  持续报错（fd 耗尽）就是满 CPU 的静默热循环；现在 100ms 退避 + 每 10 次一条 Error，判据
+  `tunnel/adapter/accept_backoff_test.go` 跑在 Go 1.27 的 `testing/synctest` 气泡里（虚拟时间只在气泡内
+  所有协程 durably blocked 时前进，所以"500ms 里退避几次"是精确读数；给 `failingListener` 设了
+  `limit`/`onLimit` 这道自限位，否则退回裸 continue 时循环永不阻塞、判据只能报 test timed out 而不是原因）。
+  ⑤ **限速排队必须听得到"这条会话正在被拆"**：`memory.waitPaced` 原先只绑 `u.ctx`（只有 `DelUser`/
+  后端 `Close` 会取消它），于是被限速的 `Write` 可以按 n/limit 排队几十秒到几小时——relay 拆会话走的
+  是关连接，`Proxy.Close` 的 5s 预算只是放弃等待、叫不醒它，期间那条协程攥着从 `boundedBufPool` 借走
+  的中继 buffer（池被抽空后每包重新 make）。新增可选接口 `statistic.PacedTrafficMeter`
+  （不改 `TrafficMeter`，不破坏任何既有实现），trojan 的 `InboundConn` 在 **Auth 成功之后**派生会话
+  ctx、`Close` 里取消（失败路径不保证每个出口都走 Close，先建就是往 `s.ctx` 的 children 上挂没人收的
+  一节）；`OutboundConn` 直接用已有的 `c.ctx`。合成两个唤醒源用 `pacingContext`：子 ctx 只活在这次
+  等待里、`defer release()`，所以不累积。**等待被打断不等于流量没发生——账目照记**，两条判据都钉了
+  这一点（`statistic/memory/limiter_stop_test.go` 用 synctest 量取消后的返回耗时，
+  `tunnel/trojan/paced_session_ctx_test.go` 判真实接线；去掉接线实测 6.19s 变红）。
+- **配了持久化后端就要让面板改库免重启生效**（2026-10-28，第 8 轮续）。SQLite 原先只在
+  `NewAuthenticator` 装载时读一次 `expire`/`maxip`/限速，面板 `UPDATE` 完要重启才生效——按
+  「接受但不生效算缺陷」那条口径处理。新增 `statistic/memory/refresh.go`：默认 60s（间隔存
+  `sqliteRefreshInterval` 原子值，判据运行期调小），**一次 `ListUser` 全表读**（不是逐用户
+  `LoadUser`，那等于每轮 N 次查询）把三列推进已存在的内存用户。三条边界：不新增也不删除用户
+  （库里多出的行不该把 `DelUser` 掉的人捞活）；**绝不碰 `quota`/`quotaChecked`**（SQLite 表没有
+  额度列，打开判定等于给所有 SQLite 用户设 `quota=0`，正是"拿零值当没有额度概念"那个坑）；
+  走 `User` 上的内部 setter 而不是 `SetUserIPLimit`/`SetUserSpeedLimit`——后者会 `SaveUser`
+  整行写回，读侧调它等于每轮重抄一遍并与 `batchTrafficUpdater` 抢流量列。**MySQL 必须关掉这条
+  轮**（`memory.WithoutPersistencerRefresh(ctx)`）：`mysql.Authenticator` 内嵌同一个 memory 认证器、
+  用的是同一份配置上下文，`mysql` 与 `memory.sqlite` 可以并存，两边推同一批用户就是互相盖值
+  （SQLite 那条 `expire=0` 的镜像行会把 MySQL 里已到期的人复活成永不过期）。判据
+  `statistic/memory/sqlite_refresh_test.go`：到期与续期**两个方向**都要翻得过来、抑制闸门确实
+  没起轮、以及"跑出一段流量后仍不被当成额度为 0 拒掉"。
+- **投递的结果必须决定日志措辞，且归还之后一个字都不许碰**（2026-10-28）。`tunnel/tproxy` 的
+  found 分支原先两条出口共用一句 `tproxy packet sent`——队列满丢包时日志反而把排障方向带偏，
+  而且 `len(info.payload)` 写在 `putPacketBuf` 之后，违反「Put 之后不许再碰那块 buffer」的跨层
+  口径（今天只读切片头不会串数据，下一句改成读内容就是）。抽出 `deliverToSession(conn, info) bool`
+  （false 即"已就地归还"），`size` 提到投递之前取。判据 `tunnel/tproxy/packet_deliver_test.go`：
+  行为侧用池账目判"满队列时确实还了"（期望值是 `base + udpSessionQueueSize`，队列里那几块是
+  合法借出的，别写成 `base`），接线侧照 `tunnel/http/h2_status_clamp_test.go` 的先例用读源码的
+  结构性门禁——这条措辞分流做不出稳定的端到端形态（要捕获全局 logger 并与同包用例并发）。
 - **给测试留的包级可调阈值必须用原子**（2026-10-27）。`simplesocks.headerTimeout` 原本是裸
   `time.Duration`，测试用 `defer` 恢复它，而 accept 已改为 worker 池：测试返回时某些 worker
   仍在 `readHeader` 里读它，`go test -race` 实测报 Write/Read 竞争（两条并发读头用例同时红）。
