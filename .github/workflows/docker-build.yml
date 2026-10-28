@@ -61,32 +61,34 @@ jobs:
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             tags="${GITHUB_REF#refs/tags/} latest $immutable"
           fi
-          {
-            echo "## Pushed image tags"
-            echo
-            echo "| 仓库 | 标签 |"
-            echo "| --- | --- |"
-            for tag in $tags; do
-              echo "| ${{ env.github_image_lower }} | \`$tag\` |"
-            done
-          } >> "$GITHUB_STEP_SUMMARY"
+
+          # 一次构建把该次的所有标签一起推（多个 --tag），而不是每个标签重跑一遍 6 平台
+          # 矩阵：加标签不该把 CI 时间与构建负载按标签数翻倍。旧写法是 for tag → build，
+          # 发布构建本来就跑两遍，master 加了 sha- 之后要跑三遍。
+          tag_args=()
           for tag in $tags; do
-            docker buildx build --platform ${{ env.docker_platforms }} \
-            --output "type=image,push=true" \
-            --tag "${{ env.docker_image_lower }}:$tag" \
-            --tag "${{ env.github_image_lower }}:$tag" \
-            --build-arg REF=${{ env.ref }} \
-            --metadata-file "meta-$tag.json" \
-            --file Dockerfile .
+            tag_args+=(--tag "${{ env.docker_image_lower }}:$tag")
+            tag_args+=(--tag "${{ env.github_image_lower }}:$tag")
           done
-          # digest 是真正永生的坐标（标签可以被覆盖或删除）：落进 job summary，
+
+          docker buildx build \
+            --platform ${{ env.docker_platforms }} \
+            --output "type=image,push=true" \
+            "${tag_args[@]}" \
+            --build-arg REF=${{ env.ref }} \
+            --metadata-file meta.json \
+            --file Dockerfile .
+
+          # digest 是真正永生的坐标（标签可以被覆盖或删除）：连标签一起落进 job summary，
           # 事后要复原某一次构建就按 digest 拉，而不是按标签猜。
+          digest=$(jq -r '."containerimage.digest" // "未知（metadata 里没有 digest）"' meta.json)
           {
+            echo "## Pushed images"
             echo
             echo "| 标签 | digest |"
             echo "| --- | --- |"
-            for f in meta-*.json; do
-              echo "| \`${f#meta-}\` | \`${{ env.github_image_lower }}@$(jq -r '."containerimage.digest" // empty' "$f")\` |"
+            for tag in $tags; do
+              echo "| \`$tag\` | \`${{ env.github_image_lower }}@$digest\` |"
             done
           } >> "$GITHUB_STEP_SUMMARY"
 
