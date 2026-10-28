@@ -172,6 +172,27 @@ func (s *Server) decorate(conn net.Conn) (tunnel.Conn, error) {
 	}, nil
 }
 
+// deliverToSession 非阻塞地把负载投进会话队列，返回**是否投递成功**。
+//
+// 返回 false 时本函数已经把借出的 buffer 归还，调用方从此不得再碰 info.payload
+// （跨层口径：Put 之后不许再碰那块 buffer）。之所以把它从 dispatch 里抽出来：调用方要拿
+// 这个结果决定日志措辞——旧写法两条出口都打 "packet sent"，队列满丢包时日志反而把排障
+// 方向带偏。判据 packet_deliver_test.go（含"h2 状态码那条"用过的结构性接线门禁）。
+//
+// 调用方必须持着 mappingLock 的读锁：与 daemon 的「写锁 delete → Close 排空」互斥，
+// 否则一包可能挤进排空之后，永久离开池。
+func deliverToSession(conn *PacketConn, info *packetInfo) bool {
+	select {
+	case conn.input <- info:
+		return true
+	default:
+		// 会话队列满：丢包优于阻塞 dispatch 循环，但丢的同时必须把借出的负载还回去，
+		// 否则每次投递失败漏一块 8KB。
+		putPacketBuf(info.payload)
+		return false
+	}
+}
+
 func (s *Server) packetDispatchLoop() {
 	s.wg.Go(func() {
 		buf := make([]byte, MaxPacketSize)
@@ -248,18 +269,25 @@ func (s *Server) packetDispatchLoop() {
 			// （持写锁）再排空 input。dispatch 若在解锁后才投递，就可能落在“已 delete、
 			// 排空也跑完”之后——那一包会成功入队却再无读者，借出的负载永久不归还。
 			// select/default 非阻塞，锁内投递不会把会话端卡在 mappingLock 上。
-			select {
-			case conn.input <- &packetInfo{
+			//
+			// size 必须在投递之前取：走 default 分支时 putPacketBuf 已经把这块 buffer
+			// 还给池了，之后再碰它就违反「Put 之后不许再碰调用方切片」的跨层口径
+			// （len 只读切片头，今天不会串数据，但下一句改成读内容就是）。
+			size := len(info.payload)
+			delivered := deliverToSession(conn, &packetInfo{
 				metadata: &tunnel.Metadata{
 					Address: dstAddr,
 				},
 				payload: info.payload,
-			}:
-			default:
-				putPacketBuf(info.payload)
-			}
+			})
 			s.mappingLock.RUnlock()
-			log.Debug("tproxy packet sent with metadata", info.dst, "size", len(info.payload))
+			// 措辞跟着结果走：旧写法两条出口都打 "packet sent"，队列满导致丢包时
+			// 日志反而把排障方向带偏（看上去全都在正常转发）。
+			if delivered {
+				log.Debug("tproxy packet sent with metadata", info.dst, "size", size)
+			} else if log.ShouldLog(log.DebugLevel) {
+				log.Debug("tproxy dropped packet, session queue full, to", info.dst, "size", size)
+			}
 			continue
 		}
 		s.mappingLock.RUnlock()

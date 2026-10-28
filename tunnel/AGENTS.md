@@ -80,6 +80,17 @@ type Tunnel interface {
   `tunnel/dokodemo/session_close_test.go` 与 `tunnel/tproxy/session_close_test.go`（两者把
   `timeout` 故意设成 5 分钟，让"timer 早晚会清"这条自愈在水准线内不可用，从而测到的是窗口
   本身）。新增同类入站时把这条抄过去。
+- **dispatch 的"查表 + 投递"必须在同一把 `mappingLock` 读锁里做完。** daemon 的收尾是
+  「写锁 `delete` → `conn.Close()` 排空 `input`」，在锁外投递就可能落在"已 delete、排空也跑完"
+  之后：那一包成功入队却再无读者，从池里借出的 8KB 负载**永久离开池**。后果要说准——它不是
+  堆内存无限增长（会话对象连同那条包在 dispatch 迭代结束后就成垃圾被回收），而是**池化在这条
+  路径上白做**：每命中一次多一次 8KB 分配与一轮 GC 压力，口径同 `tunnel/trojan/packet.go` 的
+  池账目判据。客户端在拆会话的瞬间继续发包就能按包速率命中，源地址还能伪造。只有加锁是真互斥——
+  在投递的 `select` 里加 `case <-conn.ctx.Done()` 挡不住，因为"表项还在、ctx 已取消"和
+  "排空已跑完"是两个时刻。`tproxy`（RLock 内投递）与 `dokodemo`（查表与投递同一临界区）本来就对，
+  `socks` 是三条姊妹入站里唯一违约的一条，2026-10-28 补成 `deliverToSession`；判据
+  `tunnel/socks/dispatch_teardown_race_test.go` 用包级同步点 `var dispatchGap` 把 daemon 的收尾顺序
+  插进窗口正中，所以红绿不吃墙钟。
 - **`tproxy` 的 UDP 路径在没有 CAP_NET_ADMIN 时无法端到端测。** `ReadFromUDP` 依赖
   `IP_RECVORIGDSTADDR` cmsg，而它只在监听 socket 带 `IP_TRANSPARENT` 时由内核投递，普通 CI
   （ubuntu-24.04，非 root）构造不出真实入口。所以 `tproxyPacketInfo` 和 `packetQueue` 是

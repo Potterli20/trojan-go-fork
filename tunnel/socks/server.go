@@ -70,6 +70,13 @@ func resolveUDPTimeout(seconds int) time.Duration {
 // handshakeTimeout 限定 socks 握手(version/method/command/address)整体时限
 const handshakeTimeout = 30 * time.Second
 
+// dispatchGap 是 UDP 负载投递之前的同步点，真实实现是空函数。判据
+// （dispatch_teardown_race_test.go）用它把守护协程的收尾顺序——「写锁 delete →
+// Close 排空 input」——插进"已经查到会话、还没投递"这段窗口，把竞态钉成确定性的
+// 先后，而不是靠墙钟碰运气。形态参照 tunnel/tproxy 的 `var dialUDP` 与
+// tunnel/websocket 的 `var acceptHandshake`：这类注入点是刻意留给判据的，别当冗余删掉。
+var dispatchGap = func() {}
+
 type Server struct {
 	connChan         chan tunnel.Conn
 	packetChan       chan tunnel.PacketConn
@@ -544,19 +551,41 @@ func (s *Server) packetDispatchLoop() {
 		// 最后由 ReadWithMetadata 归还（或会话被拆时由 Close 的排空归还）。
 		// remaining 已经过 SOCKS 帧解析，恒 <= MaxPacketSize - 帧头长度。
 		payload := getPacketBuf()
-		_, _ = r.Read(payload[:remaining])
-		select {
-		case conn.input <- &packetInfo{
+		// 负载就是这一帧的尾部：地址块之后剩 remaining 字节，起点即 n-remaining。
+		// 用 copy 而不是 r.Read(payload[:remaining]) 并丢掉返回值——短读时会把池里
+		// 上一包的残留当成本包负载送上线（口径同 tproxy 的 copy）。
+		copy(payload[:remaining], buf[n-remaining:n])
+		info := &packetInfo{
 			metadata: &tunnel.Metadata{
 				Address: address,
 			},
 			payload: payload[:remaining],
-		}:
-		default:
-			// 会话可能刚超时清理、已无读者：丢包优于阻塞 dispatch 循环，
-			// 但丢包的同时必须把借出的负载还回去，否则每次投递失败漏一块 8KB
-			putPacketBuf(payload)
 		}
+		dispatchGap()
+		s.deliverToSession(srcKey, conn, info)
+	}
+}
+
+// deliverToSession 把负载投进 srcKey 对应的会话。查表与投递必须发生在**同一把读锁**里，
+// 而且只认"表项仍然是我查到的那条会话"：会话守护协程的收尾是「写锁 delete →
+// conn.Close() 排空 input」，在锁外投递就可能落在"已 delete、排空也跑完"之后——那一包
+// 成功入队却再无读者，借出的 8KB 负载永久离开池（判据
+// dispatch_teardown_race_test.go；口径同 tproxy 的 RLock 内投递与 dokodemo 的同一临界区）。
+// 表项已被删掉或换成另一条会话时也归还：把包塞给别的会话是串数据，不是转发。
+// 锁内用 select/default 非阻塞投递，所以不会把守护协程和 Close 卡在 mappingLock 上。
+func (s *Server) deliverToSession(srcKey tunnel.SessionKey, conn *PacketConn, info *packetInfo) {
+	s.mappingLock.RLock()
+	defer s.mappingLock.RUnlock()
+	if current, ok := s.mapping[srcKey]; !ok || current != conn {
+		putPacketBuf(info.payload)
+		return
+	}
+	select {
+	case conn.input <- info:
+	default:
+		// 会话队列满：丢包优于阻塞 dispatch 循环，但丢的同时必须把借出的负载还回去，
+		// 否则每次投递失败漏一块 8KB。
+		putPacketBuf(info.payload)
 	}
 }
 
