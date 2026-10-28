@@ -113,6 +113,13 @@ var acceptHandshake = func(ctx context.Context, w http.ResponseWriter, req *http
 	return websocket.Accept(w, req, opts)
 }
 
+// readUpgradeRequest 是 http.ReadRequest 的注入点，存在理由与下面的 acceptHandshake 一样：
+// 判据（handshake_panic_test.go）要能在"解析对端可控的升级请求"这一步制造 panic，而那一步
+// 发生在 trackPending **之前**——没有注入点就测不到这条窗口里的资源收尾。别当冗余删掉。
+var readUpgradeRequest = func(r *bufio.Reader) (*http.Request, error) {
+	return http.ReadRequest(r)
+}
+
 func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	conn, err := s.underlay.AcceptConn(&Tunnel{})
 	if err != nil {
@@ -131,9 +138,29 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	log.Debugf("[WebSocket] [conn=%s] New connection accepted from %s, path=%s, enabled=%v",
 		tracker.ConnID(), remoteAddr, s.path, s.enabled)
 
+	// panic 出口的资源收尾。本函数解析的是**未认证对端可控**的升级请求，而父层的
+	// tunnel.AcceptConnGuarded 只把 panic 变成 error——它手里没有这条连接的句柄。
+	// 在 trackPending 之前 panic（下面的 ReadRequest / 头部校验那几行）的话，这条连接
+	// 既不在在途登记表里（Server.Close 的排空够不着）、也没有任何活引用留下，fd 只能等
+	// 运行时对 netFD 的 finalizer 回收，TLS 会话状态和 bufio 读写缓冲随之滞留。
+	// 凡是把所有权交出去的出口都必须先置位 connHandedOff：移交上游的会话要长期持有它，
+	// 而 cleanupFailedHandshake 会把同一条连接交给 redirector 继续拷贝——在这里关掉它
+	// 等于对诱饵站自曝（口径同 shadowsocks 的 takenOver）。
+	connHandedOff := false
+	defer func() {
+		if !connHandedOff {
+			conn.Close() //gosec:disable -- 错误忽略：本层即将丢掉这条连接
+		}
+	}()
+	// fail 是唯一认的失败出口：走这里说明连接已经交给 redirector，收尾的关闭逻辑必须让位。
+	fail := func(err error) (tunnel.Conn, error) {
+		connHandedOff = true
+		return nil, s.cleanupFailedHandshake(conn, tracker, err)
+	}
+
 	if !s.enabled {
 		err := common.NewError("websocket is disabled. redirecting http request from " + remoteAddr)
-		return nil, s.cleanupFailedHandshake(conn, tracker, err)
+		return fail(err)
 	}
 	// rw 会被 websocket 库继续用来读升级后的帧，所以这里用可解除的限幅：
 	// 只在解析升级请求的窗口内限制读取量（http.ReadRequest 自身没有 header 上限），
@@ -147,25 +174,26 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	// accept 循环串行调用的，一条卡死等于这个入站从此不再接纳任何新连接；
 	// 而这条连接已经离开下层的待处理队列，排空逻辑再也够不着它攥着的 fd。
 	conn.SetDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-	req, err := http.ReadRequest(rw.Reader)
+	req, err := readUpgradeRequest(rw.Reader)
 	bounded.Unlimited()
 	if err != nil {
 		conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		log.Debug("invalid http request")
 		err = common.NewError("not a valid http request: " + remoteAddr).Base(err)
-		return nil, s.cleanupFailedHandshake(conn, tracker, err)
+		return fail(err)
 	}
 	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" || req.URL.Path != s.path {
 		conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		log.Debug("invalid http websocket handshake request")
 		err = common.NewError("not a valid websocket handshake request: " + remoteAddr).Base(err)
-		return nil, s.cleanupFailedHandshake(conn, tracker, err)
+		return fail(err)
 	}
 
 	// 登记在途后才会被 Close 关掉；没有这一步，阻塞在 101 写上的 AcceptConn
 	// 只能等满 30s 时限，期间这个入站不再接纳任何新连接。
 	if !s.trackPending(conn) {
-		conn.Close() //gosec:disable -- 错误忽略：服务已进入关停
+		// 不在这儿手写 Close：让上面那条 panic 收尾的 defer 统一负责，
+		// 免得两处关闭以后又有人加第三条。
 		return nil, common.NewError("websocket server is closing")
 	}
 	connCtx, cancel := context.WithCancel(s.ctx)
@@ -196,7 +224,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	}()
 	if err != nil {
 		err = common.NewError("websocket failed to handshake: " + remoteAddr).Base(err)
-		return nil, s.cleanupFailedHandshake(conn, tracker, err)
+		return fail(err)
 	}
 	// NetConn 会把读上限重置为 -1,必须在 NetConn 之后重新设置
 	stream := websocket.NetConn(connCtx, wsConn, websocket.MessageBinary)
@@ -205,6 +233,7 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	_ = tracker.Success()
 	log.Debugf("[WebSocket] [conn=%s] Handshake completed, remote=%s", tracker.ConnID(), remoteAddr)
 	handedOff = true
+	connHandedOff = true
 	return &InboundConn{
 		Conn:    stream,
 		tcpConn: conn,

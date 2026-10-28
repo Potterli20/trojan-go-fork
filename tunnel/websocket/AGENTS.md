@@ -47,6 +47,11 @@ reads again).
 
 ## Conventions
 
+- **握手期间的资源收尾有两条 defer，成对且互不相同**：`connHandedOff` 决定这条连接由谁负责
+  （移交上游 / 交给 redirector 拷贝时置位，否则 panic 或提前返回时由本层关掉），`handedOff`
+  只决定握手子 ctx 是否被取消。只写后者会漏 fd：panic 落在 `trackPending` 之前时连接既不在
+  在途登记表（`Close` 的排空够不着）也没有活引用，只能等运行时的 netFD finalizer。
+  判据 `handshake_panic_close_test.go`，注入点 `var readUpgradeRequest`。
 - WS message type is `BinaryMessage` always. Text frames break trojan's binary stream.
 - `conn.go` buffers partial reads — WS is message-oriented, `net.Conn` is stream-oriented.
 

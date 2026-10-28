@@ -18,6 +18,13 @@ import (
 // firstByteTimeout 限定协议嗅探阶段等待对端数据的时限
 const firstByteTimeout = 10 * time.Second
 
+// acceptBackoffStep / acceptBackoffCap 是 accept 出错后的退避参数（线性、封顶 3s），
+// 与 tunnel/trojan、tunnel/simplesocks 的同名常量同参。
+const (
+	acceptBackoffStep = 100 * time.Millisecond
+	acceptBackoffCap  = 3 * time.Second
+)
+
 type Server struct {
 	tcpListener net.Listener
 	udpListener net.PacketConn
@@ -38,6 +45,11 @@ type Server struct {
 }
 
 func (s *Server) acceptConnLoop() {
+	// acceptErrors 只用于退避与日志限流。监听一旦**持续**报错（fd 耗尽，或监听被外部
+	// 关掉而 s.ctx 没取消），原来的裸 continue 就是一条满 CPU 的热循环，而且一行日志
+	// 都没有——比崩掉更难发现。socks 的同型循环实测 400ms 内读了 3500 万次，
+	// 这里照同一个口径补退避 + 限流。
+	acceptErrors := 0
 	for {
 		conn, err := s.tcpListener.Accept()
 		if err != nil {
@@ -47,8 +59,24 @@ func (s *Server) acceptConnLoop() {
 				log.Debug("exiting")
 				return
 			}
+			acceptErrors++
+			if acceptErrors%10 == 1 {
+				log.Error(common.NewError("tcp adapter persistently failing to accept").Base(err))
+			} else if log.ShouldLog(log.DebugLevel) {
+				log.Debug("tcp adapter accept failed (suppressed) x", acceptErrors)
+			}
+			// 线性退避、封顶 3s，与 tunnel/trojan、tunnel/simplesocks 的 acceptWorker 同参：
+			// 监听永久坏掉时裸 continue 就是满 CPU，而每条都记 Error 又把日志变成攻击面。
+			delay := min(time.Duration(acceptErrors)*acceptBackoffStep, acceptBackoffCap)
+			select {
+			case <-s.ctx.Done():
+				log.Debug("exiting")
+				return
+			case <-time.After(delay):
+			}
 			continue
 		}
+		acceptErrors = 0
 		// 嗅探必须放独立 goroutine：它要等对端发够首字节，而 Accept 是串行的。
 		// 旧写法把 Read 直接写在循环体里，对端只连接不发数据就能让整个 socks/http
 		// 入口停止接纳新连接，最长 firstByteTimeout(10s)——一个慢速扫描器就能做到。

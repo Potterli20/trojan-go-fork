@@ -466,6 +466,20 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	}
 
 	var keyLogger io.WriteCloser
+	// keyLogger 在本函数内打开，唯一的归还入口是 Server.Close()。此后任何一条错误返回
+	// 都不会把 server 对象交出去，句柄就永久漏掉（实测：曲线名拼错 + 配了 key_log_path，
+	// 20 次失败留下 20 个 fd）。客户端 tunnel/tls/client.go 早就用 success 标志兜住了
+	// 所有失败路径，这条姊妹路径当时漏了——现在照同一个形态补齐。
+	keyLoggerOwned := false
+	defer func() {
+		if !keyLoggerOwned && keyLogger != nil {
+			// 可写句柄的失败往往只在 Close 时才暴露（缓冲未落盘就丢数据），
+			// 所以这里的错误不能丢——CodeQL go/unhandled-writable-file-close 正是指它。
+			if err := keyLogger.Close(); err != nil {
+				log.Warn("[TLS] Failed to close key log file:", err)
+			}
+		}
+	}()
 	if cfg.TLS.KeyLogPath != "" {
 		log.Warn("tls key logging activated. USE OF KEY LOGGING COMPROMISES SECURITY. IT SHOULD ONLY BE USED FOR DEBUGGING.")
 		file, err := os.OpenFile(cfg.TLS.KeyLogPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
@@ -506,6 +520,8 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		ctx:             ctx,
 		cancel:          cancel,
 	}
+	// server 已经建出来并接手了 keyLogger，收尾交给 Server.Close()。
+	keyLoggerOwned = true
 
 	server.wg.Go(func() {
 		server.acceptLoop()

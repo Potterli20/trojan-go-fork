@@ -30,6 +30,12 @@ If `fingerprint` empty: use stdlib `crypto/tls` (no anti-fingerprinting).
 
 ## Conventions
 
+- **keyLogger 的所有权跟着 success 标志走，两侧同一形态。** `os.OpenFile(key_log)` 在
+  `NewClient`/`NewServer` 里都发生在"对象已经能接手这个句柄"之前，而唯一的归还入口是各自的
+  `Close()`；此后任何错误返回都不交出对象，句柄就永久漏掉（实测 20 次失败留 20 个 fd，
+  判据 `keylogger_fd_test.go` / `keylogger_fd_server_test.go`）。服务端 2026-10-28 才补上
+  客户端那条 `keyLoggerOwned` defer —— 服务端在此之后新增的错误分支（`ValidateCurvePreferences`）
+  就是触发点。**加新错误分支时先看这条 defer 还罩不罩得住。**
 - Cert reloader polls mtime every `certreloader.go` interval. No SIGHUP. No inotify.
 - Server TLS config is built ONCE per instance; mutations (e.g. new cert) swap via `GetCertificate` callback.
 
