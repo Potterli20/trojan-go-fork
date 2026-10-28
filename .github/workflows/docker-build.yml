@@ -53,18 +53,42 @@ jobs:
 
       - name: Build and push docker image
         run: |
-          tags="snapshot"
+          # snapshot / latest 是**可变别名**：master 的每次构建都覆盖同一个 snapshot，
+          # 于是历史构建在下一次 push 之后就再也拉不回来（ghcr 上只留最后一份）。
+          # 额外打一枚不可变的 sha-<short>，配合下面的 digest 才能按次回捞任意一次构建。
+          immutable="sha-$(echo "$GITHUB_SHA" | cut -c1-8)"
+          tags="snapshot $immutable"
           if [[ $GITHUB_REF == refs/tags/* ]]; then
-            tags="${GITHUB_REF#refs/tags/} latest"
+            tags="${GITHUB_REF#refs/tags/} latest $immutable"
           fi
+          {
+            echo "## Pushed image tags"
+            echo
+            echo "| 仓库 | 标签 |"
+            echo "| --- | --- |"
+            for tag in $tags; do
+              echo "| ${{ env.github_image_lower }} | \`$tag\` |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
           for tag in $tags; do
             docker buildx build --platform ${{ env.docker_platforms }} \
             --output "type=image,push=true" \
             --tag "${{ env.docker_image_lower }}:$tag" \
             --tag "${{ env.github_image_lower }}:$tag" \
             --build-arg REF=${{ env.ref }} \
+            --metadata-file "meta-$tag.json" \
             --file Dockerfile .
           done
+          # digest 是真正永生的坐标（标签可以被覆盖或删除）：落进 job summary，
+          # 事后要复原某一次构建就按 digest 拉，而不是按标签猜。
+          {
+            echo
+            echo "| 标签 | digest |"
+            echo "| --- | --- |"
+            for f in meta-*.json; do
+              echo "| \`${f#meta-}\` | \`${{ env.github_image_lower }}@$(jq -r '."containerimage.digest" // empty' "$f")\` |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
 
   test:
     needs: build

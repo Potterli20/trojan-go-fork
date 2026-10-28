@@ -72,6 +72,18 @@ Trojan-Go Fork 是基于 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/troj
 - **Docker Hub**：[trliwork/trojan-go-fork](https://hub.docker.com/r/trliwork/trojan-go-fork/tags)
 - **GitHub Container Registry**：[ghcr.io/potterli20/trojan-go-fork](https://github.com/Potterli20/trojan-go-fork/pkgs/container/trojan-go-fork)
 
+镜像标签的含义（决定你能不能按次回捞某一次构建）：
+
+| 标签 | 由谁产生 | 是否可变 |
+|---|---|---|
+| `latest` | 打 tag 的正式发布 | 可变，指向最近一次发布 |
+| `V2026.10.25` | 每周发布工作流的 tag | 不变，一枚对应一次发布 |
+| `snapshot` | 每次推送到 master | **可变**，每次 push 覆盖上一份 |
+| `sha-1a2b3c4d` | 每一次构建（master 与 tag 都打） | 不变，对应一次具体提交 |
+
+`ghcr.io` 上这个包目前是**私有**的：匿名 `docker pull` 与列标签都会 401，需要用一个带
+`read:packages` 权限的令牌先 `docker login ghcr.io -u <你的用户名>`。Docker Hub 那一份是公开的。
+
 拉取镜像：
 
 ```shell
@@ -872,6 +884,31 @@ CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -tags "full"
 # 64 位 Linux
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -tags "full"
 ```
+
+### 取回历史构建产物
+
+Releases 页面每页只给 100 条，而本仓库从 `V2022.10.17` 起有 270 个 release（每个约 29 枚
+跨平台资产）。要一次性把历史拿全，用 `scripts/archive-releases.sh`（依赖 `gh` 已登录 + `jq`；
+归档镜像还需要 `skopeo`）：
+
+```shell
+# 只拿每个 release 的 linux-amd64 资产；不带 --assets-pattern 就是全部 *.zip
+scripts/archive-releases.sh --assets-pattern '*linux-amd64*'
+
+# 顺带把 ghcr 上的镜像标签全部存成多架构 oci-archive
+scripts/archive-releases.sh --assets-pattern '*linux-amd64*' --images
+
+# 只归档正式发布（跳过 snapshot 那类别名）
+scripts/archive-releases.sh --images --image-tag-filter '^V'
+
+# 先看会取哪些，不落盘
+scripts/archive-releases.sh --dry-run
+```
+
+脚本按资产逐条下载、已存在的直接跳过，中断后重跑即可续传；产物落在 `archive/releases/<tag>/`
+与 `archive/images/`。归档镜像务必用 `skopeo copy --all`：本镜像是 6 平台矩阵，`docker pull` +
+`docker save` 只会存下本机那一个平台。要精确复原某一次构建，按 `sha-<短哈希>` 标签或该次构建
+在 job summary 里记录的 digest 取，而不是按 `snapshot`——那个别名每次 push 都被覆盖。
 
 ---
 
