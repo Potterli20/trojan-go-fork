@@ -385,10 +385,7 @@ func (s *Server) acceptWorker() {
 			} else if log.ShouldLog(log.DebugLevel) {
 				log.Debug("trojan accept failed (suppressed) x", failures)
 			}
-			delay := time.Duration(failures) * acceptBackoffStep
-			if delay > acceptBackoffCap {
-				delay = acceptBackoffCap
-			}
+			delay := min(time.Duration(failures)*acceptBackoffStep, acceptBackoffCap)
 			select {
 			case <-time.After(delay):
 			case <-s.ctx.Done():
