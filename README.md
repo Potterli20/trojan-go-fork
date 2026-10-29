@@ -82,12 +82,13 @@ CI 也只认 `master`：
 | `main.yml` | 每 7 天 + 手动 | 跨平台编译矩阵，产出 Release 与标签 |
 | `race.yml` | 每日 + 手动 | 全仓 `-race -tags full`；故意不挂 push/PR，否则每 6 小时一次的依赖维护提交会反复触发十来分钟的长跑 |
 
-`go.yml` 每 6 小时做一轮依赖维护（`gofmt -r 'interface{} -> any'`、`go fix`、`go mod tidy`）并把结果推回
-`master`，所以历史里机器人提交有 3482 个、人工提交 859 个——按提交数量评估改动量之前先想到这一点。
+`go.yml` 每 6 小时做一轮依赖维护（`gofmt -r 'interface{} -> any'`、`go fix`、`go mod tidy -compat=1.27`）并把
+结果推回 `master`，所以 `git log` 里 `github-actions[bot]` 的提交数比全部人工提交加起来还多好几倍——
+按提交数量评估改动量之前先想到这一点。
 
 ### 版本标签
 
-发布标签是 `V` 加日期（最新 `V2026.10.25`，累计 270 个），由每周的 `main.yml` 打。
+发布标签是 `V` 加发布日期（如 `V2026.10.25`），由 `main.yml` 打，至今累积两百多个。
 `docker-build.yml` 在 master 构建时另外打一枚不可变的 `sha-<提交号前 8 位>` 镜像标签，
 配合 digest 才能回捞任意一次构建（包括没成为正式版的中间提交），取法见[取回历史构建产物](#取回历史构建产物)。
 
