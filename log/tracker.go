@@ -107,6 +107,10 @@ func (t *ConnectionTracker) WithFields(fields map[string]any) *ConnectionTracker
 // 为什么不在 SanitizeLogInput 里加 default 分支一刀切：同一个 Logf 调用里 durationMs
 // 走 %.2f、sentBytes 走 %d，把所有实参一律转成字符串会让动词失配、打出
 // %!f(string=…)——那是把三条数值日志一起打坏。所以这道清洗留在调用方这一侧。
+//
+// 2026-10-29 同一轮的后续改动已把 Logf/Log 的清洗挪到"整行格式化之后"，map 这一类实参
+// 在管道层面也堵住了。这里保留是第一道防线：将来谁把 fields 直接递给某个 logger 实现、
+// 不走 log 包入口，仍然不会漏。两道不冲突——[REDACTED] 不会被二次吃掉。
 func (t *ConnectionTracker) sanitizedFields() string {
 	return SanitizeString(fmt.Sprint(t.fields))
 }

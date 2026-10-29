@@ -4,21 +4,58 @@ package sqlite
 
 import (
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/Potterli20/sqlite"
+	"github.com/Potterli20/trojan-go-fork/log"
 	"github.com/Potterli20/trojan-go-fork/statistic"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	gormlogger "gorm.io/gorm/logger"
 )
 
 const Name = "sqlite"
+
+// gormWriter 把 gorm 的 SQL 日志接进本仓的日志链，而不是让它直接写 os.Stdout。
+//
+// 必须接管：`&gorm.Config{}` 会落到 gorm 的 `logger.Default`——它写 os.Stdout、级别 Warn，
+// 而 Warn 输出的内容正是慢查询（默认 >200ms）与失败语句的**完整 SQL 文本，变量已内插**
+// （gorm logger/logger.go:76 定义 Default，回调把内插后的串交给 Trace）。这不是理论风险：
+// 本后端的 `password` 列存的 `u.GetKeyShare()`，而 statistic/memory 里那个 getter 返回的是
+// **原始明文口令**，不是 hash。于是一次写库超过 200ms、或库锁冲突重试（memory 那边专门
+// 为 DB-locked 写了退避重试，说明这条路常走），明文口令就按 SQL 原文打到 stdout，
+// 完全绕过 log 包的整条清洗链——CI 日志里已经能看到它的输出形态：
+// `[0.056ms] [rows:0] SELECT * FROM `users` WHERE hash = "hash-a" ...`（值已内插）。
+//
+// 走 log.Warn 之后，INSERT 那一行必然带 `password` 这个列名 ⇒ 命中 SensitiveKeywords
+// 整行打码，口令出不去；而真正的数据库错误仍旧经 db.Error 原样返回给调用方，诊断一点没丢。
+// Colorful 关掉：ANSI 控制码落进日志是给下游解析埋雷。
+type gormWriter struct{}
+
+func (gormWriter) Printf(format string, v ...any) {
+	log.Warn(fmt.Sprintf("sqlite: "+format, v...))
+}
+
+// gormLogger 与 gorm 的 stdout 默认值同级别（Warn：只报慢查询与失败语句），
+// 只是换了目的地。
+func newGormLogger() gormlogger.Interface {
+	return gormlogger.New(gormWriter{}, gormlogger.Config{
+		SlowThreshold: 200 * time.Millisecond,
+		LogLevel:      gormlogger.Warn,
+		// First() 查不到用户是本仓的正常控制流（调用方按 err 分支处理），
+		// 不该每次都往日志里刷一行带内插值的 SQL。
+		IgnoreRecordNotFoundError: true,
+		Colorful:                  false,
+	})
+}
 
 type Persistencer struct {
 	db *gorm.DB
 }
 
 func NewSqlitePersistencer(path string) (*Persistencer, error) {
-	db, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(path), &gorm.Config{Logger: newGormLogger()})
 	if err != nil {
 		return nil, err
 	}

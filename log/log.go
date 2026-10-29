@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"html"
 	"io"
 	"os"
@@ -118,84 +119,108 @@ func (l *EmptyLogger) SetOutput(w io.Writer) {}
 // NewAddressFromHostPort 里的 log.Debug 要 11.8µs、28 次分配、958 B。
 // Fatal/Fatalf 不设门禁：它们要负责退出进程，短路掉就等于不退出。
 
+// line 把变参实参拼成一行并整行清洗一次；linef 先用**原始实参**完成格式化，再整行清洗一次。
+//
+// 为什么清洗必须排在格式化之后，而不是像旧写法那样逐个清洗实参再交给 Xxxf：
+// SanitizeLogInput 的 switch 只认 string 与 error 两种实参，map / struct / 切片两个分支
+// 都不匹配，于是原样穿过格式化落到行缓冲。这不是假想的口子——2026-10-29 是靠 CI 日志
+// 坐实的：ConnectionTracker 把 map[string]any 交给 %v，里面 WithField("user", …) 那枚
+// SHA224（Trojan 的线上认证物）明文进了日志；同一形状还漏着 websocket 的 Headers、
+// transport 的插件 Env 与 cmd.Args。清洗挪到格式化之后，任何被 %v/%+v/%s 拼进文本的字节
+// 都只能在整行上过一遍规则，与实参的静态类型无关。
+//
+// 反方向（逐个清洗后再格式化）不能选：那要把 %.2f/%d 的实参转成字符串，动词失配会打成
+// %!f(string=…)。这里格式化用的就是原始类型的值，所以没有这个问题。
+//
+// 落到行缓冲的字节不变：SanitizeString 会剥掉 Sprintln 带的那个换行，而 golog 的 Output
+// 在 data 末尾没有换行时自己补一个。子 logger（golog/simplelog）内部还会再清洗一轮，
+// 那是既有行为（旧写法同样跑两轮），[REDACTED] 不会被二次吃掉，但 html 转义本来就非幂等。
+func line(v ...any) string {
+	return SanitizeString(fmt.Sprintln(v...))
+}
+
+func linef(format string, v ...any) string {
+	return SanitizeString(fmt.Sprintf(format, v...))
+}
+
 func Error(v ...any) {
 	if !ShouldLog(ErrorLevel) {
 		return
 	}
-	getLogger().Error(SanitizeLogInput(v)...)
+	getLogger().Error(line(v...))
 }
 
 func Errorf(format string, v ...any) {
 	if !ShouldLog(ErrorLevel) {
 		return
 	}
-	getLogger().Errorf(SanitizeString(format), SanitizeLogInput(v)...)
+	getLogger().Error(linef(format, v...))
 }
 
 func Warn(v ...any) {
 	if !ShouldLog(WarnLevel) {
 		return
 	}
-	getLogger().Warn(SanitizeLogInput(v)...)
+	getLogger().Warn(line(v...))
 }
 
 func Warnf(format string, v ...any) {
 	if !ShouldLog(WarnLevel) {
 		return
 	}
-	getLogger().Warnf(SanitizeString(format), SanitizeLogInput(v)...)
+	getLogger().Warn(linef(format, v...))
 }
 
 func Info(v ...any) {
 	if !ShouldLog(InfoLevel) {
 		return
 	}
-	getLogger().Info(SanitizeLogInput(v)...)
+	getLogger().Info(line(v...))
 }
 
 func Infof(format string, v ...any) {
 	if !ShouldLog(InfoLevel) {
 		return
 	}
-	getLogger().Infof(SanitizeString(format), SanitizeLogInput(v)...)
+	getLogger().Info(linef(format, v...))
 }
 
 func Debug(v ...any) {
 	if !ShouldLog(DebugLevel) {
 		return
 	}
-	// 输入已经过 SanitizeLogInput 清洗，CodeQL 无法识别自定义 sanitizer
+	// 输入已经过 line() 的整行清洗，CodeQL 无法识别自定义 sanitizer
 	// codeql[go/log-injection] ignore
-	getLogger().Debug(SanitizeLogInput(v)...)
+	getLogger().Debug(line(v...))
 }
 
 func Debugf(format string, v ...any) {
 	if !ShouldLog(DebugLevel) {
 		return
 	}
-	getLogger().Debugf(SanitizeString(format), SanitizeLogInput(v)...)
+	getLogger().Debug(linef(format, v...))
 }
 
 func Trace(v ...any) {
 	if !ShouldLog(TraceLevel) {
 		return
 	}
-	getLogger().Trace(SanitizeLogInput(v)...)
+	getLogger().Trace(line(v...))
 }
 
 func Tracef(format string, v ...any) {
 	if !ShouldLog(TraceLevel) {
 		return
 	}
-	getLogger().Tracef(SanitizeString(format), SanitizeLogInput(v)...)
+	getLogger().Trace(linef(format, v...))
 }
 
 func Fatal(v ...any) {
-	getLogger().Fatal(SanitizeLogInput(v)...)
+	getLogger().Fatal(line(v...))
 }
 
 func Fatalf(format string, v ...any) {
-	getLogger().Fatalf(SanitizeString(format), SanitizeLogInput(v)...)
+	getLogger().Fatal(linef(format, v...))
 }
 
 func SetLogLevel(level LogLevel) {
@@ -223,20 +248,19 @@ func Logf(level LogLevel, format string, v ...any) {
 	if !ShouldLog(level) {
 		return
 	}
-	sanitizedFormat := SanitizeString(format)
-	sanitized := SanitizeLogInput(v)
+	msg := linef(format, v...)
 	l := getLogger()
 	switch level {
 	case DebugLevel:
-		l.Debugf(sanitizedFormat, sanitized...)
+		l.Debug(msg)
 	case InfoLevel:
-		l.Infof(sanitizedFormat, sanitized...)
+		l.Info(msg)
 	case WarnLevel:
-		l.Warnf(sanitizedFormat, sanitized...)
+		l.Warn(msg)
 	case ErrorLevel:
-		l.Errorf(sanitizedFormat, sanitized...)
+		l.Error(msg)
 	case FatalLevel:
-		l.Fatalf(sanitizedFormat, sanitized...)
+		l.Fatal(msg)
 	}
 }
 
@@ -263,7 +287,12 @@ var SensitivePatterns = []sensitiveRule{
 var SensitiveKeywords = []string{
 	"password", "passwd", "secret", "token", "api-key", "apikey",
 	"access-token", "accesstoken", "auth-token", "authtoken",
-	"credentials", "credential", "private-key", "privatekey",
+	"credentials", "credential", "private-key", "privatekey", "private_key",
+	// 下面几枚是 2026-10-29 那轮审计补的：它们的出现本身就说明这一行在携带凭据，
+	// 而里面的值常常短于 SensitivePatterns 的 32 位兜底阈值（authorization 头里的
+	// Bearer token、插件参数、连接串都是这种形态）。"proxy-authorization" 不必单列，
+	// Contains 判据下已被 "authorization" 覆盖。
+	"authorization", "cookie", "dsn", "keyshare",
 }
 
 // ObfuscateSensitiveData 遮住凭据，但尽量留下上下文。

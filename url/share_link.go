@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	neturl "net/url"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -45,11 +46,30 @@ type ShareInfo struct {
 	Description string // 节点说明
 }
 
+// urlUserinfoRe 命中 scheme://<userinfo>@ 里的 userinfo 段。
+var urlUserinfoRe = regexp.MustCompile(`([a-zA-Z][a-zA-Z0-9+.\-]*://)[^/@\s]*@`)
+
+// maskURLUserinfo 把字符串里 URL 形态的 userinfo 换成占位符，用于错误文案回显。
+//
+// 触发点：net/url 的解析错误会把**整个输入**回显进错误串——实测
+// `parse "trojan-go://shortpw@example.com:443/%zz": invalid URL escape "%zz"`，
+// 密码就在里面。这条错误经 url/option.go 的 common.NewError("failed to parse URL").Base(err)
+// 冒到 main.go 打日志，于是 -url 打错一次就在日志里明文交出一个密码。
+//
+// 为什么必须结构性地不嵌原文，而不是下游靠 SanitizeString 兜：本仓的兜底规则要 32 位以上
+// 连续字母数字，键名规则要命中 password/token 这类词，而 Trojan 的密码完全允许是 8~16 位
+// 短串——两者都够不着，一路明文。AGENTS.md 早就写了「日志的凭据脱敏是尽力而为，不要当护栏用」，
+// 凭据要保密就别把它写进去。诊断信息保留：占位符替掉的只有 userinfo，
+// 主机、端口与真正的报错原因（哪个转义坏了）都照原样在文案里。
+func maskURLUserinfo(s string) string {
+	return urlUserinfoRe.ReplaceAllString(s, "${1}[REDACTED]@")
+}
+
 func NewShareInfoFromURL(shareLink string) (info ShareInfo, e error) {
 	// share link must be valid url
 	parse, e := neturl.Parse(shareLink)
 	if e != nil {
-		e = fmt.Errorf("invalid url: %s", e.Error())
+		e = fmt.Errorf("invalid url: %s", maskURLUserinfo(e.Error()))
 		return
 	}
 
