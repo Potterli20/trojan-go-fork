@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -306,6 +307,26 @@ var SensitiveKeywords = []string{
 // 规则当成凭据重复吃掉。
 const redactedPlaceholder = "[REDACTED]"
 
+// safeContextRe 认的是"<标识词><分隔><整整 40 位十六进制>"这一形——git commit SHA 正好 40 位。
+//
+// 为什么只能靠上下文而不是形状：40 位 hex 与 Trojan 的线上认证物（SHA224，56 位 hex）都是纯
+// 十六进制串，而下面那条 [a-f0-9]{40,} 的入口长度就是 40，于是启动横幅的 `Commit: <sha>`
+// 被一起吃成 [REDACTED]——运维看不出自己跑的到底是哪个提交，而这正是"到底该不该怪这次改动"
+// 唯一能依据的信息。这里只放过**整整 40 位**（结尾的 \b 卡住长度），56 位的 SHA224 和任何更长的
+// hex 摘要照旧遮。
+var safeContextRe = regexp.MustCompile(`(?i)\b(commit|revision|rev)(\s*[:=]\s*)([a-f0-9]{40})\b`)
+
+// safeMarkByte 是"把安全片段摘出规则射程"用的哨兵字节。它必须同时满足：
+//  1. 不会被任何 SensitivePatterns 命中（不是字母数字，也不匹配键名规则）；
+//  2. 绝不残留在输出里；
+//  3. 先于一切从输入里清掉——否则对端把哨兵连同凭据一起喂进来，就能伪装成"已被保护的片段"
+//     绕过脱敏。判据里钉了这条注入。
+const safeMarkByte = '\x01'
+
+func safeMark(i int) string {
+	return string(safeMarkByte) + strconv.Itoa(i) + string(safeMarkByte)
+}
+
 func ObfuscateSensitiveData(str string) string {
 	lowerStr := strings.ToLower(str)
 	for _, keyword := range SensitiveKeywords {
@@ -313,9 +334,19 @@ func ObfuscateSensitiveData(str string) string {
 			return redactedPlaceholder
 		}
 	}
-	out := str
+	// 先把输入里自带的哨字节清掉，再制造哨兵：顺序反了就等于给注入留门。
+	out := strings.ReplaceAll(str, string(safeMarkByte), "")
+	var saved []string
+	out = safeContextRe.ReplaceAllStringFunc(out, func(match string) string {
+		groups := safeContextRe.FindStringSubmatch(match)
+		saved = append(saved, groups[3])
+		return groups[1] + groups[2] + safeMark(len(saved)-1)
+	})
 	for _, rule := range SensitivePatterns {
 		out = rule.re.ReplaceAllString(out, rule.replacement)
+	}
+	for i, secret := range saved {
+		out = strings.ReplaceAll(out, safeMark(i), secret)
 	}
 	return out
 }

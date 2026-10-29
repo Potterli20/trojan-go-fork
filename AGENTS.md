@@ -277,8 +277,16 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   而数据库错误照旧经 `db.Error` 返回。判据 `url/share_link_redact_test.go`、
   `statistic/sqlite/gorm_logger_test.go`（后者要自带捕获 logger——测试二进制没 import golog，
   全局 logger 是 `EmptyLogger`，用 `log.SetOutput` 抓不到东西）。
-  一处已知的附带伤害、暂未处理：启动横幅的 `Commit: <40 位 git sha>` 会被 `[a-f0-9]{40,}` 吃成
-  `[REDACTED]`——SHA 与用户 hash 在形状上无法区分，要留下它得引入上下文白名单。
+  **上下文白名单已经做掉**（同一天）：启动横幅的 `Commit: <40 位 git sha>` 原本会被
+  `[a-f0-9]{40,}` 吃成 `[REDACTED]`——git SHA 与 SHA224 用户 hash 都是纯 hex，形状上分不开，
+  只能靠语境。`safeContextRe` 只放过"commit|rev|revision" + `:`/`=` + **整整 40 位**
+  （结尾 `\b` 卡长度），56 位 SHA224 即便跟在 `Commit:` 后面也照遮；实现是"摘出安全片段→跑规则→
+  放回来"（RE2 没有后顾断言）。**顺序不能反**：必须先清掉输入自带的 `\x01` 哨字节再造哨兵，
+  否则对端能把哨兵连同内容一起喂进来。已知边界写清楚：能控制一段被打印字节的一方，可以自己拼
+  `commit: <40位>` 让那 40 位免打码——免掉的是它自己的字节，不是我们的凭据。
+  判据 `log/commit_allowlist_test.go`（两次变异对照都实测过：撤白名单→横幅用例红；
+  撤"先清哨兵"→注入用例红）。真实二进制复核：`Commit: 6a0bc351…` 明文可见，
+  同一份日志里 `[Trojan] Using user hash: [REDACTED]` 照旧遮着。
 - **「接受但不生效」和「退化成连本机」都算缺陷**（2026-10-27）。本轮三处同一味道：
   ① trojan / websocket 服务端在 `remote-addr` 为空时不再继续启动——空主机会拼出 `":port"`，
   而实测 `net.Dial("tcp", ":port")` **连的是 127.0.0.1**，认证失败的流量被代打到代理自己
