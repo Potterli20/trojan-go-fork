@@ -35,6 +35,25 @@ DOC_FILES = [
     "config/README_cloudflare.md",
 ]
 
+# 显式清单之外再并一次 glob。两个口子都要堵：
+#   * 只靠 glob：某个文件被改名时它静默消失，覆盖缩水而无人报错——显式清单的价值就在
+#     这里，main() 会对清单里不存在的文件直接 [FAIL]。
+#   * 只靠清单：新增文档忘了登记，里面的 ```yaml/```json 配置块就再也没人被实喂给二进制，
+#     和 quic.enabled 在 example/ 里烂掉多年是同一形态（2026-10-16 才把 example/ 补进门）。
+# MIN_PAIRS_SCANNED 只挡"提取器整体坏掉"（今天 1076 对，下限 150），挡不住单个文件掉出覆盖，
+# 所以这两条是叠加关系而不是冗余。
+DOC_GLOBS = ("docs/**/*.md", "config/**/*.md")
+
+
+def doc_files():
+    """显式清单 + glob 并集，去重且保持清单在前的稳定顺序。"""
+    out = list(DOC_FILES)
+    for pattern in DOC_GLOBS:
+        for path in sorted(glob.glob(pattern, recursive=True)):
+            if path not in out:
+                out.append(path)
+    return out
+
 # 不是配置键的噪声：HTTP 头名、表格里的类型列、取值示例等
 ALLOWED_NOISE = {
     "User-Agent", "Accept-Language", "Host", "Connection", "Upgrade",
@@ -247,7 +266,7 @@ def main():
         print("[FAIL] 节只提取到 %d（下限 %d）—— 嵌套解析可能已失效" % (len(children), MIN_SECTIONS))
         return 1
 
-    targets = (list(DOC_FILES) + sorted(glob.glob("config/*.yaml"))
+    targets = (doc_files() + sorted(glob.glob("config/*.yaml"))
                + sorted(glob.glob("example/*.yaml")) + sorted(glob.glob("example/*.json")))
     missing = [t for t in targets if not os.path.exists(t)]
     if missing:

@@ -17,7 +17,11 @@ FENCE_RE = re.compile(r"```yaml\n(.*?)```", re.S)
 
 
 def doc_files():
-    """取 check-config-keys.py 的 DOC_FILES；exec_module 只跑常量定义，不会执行 main()。"""
+    """取 check-config-keys.py 的 doc_files()（显式清单 + glob 并集）。
+
+    复用同一份清单，避免两处各维护一份、以后新增文档时只补了一半；exec_module 只跑到
+    函数定义，不会执行它的 main()。
+    """
     here = os.path.dirname(os.path.abspath(__file__))
     spec = importlib.util.spec_from_file_location(
         "check_config_keys", os.path.join(here, "check-config-keys.py"))
@@ -25,7 +29,7 @@ def doc_files():
         raise RuntimeError("读不到 check-config-keys.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod.DOC_FILES
+    return mod.doc_files()
 
 
 def main():
