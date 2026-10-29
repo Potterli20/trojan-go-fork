@@ -44,6 +44,17 @@ Registered via `RegisterAuthenticatorCreator(name, fn)`.
 SQLite is linux-only because the platform build tags in `statistic/sqlite` restrict it; on every other platform
 `NewSqlitePersistencer` returns an error at startup rather than a silent no-op.
 
+**`users.password` 存的是明文口令**（`GetKeyShare()` 在 `memory/` 里返回的就是原始 password，不是 hash），
+所以 gorm 的 SQL 日志绝不能落到 stdout：`&gorm.Config{}` 会用到 gorm 的 `logger.Default`，它写
+`os.Stdout`、Warn 级，而 Warn 的内容是**变量已内插**的完整 SQL —— 一条 >200ms 的写库或库锁重试
+就把明文口令直接打到标准输出，完全绕过本仓日志链。现在 `NewSqlitePersistencer` 传 `newGormLogger()`
+（`gormWriter` → `log.Warn`），那行必含 `password` 列名 ⇒ 命中 `SensitiveKeywords` 整行打码；
+数据库错误仍旧经 `db.Error` 原样返回。顺带 `IgnoreRecordNotFoundError: true`：`LoadUser` 查不到行是
+本目录的正常控制流，不该每次冷启动、每个用户都刷一行带内插值的 SQL。
+判据 `gorm_logger_test.go`（正向对照：把 `&gorm.Config{Logger: newGormLogger()}` 退回 `&gorm.Config{}`
+立刻变红；这个测试二进制没 import `log/golog`，全局 logger 是 `EmptyLogger`，所以断言必须自带捕获
+logger，不能用 `log.SetOutput`）。
+
 ## Authentication flow
 
 1. `tunnel/trojan/server.go` reads 56-hex-char header.

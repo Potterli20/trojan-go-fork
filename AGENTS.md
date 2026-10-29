@@ -245,6 +245,40 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   后果是 CR/LF 可伪造整行日志（域名/SNI/目的地是 `metadata.go` 里长度前缀的任意字节，
   `freedom` 的拨号错误又会把 `addr.String()` 拼进文案），并且凭据脱敏链一起被绕过。
   判据 `log/log_injection_test.go`。
+  **同一个 switch 的第三个坑是复合类型**（2026-10-29，CI 日志里抓到的）：`map` / `struct` /
+  切片既不是 string 也不是 error ⇒ 两道清洗同样漏。代价不是理论值：`ConnectionTracker.Success/Error`
+  把 `fields`（`map[string]any`）整个交给 `%v`，而 `tunnel/trojan/client.go:206` 用
+  `WithField("user", c.user.GetHash())` 塞的是 SHA224——Trojan 线上认证用的就是这串，等于每条出站
+  连接在默认 InfoLevel 下明文漏一次凭据（同形漏洞还漏着 websocket 的 `Headers` 转储、transport 的
+  插件 `Env` 与 `cmd.Args`）。
+  **现在的口径是"先按原始实参格式化、再对整行清洗一次"**（`log/log.go` 的 `line`/`linef`，13 个入口
+  全部走它）：实参类型从此与脱敏无关，而行缓冲上的字节没变（`SanitizeString` 剥掉 `Sprintln` 的换行，
+  `golog` 的 `Output` 缺换行时自己补），双重清洗仍是既有行为。
+  **别再退回"逐个清洗实参再交给 `Xxxf`"**，也别给 `SanitizeLogInput` 加 `default` 一刀切——后者要把
+  `%.2f`/`%d` 的实参转成字符串，动词失配会打出 `%!f(string=…)`，为堵一处把三条数值日志一起弄坏
+  （判据里专门钉了 `%!` 不出现）。`sanitizedFields()` 保留作第一道防线：谁把 `fields` 直接递给某个
+  logger 实现、不走 log 包入口，仍然不会漏。
+  关键词表补了 `authorization` / `cookie` / `dsn` / `keyshare` / `private_key`：这些词出现就说明该行
+  正在携带凭据，而里面的值往往短于 32 位的兜底阈值（`proxy-authorization` 不必单列，`Contains`
+  已被 `authorization` 覆盖）。判据 `log/tracker_redact_test.go` 与 `log/line_sanitized_test.go`；
+  正向对照分别退回旧写法，对应用例立刻变红。
+- **凭据要保密就不能嵌进错误文案，也别让它绕过日志链**（2026-10-29，两条真实通道）。
+  ① `net/url` 的解析错误会把**整个输入**回显进错误串——实测
+  `parse "trojan-go://shortpw@example.com:443/%zz": invalid URL escape "%zz"`，而这条经
+  `common.NewError(...).Base(err)` 冒到 `main.go` 打日志：`-url` 打错一次就明文交出一个密码。
+  `url/share_link.go` 的 `maskURLUserinfo` 只把 userinfo 换成 `[REDACTED]@`，主机、端口、坏在哪个
+  转义全部保留。为什么必须结构性处理：8 位密码既不含关键词也够不着 32 位阈值，靠下游 `ObfuscateSensitiveData`
+  是指望不住的（本文件早就写了"脱敏是尽力而为，不要当护栏用"）。
+  ② gorm 的默认 logger 直接写 `os.Stdout`、Warn 级，而 Warn 的内容是**变量已内插**的完整 SQL；
+  本仓 sqlite 后端的 `password` 列存的 `GetKeyShare()` 返回值，`statistic/memory` 里那个 getter 给的是
+  **原始明文口令** ⇒ 一条 >200ms 的写库或库锁重试就把明文打到标准输出，彻底绕开日志链（CI 日志里
+  那句值内插的 `SELECT ... WHERE hash = "hash-a"` 就是它的输出）。`statistic/sqlite` 现在用
+  `newGormLogger()`/`gormWriter` 把它接进 `log.Warn`：那行必含 `password` 列名 ⇒ 命中关键词整行打码，
+  而数据库错误照旧经 `db.Error` 返回。判据 `url/share_link_redact_test.go`、
+  `statistic/sqlite/gorm_logger_test.go`（后者要自带捕获 logger——测试二进制没 import golog，
+  全局 logger 是 `EmptyLogger`，用 `log.SetOutput` 抓不到东西）。
+  一处已知的附带伤害、暂未处理：启动横幅的 `Commit: <40 位 git sha>` 会被 `[a-f0-9]{40,}` 吃成
+  `[REDACTED]`——SHA 与用户 hash 在形状上无法区分，要留下它得引入上下文白名单。
 - **「接受但不生效」和「退化成连本机」都算缺陷**（2026-10-27）。本轮三处同一味道：
   ① trojan / websocket 服务端在 `remote-addr` 为空时不再继续启动——空主机会拼出 `":port"`，
   而实测 `net.Dial("tcp", ":port")` **连的是 127.0.0.1**，认证失败的流量被代打到代理自己
