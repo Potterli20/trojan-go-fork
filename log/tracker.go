@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"maps"
 	"strconv"
 	"sync"
@@ -92,6 +93,24 @@ func (t *ConnectionTracker) WithFields(fields map[string]any) *ConnectionTracker
 	return t
 }
 
+// sanitizedFields 把 fields 转成**已经清洗过的字符串**再交给日志的 %v。
+// 调用方必须已持有 t.mu（Success/Error 都在锁内）。
+//
+// 为什么不能直接把 map 递进去：SanitizeLogInput 只改写 string 与 error 两种实参，
+// map 两个分支都不匹配，于是原样穿过 fmt 落到行缓冲；golog 那第二轮自清洗用的是
+// 同一个过滤，两道同样漏。这不是理论问题——tunnel/trojan/client.go 用
+// WithField("user", c.user.GetHash()) 塞进去的是 SHA224，而 Trojan 的线上认证物就是这个
+// hash（拿到它等于拿到这个用户），默认级别又是 InfoLevel，于是每条出站连接都在日志里
+// 明文漏一次凭据。走 string 实参的同类调用（log.Info("Using user hash:", …)）本来就被
+// 遮成 [REDACTED]，漏的只有 map 这一条路。
+//
+// 为什么不在 SanitizeLogInput 里加 default 分支一刀切：同一个 Logf 调用里 durationMs
+// 走 %.2f、sentBytes 走 %d，把所有实参一律转成字符串会让动词失配、打出
+// %!f(string=…)——那是把三条数值日志一起打坏。所以这道清洗留在调用方这一侧。
+func (t *ConnectionTracker) sanitizedFields() string {
+	return SanitizeString(fmt.Sprint(t.fields))
+}
+
 func (t *ConnectionTracker) Success() error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
@@ -106,7 +125,7 @@ func (t *ConnectionTracker) Success() error {
 		t.module, t.connID, t.action,
 		t.startTime.Format("2006-01-02 15:04:05.000"),
 		t.endTime.Format("2006-01-02 15:04:05.000"),
-		durationMs, t.fields)
+		durationMs, t.sanitizedFields())
 	return nil
 }
 
@@ -124,7 +143,7 @@ func (t *ConnectionTracker) Error(err error) error {
 		t.module, t.connID, t.action,
 		t.startTime.Format("2006-01-02 15:04:05.000"),
 		t.endTime.Format("2006-01-02 15:04:05.000"),
-		durationMs, err, t.fields)
+		durationMs, err, t.sanitizedFields())
 	return err
 }
 
