@@ -5,12 +5,17 @@
 
 > **注意**：本项目已通过 AI 辅助修复和修改，当前服务端功能正常，客户端可能存在部分问题。欢迎提交 PR 协助修复。
 
-Trojan-Go Fork 是基于 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/trojan-go) 的社区维护分支。由于原项目已停止维护，本 Fork 持续修复 bug、合并社区贡献并改进功能。
+Trojan-Go Fork 延续的是已停止维护的 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/trojan-go)：导入上游完整 git 历史后继续修 bug、合并社区贡献、改进功能。本仓库只有 `master` 一个长期分支，来源链与分支现状见[项目来源与分支](#项目来源与分支)。
 
 ---
 
 ## 目录
 
+- [项目来源与分支](#项目来源与分支)
+  - [谁 fork 谁](#谁-fork-谁)
+  - [分支](#分支)
+  - [版本标签](#版本标签)
+  - [从 fregie 的分支取代码之前](#从-fregie-的分支取代码之前)
 - [与原版的差异](#与原版的差异)
 - [Docker 部署](#docker-部署)
 - [快速开始](#快速开始)
@@ -38,6 +43,76 @@ Trojan-Go Fork 是基于 [p4gefau1t/trojan-go](https://github.com/p4gefau1t/troj
 - [部署与客户端最佳实践](docs/best-practices.md)
 - [图形界面客户端](#图形界面客户端)
 - [致谢](#致谢)
+
+---
+
+## 项目来源与分支
+
+### 谁 fork 谁
+
+三段血统，只有中间那一段出现在 GitHub 的 fork 图上：
+
+| 仓库 | 关系 | 现状 |
+| --- | --- | --- |
+| [p4gefau1t/trojan-go](https://github.com/p4gefau1t/trojan-go) | 原始上游 | 已停止维护，`master` 最后一次提交是 2021-09-14 的 `2dc60f52` |
+| [fregie/trojan-go](https://github.com/fregie/trojan-go) | 上游的 GitHub fork，默认分支 `latest` | 最后活跃在 2026-06（`ai-dev`） |
+| **[Potterli20/trojan-go-fork](https://github.com/Potterli20/trojan-go-fork)** | 本仓库。2021-12-12 单独建仓，导入上游完整历史后继续维护 | 活跃，Release 与镜像都从这里出 |
+
+本仓库在 GitHub 的 API 里 `fork = false`：它不是网络 fork，而是把上游 git 历史推到一个新建仓库里接着做。
+所以 GitHub 的 fork 图和 "Compare with upstream" 页面都看不到这条血缘，判血统只能看 git 历史——
+`git merge-base --is-ancestor 2dc60f52 master` 成立，这才是"基于 p4gefau1t/trojan-go"这句话的依据。
+
+### 分支
+
+`master` 是**唯一长期分支**，也是默认分支：`git ls-remote --heads origin` 至今只列出它一个。
+功能开发在本地分支或 PR 分支上完成，合入 `master` 之后就删掉，不留 topic 分支。所以克隆下来直接就是可用状态：
+
+```bash
+git clone https://github.com/Potterli20/trojan-go-fork.git   # 默认就是 master
+git checkout V2026.10.25                                     # 或者锁定到某一次发布
+```
+
+CI 也只认 `master`：
+
+| 工作流 | 触发 | 跑什么 |
+| --- | --- | --- |
+| `test.yml` | master 的 push / PR | `make test` |
+| `config-examples.yml` | master 的 push / PR | 校验文档与 `example/` 里的配置键，外加 Markdown 站内锚点门禁 |
+| `docker-build.yml` | master 的 push（只改 `**.md` 时跳过） | 推 Docker Hub 与 ghcr |
+| `main.yml` | 每 7 天 + 手动 | 跨平台编译矩阵，产出 Release 与标签 |
+| `race.yml` | 每日 + 手动 | 全仓 `-race -tags full`；故意不挂 push/PR，否则每 6 小时一次的依赖维护提交会反复触发十来分钟的长跑 |
+
+`go.yml` 每 6 小时做一轮依赖维护（`gofmt -r 'interface{} -> any'`、`go fix`、`go mod tidy`）并把结果推回
+`master`，所以历史里机器人提交有 3482 个、人工提交 859 个——按提交数量评估改动量之前先想到这一点。
+
+### 版本标签
+
+发布标签是 `V` 加日期（最新 `V2026.10.25`，累计 270 个），由每周的 `main.yml` 打。
+`docker-build.yml` 在 master 构建时另外打一枚不可变的 `sha-<提交号前 8 位>` 镜像标签，
+配合 digest 才能回捞任意一次构建（包括没成为正式版的中间提交），取法见[取回历史构建产物](#取回历史构建产物)。
+
+### 从 fregie 的分支取代码之前
+
+截至 2026-10-29，fregie 各分支尚未进入本仓库 `master` 的提交数：
+
+| fregie 分支 | 未合入的提交 | 分支最后一次提交 |
+| --- | --- | --- |
+| `latest`（默认）、`ai-dev`、`memory_optimize`、`websocket_auth` | 0 —— 内容已全在本仓库历史里 | 2024-03 / 2026-06 / 2021-06 / 2021-05 |
+| `master` | 1：`cfe8f718` fix upload speedlimit not working | 2021-10 |
+| `tls_fix` | 3：`db5453fb` `a24a525b` `76870a2a` | 2021-05 |
+
+上表第一行那四个分支的内容已经全在本仓库历史里——共 46 枚 fregie 提交，例如"指定转发 buffer 大小"
+（`9317445e`）、SQLite 改用免 CGO 驱动（`6dc987ce`）、MySQL 删用户后内存不更新（`2a253cbf`）、
+`outbound_local_addr` 与 `outbound_fwmark`（`3b5b54b9`、`627d4fbc`），这些就是
+[与原版的差异](#与原版的差异)里对应条目的出处。剩下 4 个提交没有逐字合入，而本仓库 changelog 里
+"data race""上行限速"两条是同主题独立重做的，两边实现不一定一致——真要引用请以提交号为准，
+别假设行为等价。核对方式：
+
+```bash
+git remote add fregie https://github.com/fregie/trojan-go.git
+git fetch fregie
+git log --oneline master..fregie/tls_fix
+```
 
 ---
 
