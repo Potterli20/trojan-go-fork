@@ -4,8 +4,8 @@ github.com/HyNetworks/quic-go v0.63.1-0.20261004180939-a10df75c260c h1:spAvK8Tcu
 github.com/HyNetworks/quic-go v0.63.1-0.20261004180939-a10df75c260c/go.mod h1:J7UZVOMF2M1LiE3iiUZWPuy8YCPAcLJOwVURrfJCvc0=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261009220355-dfd95367d331 h1:4q4/NrBlmIuAM3QqHEjrGSOzvb19I5RYmnNtl45aXVE=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261009220355-dfd95367d331/go.mod h1:cmWbxmkh+Idfsq6Q9n7V36aa91JucBaXxwDMgfnWwUo=
-github.com/Potterli20/socks5-fork v0.0.0-20261030094832-6af82f7569ec h1:9RX2CDLpPC8iGLR/NqT/PLWxqgZtM9o/GXkCW2dGMOc=
-github.com/Potterli20/socks5-fork v0.0.0-20261030094832-6af82f7569ec/go.mod h1:HfFqtWVQDqcaTD4HCeV7paHpY1C8ksaFLlBea1ec+Sk=
+github.com/Potterli20/socks5-fork v0.0.0-20261030175425-9797803bb4b2 h1:Ia770bq9C6Om2NfScHocw/ajOLthx3aYf4hJvJ0aUQM=
+github.com/Potterli20/socks5-fork v0.0.0-20261030175425-9797803bb4b2/go.mod h1:w1nkCSHvSkRXNS6+lsnMw194USyKToyz0Z9Ybn/hUdI=
 github.com/Potterli20/sqlite v0.0.0-20261025200855-73fe15fbda03 h1:ZPE3Vv6ZgtUaLdHDB1woCpGqTufKzGmaAXGQlJd5bew=
 github.com/Potterli20/sqlite v0.0.0-20261025200855-73fe15fbda03/go.mod h1:JwnR6pRzTreCagGgI7lNnWd5gbTXOHOdC8ZSr7lLwvQ=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
