@@ -4,8 +4,8 @@ github.com/HyNetworks/quic-go v0.63.1-0.20261004180939-a10df75c260c h1:spAvK8Tcu
 github.com/HyNetworks/quic-go v0.63.1-0.20261004180939-a10df75c260c/go.mod h1:J7UZVOMF2M1LiE3iiUZWPuy8YCPAcLJOwVURrfJCvc0=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261009220355-dfd95367d331 h1:4q4/NrBlmIuAM3QqHEjrGSOzvb19I5RYmnNtl45aXVE=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261009220355-dfd95367d331/go.mod h1:cmWbxmkh+Idfsq6Q9n7V36aa91JucBaXxwDMgfnWwUo=
-github.com/Potterli20/socks5-fork v0.0.0-20261102104857-2bbbf9318e45 h1:XexqtCNH4iKdNONoT5VZWU1o5ygQod6EVCZif9bXU2A=
-github.com/Potterli20/socks5-fork v0.0.0-20261102104857-2bbbf9318e45/go.mod h1:qXqXDfCXiSoIX7RPmUjEkGfn469IgM+D5GndX4Hds1s=
+github.com/Potterli20/socks5-fork v0.0.0-20261103165606-496c0d4a6162 h1:Bv083Z2nopRJbtaTE/2QsTU6CQmBFFR4XWwNgtV6hI0=
+github.com/Potterli20/socks5-fork v0.0.0-20261103165606-496c0d4a6162/go.mod h1:Xtn6FmoGbPqz5bMk7CyMLrP0evNK2Zute1ZS+HgG1es=
 github.com/Potterli20/sqlite v0.0.0-20261102140213-1dba29803ece h1:OQkgfQmC4iwfpMYJDm5+2z9PuyKj61Q0mPdFnETfXp0=
 github.com/Potterli20/sqlite v0.0.0-20261102140213-1dba29803ece/go.mod h1:X6Gq9vpJ8uedRaBvjYOAOla7goFDDZ8ieCfWxgJo3pY=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
@@ -51,8 +51,8 @@ github.com/mattn/go-isatty v0.0.24 h1:tGZZoVgT/KiqK1c8ocVLeDS8BSWMRd47J3Lbz7vsRe
 github.com/mattn/go-isatty v0.0.24/go.mod h1:nMCL3Zebbrt45jsMDgnfIwz6ydEQApk5oEI3HqDio6A=
 github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o4kU=
 github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
-github.com/miekg/dns v1.1.74-0.20260901173534-2e4905fb0302 h1:zpLxUXjhiqkQc//niMGHWBgat3zd2EPaKJ1aVBhd4qw=
-github.com/miekg/dns v1.1.74-0.20260901173534-2e4905fb0302/go.mod h1:YVxs4ZFBJDL6ZDgjMrKn9NqEdZm5TAbWoFeZ8IzbNVo=
+github.com/miekg/dns v1.1.74-0.20261103100211-b2d6c9f4480a h1:j0Qm3rvV7i9UKtU7BTiUU6ApuZBW6XnS+n8GDAunmvk=
+github.com/miekg/dns v1.1.74-0.20261103100211-b2d6c9f4480a/go.mod h1:H0jGeLdTxu4CWpVN7/3qeC7SuGYk7jtrLQBXRbuhoPc=
 github.com/molecule-man/go-brrr v1.2.0 h1:dOJU45BC3Gc2WXoxAW0rgCAgVuu2gruAOGncfieA0Jw=
 github.com/molecule-man/go-brrr v1.2.0/go.mod h1:7ybW6/7gA3oKY45jOfVNjSJDtrr6ea4tzbsTkjmQDC4=
 github.com/ncruces/go-strftime v1.1.0 h1:vtPmPWMkb539RGV9WpWT9EwJGvrOCKvMNI4obWL47Hk=
