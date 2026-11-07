@@ -87,8 +87,7 @@ func TestAssociateControlConnIsReclaimed(t *testing.T) {
 	if err == nil {
 		t.Fatal("服务端在关联结束后仍未关闭控制连接（fd 泄漏）")
 	}
-	var ne net.Error
-	if errors.As(err, &ne) && ne.Timeout() {
+	if ne, ok := errors.AsType[net.Error](err); ok && ne.Timeout() {
 		t.Fatalf("等待服务端关闭超时，控制连接仍被弃用：%v", err)
 	}
 	// 其它错误（EOF / use of closed / RST）都说明对端已经把这条连接收回了

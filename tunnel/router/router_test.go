@@ -184,9 +184,7 @@ router:
 
 	var wg sync.WaitGroup
 	for i := range 200 {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
+		wg.Go(func() {
 			// 交替命中三种策略的 regex 规则。Route 只做策略判定、不实际拨号,
 			// 但内部 matchDomain 会读取 regexCache —— 修复前此处会在首次命中时写 map。
 			prefix := []string{"bypassreg", "blockreg", "proxyreg"}[i%3]
@@ -196,7 +194,7 @@ router:
 				DomainName:  domain,
 				Port:        80,
 			})
-		}(i)
+		})
 	}
 	wg.Wait()
 }

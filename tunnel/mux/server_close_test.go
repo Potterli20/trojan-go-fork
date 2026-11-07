@@ -122,8 +122,7 @@ func TestServerCloseWakesEstablishedSessions(t *testing.T) {
 	if err == nil {
 		t.Fatal("服务端关停后会话仍可读取")
 	}
-	var ne net.Error
-	if errors.As(err, &ne) && ne.Timeout() {
+	if ne, ok := errors.AsType[net.Error](err); ok && ne.Timeout() {
 		t.Fatalf("等待服务端断开超时: %v", err)
 	}
 }

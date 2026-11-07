@@ -98,8 +98,7 @@ func (h *honeypot) collect(t *testing.T, want string, budget time.Duration) (str
 			}
 			continue
 		}
-		var ne net.Error
-		if errors.As(err, &ne) && ne.Timeout() {
+		if ne, ok := errors.AsType[net.Error](err); ok && ne.Timeout() {
 			continue // 只是暂时没动静
 		}
 		return sb.String(), c, err // EOF/重置等：连接已经不行了

@@ -147,8 +147,8 @@ func readHeaders(r io.Reader) error {
 }
 
 func isTimeout(err error) bool {
-	var ne net.Error
-	return errors.As(err, &ne) && ne.Timeout()
+	ne, ok := errors.AsType[net.Error](err)
+	return ok && ne.Timeout()
 }
 
 // assertWriteIsStuck 把客户端已经推出来的字节读干，要求最终一次读得到 i/o timeout。
