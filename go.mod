@@ -12,7 +12,7 @@ require (
 	github.com/coder/websocket v1.8.15
 	github.com/database64128/tfo-go/v2 v2.4.2
 	github.com/go-sql-driver/mysql v1.10.1
-	github.com/refraction-networking/utls v1.8.3-0.20261006222701-ff1b50fbbe9a
+	github.com/refraction-networking/utls v1.8.3-0.20261108164504-a13c59ffe98b
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.12.1
 	github.com/xtaci/smux v1.5.59-0.20261108122440-1a83ee4b4d05
