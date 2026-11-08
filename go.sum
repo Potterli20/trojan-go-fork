@@ -75,12 +75,12 @@ github.com/stretchr/testify v1.12.1 h1:EuwCh5fleGS7H32xRwO3wRGT7DxrDhLAT6FF8MpWD
 github.com/stretchr/testify v1.12.1/go.mod h1:MDEgiDPPsNp5cuIrHPPCyornHKgEVbtFUmoNlxoYthg=
 github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae h1:ArVM1jICfm7g4E4dBet+KHUFMLuxmj1Nxdp/tr3ByCU=
 github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
-github.com/xtaci/smux v1.5.59-0.20261107105059-6d5096cba762 h1:pI/tMeA/MQLnqi95fMtL+ZdgGE1Oy+i/7WZkpyss+t8=
-github.com/xtaci/smux v1.5.59-0.20261107105059-6d5096cba762/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
+github.com/xtaci/smux v1.5.59-0.20261108030743-915e9be74d06 h1:aFtOvzS/MSCtOLrCiAuR2cKvpabaeDYffx+rz3jOdFQ=
+github.com/xtaci/smux v1.5.59-0.20261108030743-915e9be74d06/go.mod h1:IGQ9QYrBphmb/4aTnLEcJby0TNr3NV+OslIOMrX825Q=
 github.com/xtls/reality v0.0.0-20261014101318-83f621788ca8 h1:RjLnVvlzK4q6zWaSBPNRGsrgx2fbJDeUWffjw574uzs=
 github.com/xtls/reality v0.0.0-20261014101318-83f621788ca8/go.mod h1:ptlSkJ8k/7IDauNH0SA96JPOo+nYGLTv2Y3UMpwvAsY=
-github.com/xtls/xray-core v1.260327.1-0.20261106184523-1c8bf4067b88 h1:Szydup6eza7/YhFSDiv+5ZDjVkczZgkE/mftz9yqgqk=
-github.com/xtls/xray-core v1.260327.1-0.20261106184523-1c8bf4067b88/go.mod h1:EkMt7pITevBIb6Yg/VfFdMaH+KiFLo+tZ/la8Loh/0E=
+github.com/xtls/xray-core v1.260327.1-0.20261108040104-2d287bbdee1e h1:2hhwoijmJ3UyaTDcfghCUiGQapIxOgiyfI58Hz8R1Zo=
+github.com/xtls/xray-core v1.260327.1-0.20261108040104-2d287bbdee1e/go.mod h1:EkMt7pITevBIb6Yg/VfFdMaH+KiFLo+tZ/la8Loh/0E=
 github.com/yuin/gopher-lua v0.0.0-20190206043414-8bfc7677f583/go.mod h1:gqRgreBUhTSL0GeU64rtZ3Uq3wtjOa/TB2YfrtkCbVQ=
 github.com/yuin/gopher-lua v1.1.2 h1:yF/FjE3hD65tBbt0VXLE13HWS9h34fdzJmrWRXwobGA=
 github.com/yuin/gopher-lua v1.1.2/go.mod h1:7aRmXIWl37SqRf0koeyylBEzJ+aPt8A+mmkQ4f1ntR8=
