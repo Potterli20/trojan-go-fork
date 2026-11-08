@@ -15,8 +15,8 @@ require (
 	github.com/refraction-networking/utls v1.8.3-0.20261006222701-ff1b50fbbe9a
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.12.1
-	github.com/xtaci/smux v1.5.59-0.20261108030743-915e9be74d06
-	github.com/xtls/xray-core v1.260327.1-0.20261108040104-2d287bbdee1e
+	github.com/xtaci/smux v1.5.59-0.20261108122440-1a83ee4b4d05
+	github.com/xtls/xray-core v1.260327.1-0.20261108113235-3a88ccb2d35d
 	golang.org/x/crypto v0.58.0
 	golang.org/x/net v0.62.0
 	golang.org/x/sys v0.49.0
@@ -42,6 +42,7 @@ require (
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/molecule-man/go-brrr v1.2.0 // indirect
 	github.com/ncruces/go-strftime v1.1.0 // indirect
+	github.com/pion/transport/v5 v5.1.4 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
