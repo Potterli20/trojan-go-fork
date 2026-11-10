@@ -5,9 +5,9 @@ go 1.27.3
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20261009220355-dfd95367d331
-	github.com/Potterli20/socks5-fork v0.0.0-20261106225547-0d9d16164399
-	github.com/Potterli20/sqlite v0.0.0-20261109103048-40698aac6973
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20261109214725-c28c0ef178c9
+	github.com/Potterli20/socks5-fork v0.0.0-20261109154959-677fdd4edf48
+	github.com/Potterli20/sqlite v0.0.0-20261109214123-f657b575c53c
 	github.com/apernet/quic-go v0.65.1-0.20261109005002-2895f039137a
 	github.com/coder/websocket v1.8.15
 	github.com/database64128/tfo-go/v2 v2.4.2
@@ -20,7 +20,7 @@ require (
 	golang.org/x/crypto v0.58.0
 	golang.org/x/net v0.62.0
 	golang.org/x/sys v0.50.0
-	golang.org/x/term v0.47.0
+	golang.org/x/term v0.48.0
 	golang.org/x/time v0.16.0
 	google.golang.org/grpc v1.86.0-dev
 	google.golang.org/protobuf v1.36.12
@@ -53,10 +53,10 @@ require (
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	golang.org/x/exp v0.0.0-20260820142414-ca536658362e // indirect
 	golang.org/x/mod v0.42.0 // indirect
-	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/sync v0.25.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 	golang.org/x/tools v0.52.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20261104224025-d1e00e9f33ab // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20261110000943-09e21b237f2c // indirect
 	layeh.com/gopher-luar v1.0.11 // indirect
 	modernc.org/libc v1.80.2 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
