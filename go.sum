@@ -4,8 +4,8 @@ github.com/HyNetworks/quic-go v0.65.1-0.20261109005002-2895f039137a h1:WwuyYbM83
 github.com/HyNetworks/quic-go v0.65.1-0.20261109005002-2895f039137a/go.mod h1:J7UZVOMF2M1LiE3iiUZWPuy8YCPAcLJOwVURrfJCvc0=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261110052739-7567f27595bc h1:+ie4ObY9jCFVmbQdclqeCI+IgXf7ms42SAMGJBMZfBY=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261110052739-7567f27595bc/go.mod h1:GFMbvCc+Mk5ulhaZxC7ZnkNE0HuCTXvBn/tOC0eTsW0=
-github.com/Potterli20/socks5-fork v0.0.0-20261111010856-2adb1ed8b942 h1:c3DMqpSiUpYzSJYxqeRueRRpvax6uwcb4u5CMTTmtUs=
-github.com/Potterli20/socks5-fork v0.0.0-20261111010856-2adb1ed8b942/go.mod h1:gr+06olwd/115zGvCSMVXG2+EfBzoRJf5phRCiFfPH4=
+github.com/Potterli20/socks5-fork v0.0.0-20261111103555-b4e769af2ef3 h1:7X68JYvdI8SU66nKkQjRlMN03Q7qp6iHEM4iHCL50QA=
+github.com/Potterli20/socks5-fork v0.0.0-20261111103555-b4e769af2ef3/go.mod h1:qK+OcFX6SjxkjASU/P3f1jPinymmKfflIfPhmDgGTZg=
 github.com/Potterli20/sqlite v0.0.0-20261111033044-f91900e93c59 h1:AnBC7NxsMWMw7SgrE9MJQ3eCBzC9YcSa26GG9I4iCLE=
 github.com/Potterli20/sqlite v0.0.0-20261111033044-f91900e93c59/go.mod h1:BfwWS5mM+w+Q0sun1PECtMnZwGCx85+dZ1PsAAgkF6I=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
@@ -81,8 +81,8 @@ github.com/xtaci/smux v1.5.60-0.20261109145017-15cda25564a2 h1:ECQfJOIMPkWOuwXvj
 github.com/xtaci/smux v1.5.60-0.20261109145017-15cda25564a2/go.mod h1:4a0pmNZcNJczCxNBibsxemErdgh0os4H4R1Eic2a0tA=
 github.com/xtls/reality v0.0.0-20261108101329-4bb46b2afd8b h1:fAn11r21QiUY2oAGwENWb5ummjhWwMcs2WzkbjDMh+k=
 github.com/xtls/reality v0.0.0-20261108101329-4bb46b2afd8b/go.mod h1:ptlSkJ8k/7IDauNH0SA96JPOo+nYGLTv2Y3UMpwvAsY=
-github.com/xtls/xray-core v1.260327.1-0.20261110221321-c43ee98ec7c5 h1:FeKqs0HWMHRc5yxBYEifxyide7BueMcV7SagAAQWEQk=
-github.com/xtls/xray-core v1.260327.1-0.20261110221321-c43ee98ec7c5/go.mod h1:qOpfp0I7DlfhmEHyiv0OV+6jbalzb41EFGegv0UfzBE=
+github.com/xtls/xray-core v1.260327.1-0.20261111134232-c45614181535 h1:7CCgLI8vN4fswDLgp2XD3gi8HioIANUEd+gVs+6UNm0=
+github.com/xtls/xray-core v1.260327.1-0.20261111134232-c45614181535/go.mod h1:LfoDNJ8dMPeSXRVxoW7oRod+ZG0h4F1vxIY2N2spT18=
 github.com/yuin/gopher-lua v0.0.0-20190206043414-8bfc7677f583/go.mod h1:gqRgreBUhTSL0GeU64rtZ3Uq3wtjOa/TB2YfrtkCbVQ=
 github.com/yuin/gopher-lua v1.1.2 h1:yF/FjE3hD65tBbt0VXLE13HWS9h34fdzJmrWRXwobGA=
 github.com/yuin/gopher-lua v1.1.2/go.mod h1:7aRmXIWl37SqRf0koeyylBEzJ+aPt8A+mmkQ4f1ntR8=
