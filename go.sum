@@ -4,10 +4,10 @@ github.com/HyNetworks/quic-go v0.65.1-0.20261109005002-2895f039137a h1:WwuyYbM83
 github.com/HyNetworks/quic-go v0.65.1-0.20261109005002-2895f039137a/go.mod h1:J7UZVOMF2M1LiE3iiUZWPuy8YCPAcLJOwVURrfJCvc0=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261110052739-7567f27595bc h1:+ie4ObY9jCFVmbQdclqeCI+IgXf7ms42SAMGJBMZfBY=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261110052739-7567f27595bc/go.mod h1:GFMbvCc+Mk5ulhaZxC7ZnkNE0HuCTXvBn/tOC0eTsW0=
-github.com/Potterli20/socks5-fork v0.0.0-20261110193234-01c76f6d57bb h1:TtiW81QP2vTzly0H0Qtql/d/8k1pvboMFjO4zxtYhOc=
-github.com/Potterli20/socks5-fork v0.0.0-20261110193234-01c76f6d57bb/go.mod h1:qSP9Ot7uF6nik9/oBp8IxSoa6TIhCiaKvVO9Ae4bf7Q=
-github.com/Potterli20/sqlite v0.0.0-20261110210326-5af1ee7b4f0b h1:vIAK9PfQevJJ31cbNOVbYNN9Q+FegCqSZhf8Oi2AR5c=
-github.com/Potterli20/sqlite v0.0.0-20261110210326-5af1ee7b4f0b/go.mod h1:BfwWS5mM+w+Q0sun1PECtMnZwGCx85+dZ1PsAAgkF6I=
+github.com/Potterli20/socks5-fork v0.0.0-20261111010856-2adb1ed8b942 h1:c3DMqpSiUpYzSJYxqeRueRRpvax6uwcb4u5CMTTmtUs=
+github.com/Potterli20/socks5-fork v0.0.0-20261111010856-2adb1ed8b942/go.mod h1:gr+06olwd/115zGvCSMVXG2+EfBzoRJf5phRCiFfPH4=
+github.com/Potterli20/sqlite v0.0.0-20261111033044-f91900e93c59 h1:AnBC7NxsMWMw7SgrE9MJQ3eCBzC9YcSa26GG9I4iCLE=
+github.com/Potterli20/sqlite v0.0.0-20261111033044-f91900e93c59/go.mod h1:BfwWS5mM+w+Q0sun1PECtMnZwGCx85+dZ1PsAAgkF6I=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
@@ -100,8 +100,8 @@ golang.org/x/crypto/x509roots/fallback v0.0.0-20261020153306-9f2b28d4331a h1:V5o
 golang.org/x/crypto/x509roots/fallback v0.0.0-20261020153306-9f2b28d4331a/go.mod h1:HPze8vhfG6fO06AM+VSvxRm4E3+5Yk375mgrJ5M2z1E=
 golang.org/x/exp v0.0.0-20260820142414-ca536658362e h1:01Ju2A/fZKkci4zqx0eZxw//DnRYOnBiGJG14hFBhO8=
 golang.org/x/exp v0.0.0-20260820142414-ca536658362e/go.mod h1:zeBbvyFKDaLwa7CH/zI8KXt7gTl14SF7sO08Pl5jBCM=
-golang.org/x/mod v0.42.0 h1:ICeL3t2L30ljSPHHxDnR4fqVcBt/zR2zJAb9juavmQg=
-golang.org/x/mod v0.42.0/go.mod h1:u5fzIrRInkL8MaO1cbRkUHT64v303YIT5KEqpNr7jRs=
+golang.org/x/mod v0.43.0 h1:MFuq5J6s35W9D3IjkwyWc9vHh0nENOrt5K8Iof4ofmg=
+golang.org/x/mod v0.43.0/go.mod h1:4ec1JnuyBz5+FIVhg86UsA39YG8BpnrZdJYSNHmGzHY=
 golang.org/x/net v0.62.0 h1:18ELalfM5+XNRwzM2nYqXsZQ9ByS1uhj2O/U7+5jqRY=
 golang.org/x/net v0.62.0/go.mod h1:WgDCOTH8iwtB66T4/GfI94AHo/hhdb7Hah9NDseQfiI=
 golang.org/x/sync v0.25.0 h1:dJnifr0nMV8/SBnBvdo4eSGGnrc3O4FFx6IqvtLcmRs=
