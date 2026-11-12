@@ -5,7 +5,7 @@ go 1.27.3
 tool golang.org/x/tools/cmd/stringer
 
 require (
-	github.com/Potterli20/go-shadowsocks2 v0.0.0-20261110052739-7567f27595bc
+	github.com/Potterli20/go-shadowsocks2 v0.0.0-20261111214013-61b13fba24a7
 	github.com/Potterli20/socks5-fork v0.0.0-20261111103555-b4e769af2ef3
 	github.com/Potterli20/sqlite v0.0.0-20261111033044-f91900e93c59
 	github.com/apernet/quic-go v0.65.1-0.20261109005002-2895f039137a
@@ -17,7 +17,7 @@ require (
 	github.com/stretchr/testify v1.12.1
 	github.com/xtaci/smux v1.5.60-0.20261109145017-15cda25564a2
 	github.com/xtls/xray-core v1.260327.1-0.20261111134232-c45614181535
-	golang.org/x/crypto v0.58.0
+	golang.org/x/crypto v0.59.0
 	golang.org/x/net v0.62.0
 	golang.org/x/sys v0.50.0
 	golang.org/x/term v0.48.0
@@ -33,7 +33,7 @@ require (
 	github.com/database64128/netx-go v0.1.1 // indirect
 	github.com/dustin/go-humanize v1.1.0 // indirect
 	github.com/google/uuid v1.6.1-0.20241114170450-2d3c2a9cc518 // indirect
-	github.com/gopherjs/gopherjs v1.21.1-0.20260727145006-490705b1d6fc // indirect
+	github.com/gopherjs/gopherjs v1.21.1-0.20261111155434-b19386356fa9 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
