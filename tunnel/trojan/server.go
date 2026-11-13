@@ -42,6 +42,49 @@ type authInstance struct {
 	ctx    context.Context // statistic.createdAuth 的键，释放时用于移除
 	cancel context.CancelFunc
 	refcnt int
+	// key 是这个实例对应的配置指纹；只能与同指纹的 Server 共享。
+	key string
+}
+
+// authConfigKey 是认证器的配置指纹。认证器的实际输入分散在多个模块的配置段里
+// （memory 的密码列表/sqlite 路径、mysql 的连接参数与轮询间隔），trojan 自己的
+// Config 只决定走哪个后端。按指纹分槽后，custom 模式下配置不同的节点不再
+// 共用第一个节点的认证器（旧实现只看 Auth 是否非 nil，第二个节点的密码列表
+// 会被静默吞掉）。只把真正被 memory/mysql 认证器读取的字段放进指纹。
+func authConfigKey(ctx context.Context, cfg *Config) string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "mysql=%v", cfg.MySQL.Enabled)
+	if c, ok := config.FromContext(ctx, memory.Name).(*memory.Config); ok {
+		fmt.Fprintf(&b, "|pw=%q|sqlite=%q|maxip=%d", c.Passwords, c.Sqlite, c.MaxIPPerUser)
+	}
+	if c, ok := config.FromContext(ctx, mysql.Name).(*mysql.Config); ok {
+		m := c.MySQL
+		fmt.Fprintf(&b, "|db=%v,%s,%d,%s,%s,%s,%s,%s,%s,%d",
+			m.Enabled, m.ServerHost, m.ServerPort, m.Database, m.Username,
+			m.Password, m.Key, m.Cert, m.CA, m.CheckRate)
+	}
+	return b.String()
+}
+
+// createAuthInstance 按配置新建一个认证器实例（不登记到任何槽位）。
+func createAuthInstance(ctx context.Context, cfg *Config) (*authInstance, error) {
+	// 认证器的 ctx 不能寄生在首个 Server 的 ctx 上：那个 ctx 一旦被取消，
+	// 共享认证器的后台协程（流量汇总、MySQL 轮询）会先于其他使用者退出。
+	authCtx, cancel := context.WithCancel(context.WithoutCancel(ctx))
+	var auth statistic.Authenticator
+	var err error
+	if cfg.MySQL.Enabled {
+		log.Debug("mysql enabled")
+		auth, err = statistic.NewAuthenticator(authCtx, mysql.Name)
+	} else {
+		log.Debug("auth by config file")
+		auth, err = statistic.NewAuthenticator(authCtx, memory.Name)
+	}
+	if err != nil {
+		cancel()
+		return nil, common.NewError("failed to create authenticator").Base(err)
+	}
+	return &authInstance{auth: auth, ctx: authCtx, cancel: cancel, refcnt: 1}, nil
 }
 
 // acquireAuth 取（或按需重建）包级共享认证器。失败时把**原始原因**返回给调用方：
@@ -50,30 +93,25 @@ type authInstance struct {
 // （实测配置文件写空密码时，最后两行日志只剩 "trojan failed to create authenticator"，
 // 真正那句 "password #1 is empty..." 只在中间一行 ERROR 里）。
 func acquireAuth(ctx context.Context, cfg *Config) (*authInstance, error) {
+	key := authConfigKey(ctx, cfg)
 	authMu.Lock()
 	defer authMu.Unlock()
-	if Auth == nil || current == nil || current.auth != Auth {
-		// 认证器的 ctx 不能寄生在首个 Server 的 ctx 上：那个 ctx 一旦被取消，
-		// 共享认证器的后台协程（流量汇总、MySQL 轮询）会先于其他使用者退出。
-		authCtx, cancel := context.WithCancel(context.WithoutCancel(ctx))
-		var auth statistic.Authenticator
-		var err error
-		if cfg.MySQL.Enabled {
-			log.Debug("mysql enabled")
-			auth, err = statistic.NewAuthenticator(authCtx, mysql.Name)
-		} else {
-			log.Debug("auth by config file")
-			auth, err = statistic.NewAuthenticator(authCtx, memory.Name)
-		}
-		if err != nil {
-			cancel()
-			return nil, common.NewError("failed to create authenticator").Base(err)
-		}
-		Auth = auth
-		current = &authInstance{auth: auth, ctx: authCtx, cancel: cancel}
+	if Auth != nil && current != nil && current.auth == Auth && current.key == key {
+		current.refcnt++
+		return current, nil
 	}
-	current.refcnt++
-	return current, nil
+	inst, err := createAuthInstance(ctx, cfg)
+	if err != nil {
+		return nil, err
+	}
+	inst.key = key
+	if Auth == nil || current == nil || current.auth != Auth {
+		// 首个配置（或测试把 Auth 置 nil 强制重建）占槽位：Auth 的对外语义
+		// 仍是"首个配置的实例"。其它配置的实例不占槽位，由各自的 Server 释放。
+		Auth = inst.auth
+		current = inst
+	}
+	return inst, nil
 }
 
 // releaseAuth 归还一次引用；只有最后一个使用者会真正关闭认证器。
