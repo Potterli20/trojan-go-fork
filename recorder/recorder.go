@@ -144,12 +144,19 @@ func Unsubscribe(uid string) {
 	}
 }
 
-func broadcast(record Record) {
-	// 守护 send：Unsubscribe 与 broadcast 并发时，send 到已关闭 channel 会 panic，
-	// select+default 无法避免 closed-channel panic。这里用 recover 兜底，
-	// 让 send 到已关闭 channel 被静默丢弃（这正是我们想要的行为），不阻断进程。
+// safeSendRecord 把一次投递限制在自己的 recover 里：Unsubscribe 与 broadcast 并发时，
+// send 到已关闭 channel 会 panic，select+default 挡不住。守护粒度若放在 broadcast 上，
+// 一个坏订阅者会把 panic 冒到 Range 之外，同轮其余订阅者一起挨饿；放在这里，受影响的
+// 只有这一条投递。
+func safeSendRecord(ch chan Record, record Record) {
 	defer func() { _ = recover() }()
+	select {
+	case ch <- record:
+	default:
+	}
+}
 
+func broadcast(record Record) {
 	payload := record.Payload
 
 	subscribers.Range(func(uid, o any) bool {
@@ -168,10 +175,7 @@ func broadcast(record Record) {
 			record.Payload = nil
 		}
 
-		select {
-		case opt.recordChan <- record:
-		default:
-		}
+		safeSendRecord(opt.recordChan, record)
 		return true
 	})
 }
