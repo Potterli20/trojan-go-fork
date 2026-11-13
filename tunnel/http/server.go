@@ -275,7 +275,9 @@ func (s *Server) acceptLoop() {
 					// 请求体由泵独占并负责回收（主 goroutine 不再碰 req.Body，避免与
 					// req.Write 并发访问同一个 body）。
 					reqToWrite := req
+					pumpDone := make(chan struct{})
 					go func() {
+						defer close(pumpDone)
 						writeErr := reqToWrite.Write(reqWriter)
 						reqToWrite.Body.Close() //gosec:disable -- 请求体由泵独占并负责回收
 						if writeErr != nil {
@@ -302,8 +304,15 @@ func (s *Server) acceptLoop() {
 					newConn.Close()   //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 					resp.Body.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 
-					// keep-alive:等待下一个请求同样限时，读完即解除
+					// 先武装读截止：泵若还堵在请求体读上，这个截止同样作用于它（同一 conn），
+					// 保证下面的等待有界；再等泵退出，否则它与下一轮 ReadRequest 并发读写同一个
+					// reqBufReader（-race 可报，bufio 撕裂态可越界 panic 且本协程无 recover）。
 					conn.SetReadDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+					select {
+					case <-pumpDone:
+					case <-s.ctx.Done():
+						return // 裸连接由 closeRawConn 的 watcher 收，泵随 conn 关闭报错退出
+					}
 					boundedReader.Limit(maxRequestHeadBytes)
 					req, err = http.ReadRequest(reqBufReader)
 					boundedReader.Unlimited()
