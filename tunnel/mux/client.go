@@ -32,6 +32,9 @@ type smuxClientInfo struct {
 	client         *smux.Session
 	lastActiveTime atomic.Int64
 	underlayConn   tunnel.Conn
+	// pendingStreams 是"已选中、尚未 OpenStream"的流位预约，由 clientPoolLock 保护。
+	// 没有它，NumStreams() 在选路与开流之间恒少 1，并发窗口里能突破 concurrency。
+	pendingStreams int
 }
 
 // Client is a smux client
@@ -185,6 +188,11 @@ func (c *Client) newMuxClient() (*smuxClientInfo, error) {
 	return info, nil
 }
 
+// afterMuxPick 是"已选中会话、尚未 OpenStream"这段窗口的同步点，真实实现是空函数。
+// 判据（stream_reservation_test.go）用它把第二个调用者插进窗口正中，把
+// check-then-act 钉成确定性先后。形态参照 tproxy 的 `var dialUDP`，别当冗余删掉。
+var afterMuxPick = func() {}
+
 func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 	if err := c.ctx.Err(); err != nil {
 		return nil, common.NewError("mux client is shutting down").Base(err)
@@ -225,8 +233,9 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 			log.Infof("Mux client %x is closed", id)
 			continue
 		}
-		if usable == nil && (info.client.NumStreams() < c.concurrency || c.concurrency <= 0) {
+		if usable == nil && (info.client.NumStreams()+info.pendingStreams < c.concurrency || c.concurrency <= 0) {
 			usable = info
+			info.pendingStreams++
 		}
 	}
 	c.clientPoolLock.Unlock()
@@ -238,7 +247,14 @@ func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
 	if usable != nil {
 		streamTracker := log.NewConnectionTracker("MUX", "Stream").
 			WithField("mux_id", fmt.Sprintf("%x", usable.id))
-		return createNewConn(usable, streamTracker)
+		afterMuxPick()
+		conn, err := createNewConn(usable, streamTracker)
+		// OpenStream 在锁外（可能写 SYN，不该持锁做 IO）；预约计数补上这段窗口，
+		// 成败都要归还，否则失败一次就让这个会话永久少一个可用流位。
+		c.clientPoolLock.Lock()
+		usable.pendingStreams--
+		c.clientPoolLock.Unlock()
+		return conn, err
 	}
 
 	// No available client: dial a new one (outside the lock)
