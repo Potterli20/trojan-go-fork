@@ -286,8 +286,7 @@ func (s *Server) acceptLoop() {
 						}
 					}()
 
-					respBufReader := bufio.NewReader(io.NopCloser(respReader))
-					resp, err := http.ReadResponse(respBufReader, req)
+					resp, err := readResponseBounded(respReader, req)
 					if err != nil {
 						log.Error(common.NewError("http failed to read http response").Base(err))
 						newConn.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理

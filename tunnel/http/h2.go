@@ -220,7 +220,7 @@ func (h *h2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	resp, err := http.ReadResponse(bufio.NewReader(io.NopCloser(respReader)), r)
+	resp, err := readResponseBounded(respReader, r)
 	if err != nil {
 		log.Error(common.NewError("http2 failed to read response").Base(err))
 		reqWriter.Close() // 唤醒可能还堵在推请求体上的那个 goroutine
