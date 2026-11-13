@@ -571,6 +571,55 @@ CI (`.github/workflows/`): `go.yml` is a 6-hourly dependency-maintenance job (`g
   现在存 `atomic.Int64`、0 表示取默认值，测试统一走 `setHeaderTimeoutForTest`（`t.Cleanup`
   恢复，排在 `server.Close` 之后）。新增"测试可调"的进程级阈值照这个形态写。
 
+## 第 9 轮全仓治理结论（2026-11-13）
+
+- **入站"在途登记 / ctx 唤醒"四姊妹补齐**：websocket 的 `trackPending` 提前到读升级请求之前
+  （`close_wakes_read_test.go`）；shadowsocks 照同一形态加了 pending 表
+  （`close_wakes_probe_test.go`）；socks 握手与 adapter 嗅探各加 per-conn watcher
+  （`close_wakes_handshake_test.go` / `close_wakes_sniff_test.go`）。判据同步点都是
+  "读已经开始"（Read 探针），不是墙钟；关停中的失败不再交给 redirector（只会在已关闭的
+  连接上做无意义拷贝）。
+- **http 入站两个窗口**：响应头解析统一走 `readResponseBounded`（1MB 预算 + 错误文案 256 字节
+  截断，h1/h2 唯一入口，`response_budget_test.go` 带结构门禁）；请求体泵与下一请求之间必须
+  `<-pumpDone`（`pump_serialize_test.go` 结构门禁 + `-race` 行为回归）。
+- **redirector 加会话并发闸**：`maxRedirectSessions` 默认 256，超限丢弃并 `closeDropped`
+  （队列 cap 64 只限排队）。判据 `session_bound_test.go`（变异：删 acquire → Dial=3）。
+- **freedom 转发代理那一跳补全 DialConfig**：`newDialConfig` 与直连共用，KeepAlive/NoDelay/
+  LocalAddr/fwmark 不再被零值显式关闭；UDP relay socket 也接上 `ListenConfig.Control` 与
+  本地绑定。注入点 `var dialForward = common.Dial`（`forward_dial_options_test.go`）。
+- **tls reuse_session 落地**：客户端两条路各装 ClientSessionCache（每 Client 一份、64）；
+  `SessionTicketsDisabled` 是服务端字段，客户端单靠它等于空转。客户端与服务端握手都走
+  `HandshakeContext`（`session_resume_test.go`：DidResume + 已取消 ctx 两个方向）。
+- **mux 选路锁内预约**：`pendingStreams` 补上"已选中、未 OpenStream"窗口，成败都归还
+  （`stream_reservation_test.go`，注入点 `var afterMuxPick`）。**判据夹具的坑**：
+  `sync.Once.Do` 会让第二个调用者在 Do 内阻塞，用它做"只挂起第一个"的钩子会自死锁 ⇒ 用原子计数。
+- **recorder 广播 recover 降到单次发送**（`safeSendRecord`）。行为断言脱离不了 Range 顺序，
+  判据 = 发送原语 + 广播函数体结构门禁（`broadcast_isolation_test.go`）。
+- **trojan 认证器按配置指纹分槽**：指纹 = mysql 开关 + memory(密码/sqlite/maxip) + mysql
+  连接参数；`Auth`/`current` 仍绑首个配置（对外语义不变），其它配置的实例不占槽位、由各自
+  Server 释放（`auth_per_config_test.go`）。trojan UDP 每包日志全部先过 `ShouldLog`
+  （`packet_log_gate_test.go`）。
+- **proxy 建栈期信号**：`NewProxyFromConfigData` 在 creator 之前 `signal.Notify` 到临时 channel、
+  经 ctx 交给 NewProxy；否则 geo/诱饵/MySQL 阶段收到 SIGTERM 会被默认处置硬杀
+  （`signal_cold_start_test.go`；变异版实测 "signal: terminated"）。**transport 嗅探**在
+  per-conn handler 里解析对端字节，补了 recover 边界（`sniff_panic_test.go`），
+  `var readSniffRequest` 是注入点。
+- **Go 1.27.3 特性扫尾结论（别重复评估）**：`url.Clone` / `CutLast` / `MaxHeaderValueCount` /
+  `synctest.Sleep` 四项全仓**无适用调用点**（url 无手工拷贝、无 LastIndex、无 stdlib
+  http.Server、测试计时无气泡内外混用）。已采用的 wg.Go / errors.AsType / synctest /
+  goroutineleak / 标准库 uuid / MLKEM1024 复核仍在用。
+- **优化（测量驱动，数字见提交信息）**：router `matchIP` 掩码装载期预计算（597-688µs/1575
+  allocs → 5.7-8.0µs/0 allocs）；log 脱敏加必要条件快路径（普通行 40µs→2.8µs，regexp 退出
+  真实栈 top）。
+- **websocket 握手 bufio 池化：已回退，别再尝试**。`-race` 实测：`InboundConn.Close` 返回后
+  coder 仍可能在 `Flush` 同一个 Hijack 的 writer（smux sendLoop → shadowsocks → trojan 的在途
+  Write 与 Close 并发），池复用与在途 I/O 竞争；"先关 ws 连接再归还"不够——Close 不等待外部
+  在途 Write。每握手 2×4KB 的分配保留。
+- **tproxy 回包 socket 跨会话缓存：否决**。测量显示会话内缓存已把拨号降到 O(目的地/会话)
+  （50 次会话重建 × 8 目的地 × 4 包 = 1600 包 → 400 次 DialUDP；同会话 64 包同目的地 → 1 次）；
+  跨会话缓存要引入可伪造键表 + NAT 源端口复用错误投递风险，收益只是低频重建时的个位数
+  socket 创建。数据与设计见本轮台账，**别再实现**。
+
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.

@@ -1370,3 +1370,18 @@ git pull --rebase && git push git@github.com:Potterli20/trojan-go-fork.git maste
   `safeSendRecord`、`authConfigKey`、`dialForward`、`afterMuxPick` 在各任务内定义与使用一致。
 - **已知执行风险**：websocket/tls/mux 的门禁夹具细节（白盒构造、utls 字段名、option 字段名）
   执行时以当前代码为准微调；Task 18 有用户批准闸，不绕过。
+
+## 执行记录（2026-11-13）
+
+- **Task 0/2-17/19-20 已完成**：F1-F17 逐条修复，每条先在 pristine-HEAD 变异证红（6/6），
+  再修复并回归；Go 1.27.3 四项扫尾核查后均无适用调用点（结论见 AGENTS.md 与本轮台账）。
+- **Task 1 的 6 路代理审计未能产出**：两次派单均因模型服务临时不可用失败（0 工具调用的
+  四次失败 + 两次长跑后失败），本轮未引入代理提出的新审计发现；已确认清单来自规划期
+  控制器的逐条复验（执行时又复核了一遍 file:line）。
+- **Task 18（O3）测量后否决**：会话内回包 socket 缓存已把拨号降到 O(目的地/会话)
+  （1600 包 → 400 次 DialUDP；同会话 64 包同目的地 → 1 次），跨会话缓存收益低频、
+  且引入可伪造键表与 NAT 源端口复用风险，不实现。设计与数据在仓库外台账。
+- **Task 19 优化落地**：router matchIP 预计算、log 脱敏必要条件快路径；profiling 报告在
+  仓库外台账（`round9-logs/profiling-report.md`）。websocket 握手 bufio 池化**实现后回退**：
+  `-race` 实测 coder 在连接 Close 返回后仍可能 Flush Hijack 的 writer，池复用与在途写竞争
+  （保留每握手 2×4KB 分配）。
