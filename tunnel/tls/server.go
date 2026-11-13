@@ -216,7 +216,7 @@ func (s *Server) acceptLoop() {
 				return
 			}
 			defer s.untrackPending(conn)
-			err = tlsConn.Handshake()
+			err = tlsConn.HandshakeContext(s.ctx)
 
 			if err != nil {
 				if strings.Contains(err.Error(), "first record does not look like a TLS handshake") {

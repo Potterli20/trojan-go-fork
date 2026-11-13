@@ -37,6 +37,7 @@ var fingerprintsMap = map[string]utls.ClientHelloID{
 const handshakeTimeout = 30 * time.Second
 
 type Client struct {
+	ctx            context.Context
 	verify         bool
 	sni            string
 	serverName     string
@@ -45,11 +46,15 @@ type Client struct {
 	curvePrefs     []tls.CurveID
 	utlsCurvePrefs []utls.CurveID
 	sessionTicket  bool
-	fingerprint    string
-	helloID        utls.ClientHelloID
-	keyLogger      io.WriteCloser
-	alpn           []string
-	underlay       tunnel.Client
+	// reuse_session 的客户端实现：两条 TLS 路径各有自己的缓存类型。
+	// 每 Client 一份（同一客户端的所有拨号共享）。
+	sessionCache     tls.ClientSessionCache
+	utlsSessionCache utls.ClientSessionCache
+	fingerprint      string
+	helloID          utls.ClientHelloID
+	keyLogger        io.WriteCloser
+	alpn             []string
+	underlay         tunnel.Client
 }
 
 func (c *Client) Close() error {
@@ -137,12 +142,13 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 			KeyLogWriter:           c.keyLogger,
 			CipherSuites:           c.cipher,
 			SessionTicketsDisabled: !c.sessionTicket,
+			ClientSessionCache:     c.utlsSessionCache,
 			NextProtos:             c.alpn,
 			CurvePreferences:       c.utlsCurvePrefs,
 		}, c.helloID)
 
 		conn.SetDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-		err := uconn.Handshake()
+		err := uconn.HandshakeContext(c.handshakeContext())
 		conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		if err != nil {
 			log.Error("[TLS] uTLS handshake failed:", err)
@@ -170,12 +176,13 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		KeyLogWriter:           c.keyLogger,
 		CipherSuites:           c.cipher,
 		SessionTicketsDisabled: !c.sessionTicket,
+		ClientSessionCache:     c.sessionCache,
 		NextProtos:             c.alpn,
 		CurvePreferences:       c.curvePrefs,
 	})
 
 	conn.SetDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-	err = tlsConn.Handshake()
+	err = tlsConn.HandshakeContext(c.handshakeContext())
 	conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	if err != nil {
 		log.Error("[TLS] Handshake failed:", err)
@@ -190,6 +197,15 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 	}
 
 	return &transport.Conn{Conn: tlsConn}, nil
+}
+
+// handshakeContext 返回握手要绑的 ctx。手工构造的 Client（测试）可能没有 ctx，
+// 用 Background 兜底而不是 panic。
+func (c *Client) handshakeContext() context.Context {
+	if c.ctx != nil {
+		return c.ctx
+	}
+	return context.Background()
 }
 
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
@@ -256,6 +272,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	}
 
 	client := &Client{
+		ctx:            ctx,
 		underlay:       underlay,
 		verify:         cfg.TLS.Verify,
 		sni:            cfg.TLS.SNI,
@@ -268,6 +285,12 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		helloID:        helloID,
 		keyLogger:      keyLogger,
 		alpn:           cfg.TLS.ALPN,
+	}
+	if client.sessionTicket {
+		// 每 Client 一份、容量 64：客户端侧的会话缓存是 reuse_session 唯一真正
+		// 起作用的组件（SessionTicketsDisabled 是服务端字段，客户端摆着没用）。
+		client.sessionCache = tls.NewLRUClientSessionCache(64)
+		client.utlsSessionCache = utls.NewLRUClientSessionCache(64)
 	}
 
 	if cfg.TLS.CertPath != "" {
