@@ -152,9 +152,24 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 			conn.Close() //gosec:disable -- 错误忽略：本层即将丢掉这条连接
 		}
 	}()
+	// 登记提前到解析升级请求之前：读阶段同样会被静默对端拖满 handshakeTimeout(30s)，
+	// 而这条连接早已离开下层队列，没有登记表 Close 就够不着它（accept 循环也跟着停摆）。
+	if !s.trackPending(conn) {
+		// 不在这儿手写 Close：让上面那条 panic 收尾的 defer 统一负责，
+		// 免得两处关闭以后又有人加第三条。
+		return nil, common.NewError("websocket server is closing")
+	}
+	defer s.untrackPending(conn)
+
 	// fail 是唯一认的失败出口：走这里说明连接已经交给 redirector，收尾的关闭逻辑必须让位。
 	fail := func(err error) (tunnel.Conn, error) {
 		connHandedOff = true
+		if s.ctx.Err() != nil {
+			// 关停中：连接已被 closePending 关掉，再交给 redirector 拷贝只是噪音；
+			// 交回给 connHandedOff defer 关（重复关闭无副作用）。
+			connHandedOff = false
+			return nil, err
+		}
 		return nil, s.cleanupFailedHandshake(conn, tracker, err)
 	}
 
@@ -189,13 +204,6 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 		return fail(err)
 	}
 
-	// 登记在途后才会被 Close 关掉；没有这一步，阻塞在 101 写上的 AcceptConn
-	// 只能等满 30s 时限，期间这个入站不再接纳任何新连接。
-	if !s.trackPending(conn) {
-		// 不在这儿手写 Close：让上面那条 panic 收尾的 defer 统一负责，
-		// 免得两处关闭以后又有人加第三条。
-		return nil, common.NewError("websocket server is closing")
-	}
 	connCtx, cancel := context.WithCancel(s.ctx)
 	// 握手期间的三件收尾（注销在途登记、解除握手时限、取消子 ctx）必须成对，
 	// 而且要在 panic 下也跑完。原先是三段裸顺序调用：Accept 解析的是对端可控的
@@ -211,7 +219,6 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	}()
 	var wsConn *websocket.Conn
 	err = func() error {
-		defer s.untrackPending(conn)
 		// 连接要么移交上游长期持有，要么在这之后被关掉重定向，两种都要解除握手时限；
 		// 留在原地的话，一条正常会话会在 30s 后被自己没做完的握手截止时间掐断。
 		defer conn.SetDeadline(time.Time{}) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
