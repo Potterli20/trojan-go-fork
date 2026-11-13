@@ -42,15 +42,15 @@ func TestNewClientStillAcceptsValidCIDRPrefix(t *testing.T) {
 }
 
 func TestMatchIPNeverMatchesAnOutOfRangePrefix(t *testing.T) {
-	// 装载侧拦过之后，运行期表里不该再有越界条目；matchIP 的 nil 掩码分支是结构兜底，
+	// 装载侧拦过之后，运行期表里不该再有越界条目；matchIPSlow 的 nil 掩码分支是结构兜底，
 	// 它必须"不命中且不崩"，而不是拿一个恒假的 IPNet 去比。
 	target := net.ParseIP("1.2.3.4").To4()
 	list := []*v2geodata.CIDR{{Ip: net.IPv4(1, 2, 3, 0).To4(), Prefix: 33}}
-	if matchIP(list, target) {
+	if matchIPSlow(list, target) {
 		t.Fatal("越界前缀被判成命中：掩码分支写错了")
 	}
 	// 正向对照：同一张表换成合法前缀必须命中，否则上面那条断言不构成判据。
-	if !matchIP([]*v2geodata.CIDR{{Ip: net.IPv4(1, 2, 3, 0).To4(), Prefix: 24}}, target) {
+	if !matchIPSlow([]*v2geodata.CIDR{{Ip: net.IPv4(1, 2, 3, 0).To4(), Prefix: 24}}, target) {
 		t.Fatal("/24 应当命中 1.2.3.4：对照失效")
 	}
 }

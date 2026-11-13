@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"net"
+	"net/netip"
 	"regexp"
 	"runtime"
 	"slices"
@@ -104,7 +105,10 @@ func validateCIDRPrefix(ip net.IP, prefix int) error {
 	return nil
 }
 
-func matchIP(list []*v2geodata.CIDR, target net.IP) bool {
+// matchIPSlow 是改造前的实现，逐条目现算掩码：每个 CIDR 每包一次 net.CIDRMask
+// 加一次 IP.Mask，各是一次分配。保留它只为等价判据（matchip_bench_test.go），
+// 生产路径必须走 matchIPPrefixes。
+func matchIPSlow(list []*v2geodata.CIDR, target net.IP) bool {
 	isIPv6 := true
 	len := net.IPv6len
 	if target.To4() != nil {
@@ -141,6 +145,42 @@ func matchIP(list []*v2geodata.CIDR, target net.IP) bool {
 	return false
 }
 
+// prefixFromCIDR 把 geodata 的 CIDR 条目转成 netip.Prefix，装载期一次性完成，
+// 运行期不再现算掩码。Unmap 对齐旧语义：net.IP.To4() 把 ::ffff:a.b.c.d 当 IPv4，
+// 而 netip 会把它标成 Is4In6（BitLen 128），不 Unmap 两条路径就不等价。
+func prefixFromCIDR(entry *v2geodata.CIDR) (netip.Prefix, bool) {
+	return prefixFromIP(net.IP(entry.Ip), int(entry.Prefix))
+}
+
+func prefixFromIP(ip net.IP, bits int) (netip.Prefix, bool) {
+	addr, ok := netip.AddrFromSlice(ip)
+	if !ok {
+		return netip.Prefix{}, false
+	}
+	addr = addr.Unmap()
+	if bits < 0 || bits > addr.BitLen() {
+		return netip.Prefix{}, false
+	}
+	// Masked 对齐旧实现的 cidrIP.Mask(mask)：条目带主机位时按网络地址比较。
+	return netip.PrefixFrom(addr, bits).Masked(), true
+}
+
+// matchIPPrefixes 是生产路径：每包零分配（netip 是值类型），不再为每个条目
+// 现算掩码与掩码后的网络地址。
+func matchIPPrefixes(list []netip.Prefix, target net.IP) bool {
+	addr, ok := netip.AddrFromSlice(target)
+	if !ok {
+		return false
+	}
+	addr = addr.Unmap()
+	for _, prefix := range list {
+		if prefix.Contains(addr) {
+			return true
+		}
+	}
+	return false
+}
+
 func newIPAddress(address *tunnel.Address) (*tunnel.Address, error) {
 	ip, err := address.ResolveIP()
 	if err != nil {
@@ -160,7 +200,7 @@ func newIPAddress(address *tunnel.Address) (*tunnel.Address, error) {
 
 type Client struct {
 	domains        [3][]*v2geodata.Domain
-	cidrs          [3][]*v2geodata.CIDR
+	cidrPrefixes   [3][]netip.Prefix
 	regexCache     map[string]*regexp.Regexp
 	defaultPolicy  int
 	domainStrategy int
@@ -176,7 +216,7 @@ func (c *Client) Route(address *tunnel.Address) int {
 			resolvedIP, err := newIPAddress(address)
 			if err == nil {
 				for i := Block; i <= Proxy; i++ {
-					if matchIP(c.cidrs[i], resolvedIP.IP) {
+					if matchIPPrefixes(c.cidrPrefixes[i], resolvedIP.IP) {
 						return i
 					}
 				}
@@ -191,7 +231,7 @@ func (c *Client) Route(address *tunnel.Address) int {
 			resolvedIP, err := newIPAddress(address)
 			if err == nil {
 				for i := Block; i <= Proxy; i++ {
-					if matchIP(c.cidrs[i], resolvedIP.IP) {
+					if matchIPPrefixes(c.cidrPrefixes[i], resolvedIP.IP) {
 						return i
 					}
 				}
@@ -199,7 +239,7 @@ func (c *Client) Route(address *tunnel.Address) int {
 		}
 	} else {
 		for i := Block; i <= Proxy; i++ {
-			if matchIP(c.cidrs[i], address.IP) {
+			if matchIPPrefixes(c.cidrPrefixes[i], address.IP) {
 				return i
 			}
 		}
@@ -354,7 +394,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 
 	client := &Client{
 		domains:    [3][]*v2geodata.Domain{},
-		cidrs:      [3][]*v2geodata.CIDR{},
+		cidrPrefixes: [3][]netip.Prefix{},
 		regexCache: make(map[string]*regexp.Regexp),
 		underlay:   underlay,
 		direct:     direct,
@@ -395,22 +435,27 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 			log.Error(err)
 		} else {
 			// .dat 里的 Prefix 由用户提供的文件决定，同样没人保证落在合法位数区间。
-			// 越界条目在这里就剔掉并计数——混进表里只会在 matchIP 那条 nil 掩码分支上
+			// 越界条目在这里就剔掉并计数——混进表里只会在下面 matchIPPrefixes 里
 			// 静默失效，而静默失效的规则比报错危险得多（block 规则失效等于放行）。
-			kept := cidrs[:0]
+			prefixes := make([]netip.Prefix, 0, len(cidrs))
 			var dropped int
 			for _, entry := range cidrs {
 				if err := validateCIDRPrefix(net.IP(entry.Ip), int(entry.Prefix)); err != nil {
 					dropped++
 					continue
 				}
-				kept = append(kept, entry)
+				prefix, ok := prefixFromCIDR(entry)
+				if !ok {
+					dropped++
+					continue
+				}
+				prefixes = append(prefixes, prefix)
 			}
 			if dropped > 0 {
 				log.Errorf("geoip:%s 里有 %d 条 CIDR 前缀位数越界，已跳过（这些规则不会生效）", code, dropped)
 			}
 			log.Infof("geoip:%s loaded", code)
-			client.cidrs[c.strategy] = append(client.cidrs[c.strategy], kept...)
+			client.cidrPrefixes[c.strategy] = append(client.cidrPrefixes[c.strategy], prefixes...)
 		}
 	}
 
@@ -520,19 +565,20 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		if ip == nil {
 			return nil, common.NewError("invalid cidr ip: " + info.code)
 		}
-		prefix, err := strconv.ParseInt(prefixStr, 10, 32)
+		prefixBits, err := strconv.ParseInt(prefixStr, 10, 32)
 		if err != nil {
 			return nil, common.NewError("invalid prefix").Base(err)
 		}
 		// ParseInt 的位宽限制在 int32，跟 CIDR 的合法位数区间不是一回事：
 		// /33、/129、负数都能过，然后 net.CIDRMask 返回 nil，规则静默失效。
-		if err := validateCIDRPrefix(ip, int(prefix)); err != nil {
+		if err := validateCIDRPrefix(ip, int(prefixBits)); err != nil {
 			return nil, common.NewError("invalid cidr: " + info.code).Base(err)
 		}
-		client.cidrs[info.strategy] = append(client.cidrs[info.strategy], &v2geodata.CIDR{
-			Ip:     ip,
-			Prefix: uint32(prefix), //gosec:disable -- 已由 validateCIDRPrefix 限定在该地址族的位数区间内
-		})
+		prefix, ok := prefixFromIP(ip, int(prefixBits))
+		if !ok {
+			return nil, common.NewError("invalid cidr: " + info.code)
+		}
+		client.cidrPrefixes[info.strategy] = append(client.cidrPrefixes[info.strategy], prefix)
 	}
 
 	// 启动阶段预编译所有 regex 域名规则并填入 regexCache,使运行期对 map 的访问
