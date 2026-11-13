@@ -52,10 +52,6 @@ type InboundConn struct {
 	OutboundConn
 	cancel  context.CancelFunc // 取消后阻塞在 Read 上的 relay goroutine 被唤醒
 	tracker *log.ConnectionTracker
-	// releaseHandshakeBufs 把手握期的 bufio 读写缓冲归还到池。存活期是整条会话
-	// （coder 继续用 Hijack 拿到的 ReadWriter 读帧），所以归还点在这里；
-	// sync.OnceFunc 保证重复 Close 只归还一次。
-	releaseHandshakeBufs func()
 	// 只给关停那行 Destroy 用。原先 Destroy 写死 0,0，日志恒为"零流量"，
 	// 与 mux/quic 同型问题；这里自己数一遍，不去改 OutboundConn（它无 tracker）。
 	sent atomic.Int64
@@ -80,14 +76,8 @@ func (c *InboundConn) Write(p []byte) (int, error) {
 
 func (c *InboundConn) Close() error {
 	c.cancel()
-	// 必须先关 websocket 连接再归还缓冲：coder 的 Close 会写 close 帧并 flush，
-	// 用的正是 Hijack 拿到的那对 ReadWriter；先归还（Reset(nil)）会让它当场空指针。
-	err := c.OutboundConn.Close()
-	if c.releaseHandshakeBufs != nil {
-		c.releaseHandshakeBufs()
-	}
 	if c.tracker != nil {
 		c.tracker.Destroy("closed", uint64(c.sent.Load()), uint64(c.recv.Load()))
 	}
-	return err
+	return c.OutboundConn.Close()
 }
