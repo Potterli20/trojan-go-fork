@@ -4,8 +4,8 @@ github.com/HyNetworks/quic-go v0.65.1-0.20261109005002-2895f039137a h1:WwuyYbM83
 github.com/HyNetworks/quic-go v0.65.1-0.20261109005002-2895f039137a/go.mod h1:J7UZVOMF2M1LiE3iiUZWPuy8YCPAcLJOwVURrfJCvc0=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261112050753-438a07ee66be h1:3lC5sF/TZbkqAHP+c13GwncbNAngBnx98aI/5QM9oQM=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261112050753-438a07ee66be/go.mod h1:Ov2MUFG2ktTwjH62s4KpFJawuIphdFpGLYuxPVC0sbg=
-github.com/Potterli20/socks5-fork v0.0.0-20261112194504-abf9fb200297 h1:PpvBzT0virDLCzgjnTAtVuAf5sKwxytVpqf1DE+jk7A=
-github.com/Potterli20/socks5-fork v0.0.0-20261112194504-abf9fb200297/go.mod h1:j9g/d2vBNaOXJ4giORb1PSG5ZX6xw8LTWrl0aFmDPKQ=
+github.com/Potterli20/socks5-fork v0.0.0-20261113014403-f31289c5b442 h1:p+qXpxsemqXYWYNhTlinddGNNtGr0rO9tXPOaG++DuQ=
+github.com/Potterli20/socks5-fork v0.0.0-20261113014403-f31289c5b442/go.mod h1:a/xY+j+iZb0GjfyxfyEZG1bBZVPxUocPaDGrDNjmDIo=
 github.com/Potterli20/sqlite v0.0.0-20261111033044-f91900e93c59 h1:AnBC7NxsMWMw7SgrE9MJQ3eCBzC9YcSa26GG9I4iCLE=
 github.com/Potterli20/sqlite v0.0.0-20261111033044-f91900e93c59/go.mod h1:BfwWS5mM+w+Q0sun1PECtMnZwGCx85+dZ1PsAAgkF6I=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
@@ -77,8 +77,8 @@ github.com/stretchr/testify v1.12.1 h1:EuwCh5fleGS7H32xRwO3wRGT7DxrDhLAT6FF8MpWD
 github.com/stretchr/testify v1.12.1/go.mod h1:MDEgiDPPsNp5cuIrHPPCyornHKgEVbtFUmoNlxoYthg=
 github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae h1:ArVM1jICfm7g4E4dBet+KHUFMLuxmj1Nxdp/tr3ByCU=
 github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
-github.com/xtaci/smux v1.5.60-0.20261112044246-3e792e5d44a6 h1:UOOwqZZ2e6+Sf4CvHCtLHKv76b4M2JxLO2Q3um438NU=
-github.com/xtaci/smux v1.5.60-0.20261112044246-3e792e5d44a6/go.mod h1:4a0pmNZcNJczCxNBibsxemErdgh0os4H4R1Eic2a0tA=
+github.com/xtaci/smux v1.5.60 h1:LxugALMdZQXOlWFyn3pgs8KS88VwtNgYD6GF1b2Ja7A=
+github.com/xtaci/smux v1.5.60/go.mod h1:4a0pmNZcNJczCxNBibsxemErdgh0os4H4R1Eic2a0tA=
 github.com/xtls/reality v0.0.0-20261108101329-4bb46b2afd8b h1:fAn11r21QiUY2oAGwENWb5ummjhWwMcs2WzkbjDMh+k=
 github.com/xtls/reality v0.0.0-20261108101329-4bb46b2afd8b/go.mod h1:ptlSkJ8k/7IDauNH0SA96JPOo+nYGLTv2Y3UMpwvAsY=
 github.com/xtls/xray-core v1.260327.1-0.20261111134232-c45614181535 h1:7CCgLI8vN4fswDLgp2XD3gi8HioIANUEd+gVs+6UNm0=
