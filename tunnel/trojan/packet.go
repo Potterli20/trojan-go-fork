@@ -91,7 +91,9 @@ func (c *PacketConn) WriteWithMetadata(payload []byte, metadata *tunnel.Metadata
 
 	_, err = c.Conn.Write(frame)
 
-	log.Debug("udp packet remote", c.RemoteAddr(), "metadata", metadata, "size", length)
+	if log.ShouldLog(log.DebugLevel) {
+		log.Debug("udp packet remote", c.RemoteAddr(), "metadata", metadata, "size", length)
+	}
 	c.Record(metadata, payload)
 	return len(payload), err
 }
@@ -137,7 +139,9 @@ func (c *PacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadata, er
 		return 0, nil, common.NewError("failed to read payload")
 	}
 
-	log.Debug("udp packet from", c.RemoteAddr(), "metadata", addr.String(), "size", length)
+	if log.ShouldLog(log.DebugLevel) {
+		log.Debug("udp packet from", c.RemoteAddr(), "metadata", addr.String(), "size", length)
+	}
 	c.Record(addr, payload[:length])
 	return length, &tunnel.Metadata{
 		Address: addr,
@@ -163,6 +167,8 @@ func (c *PacketConn) Record(addr net.Addr, payload []byte) {
 	if userHash == "" {
 		return
 	}
-	log.Debug("user", userHash, "from", c.RemoteAddr(), "tunneling UDP to", addr)
+	if log.ShouldLog(log.DebugLevel) {
+		log.Debug("user", userHash, "from", c.RemoteAddr(), "tunneling UDP to", addr)
+	}
 	recorder.Add(userHash, c.RemoteAddr(), addr, "UDP", payload)
 }
