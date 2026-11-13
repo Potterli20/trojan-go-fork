@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/coder/websocket"
@@ -24,6 +25,76 @@ import (
 // handshakeTimeout 限定整个 WebSocket 握手窗口的时限：既包括等对端把升级请求
 // 发完，也包括把 101 响应写出去。两个方向都可能被对端拖着不动，缺一不可。
 const handshakeTimeout = 30 * time.Second
+
+// handshakeBufSize 与 bufio 默认缓冲一致（4KB）。握手期间的读写缓冲每连接
+// 各分配一块，握手成功后它们会跟随整个会话（coder 通过 Hijack 拿走 ReadWriter
+// 读帧），所以归还点不是握手结束，而是 InboundConn.Close。
+const handshakeBufSize = 4096
+
+var (
+	handshakeReaderPool sync.Pool
+	handshakeWriterPool sync.Pool
+	// borrowedHandshakeBufs 是池账目判据的观测点：Get 加一、Put 减一；负值即双归还。
+	borrowedHandshakeBufs atomic.Int64
+)
+
+func getHandshakeReader(r io.Reader) *bufio.Reader {
+	br, _ := handshakeReaderPool.Get().(*bufio.Reader)
+	if br == nil {
+		br = bufio.NewReaderSize(r, handshakeBufSize)
+	} else {
+		br.Reset(r)
+	}
+	borrowedHandshakeBufs.Add(1)
+	return br
+}
+
+func putHandshakeReader(br *bufio.Reader) {
+	borrowedHandshakeBufs.Add(-1)
+	// 尺寸不符（理论上不会发生）交给 GC，不顶高池水位，口径同 proxy.boundedBufPool
+	if br.Size() != handshakeBufSize {
+		return
+	}
+	br.Reset(nil)
+	handshakeReaderPool.Put(br)
+}
+
+func getHandshakeWriter(w io.Writer) *bufio.Writer {
+	bw, _ := handshakeWriterPool.Get().(*bufio.Writer)
+	if bw == nil {
+		bw = bufio.NewWriterSize(w, handshakeBufSize)
+	} else {
+		bw.Reset(w)
+	}
+	borrowedHandshakeBufs.Add(1)
+	return bw
+}
+
+func putHandshakeWriter(bw *bufio.Writer) {
+	borrowedHandshakeBufs.Add(-1)
+	if bw.Size() != handshakeBufSize {
+		return
+	}
+	bw.Reset(nil)
+	handshakeWriterPool.Put(bw)
+}
+
+// drainHandshakeBufferPools 排空池里的空闲对象。池没有 New，Get 到 nil 即空；
+// 不关任何 channel——关停超时留下的在途握手仍可能 Put。
+func drainHandshakeBufferPools() {
+	for {
+		br, _ := handshakeReaderPool.Get().(*bufio.Reader)
+		if br == nil {
+			break
+		}
+	}
+	for {
+		bw, _ := handshakeWriterPool.Get().(*bufio.Writer)
+		if bw == nil {
+			break
+		}
+	}
+}
 
 type Server struct {
 	underlay  tunnel.Server
@@ -87,6 +158,9 @@ func (s *Server) Close() error {
 	// 队列里（容量 64）和在中继中的会话都攥着未认证对端的活连接，最长要等满
 	// redirectionIdleTimeout 才松开。
 	s.redir.Close() //gosec:disable -- Redirector.Close 恒返回 nil；关停路径尽力回收
+	// 池是包级的：这里只排掉空闲对象（在途握手退出时会自行 Put），库化调用方
+	// 反复建栈/热重载时这部分才不驻留。
+	drainHandshakeBufferPools()
 	return err
 }
 
@@ -182,7 +256,23 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	// 解析一结束就交还，不影响后续数据流。
 	bounded := common.NewBoundedReader(conn)
 	bounded.Limit(common.MaxSniffRequestBytes)
-	rw := bufio.NewReadWriter(bufio.NewReader(bounded), bufio.NewWriter(conn))
+	hsReader := getHandshakeReader(bounded)
+	hsWriter := getHandshakeWriter(conn)
+	rw := bufio.NewReadWriter(hsReader, hsWriter)
+	// 缓冲的归还责任跟随会话：成功后由 InboundConn.Close 归还（coder 会继续用
+	// 这个 ReadWriter 读帧，存活期是整个会话）；失败/panic 在 AcceptConn 返回时
+	// 归还。sync.OnceFunc 保证重复 Close 不会双归还——那会比漏还严重，两个会话
+	// 共享同一块底层数组互相串数据。
+	releaseHandshakeBufs := sync.OnceFunc(func() {
+		putHandshakeReader(hsReader)
+		putHandshakeWriter(hsWriter)
+	})
+	buffersHandedOff := false
+	defer func() {
+		if !buffersHandedOff {
+			releaseHandshakeBufs()
+		}
+	}()
 	// 握手窗口内双向限时。原先只设了读时限，读完请求就把写方向裸交出去：
 	// 对端把升级请求发完之后不再读取任何一个字节（TCP 零窗口）时，下面
 	// websocket.Accept 里写 101 响应的 Flush 会永久阻塞。AcceptConn 是被入站的
@@ -241,12 +331,14 @@ func (s *Server) AcceptConn(tunnel.Tunnel) (tunnel.Conn, error) {
 	log.Debugf("[WebSocket] [conn=%s] Handshake completed, remote=%s", tracker.ConnID(), remoteAddr)
 	handedOff = true
 	connHandedOff = true
+	buffersHandedOff = true
 	return &InboundConn{
-		Conn:    stream,
-		tcpConn: conn,
-		request: req,
-		cancel:  cancel,
-		tracker: tracker,
+		Conn:                 stream,
+		tcpConn:              conn,
+		request:              req,
+		cancel:               cancel,
+		tracker:              tracker,
+		releaseHandshakeBufs: releaseHandshakeBufs,
 	}, nil
 }
 
