@@ -3,6 +3,7 @@ package transport
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -110,6 +111,25 @@ func (s *Server) acceptLoop() {
 	}
 }
 
+// readSniffRequest 是嗅探阶段 http.ReadRequest 的注入点。它解析的是未认证对端可控
+// 的字节，判据（sniff_panic_test.go）要能在这步制造 panic 来验证下面的边界；
+// 形态参照 websocket 的 readUpgradeRequest，别当冗余删掉。
+var readSniffRequest = func(r *bufio.Reader) (*http.Request, error) {
+	return http.ReadRequest(r)
+}
+
+// sniffHTTPRequest 给嗅探解析加 panic 边界：这里是 per-conn handler 的独立
+// goroutine，没有父层 accept 循环的 tunnel.AcceptConnGuarded 兜底，一次 panic
+// 就会带走整个进程（transport 是栈底的 leaf，外面再没有收容层）。
+func sniffHTTPRequest(r *bufio.Reader) (req *http.Request, err error) {
+	defer func() {
+		if p := recover(); p != nil {
+			err = common.NewError(fmt.Sprintf("panic while parsing a peer-controlled http request: %v", p))
+		}
+	}()
+	return readSniffRequest(r)
+}
+
 func (s *Server) handleConnection(tcpConn net.Conn) {
 	log.Debug("tcp connection from", tcpConn.RemoteAddr())
 	s.httpLock.RLock()
@@ -127,7 +147,7 @@ func (s *Server) handleConnection(tcpConn net.Conn) {
 		// 只用请求头就把单连接内存推到数百 MB。这里读走的字节仍会被 rewindConn
 		// 记录并可回放，所以截断只影响嗅探结果，不会丢正常握手的数据。
 		r := bufio.NewReader(io.LimitReader(rewindConn, common.MaxSniffRequestBytes))
-		httpReq, err := http.ReadRequest(r)
+		httpReq, err := sniffHTTPRequest(r)
 		rewindConn.Rewind()
 		rewindConn.StopBuffering()
 		// 连接即将移交下游长期使用，必须解除截止时间
