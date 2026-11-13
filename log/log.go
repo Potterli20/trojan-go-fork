@@ -270,19 +270,52 @@ func Logf(level LogLevel, format string, v ...any) {
 type sensitiveRule struct {
 	re          *regexp.Regexp
 	replacement string
+	// required 是命中该规则的必要字面量（小写）：任一出现才可能匹配。
+	// 没有它时，`(?i)` 交替规则会在**每一行**普通日志上做回溯扫描（实测
+	// 单行 40µs，tryBacktrack+SimpleFold 占 >85%），而绝大多数行一个都不含。
+	required []string
+	// runLen/runPred 描述"必须存在 runLen 个连续字符类字符"的形态（长串规则）；
+	// 零值表示无此形态。预判是匹配集合的超集，跳过不影响语义。
+	runLen  int
+	runPred func(byte) bool
+}
+
+func isLowerHex(c byte) bool {
+	return c >= '0' && c <= '9' || c >= 'a' && c <= 'f'
+}
+
+func isASCIIAlnum(c byte) bool {
+	return c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
+}
+
+// hasRun 判断 s 里是否存在至少 n 个满足 pred 的连续字节。只扫一遍，代价低于
+// 正则的位图/回溯引擎。
+func hasRun(s string, n int, pred func(byte) bool) bool {
+	run := 0
+	for i := 0; i < len(s); i++ {
+		if pred(s[i]) {
+			run++
+			if run >= n {
+				return true
+			}
+		} else {
+			run = 0
+		}
+	}
+	return false
 }
 
 // 顺序有意义：具体形态必须排在通用兜底（最后那条 32+ 位串）之前。
 // 例如 JWT 的 header 段本身就满足通用规则，若先跑通用规则，
 // payload/签名两段会留下半截可见。
 var SensitivePatterns = []sensitiveRule{
-	{regexp.MustCompile(`(?i)(password\s*[=:]\s*)["']?[^\s"']*["']?`), "${1}[REDACTED]"},
-	{regexp.MustCompile(`(?i)((?:api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token|bearer[_-]?token)\s*[=:]\s*)["']?[^\s"']*["']?`), "${1}[REDACTED]"},
-	{regexp.MustCompile(`(?i)((?:secret|token|credential|passwd)\s*[=:]\s*)["']?[^\s"']*["']?`), "${1}[REDACTED]"},
-	{regexp.MustCompile(`[a-f0-9]{40,}`), "[REDACTED]"},
+	{regexp.MustCompile(`(?i)(password\s*[=:]\s*)["']?[^\s"']*["']?`), "${1}[REDACTED]", []string{"password"}, 0, nil},
+	{regexp.MustCompile(`(?i)((?:api[_-]?key|secret[_-]?key|access[_-]?token|auth[_-]?token|bearer[_-]?token)\s*[=:]\s*)["']?[^\s"']*["']?`), "${1}[REDACTED]", []string{"key", "token"}, 0, nil},
+	{regexp.MustCompile(`(?i)((?:secret|token|credential|passwd)\s*[=:]\s*)["']?[^\s"']*["']?`), "${1}[REDACTED]", []string{"secret", "token", "credential", "passwd"}, 0, nil},
+	{regexp.MustCompile(`[a-f0-9]{40,}`), "[REDACTED]", nil, 40, isLowerHex},
 	// 一整段 JWT 连同它的三段一起吃掉（字符类里带 '.'）
-	{regexp.MustCompile(`eyJhbGciOiJ[a-zA-Z0-9_.=-]+`), "[REDACTED]"},
-	{regexp.MustCompile(`[a-zA-Z0-9]{32,}`), "[REDACTED]"},
+	{regexp.MustCompile(`eyJhbGciOiJ[a-zA-Z0-9_.=-]+`), "[REDACTED]", []string{"eyjhbggcioj"}, 0, nil},
+	{regexp.MustCompile(`[a-zA-Z0-9]{32,}`), "[REDACTED]", nil, 32, isASCIIAlnum},
 }
 
 var SensitiveKeywords = []string{
@@ -327,6 +360,24 @@ func safeMark(i int) string {
 	return string(safeMarkByte) + strconv.Itoa(i) + string(safeMarkByte)
 }
 
+// ruleMayMatch 是每条正则的"必要条件"预判：字面量规则查小写副本，长串规则扫一遍
+// 连续字符。预判为假就一定不命中（字面量集合是正则匹配集合的超集），因此可以安全
+// 跳过；普通日志行在绝大多数规则上都会在这里被短路。
+func ruleMayMatch(rule sensitiveRule, lower, out string) bool {
+	if rule.runLen > 0 {
+		return hasRun(out, rule.runLen, rule.runPred)
+	}
+	if len(rule.required) == 0 {
+		return true
+	}
+	for _, lit := range rule.required {
+		if strings.Contains(lower, lit) {
+			return true
+		}
+	}
+	return false
+}
+
 func ObfuscateSensitiveData(str string) string {
 	lowerStr := strings.ToLower(str)
 	for _, keyword := range SensitiveKeywords {
@@ -337,12 +388,19 @@ func ObfuscateSensitiveData(str string) string {
 	// 先把输入里自带的哨字节清掉，再制造哨兵：顺序反了就等于给注入留门。
 	out := strings.ReplaceAll(str, string(safeMarkByte), "")
 	var saved []string
-	out = safeContextRe.ReplaceAllStringFunc(out, func(match string) string {
-		groups := safeContextRe.FindStringSubmatch(match)
-		saved = append(saved, groups[3])
-		return groups[1] + groups[2] + safeMark(len(saved)-1)
-	})
+	// safeContextRe 只认 commit/revision/rev 三种词；无这些词的行跳过整条正则
+	// （它是带 (?i) 的交替式，实测在普通行上是脱敏链最大的一笔开销）。
+	if strings.Contains(lowerStr, "commit") || strings.Contains(lowerStr, "revision") || strings.Contains(lowerStr, "rev") {
+		out = safeContextRe.ReplaceAllStringFunc(out, func(match string) string {
+			groups := safeContextRe.FindStringSubmatch(match)
+			saved = append(saved, groups[3])
+			return groups[1] + groups[2] + safeMark(len(saved)-1)
+		})
+	}
 	for _, rule := range SensitivePatterns {
+		if !ruleMayMatch(rule, lowerStr, out) {
+			continue
+		}
 		out = rule.re.ReplaceAllString(out, rule.replacement)
 	}
 	for i, secret := range saved {
