@@ -37,6 +37,9 @@ type Proxy struct {
 	// 跨住 Run→Close 的间隙，避免清理阶段再收到信号时被默认处置直接杀进程。
 	sigChan chan os.Signal
 	sigOnce sync.Once
+	// sigPreArmed 表示 sigChan 已在建栈期（NewProxyFromConfigData）挂上 Notify：
+	// Run 里不再重复注册，Close 仍统一 signal.Stop。
+	sigPreArmed bool
 
 	// startMu + stopped 让第一批 Add 严格 happen-before Close 的 Wait。
 	// WaitGroup 允许"计数器非零时"的 Add 与 Wait 并发（runtime 用 semaphore 兜住），
@@ -145,6 +148,10 @@ func waitBounded(timeout time.Duration, sig <-chan os.Signal, what string, fn fu
 // 句柄由 Run 安装、Close 结束时才卸载，中间不留空窗：之前在 Run 返回处
 // 就 signal.Stop，紧随其后的清理阶段再收到信号会被默认处置直接杀进程。
 func (p *Proxy) watchShutdownSignal() chan os.Signal {
+	if p.sigPreArmed {
+		// 建栈期已经注册过（见 NewProxyFromConfigData），这里直接复用。
+		return p.sigChan
+	}
 	p.sigOnce.Do(func() {
 		signal.Notify(p.sigChan, shutdownSignals...)
 	})
@@ -519,14 +526,19 @@ func NewProxy(ctx context.Context, cancel context.CancelFunc, sources []tunnel.S
 	if bufSize < MaxPacketSize {
 		packetPool = newBoundedBufPool(MaxPacketSize, bufCount)
 	}
+	sigChan, preArmed := ctx.Value(earlySignalKey{}).(chan os.Signal)
+	if !preArmed {
+		sigChan = make(chan os.Signal, 1)
+	}
 	return &Proxy{
-		sources:    sources,
-		sink:       sink,
-		ctx:        ctx,
-		cancel:     cancel,
-		bufPool:    bufPool,
-		packetPool: packetPool,
-		sigChan:    make(chan os.Signal, 1),
+		sources:     sources,
+		sink:        sink,
+		ctx:         ctx,
+		cancel:      cancel,
+		bufPool:     bufPool,
+		packetPool:  packetPool,
+		sigChan:     sigChan,
+		sigPreArmed: preArmed,
 	}
 }
 
@@ -542,6 +554,9 @@ func RegisterProxyCreator(name string, creator Creator) {
 	defer mu.Unlock()
 	creators[name] = creator
 }
+
+// earlySignalKey 把建栈期就先挂上的信号通道经 ctx 交给 NewProxy。
+type earlySignalKey struct{}
 
 func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 	ctx := context.Background()
@@ -575,14 +590,26 @@ func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 		logFile = file
 		log.SetOutput(file)
 	}
+	// 建栈期可能持续数秒（geo 加载、诱饵探测、MySQL 连接）。信号处理若等到 Run 才安装，
+// 这段时间收到 SIGTERM/SIGINT 就会按默认处置直接杀进程：没有清理、也没有优雅退出。
+// 提前挂在临时 channel 上并经 ctx 交给 NewProxy，Run 一启动就会消费这个信号。
+	earlySig := make(chan os.Signal, 1)
+	signal.Notify(earlySig, shutdownSignals...)
+	ctx = context.WithValue(ctx, earlySignalKey{}, earlySig)
 	p, err := create(ctx)
 	if err != nil {
+		signal.Stop(earlySig)
 		// 这里必须走 detachLogFile 而不是裸 Close：调用方（option handler → main）
 		// 拿到这个 err 之后才刚刚要把它写出来，输出还指着文件就等于没写
 		if cerr := detachLogFile(logFile); cerr != nil {
 			log.Warn(common.NewError("failed to close log file").Base(cerr))
 		}
 		return nil, err
+	}
+	if p.sigChan != earlySig {
+		// creator 没经 ctx 传递这条 channel（外部注册的 creator 可能不遵守约定）：
+		// 立刻卸掉，避免信号被投进无人消费的缓冲区。
+		signal.Stop(earlySig)
 	}
 	p.logFile = logFile
 	return p, nil
