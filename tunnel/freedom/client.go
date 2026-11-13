@@ -75,19 +75,26 @@ func socksTimeoutSeconds() int {
 // 终点；context.AfterFunc 再让 Client.Close 能当场打断阻塞中的握手。
 type forwardDialer struct {
 	ctx context.Context
+	cfg common.DialConfig
 
 	mu       sync.Mutex
 	tunneled *handshakeConn
 }
 
+// dialForward 是 common.Dial 的注入点，判据用它捕获实际传给拨号器的 DialConfig
+// （forward_dial_options_test.go）。形态参照 tunnel/tproxy 的 `var dialUDP`，
+// 别当冗余删掉。
+var dialForward = common.Dial
+
 // Dial 是 proxy.Dialer 的实现：x/net 用它去连配置的代理，拿到的 conn 随后就是
-// SOCKS 握手与会话隧道的载体。
+// SOCKS 握手与会话隧道的载体。cfg 与直连分支同源（newDialConfig），
+// KeepAlive/NoDelay/LocalAddr/fwmark 不会在转发这一跳被零值静默关掉。
 func (d *forwardDialer) Dial(network, address string) (net.Conn, error) {
-	conn, err := common.Dial(d.ctx, common.DialConfig{
-		Network: network,
-		Address: address,
-		Timeout: forwardHandshakeTimeout,
-	})
+	cfg := d.cfg
+	cfg.Network = network
+	cfg.Address = address
+	cfg.Timeout = forwardHandshakeTimeout
+	conn, err := dialForward(d.ctx, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +156,7 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 				Password: c.password,
 			}
 		}
-		fd := &forwardDialer{ctx: c.ctx}
+		fd := &forwardDialer{ctx: c.ctx, cfg: forwardDialConfig(c)}
 		dialer, err := proxy.SOCKS5("tcp", c.proxyAddr.String(), auth, fd)
 		if err != nil {
 			return nil, common.NewError("freedom failed to init socks dialer")
@@ -166,20 +173,19 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 	return c.DialConnDirect(addr, nil)
 }
 
-// DialConnDirect 直接拨号到目标地址，绕过 forward_proxy 配置。
-// 用于 router 的 bypass 分支：即使配置了 forward_proxy，bypass 规则命中时也应直连目标。
-func (c *Client) DialConnDirect(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, error) {
+// newDialConfig 组装一份拨号选项。直连与转发代理两跳共用同一份，避免两处漂移：
+// common.Dial 在返回前会无条件执行 SetKeepAlive(cfg.KeepAlive) 与
+// SetNoDelay(cfg.NoDelay)，这两个零值不是"沿用系统默认"，而是显式关闭保活、
+// 显式打开 Nagle。
+func (c *Client) newDialConfig(network, address string) (common.DialConfig, net.IP, int) {
 	localIP, fwmark := getGlobalOutbound()
 	var localAddr net.Addr
 	if localIP != nil {
 		localAddr = &net.TCPAddr{IP: localIP}
 	}
-	log.Tracef("freedom dial-direct start: target=%s forward_proxy_enabled=%v local_ip=%v fwmark=%d tfo=%v",
-		addr.String(), c.forwardProxy, localIP, fwmark, c.fastOpen)
-	start := time.Now()
-	dialCfg := common.DialConfig{
-		Network:       "tcp",
-		Address:       addr.String(),
+	return common.DialConfig{
+		Network:       network,
+		Address:       address,
 		EnableTFO:     c.fastOpen,
 		Timeout:       30 * time.Second,
 		KeepAlive:     c.keepAlive,
@@ -189,7 +195,28 @@ func (c *Client) DialConnDirect(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.C
 		RetryInterval: 500 * time.Millisecond,
 		LocalAddr:     localAddr,
 		Control:       fwmarkControl(fwmark),
-	}
+	}, localIP, fwmark
+}
+
+// forwardDialConfig 是转发代理那一跳的拨号选项：与直连同源，但不做重试
+// （SOCKS 拨号失败直接返回给上层）；握手时限在 Dial 里替换为
+// forwardHandshakeTimeout。
+func forwardDialConfig(c *Client) common.DialConfig {
+	cfg, _, _ := c.newDialConfig("tcp", c.proxyAddr.String())
+	cfg.RetryCount = 0
+	cfg.RetryInterval = 0
+	return cfg
+}
+
+// DialConnDirect 直接拨号到目标地址，绕过 forward_proxy 配置。
+// 用于 router 的 bypass 分支：即使配置了 forward_proxy，bypass 规则命中时也应直连目标。
+func (c *Client) DialConnDirect(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, error) {
+	log.Tracef("freedom dial-direct start: target=%s forward_proxy_enabled=%v tfo=%v",
+		addr.String(), c.forwardProxy, c.fastOpen)
+	start := time.Now()
+	dialCfg, localIP, fwmark := c.newDialConfig("tcp", addr.String())
+	log.Tracef("freedom dial-direct options: local_ip=%v fwmark=%d no_delay=%v keep_alive=%v",
+		localIP, fwmark, dialCfg.NoDelay, dialCfg.KeepAlive)
 	tcpConn, err := common.Dial(c.ctx, dialCfg)
 	if err != nil {
 		log.Debugf("freedom dial-direct failed: target=%s elapsed=%s err=%v",
@@ -232,9 +259,18 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 			closeSocksTCP()
 			return nil, common.NewError("freedom failed to dial udp to socks").Base(err)
 		}
-		// 0.0.0.0:0 让内核自动选择绑定地址和端口，是 forward-proxy 模式下
-		// UDP relay 的标准做法（监听所有接口、随机端口），有意为之。
-		packetConn, err := net.ListenPacket("udp", "0.0.0.0:0")
+		// 转发代理的 UDP relay socket 同样要带 fwmark 与本地绑定：直连分支早就
+		// 这么做，转发分支漏了——策略路由下这部分回包会走错路由。
+		localIP, fwmark := getGlobalOutbound()
+		listenAddr := "0.0.0.0:0"
+		if localIP != nil {
+			listenAddr = (&net.UDPAddr{IP: localIP, Port: 0}).String()
+		}
+		lc := net.ListenConfig{}
+		if ctrl := fwmarkControl(fwmark); ctrl != nil {
+			lc.Control = ctrl
+		}
+		packetConn, err := lc.ListenPacket(c.ctx, "udp", listenAddr)
 		if err != nil {
 			closeSocksTCP()
 			return nil, common.NewError("freedom failed to listen udp").Base(err)
