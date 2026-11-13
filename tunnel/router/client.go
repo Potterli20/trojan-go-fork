@@ -393,13 +393,13 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	}()
 
 	client := &Client{
-		domains:    [3][]*v2geodata.Domain{},
+		domains:      [3][]*v2geodata.Domain{},
 		cidrPrefixes: [3][]netip.Prefix{},
-		regexCache: make(map[string]*regexp.Regexp),
-		underlay:   underlay,
-		direct:     direct,
-		ctx:        ctx,
-		cancel:     cancel,
+		regexCache:   make(map[string]*regexp.Regexp),
+		underlay:     underlay,
+		direct:       direct,
+		ctx:          ctx,
+		cancel:       cancel,
 	}
 	switch strings.ToLower(cfg.Router.DomainStrategy) {
 	case "as_is", "as-is", "asis":

@@ -2,7 +2,6 @@ package transport
 
 import (
 	"bufio"
-	"context"
 	"net"
 	"net/http"
 	"testing"
@@ -15,8 +14,7 @@ import (
 // 没有父层 accept 循环的 guard，一次 panic 会带走整个进程。注入 panic 后必须被
 // 收在嗅探步内，连接按"非 HTTP"路径交给 websocket fallback。
 func TestSniffPanicIsContained(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	s := &Server{
 		ctx:      ctx,
 		connChan: make(chan tunnel.Conn, 1),

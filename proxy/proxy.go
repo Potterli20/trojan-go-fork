@@ -591,8 +591,8 @@ func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 		log.SetOutput(file)
 	}
 	// 建栈期可能持续数秒（geo 加载、诱饵探测、MySQL 连接）。信号处理若等到 Run 才安装，
-// 这段时间收到 SIGTERM/SIGINT 就会按默认处置直接杀进程：没有清理、也没有优雅退出。
-// 提前挂在临时 channel 上并经 ctx 交给 NewProxy，Run 一启动就会消费这个信号。
+	// 这段时间收到 SIGTERM/SIGINT 就会按默认处置直接杀进程：没有清理、也没有优雅退出。
+	// 提前挂在临时 channel 上并经 ctx 交给 NewProxy，Run 一启动就会消费这个信号。
 	earlySig := make(chan os.Signal, 1)
 	signal.Notify(earlySig, shutdownSignals...)
 	ctx = context.WithValue(ctx, earlySignalKey{}, earlySig)

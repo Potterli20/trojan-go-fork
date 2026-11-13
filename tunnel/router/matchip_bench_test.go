@@ -64,13 +64,13 @@ func TestMatchIPPrefixesEquivalence(t *testing.T) {
 
 func benchCIDRs() []*v2geodata.CIDR {
 	list := make([]*v2geodata.CIDR, 0, 1024)
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		list = append(list, &v2geodata.CIDR{
 			Ip:     net.IPv4(10, byte(i>>8), byte(i), 0).To4(),
 			Prefix: 24,
 		})
 	}
-	for i := 0; i < 24; i++ {
+	for i := range 24 {
 		list = append(list, &v2geodata.CIDR{
 			Ip:     net.ParseIP("2001:db8::"),
 			Prefix: uint32(32 + i),

@@ -62,7 +62,7 @@ func TestSessionResume(t *testing.T) {
 	}
 	addr := tunnel.NewAddressFromHostPort("tcp", host, port)
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		conn, err := c.DialConn(addr, nil)
 		if err != nil {
 			t.Fatalf("第 %d 次 DialConn: %v", i+1, err)

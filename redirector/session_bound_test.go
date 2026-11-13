@@ -32,7 +32,7 @@ func TestRedirectSessionCountIsBounded(t *testing.T) {
 			c.Close()
 		}
 	})
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		c, peer := net.Pipe()
 		inbounds = append(inbounds, c, peer)
 		r.Redirect(&Redirection{Dial: silentDial, RedirectTo: &net.TCPAddr{}, InboundConn: c})

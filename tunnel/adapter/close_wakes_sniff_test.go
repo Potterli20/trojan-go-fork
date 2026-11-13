@@ -61,7 +61,7 @@ func (l *fakePacketListener) Close() error {
 	return nil
 }
 
-func (*fakePacketListener) LocalAddr() net.Addr           { return &net.UDPAddr{} }
+func (*fakePacketListener) LocalAddr() net.Addr              { return &net.UDPAddr{} }
 func (*fakePacketListener) SetDeadline(time.Time) error      { return nil }
 func (*fakePacketListener) SetReadDeadline(time.Time) error  { return nil }
 func (*fakePacketListener) SetWriteDeadline(time.Time) error { return nil }
