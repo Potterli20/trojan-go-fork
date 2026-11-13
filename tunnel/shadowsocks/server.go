@@ -3,6 +3,7 @@ package shadowsocks
 import (
 	"context"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/Potterli20/go-shadowsocks2/core"
@@ -19,6 +20,47 @@ type Server struct {
 	*redirector.Redirector
 	underlay  tunnel.Server
 	redirAddr net.Addr
+	ctx       context.Context
+	cancel    context.CancelFunc
+
+	// 在途探测登记：连接一旦被 AcceptConn 取走，下层就再也握不到它的句柄。
+	// 探测读卡住时只有这份登记表能让 Close 生效（与 websocket 同形）。
+	pendingMutex sync.Mutex
+	pendingConns map[tunnel.Conn]struct{}
+	closing      bool
+}
+
+// trackPending 登记一条还在探测中的连接，返回 false 表示服务已进入关停。
+func (s *Server) trackPending(conn tunnel.Conn) bool {
+	s.pendingMutex.Lock()
+	defer s.pendingMutex.Unlock()
+	if s.closing {
+		return false
+	}
+	s.pendingConns[conn] = struct{}{}
+	return true
+}
+
+func (s *Server) untrackPending(conn tunnel.Conn) {
+	s.pendingMutex.Lock()
+	delete(s.pendingConns, conn)
+	s.pendingMutex.Unlock()
+}
+
+// closePending 置 closing 并关掉所有在途探测的连接。关闭动作在锁外做，
+// 避免和被叫醒的 AcceptConn 里 untrackPending 的加锁互相等待。
+func (s *Server) closePending() {
+	s.pendingMutex.Lock()
+	s.closing = true
+	pending := make([]tunnel.Conn, 0, len(s.pendingConns))
+	for c := range s.pendingConns {
+		pending = append(pending, c)
+	}
+	s.pendingMutex.Unlock()
+
+	for _, c := range pending {
+		c.Close() //gosec:disable -- 错误忽略：关停路径叫醒阻塞中的探测读
+	}
 }
 
 // probeTimeout 限定 AEAD 探测读(等待首个有效加密载荷)的时限
@@ -29,6 +71,13 @@ func (s *Server) AcceptConn(overlay tunnel.Tunnel) (result tunnel.Conn, resultEr
 	if err != nil {
 		return nil, common.NewError("shadowsocks failed to accept connection from underlying tunnel").Base(err)
 	}
+	// 登记提前到探测读之前：静默对端会让这里卡满 probeTimeout(10s)，
+	// Close 没有这张表就只能白等时限。
+	if !s.trackPending(conn) {
+		conn.Close() //gosec:disable -- 错误忽略：服务已关停，本层丢掉这条连接
+		return nil, common.NewError("shadowsocks server is closing")
+	}
+	defer s.untrackPending(conn)
 	// 密文探测（下面的 StreamConn + Read）解析的是**未认证对端**的字节。父层的 accept
 	// 循环现在带着 panic 边界（tunnel.AcceptConnGuarded），循环不会再被带走，但栈展开
 	// 之后这条 fd 既没交出也没关闭的话就是每命中一次漏一条——所以在这里补最后一道
@@ -56,6 +105,11 @@ func (s *Server) AcceptConn(overlay tunnel.Tunnel) (result tunnel.Conn, resultEr
 	buf := [1024]byte{}
 	testConn := s.Cipher.StreamConn(rewindConn)
 	if _, err := testConn.Read(buf[:]); err != nil {
+		// 关停中：连接已被 closePending 关掉，再交给 redirector 拷贝只会报错，
+		// takenOver 保持 false，由上方的回收 defer 收尾。
+		if s.ctx.Err() != nil {
+			return nil, common.NewError("shadowsocks server is closing")
+		}
 		// we are under attack
 		log.Error(common.NewError("shadowsocks failed to decrypt").Base(err))
 		rewindConn.Rewind()
@@ -81,7 +135,9 @@ func (s *Server) AcceptPacket(t tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (s *Server) Close() error {
+	s.cancel()
 	err := s.underlay.Close()
+	s.closePending()
 	// 这里嵌的是 *redirector.Redirector，而 Server 自己又定义了 Close，
 	// 嵌进来的那个 Close 被遮蔽了：不显式调用，重定向器就永远没人取消它的 ctx，
 	// 队列里（容量 64）和在中继中的会话各自攥着一根未认证对端的活连接。
@@ -102,10 +158,14 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 		return nil, common.NewError("invalid shadowsocks redirection port")
 	}
 	log.Debug("shadowsocks client created")
+	ctx, cancel := context.WithCancel(ctx)
 	return &Server{
-		underlay:   underlay,
-		Cipher:     cipher,
-		Redirector: redirector.NewRedirector(ctx),
-		redirAddr:  tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort),
+		underlay:     underlay,
+		Cipher:       cipher,
+		Redirector:   redirector.NewRedirector(ctx),
+		redirAddr:    tunnel.NewAddressFromHostPort("tcp", cfg.RemoteHost, cfg.RemotePort),
+		ctx:          ctx,
+		cancel:       cancel,
+		pendingConns: make(map[tunnel.Conn]struct{}),
 	}, nil
 }
