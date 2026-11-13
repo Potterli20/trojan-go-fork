@@ -149,6 +149,19 @@ func (s *Server) acceptConnLoop() {
 			// 握手期间对端可能静默(如端口扫描);截止时间覆盖 version/method/
 			// command/address 全部握手读,移交下游前解除
 			conn.SetDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			// 关停唤醒：握手读可能堵在静默对端上直到 handshakeTimeout(30s)。
+			// watcher 在 s.ctx 取消时关掉连接让读立刻报错；握手窗口一结束就停，
+			// 不会误关已移交下游的活会话。wg.Go 合法：本 goroutine 自身占着计数。
+			handshakeDone := make(chan struct{})
+			stopWatch := sync.OnceFunc(func() { close(handshakeDone) })
+			defer stopWatch()
+			s.wg.Go(func() {
+				select {
+				case <-s.ctx.Done():
+					conn.Close() //gosec:disable -- 关停唤醒路径
+				case <-handshakeDone:
+				}
+			})
 			handledConn, err := s.handshake(conn)
 			if err != nil {
 				log.Error(common.NewError("socks failed to handshake").Base(err))

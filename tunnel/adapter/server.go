@@ -92,6 +92,18 @@ func (s *Server) sniffConn(conn net.Conn) {
 	rewindConn.SetBufferSize(16)
 	// 对端静默时不设截止时间会让这条嗅探永久阻塞，Close() 的 wg.Wait() 随之挂起
 	rewindConn.SetReadDeadline(time.Now().Add(firstByteTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+	// 关停唤醒：嗅探读可能堵在静默对端上直到 firstByteTimeout(10s)。watcher 在
+	// s.ctx 取消时关掉连接让读立刻报错；嗅探窗口结束即停（后续队列投递自看 ctx）。
+	sniffDone := make(chan struct{})
+	stopWatch := sync.OnceFunc(func() { close(sniffDone) })
+	defer stopWatch()
+	s.wg.Go(func() {
+		select {
+		case <-s.ctx.Done():
+			conn.Close() //gosec:disable -- 关停唤醒路径
+		case <-sniffDone:
+		}
+	})
 	buf := [3]byte{}
 	_, err := rewindConn.Read(buf[:])
 	rewindConn.Rewind()
