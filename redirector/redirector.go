@@ -40,6 +40,21 @@ var (
 
 const copyBufferSize = 8 * 1024
 
+// 诱饵会话并发上限。队列 cap 64 只限排队不限并发：每条会话最长活
+// redirectionMaxLife(10min)，并发 = 到达速率 × 寿命，发送方无需凭据。
+// 超限丢弃（closeDropped）而不是排队：诱饵的意义是"看起来像真服务"，
+// 过载时丢一条探测连接比对端把 fd/协程耗尽强。测试可调，0=默认。
+var maxRedirectSessions atomic.Int64
+
+const defaultRedirectSessionLimit = 256
+
+func redirectSessionLimit() int {
+	if n := maxRedirectSessions.Load(); n > 0 {
+		return int(n)
+	}
+	return defaultRedirectSessionLimit
+}
+
 // copyBufPool 替代 io.Copy 内部的全局 32KB 缓冲：诱饵路径不需要 32KB，
 // 而每个在途会话都会占住一整块，驻留量随并发会话数线性增长。
 var copyBufPool = sync.Pool{
@@ -159,6 +174,9 @@ type Redirector struct {
 	wg              sync.WaitGroup
 	redirectionChan chan *Redirection
 	injectClientIP  bool
+	// sem 限制同时存活的诱饵会话数；dropped 只用于日志限流。
+	sem     chan struct{}
+	dropped atomic.Int64
 }
 
 // closeDropped 回收一条不会再被处理的 redirection 请求所携带的连接。
@@ -299,7 +317,17 @@ func (r *Redirector) worker() {
 			if !ok {
 				return
 			}
+			select {
+			case r.sem <- struct{}{}:
+			default:
+				closeDropped(redirection)
+				if n := r.dropped.Add(1); n%10 == 1 {
+					log.Error("redirector session limit reached, dropping redirection x", n)
+				}
+				continue
+			}
 			r.wg.Go(func() {
+				defer func() { <-r.sem }()
 				if redirection.InboundConn == nil || reflect.ValueOf(redirection.InboundConn).IsNil() {
 					log.Error("nil inbound conn")
 					return
@@ -387,6 +415,7 @@ func NewRedirector(ctx context.Context) *Redirector {
 		cancel:          cancel,
 		redirectionChan: make(chan *Redirection, 64),
 		injectClientIP:  injectClientIPIsEnabled(ctx),
+		sem:             make(chan struct{}, redirectSessionLimit()),
 	}
 	r.wg.Go(func() {
 		r.worker()
