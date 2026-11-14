@@ -21,10 +21,15 @@ import (
 type Dial func(net.Addr) (net.Conn, error)
 
 func defaultDial(addr net.Addr) (net.Conn, error) {
-	// 带超时的拨号：Redirector.Close 的 wg.Wait 依赖 worker 退出，
-	// 无超时拨号会被不可达目标拖住约 2 分钟
-	d := net.Dialer{Timeout: 30 * time.Second}
-	return d.Dial("tcp", addr.String())
+	return defaultDialContext(context.Background(), &net.Dialer{Timeout: 30 * time.Second}, addr)
+}
+
+var dialTCPContext = func(ctx context.Context, d *net.Dialer, network, address string) (net.Conn, error) {
+	return d.DialContext(ctx, network, address)
+}
+
+func defaultDialContext(ctx context.Context, d *net.Dialer, addr net.Addr) (net.Conn, error) {
+	return dialTCPContext(ctx, d, "tcp", addr.String())
 }
 
 // 以下限时都作用在 misdirection（诱饵）路径上：这条路径处理的是认证失败的流量，
