@@ -57,7 +57,9 @@ func Start(bind string) (addr string, stop func(), err error) {
 		return "", nil, common.NewError("failed to listen for diagnostics").Base(err)
 	}
 	server := &http.Server{Handler: NewHandler(), ReadHeaderTimeout: readHeaderTimeout}
+	serveDone := make(chan struct{})
 	go func() {
+		defer close(serveDone)
 		if err := server.Serve(l); err != nil && err != http.ErrServerClosed {
 			log.Warn("diagnostics server stopped:", err)
 		}
@@ -67,5 +69,6 @@ func Start(bind string) (addr string, stop func(), err error) {
 	return l.Addr().String(), func() {
 		// Close 会连在途请求一起掐掉；诊断口不需要 Shutdown 那套等空闲的体面
 		server.Close() //gosec:disable -- 错误忽略：关停路径，监听器已尽力关闭
+		<-serveDone
 	}, nil
 }
