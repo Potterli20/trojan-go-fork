@@ -690,3 +690,55 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - 代码注释使用中文（除非项目规范要求英文）
 - Git commit message 使用中文
 - TODO 列表和任务描述使用中文
+
+## 第 10 轮全仓治理结论（2026-11-13）
+
+- 本轮按证据闸流水线执行：6 路只读审计代理失败后由控制器顺序窄范围补做，确认缺陷按门禁→变异证伪→修复→绿灯→主题提交；没有确认证据不改生产代码。
+- 修复：diag Stop 等待 pprof Serve goroutine 退出；redirector 默认诱饵拨号接入 DialContext；transport 关停结果改用互斥锁发布，移除 sync.Once/closeDone 路径，消除关停竞态和夹具死锁。
+- Go 1.27.3：已采用特性只复核；四项历史“无适用点”不重复评估；MaxHeaderValueCount 与 synctest.Sleep 做事实校正，diag/test 里存在 stdlib http.Server 与 synctest.Sleep 不等于新改造点。
+- 优化：基准与真实栈 profile 已跑；本机 go tool pprof 不可用且规格禁止扩展依赖，未生成 top10，按“只留报告不改代码”裁定；冻结否决项不复评。
+- 门禁：make test 与 -tags full 全绿；文档门全绿；全仓 race 仍有 pristine HEAD 同样 1/20 可复现的既有 websocket 概率性红项，已对照归档，不算本轮新增红项。
+- 交付：本地分批提交，暂不推送；四门禁、确认缺陷、事实校正、优化裁定与既有红项证据均在仓库外 round10 台账。
+
+### 确认缺陷清单摘要
+
+# 第 10 轮确认缺陷清单
+
+编号 | 等级 | 缺陷 | file:line | 触发条件 | 判据形态 | 主题
+R10-1 | P2 | 诊断口关停 goroutine 未纳入 WaitGroup，且 Serve 错误只在后台记录；Stop 返回后后台协程可能短时残留 | diag/diag.go:60 | 启动 -diag-bind 后立刻 Stop，或 Serve 返回非 ErrServerClosed | 给 Start 返回的 stop 函数加同步屏障；新增 diag/shutdown_bound_test.go，断言 stop 返回后 server.Serve 已退出且 goroutineleak 栈增量不增加；变异为裸 go func 不等待 | 关停排空
+R10-2 | P2 | redirector.defaultDial 仍用 net.Dialer.Timeout 而不接 ctx，诱饵拨号在 DNS/连接阶段无法被会话关停打断 | redirector/redirector.go:23 | 诱饵域名 DNS 慢或 SYN 黑洞时调用 Close/cancel | 注入 dialer 或 ctx 化拨号；新增 redirector/dial_ctx_test.go，用已取消 ctx 或自定义 DialContext 断言立即返回；变异为保留 net.Dialer.Dial | ctx 传播
+
+### 驳回/否决清单摘要
+
+# 第 10 轮驳回/否决清单
+
+疑点 | 来源分片 | 驳回理由
+websocket 握手 bufio 池化 | 控制器审计 | 第 9 轮已实测回退，-race 下 coder 在 Close 返回后仍可能 Flush Hijack writer；冻结否决。
+tproxy 回包 socket 跨会话缓存 | 控制器审计 | 第 9 轮测量后否决；会话内缓存已覆盖主要 churn，跨会话缓存引入可伪造键表和 NAT 错投风险。
+encoding/json/v2 | 控制器审计 | 第 9 轮实测否决；配置解析启动期一次性，v2 更慢且大小写敏感会破坏兼容面。
+Go 1.27.3 四项无适用点 | 控制器审计 | Task 1 已事实复核并冻结，不重复评估。
+并行审计代理失败 | 控制器审计 | 3 路输出 token 上限、3 路工具权限拒绝；已由控制器顺序窄范围补做并如实记录，不把失败写成全仓无缺陷。
+
+### Go 1.27.3 事实校正摘要
+
+# Go 1.27.3 事实校正
+
+- `MaxHeaderValueCount`：第 9 轮写的“无 stdlib http.Server”应限定为“无对端可控 h1/h2 代理入口”。当前 `diag/diag.go:59` 是回环 pprof 诊断口，`test/util/target.go:57` 是测试夹具；Go 1.27 的 `http.Server.MaxHeaderValueCount` 零值使用 `DefaultMaxHeaderValueCount`。不为它们硬造配置，也不改写行为。
+- `synctest.Sleep`：第 9 轮写的“无气泡内外混用”仍成立；`tunnel/trojan/accept_parallel_test.go:118` 已使用 `synctest.Sleep`，归到“已采用特性复核”，不是新替换。
+- `URL.Clone` / `Values.Clone`：当前生产代码没有手工深拷贝 `url.URL` 或 `url.Values` 的点，不重复评估。
+- `CutLast`：当前生产代码没有 `LastIndex` 加切片的同型改写点，不重复评估。
+- `encoding/json/v2`：已实测否决；配置解析只在启动期运行一次，v2 的大小写敏感语义会破坏兼容面，不引入。
+- `crypto/mldsa`、数据库 driver 新接口、`go/types.Hasher`：本代理项目没有对应业务场景，不引入。
+
+### 优化裁定摘要
+
+# 第 10 轮优化裁定
+
+没有收益明确且生命周期复杂度可接受的新热点；go tool pprof 不可用且禁止扩展依赖，因此只留测量报告，不改代码。
+
+### 最终门禁
+
+make test EXIT=0
+full EXIT=0
+race EXIT=2
+doc gates EXIT=0
