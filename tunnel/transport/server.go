@@ -40,12 +40,12 @@ type Server struct {
 	ctx            context.Context
 	cancel         context.CancelFunc
 	wg             sync.WaitGroup
-	// closeOnce/closeErr：服务端栈里多个端点会共用同一个 transport 实例
-	// （tls 层之下），Close 因此可能被调用多次。整个关闭流程只跑一次，
-	// 后续调用复用首次结果。
-	closeOnce sync.Once
+	// closeMu/closed/closeErr：服务端栈里多个端点会共用同一个 transport 实例
+	// （tls 层之下），Close 因此可能被调用多次。互斥锁保证关闭流程只跑一次，
+	// 后续调用复用首次结果；不用 sync.Once 是为了避免与并发 AcceptConn 读同一状态。
+	closeMu   sync.Mutex
+	closed    bool
 	closeErr  error
-	closeDone chan struct{}
 	// acceptOnce 保证 acceptLoop 只在首次 AcceptConn 时启动。为什么不在 NewServer 里
 	// 就启动：acceptLoop 会立刻开始 Accept，而决定投递去向的 nextHTTP/directConsumer
 	// 要等下游首次调用 AcceptConn 才登记——这中间窗口里到达的连接会在 nextHTTP 仍为
@@ -55,11 +55,12 @@ type Server struct {
 }
 
 func (s *Server) Close() error {
-	s.closeOnce.Do(func() {
-		defer close(s.closeDone)
+	s.closeMu.Lock()
+	defer s.closeMu.Unlock()
+	if !s.closed {
+		s.closed = true
 		s.closeErr = s.close()
-	})
-	<-s.closeDone
+	}
 	return s.closeErr
 }
 
@@ -301,7 +302,6 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 
 	ctx, cancel := context.WithCancel(ctx)
 	server := &Server{
-		closeDone:   make(chan struct{}),
 		tcpListener: tcpListener,
 		cmd:         cmd,
 		ctx:         ctx,
