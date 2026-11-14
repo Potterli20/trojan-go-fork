@@ -45,6 +45,7 @@ type Server struct {
 	// 后续调用复用首次结果。
 	closeOnce sync.Once
 	closeErr  error
+	closeDone chan struct{}
 	// acceptOnce 保证 acceptLoop 只在首次 AcceptConn 时启动。为什么不在 NewServer 里
 	// 就启动：acceptLoop 会立刻开始 Accept，而决定投递去向的 nextHTTP/directConsumer
 	// 要等下游首次调用 AcceptConn 才登记——这中间窗口里到达的连接会在 nextHTTP 仍为
@@ -55,8 +56,10 @@ type Server struct {
 
 func (s *Server) Close() error {
 	s.closeOnce.Do(func() {
+		defer close(s.closeDone)
 		s.closeErr = s.close()
 	})
+	<-s.closeDone
 	return s.closeErr
 }
 
@@ -298,6 +301,7 @@ func NewServer(ctx context.Context, _ tunnel.Server) (*Server, error) {
 
 	ctx, cancel := context.WithCancel(ctx)
 	server := &Server{
+		closeDone:   make(chan struct{}),
 		tcpListener: tcpListener,
 		cmd:         cmd,
 		ctx:         ctx,
