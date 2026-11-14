@@ -16,7 +16,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.12.1
 	github.com/xtaci/smux v1.5.60
-	github.com/xtls/xray-core v1.260327.1-0.20261111134232-c45614181535
+	github.com/xtls/xray-core v1.260327.1-0.20261114155821-5d17b872edde
 	golang.org/x/crypto v0.59.0
 	golang.org/x/net v0.62.0
 	golang.org/x/sys v0.50.0
@@ -58,7 +58,7 @@ require (
 	golang.org/x/tools v0.52.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20261110000943-09e21b237f2c // indirect
 	layeh.com/gopher-luar v1.0.11 // indirect
-	modernc.org/libc v1.81.0 // indirect
+	modernc.org/libc v1.81.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.62.0 // indirect
