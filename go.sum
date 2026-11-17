@@ -4,8 +4,8 @@ github.com/HyNetworks/quic-go v0.65.1-0.20261109005002-2895f039137a h1:WwuyYbM83
 github.com/HyNetworks/quic-go v0.65.1-0.20261109005002-2895f039137a/go.mod h1:J7UZVOMF2M1LiE3iiUZWPuy8YCPAcLJOwVURrfJCvc0=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261112050753-438a07ee66be h1:3lC5sF/TZbkqAHP+c13GwncbNAngBnx98aI/5QM9oQM=
 github.com/Potterli20/go-shadowsocks2 v0.0.0-20261112050753-438a07ee66be/go.mod h1:Ov2MUFG2ktTwjH62s4KpFJawuIphdFpGLYuxPVC0sbg=
-github.com/Potterli20/socks5-fork v0.0.0-20261116215143-4a947cdbab9a h1:52mK8+86lv4TsZPOzRByvqL6HXCuqQtaL9uQp/TTXOw=
-github.com/Potterli20/socks5-fork v0.0.0-20261116215143-4a947cdbab9a/go.mod h1:Jw+xGbS+DgHq2b5w2FY+NpCQPvHoOGedmkNqdxormdg=
+github.com/Potterli20/socks5-fork v0.0.0-20261117073033-041bb792bb4f h1:zrL59GEHqNIbsIBzBlGBwcB7eKezejVRGhympI7xsN0=
+github.com/Potterli20/socks5-fork v0.0.0-20261117073033-041bb792bb4f/go.mod h1:UAAQ4IYeHygvxsR6ilq328YxxCt+F+2QpLCFSA3l8tI=
 github.com/Potterli20/sqlite v0.0.0-20261116101704-b4a53c44bd87 h1:+k7uMqZXGL4oXKiuNGY4IkYff6OI03/EcZFQtYeZatk=
 github.com/Potterli20/sqlite v0.0.0-20261116101704-b4a53c44bd87/go.mod h1:zg9XRWgcI3D9eAEd1fOVJlLw8Z/O9ws5UkdVYZCtXDc=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
@@ -19,8 +19,8 @@ github.com/database64128/tfo-go/v2 v2.4.3-0.20261109215501-399a516e76df h1:h5Ayg
 github.com/database64128/tfo-go/v2 v2.4.3-0.20261109215501-399a516e76df/go.mod h1:6sB50M6XxS/2SnyengwLkCmIrYXUkhMI9l5x/YW/uzk=
 github.com/dustin/go-humanize v1.1.0 h1:dbKTrvD0klcbBV/h4AWJdMuZogJACoMlvWIWZ5b2xWg=
 github.com/dustin/go-humanize v1.1.0/go.mod h1:hc1CvRkJMsgxqjmjMQF3QNRAZBwY8AXBAzKYoSX9sFI=
-github.com/go-sql-driver/mysql v1.10.1 h1:arlSnNLq6a5yxGxV7qg9lF4j0C+KwD6NbQyKr9QL6ME=
-github.com/go-sql-driver/mysql v1.10.1/go.mod h1:M+cqaI7+xxXGG9swrdeUIoPG3Y3KCkF0pZej+SK+nWk=
+github.com/go-sql-driver/mysql v1.10.2 h1:5TRvGvczDohUMOCRA5aCAXgfSZOo/oNDSFD/2RrChS0=
+github.com/go-sql-driver/mysql v1.10.2/go.mod h1:M+cqaI7+xxXGG9swrdeUIoPG3Y3KCkF0pZej+SK+nWk=
 github.com/golang/mock v1.7.0-rc.1 h1:YojYx61/OLFsiv6Rw1Z96LpldJIy31o+UHmwAUMJ6/U=
 github.com/golang/mock v1.7.0-rc.1/go.mod h1:s42URUywIqd+OcERslBJvOjepvNymP31m3q8d/GkuRs=
 github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek=

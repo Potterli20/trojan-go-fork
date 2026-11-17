@@ -6,12 +6,12 @@ tool golang.org/x/tools/cmd/stringer
 
 require (
 	github.com/Potterli20/go-shadowsocks2 v0.0.0-20261112050753-438a07ee66be
-	github.com/Potterli20/socks5-fork v0.0.0-20261116215143-4a947cdbab9a
+	github.com/Potterli20/socks5-fork v0.0.0-20261117073033-041bb792bb4f
 	github.com/Potterli20/sqlite v0.0.0-20261116101704-b4a53c44bd87
 	github.com/apernet/quic-go v0.65.1-0.20261109005002-2895f039137a
 	github.com/coder/websocket v1.8.15
 	github.com/database64128/tfo-go/v2 v2.4.3-0.20261109215501-399a516e76df
-	github.com/go-sql-driver/mysql v1.10.1
+	github.com/go-sql-driver/mysql v1.10.2
 	github.com/refraction-networking/utls v1.8.3-0.20261108164504-a13c59ffe98b
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.12.1

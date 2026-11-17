@@ -36,7 +36,7 @@ func TestCloseUsesMutexState(t *testing.T) {
 // 既无数据竞争也无 WaitGroup 误用。修复前这条路径缺少串行化；该竞态是
 // 偶发的，此测试作为回归防护而非稳定复现器。必须带 -race 运行才有意义。
 func TestConcurrentFirstAcceptAndClose(t *testing.T) {
-	for round := 0; round < 20; round++ {
+	for range 20 {
 		cfg := &Config{
 			LocalHost:  "127.0.0.1",
 			LocalPort:  common.PickPort("tcp", "127.0.0.1"),
@@ -51,7 +51,7 @@ func TestConcurrentFirstAcceptAndClose(t *testing.T) {
 
 		var wg sync.WaitGroup
 		const callers = 8
-		for i := 0; i < callers; i++ {
+		for range callers {
 			wg.Go(func() {
 				conn, err := s.AcceptConn(nil)
 				if err == nil && conn != nil {

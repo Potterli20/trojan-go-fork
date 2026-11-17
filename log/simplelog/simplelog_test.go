@@ -193,22 +193,20 @@ func TestConcurrentLogAndConfig(t *testing.T) {
 	const writers = 8
 	const iterations = 200
 
-	for i := 0; i < writers; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for j := 0; j < iterations; j++ {
+	for range writers {
+		wg.Go(func() {
+			for j := range iterations {
 				logger.Debug("concurrent debug line")
 				logger.Infof("concurrent info %d", j)
 				logger.Warn("concurrent warn line")
 			}
-		}()
+		})
 	}
 
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		for j := 0; j < iterations; j++ {
+		for j := range iterations {
 			if j%2 == 0 {
 				logger.SetLogLevel(log.InfoLevel)
 			} else {
@@ -218,7 +216,7 @@ func TestConcurrentLogAndConfig(t *testing.T) {
 	}()
 	go func() {
 		defer wg.Done()
-		for j := 0; j < iterations; j++ {
+		for range iterations {
 			logger.SetOutput(io.Discard)
 		}
 	}()
