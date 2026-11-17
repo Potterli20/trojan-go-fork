@@ -2,7 +2,6 @@ package geodata
 
 import (
 	"os"
-	"reflect"
 	"strings"
 
 	v2geodata "github.com/xtls/xray-core/common/geodata"
@@ -26,9 +25,6 @@ func (g geoipCache) Get(key string) *v2geodata.GeoIP {
 }
 
 func (g geoipCache) Set(key string, value *v2geodata.GeoIP) {
-	if g == nil {
-		g = make(map[string]*v2geodata.GeoIP)
-	}
 	g[key] = value
 }
 
@@ -82,23 +78,11 @@ func (g geoipCache) Unmarshal(filename, code string) (*v2geodata.GeoIP, error) {
 }
 
 func countryCodeFromGeoIP(geoip *v2geodata.GeoIP) string {
-	v := reflect.ValueOf(geoip).Elem()
-	f := v.FieldByName("CountryCode")
-	if f.IsValid() && f.CanInterface() {
-		if s, ok := f.Interface().(string); ok {
-			return s
-		}
-	}
-	method := v.MethodByName("GetCountryCode")
-	if method.IsValid() {
-		result := method.Call(nil)
-		if len(result) > 0 {
-			if s, ok := result[0].Interface().(string); ok {
-				return s
-			}
-		}
-	}
-	return ""
+	// xray-core 的 GeoIP 字段是 Code（getter 为 GetCode），不是 CountryCode。
+	// 旧实现反射查找 CountryCode/GetCountryCode —— 两者在真实类型上都不存在，
+	// 于是恒返回空串，geoip 回退分支永远匹配不上。protobuf getter 自带 nil 保护，
+	// 直接调用即可，与 countryCodeFromGeoSite 的写法保持一致。
+	return geoip.GetCode()
 }
 
 type geositeCache map[string]*v2geodata.GeoSite
@@ -115,9 +99,6 @@ func (g geositeCache) Get(key string) *v2geodata.GeoSite {
 }
 
 func (g geositeCache) Set(key string, value *v2geodata.GeoSite) {
-	if g == nil {
-		g = make(map[string]*v2geodata.GeoSite)
-	}
 	g[key] = value
 }
 

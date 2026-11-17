@@ -2,6 +2,7 @@ package tunnel
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"net"
 	"strings"
@@ -213,6 +214,34 @@ func TestReadFromMalformedInputNeverPanics(t *testing.T) {
 				t.Fatalf("第 %d 组输入 %q：读取成功但 Address 为 nil", i, raw)
 			}
 		}()
+	}
+}
+
+// 域名长度/内容两处 ReadFull 的短读要把底层错误挂进错误链；同文件其余分支都用
+// 了 .Base(err)，唯独这两处曾丢弃 err，日志里只剩无根因的一句话。
+func TestReadFromDomainShortErrorsCarryCause(t *testing.T) {
+	cases := []struct {
+		name string
+		raw  []byte
+		want string
+	}{
+		{name: "length", raw: []byte{byte(wireConnect), byte(DomainName)}, want: "failed to read domain name length"},
+		{name: "content", raw: []byte{byte(wireConnect), byte(DomainName), 5, 'a', 'b'}, want: "failed to read domain name"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			md := &Metadata{}
+			_, err := md.ReadFrom(bytes.NewReader(tc.raw))
+			if err == nil {
+				t.Fatal("短读应当返回错误")
+			}
+			if !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("错误 %q 缺少期望上下文 %q", err, tc.want)
+			}
+			if !errors.Is(err, io.ErrUnexpectedEOF) && !errors.Is(err, io.EOF) {
+				t.Fatalf("错误链丢失了底层短读原因：%q", err)
+			}
+		})
 	}
 }
 

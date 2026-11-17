@@ -2,11 +2,14 @@ package websocket
 
 import (
 	"bufio"
+	"fmt"
 	"net"
 	"net/http"
 	"sync/atomic"
 	"testing"
+	"time"
 
+	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
@@ -23,12 +26,12 @@ func (p *closingProbe) Close() error {
 
 // newPanicServer 造一个握手夹具服务端：underlay 只交出一条 net.Pipe 半边，
 // 对端由测试自己掌握。
-func newPanicServer(t *testing.T) (*Server, *closingProbe, net.Conn) {
+func newPanicServer(t *testing.T, remotePort ...int) (*Server, *closingProbe, net.Conn) {
 	t.Helper()
 	peer, raw := net.Pipe()
 	t.Cleanup(func() { peer.Close() }) //gosec:disable -- 错误忽略：测试清理
 	probe := &closingProbe{Conn: &deadlineProbe{Conn: raw}}
-	srv := newHandshakeServer(t, &handoffServer{conn: probe})
+	srv := newHandshakeServer(t, &handoffServer{conn: probe}, remotePort...)
 	return srv, probe, peer
 }
 
@@ -73,15 +76,51 @@ func TestPanicBeforePendingRegistrationClosesConn(t *testing.T) {
 // 连接所有权归 redirector，它要继续在这条连接上拷贝给诱饵站。握手层若把它一起关掉，
 // 对探测者就是"连上即断"的可分辨指纹，而不是一次正常的网站应答。
 func TestRedirectedConnIsNotClosedByHandshakeCleanup(t *testing.T) {
-	srv, probe, peer := newPanicServer(t)
+	// 诱饵站必须真实可达且长期持有连接：若它像 127.0.0.1:80 那样拨号失败，
+	// redirector 的 worker 会立刻 defer InboundConn.Close()，那同样会置位 probe.closed。
+	// 于是 probe.closed 就无法区分"握手层提前关掉"与"redirector 正常收尾"，
+	// 判据随着 worker 的调度时机概率性变红。这里起一个只 accept、不读不关的监听，
+	// 让重定向会话存活到检查结束，probe.closed 才只反映握手层自己的行为。
+	port := common.PickPort("tcp", "127.0.0.1")
+	decoy, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
+	if err != nil {
+		t.Fatalf("启动诱饵监听失败：%v", err)
+	}
+	held := make(chan net.Conn, 1)
+	accepted := make(chan struct{})
+	t.Cleanup(func() {
+		select {
+		case c := <-held:
+			c.Close() //gosec:disable -- 错误忽略：测试清理
+		default:
+		}
+		decoy.Close() //gosec:disable -- 错误忽略：测试清理
+	})
+	go func() {
+		c, err := decoy.Accept()
+		if err != nil {
+			return
+		}
+		held <- c
+		close(accepted)
+	}()
+
+	srv, probe, peer := newPanicServer(t, port)
 	go peer.Write(upgradeRequest("/not-the-ws-path")) //gosec:disable -- 错误忽略：测试夹具
 
-	conn, err := srv.AcceptConn(&Tunnel{})
+	gotConn, err := srv.AcceptConn(&Tunnel{})
 	if err == nil {
 		t.Fatal("路径不匹配的请求应当走重定向并返回错误，判据失效")
 	}
-	if conn != nil {
+	if gotConn != nil {
 		t.Fatal("重定向路径不该交出连接对象")
+	}
+	// 等 redirector 真正把连接中继给诱饵站后再判定，消除 worker 调度带来的赛跑。
+	// 连接始终留在 held 中由 cleanup 关闭，判据只反映握手层是否提前关掉它。
+	select {
+	case <-accepted:
+	case <-time.After(3 * time.Second):
+		t.Fatal("redirector 没有把连接交给诱饵站，判据失效")
 	}
 	if probe.closed.Load() {
 		t.Fatal("连接被握手层的收尾关掉了：它正被 redirector 用来中继，关掉等于对探测者自曝")
@@ -89,6 +128,7 @@ func TestRedirectedConnIsNotClosedByHandshakeCleanup(t *testing.T) {
 	if n := srv.pendingCount(); n != 0 {
 		t.Fatalf("失败握手的在途计数应为 0，实得 %d", n)
 	}
+	srv.Close() //gosec:disable -- 错误忽略：测试清理
 }
 
 // TestClosingServerStillClosesRejectedConn 覆盖 trackPending 失败（服务已进入关停）这一条：

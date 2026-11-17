@@ -279,13 +279,13 @@ func (a *Address) ReadFrom(r io.Reader) (int64, error) {
 		// 上没有 recover，只有 mux / tls / trojan 三处有）。
 		length := int(byteBuf[0])
 		if err != nil {
-			return total, common.NewError("failed to read domain name length")
+			return total, common.NewError("failed to read domain name length").Base(err)
 		}
 		buf := make([]byte, length+2)
 		n, err = io.ReadFull(r, buf)
 		total += int64(n)
 		if err != nil {
-			return total, common.NewError("failed to read domain name")
+			return total, common.NewError("failed to read domain name").Base(err)
 		}
 		// check if the domain name is actually an IP address
 		if ip := net.ParseIP(string(buf[:length])); ip != nil {

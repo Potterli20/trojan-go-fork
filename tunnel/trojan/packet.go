@@ -110,13 +110,13 @@ func (c *PacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadata, er
 	}
 	lengthBuf := [2]byte{}
 	if _, err := io.ReadFull(c.Conn, lengthBuf[:]); err != nil {
-		return 0, nil, common.NewError("failed to read length")
+		return 0, nil, common.NewError("failed to read length").Base(err)
 	}
 	length := common.SafeIntFromUint16(binary.BigEndian.Uint16(lengthBuf[:]))
 
 	crlf := [2]byte{}
 	if _, err := io.ReadFull(c.Conn, crlf[:]); err != nil {
-		return 0, nil, common.NewError("failed to read crlf")
+		return 0, nil, common.NewError("failed to read crlf").Base(err)
 	}
 
 	if len(payload) < length || length > MaxPacketSize {
@@ -136,7 +136,7 @@ func (c *PacketConn) ReadWithMetadata(payload []byte) (int, *tunnel.Metadata, er
 	}
 
 	if _, err := io.ReadFull(c.Conn, payload[:length]); err != nil {
-		return 0, nil, common.NewError("failed to read payload")
+		return 0, nil, common.NewError("failed to read payload").Base(err)
 	}
 
 	if log.ShouldLog(log.DebugLevel) {

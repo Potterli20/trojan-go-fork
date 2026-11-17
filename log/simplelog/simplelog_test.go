@@ -2,7 +2,9 @@ package simplelog
 
 import (
 	"bytes"
+	"io"
 	"strings"
+	"sync"
 	"testing"
 
 	golog "log"
@@ -177,4 +179,49 @@ func TestDirectLoggerSanitization(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestConcurrentLogAndConfig 验证日志级别/输出在运行期被并发改写时没有数据竞争。
+// 这正是 golog.Logger 用 mu+atomic 保护、而 SimpleLogger 曾经裸读写两个字段的场景；
+// 必须带 -race 运行才有意义。
+func TestConcurrentLogAndConfig(t *testing.T) {
+	logger := &SimpleLogger{}
+	logger.SetLogLevel(log.AllLevel)
+	logger.SetOutput(io.Discard)
+
+	var wg sync.WaitGroup
+	const writers = 8
+	const iterations = 200
+
+	for i := 0; i < writers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for j := 0; j < iterations; j++ {
+				logger.Debug("concurrent debug line")
+				logger.Infof("concurrent info %d", j)
+				logger.Warn("concurrent warn line")
+			}
+		}()
+	}
+
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		for j := 0; j < iterations; j++ {
+			if j%2 == 0 {
+				logger.SetLogLevel(log.InfoLevel)
+			} else {
+				logger.SetLogLevel(log.AllLevel)
+			}
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for j := 0; j < iterations; j++ {
+			logger.SetOutput(io.Discard)
+		}
+	}()
+
+	wg.Wait()
 }

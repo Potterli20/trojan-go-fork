@@ -114,11 +114,15 @@ func upgradeRequest(path string) []byte {
 		path, base64.StdEncoding.EncodeToString(key[:])))
 }
 
-func newHandshakeServer(t *testing.T, underlay tunnel.Server) *Server {
+func newHandshakeServer(t *testing.T, underlay tunnel.Server, remotePort ...int) *Server {
 	t.Helper()
+	port := 80
+	if len(remotePort) > 0 {
+		port = remotePort[0]
+	}
 	cfg := &Config{
 		RemoteHost: "127.0.0.1",
-		RemotePort: 80,
+		RemotePort: port,
 		Websocket: WebsocketConfig{
 			Enabled: true,
 			Host:    "cdn.example.org",

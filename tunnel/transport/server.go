@@ -43,14 +43,19 @@ type Server struct {
 	// closeMu/closed/closeErr：服务端栈里多个端点会共用同一个 transport 实例
 	// （tls 层之下），Close 因此可能被调用多次。互斥锁保证关闭流程只跑一次，
 	// 后续调用复用首次结果；不用 sync.Once 是为了避免与并发 AcceptConn 读同一状态。
-	closeMu   sync.Mutex
-	closed    bool
-	closeErr  error
+	closeMu  sync.Mutex
+	closed   bool
+	closeErr error
 	// acceptOnce 保证 acceptLoop 只在首次 AcceptConn 时启动。为什么不在 NewServer 里
 	// 就启动：acceptLoop 会立刻开始 Accept，而决定投递去向的 nextHTTP/directConsumer
 	// 要等下游首次调用 AcceptConn 才登记——这中间窗口里到达的连接会在 nextHTTP 仍为
 	// false 时被投进 connChan，可 websocket 栈里 connChan 没有消费者，那些连接（连同
 	// fd）只能滞留到关停。把启动推迟到标志登记之后即可消除这个启动期竞态。
+	//
+	// 启动必须在 closeMu 下与 Close 串行：否则关停路径走到 wg.Wait() 之后，
+	// 另一个 goroutine 才首次进入 AcceptConn 执行 wg.Go(acceptLoop)，就会在
+	// Wait 之后再 Add 一次，既有 WaitGroup 误用，又让新 loop 对已关闭的 listener
+	// Accept。把 closed 检查与 acceptOnce.Do 一并放进 closeMu 即可闭环。
 	acceptOnce sync.Once
 }
 
@@ -208,11 +213,19 @@ func (s *Server) AcceptConn(overlay tunnel.Tunnel) (tunnel.Conn, error) {
 	}
 	s.httpLock.Unlock()
 
+	// 与 Close 串行：确保不会在关停路径的 wg.Wait() 之后才启动 acceptLoop。
+	// 见 acceptOnce 字段注释里的启动期竞态说明。
+	s.closeMu.Lock()
+	if s.closed {
+		s.closeMu.Unlock()
+		return nil, common.NewError("transport server closed")
+	}
 	s.acceptOnce.Do(func() {
 		s.wg.Go(func() {
 			s.acceptLoop()
 		})
 	})
+	s.closeMu.Unlock()
 
 	if isWS {
 		select {
