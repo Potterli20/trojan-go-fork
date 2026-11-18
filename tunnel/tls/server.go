@@ -59,6 +59,12 @@ type Server struct {
 	pendingMutex sync.Mutex
 	pendingConns map[tunnel.Conn]struct{}
 	closing      bool
+
+	// 幂等闸：proxy/stack.go 明确共享下层会被重复命中、依赖各 tunnel 的幂等 Close。
+	// 没有它时并发 Close 会重复关 underlay/keyLogger/redir、重复 closePending 快照，
+	// 两个并发 wg.Wait 还可能撞上 acceptLoop 的 wg.Go Add。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 // trackPending 登记一条尚在握手里的裸连接，返回 false 表示服务已进入关停、
@@ -96,6 +102,11 @@ func (s *Server) closePending() {
 }
 
 func (s *Server) Close() error {
+	s.closeOnce.Do(func() { s.closeErr = s.close() })
+	return s.closeErr
+}
+
+func (s *Server) close() error {
 	s.cancel()
 	// 先关闭底层 transport 解除 acceptLoop 的 AcceptConn 阻塞，否则 wg.Wait() 会永久死锁
 	err := s.underlay.Close()

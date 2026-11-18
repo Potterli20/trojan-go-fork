@@ -32,6 +32,10 @@ type Server struct {
 	activeConns sync.Map       // map[*quic.Conn]*quic.Conn
 	packetConn  net.PacketConn // 我们自己 ListenUDP 出来的 socket，必须自己关
 	wg          sync.WaitGroup
+	// 幂等闸：proxy/stack.go:147 注释点名 quic 已处理重复关闭，但 Close 原先无闸。
+	// 并发/重复 Close 会重复关 listener/packetConn/activeConns/underlay。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 func (s *Server) applyCongestionControl(conn *quic.Conn) {
@@ -43,6 +47,11 @@ func (s *Server) applyCongestionControl(conn *quic.Conn) {
 }
 
 func (s *Server) Close() error {
+	s.closeOnce.Do(func() { s.closeErr = s.close() })
+	return s.closeErr
+}
+
+func (s *Server) close() error {
 	s.cancel()
 	s.listener.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	// quic.Listen 用的是我们传进去的 PacketConn，而 Transport 只在 createdConn
