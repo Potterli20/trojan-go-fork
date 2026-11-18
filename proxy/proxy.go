@@ -48,6 +48,13 @@ type Proxy struct {
 	// 第一批 Add，所以只有这两个站点需要过这道闸。
 	startMu sync.Mutex
 	stopped bool
+
+	// closeOnce 让整个 Close 幂等：Close 是导出方法，库化调用方（反复建栈/热重载）
+	// 完全可能对同一个 Proxy 并发或重复调用。没有这道闸时，p.logFile 的无锁读改写
+	// 是 data race，sink/source 会被重复 Close，日志文件被关第二次还会报
+	// "file already closed"。sync.Once 同时保证 closeErr 对后来者可见。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 // boundedBufPool 带驻留数量上限的转发 buffer 池：
@@ -228,6 +235,12 @@ func detachLogFile(f *os.File) error {
 // The returned error reports tunnels that failed to close; a plain
 // signal-triggered shutdown still returns nil.
 func (p *Proxy) Close() error {
+	p.closeOnce.Do(func() { p.closeErr = p.close() })
+	return p.closeErr
+}
+
+// close 是 Close 的实际实现，只在 closeOnce 下执行一次。
+func (p *Proxy) close() error {
 	// 先立起 stopped：此后 Run 的第一批 Add 一律放弃，下面的 wg.Wait 就不会与
 	// "计数器从 0 开始的 Add" 并发（那是 WaitGroup 的非法用法，-race 会报）。
 	p.startMu.Lock()
