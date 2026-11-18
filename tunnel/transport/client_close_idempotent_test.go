@@ -31,15 +31,13 @@ func TestConcurrentClientCloseIsIdempotent(t *testing.T) {
 	var start sync.WaitGroup
 	start.Add(1)
 	var wg sync.WaitGroup
-	for i := 0; i < n; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+	for range n {
+		wg.Go(func() {
 			start.Wait()
 			if err := c.Close(); err != nil { //gosec:disable -- Close 恒返回 nil
 				t.Errorf("Close 返回错误：%v", err)
 			}
-		}()
+		})
 	}
 	start.Done()
 	wg.Wait()
