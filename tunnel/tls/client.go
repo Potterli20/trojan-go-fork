@@ -11,6 +11,7 @@ import (
 
 	"net"
 	"strings"
+	"sync"
 	"time"
 
 	utls "github.com/refraction-networking/utls"
@@ -55,9 +56,20 @@ type Client struct {
 	keyLogger        io.WriteCloser
 	alpn             []string
 	underlay         tunnel.Client
+	// 幂等闸：proxy/stack.go 明确"重复关闭由各 tunnel 的幂等 Close 兜住"。
+	// 库化热重载并发 Close 同一 Client 时，keyLogger（真实为 *os.File）与
+	// underlay 会被重复关，第二次 keyLogger.Close 报 file already closed，
+	// underlay 的重复 Close 还会级联放大到更下层。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 func (c *Client) Close() error {
+	c.closeOnce.Do(func() { c.closeErr = c.close() })
+	return c.closeErr
+}
+
+func (c *Client) close() error {
 	log.Info("[TLS] Closing client")
 	if c.keyLogger != nil {
 		if err := c.keyLogger.Close(); err != nil {

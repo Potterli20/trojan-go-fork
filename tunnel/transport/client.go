@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"sync"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
@@ -20,9 +21,18 @@ type Client struct {
 	ctx           context.Context
 	cancel        context.CancelFunc
 	direct        *freedom.Client
+	// 幂等闸：proxy/stack.go 明确"重复关闭由各 tunnel 的幂等 Close 兜住"，
+	// Server 侧有 closeMu 而 Client 侧原先没有。cmd.Wait 不允许并发调用（stdlib
+	// 明确禁止），库化热重载并发 Close 同一 Client 会触发 data race + 重复 Kill。
+	closeOnce sync.Once
 }
 
 func (c *Client) Close() error {
+	c.closeOnce.Do(c.close)
+	return nil
+}
+
+func (c *Client) close() {
 	log.Info("[Transport] Closing client")
 	c.cancel()
 	if c.cmd != nil && c.cmd.Process != nil {
@@ -41,7 +51,6 @@ func (c *Client) Close() error {
 		log.Info("[Transport] Transport plugin process killed")
 	}
 	log.Info("[Transport] Client closed successfully")
-	return nil
 }
 
 func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
