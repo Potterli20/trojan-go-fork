@@ -636,6 +636,10 @@ func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 		}
 		return nil, err
 	}
+	if p == nil {
+		signal.Stop(earlySig)
+		return nil, common.NewError("proxy creator returned nil without error")
+	}
 	if p.sigChan != earlySig {
 		// creator 没经 ctx 传递这条 channel（外部注册的 creator 可能不遵守约定）：
 		// 立刻卸掉，避免信号被投进无人消费的缓冲区。

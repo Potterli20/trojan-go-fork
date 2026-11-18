@@ -20,6 +20,11 @@ import (
 func buildNodes(ctx context.Context, nodeConfigList []NodeConfig, isJSON bool) (map[string]*proxy.Node, error) {
 	nodes := make(map[string]*proxy.Node)
 	for _, nodeCfg := range nodeConfigList {
+		// 重复 tag 会被 nodes[tag] = node 静默覆盖，先定义的节点连同配置一起丢掉，
+		// 链路错配且无症状。在配置层拒绝，变成可读的启动错误。
+		if _, exists := nodes[nodeCfg.Tag]; exists {
+			return nil, common.NewError("duplicate node tag: " + nodeCfg.Tag)
+		}
 		nodeCfg.Protocol = strings.ToUpper(nodeCfg.Protocol)
 		if _, err := tunnel.GetTunnel(nodeCfg.Protocol); err != nil {
 			return nil, common.NewError("invalid protocol name:" + nodeCfg.Protocol)
@@ -52,6 +57,17 @@ func buildNodes(ctx context.Context, nodeConfigList []NodeConfig, isJSON bool) (
 		nodes[nodeCfg.Tag] = node
 	}
 	return nodes, nil
+}
+
+// rootCanStandAlone 报告某协议能否作为 custom 入站树的根节点（NewServer(ctx, nil) 合法）。
+// 这些层的 NewServer 自己 Listen，不解引用传入的 underlay；其余层都需要下层。
+func rootCanStandAlone(protocol string) bool {
+	switch protocol {
+	case "TRANSPORT", "ADAPTER", "DOKODEMO", "TPROXY", "QUIC":
+		return true
+	default:
+		return false
+	}
 }
 
 func init() {
@@ -106,6 +122,15 @@ func init() {
 						t, err := tunnel.GetTunnel(root.Name)
 						if err != nil {
 							return nil, common.NewError("failed to find root tunnel").Base(err)
+						}
+						// 根节点没有下层，必须是自绑监听层（自己 Listen 的入口）。
+						// 把需要 underlay 的协议（socks/tls/trojan/... 等）放到根节点，
+						// 其 NewServer(ctx, nil) 会解引用 nil（实测 socks.NewServer 在
+						// underlay.AcceptPacket 处 SIGSEGV）——错误配置不该崩进程，
+						// 在配置层挡下并给出可读错误。集合取自"NewServer 不碰 underlay"
+						// 的入口层；新增自绑层时需同步登记到这里。
+						if !rootCanStandAlone(root.Name) {
+							return nil, common.NewError("inbound root protocol " + root.Name + " requires an underlay; use a self-listening layer (TRANSPORT/ADAPTER/DOKODEMO/TPROXY/QUIC) as the first node")
 						}
 						s, err := t.NewServer(root.Context, nil)
 						if err != nil {
