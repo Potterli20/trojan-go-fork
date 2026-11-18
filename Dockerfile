@@ -1,4 +1,4 @@
-FROM golang:alpine AS builder
+FROM golang:1.27-alpine AS builder
 WORKDIR /trojan-go-fork
 ARG REF
 RUN apk update && \

@@ -1,7 +1,7 @@
 package fingerprint
 
 import (
-	"sort"
+	"slices"
 
 	"crypto/tls"
 	"github.com/Potterli20/trojan-go-fork/common"
@@ -80,7 +80,7 @@ func knownCurveNames() []string {
 	for name := range curveNameMap {
 		names = append(names, name)
 	}
-	sort.Strings(names)
+	slices.Sort(names)
 	return names
 }
 

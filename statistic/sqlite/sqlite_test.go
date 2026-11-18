@@ -4,7 +4,7 @@ package sqlite
 
 import (
 	"path/filepath"
-	"sort"
+	"slices"
 	"testing"
 
 	"github.com/Potterli20/trojan-go-fork/statistic"
@@ -89,7 +89,7 @@ func TestSqlitePersistencerRoundTrip(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("ListUser: %v", err)
 	}
-	sort.Strings(hashes)
+	slices.Sort(hashes)
 	if len(hashes) != 2 || hashes[0] != "hash-a" || hashes[1] != "hash-b" {
 		t.Fatalf("ListUser returned %v, want [hash-a hash-b]", hashes)
 	}
