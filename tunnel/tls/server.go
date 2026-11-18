@@ -138,28 +138,50 @@ func isDomainNameMatched(pattern string, domainName string) bool {
 	return pattern == domainName
 }
 
+// acceptBackoffStep 与 acceptBackoffCap 是 panic 退避参数（线性、封顶 3s）。
+// 口径同 trojan/simplesocks：panic 由对端字节触发，裸 continue 就是满 CPU 自转。
+const (
+	acceptBackoffStep = 100 * time.Millisecond
+	acceptBackoffCap  = 3 * time.Second
+)
+
 func (s *Server) acceptLoop() {
+	failures := 0
 	for {
 		conn, err := tunnel.AcceptConnGuarded(s.underlay, &Tunnel{})
 		if err != nil {
-			// 下层解析**未认证对端可控字节**时冒出的 panic 已经被边界收住
-			// （见 tunnel.ErrAcceptPanic）：本层与监听器都还活着，记一条错误继续接纳。
-			// 走到下面"底层已不可用"那条 return 的话，一次 panic 就把这个入站永久停摆——
-			// 没有退出码、没有重启，只是再也接纳不了新连接，比进程崩了更难发现。
-			if errors.Is(err, tunnel.ErrAcceptPanic) {
-				log.Error(common.NewError("tls accept recovered from a panic in the underlay").Base(err))
-				continue
-			}
 			// 注意：这里不能用 "select ctx.Done / default" 模式判断是否在关闭：
 			// default 永远就绪，当 ctx 恰已取消时两个分支同时就绪，runtime 随机二选一，
 			// 会以约 50% 概率在正常关闭路径上触发 Fatal（os.Exit）杀死整个进程。
 			if s.ctx.Err() != nil {
 				return
 			}
+			// 下层解析**未认证对端可控字节**时冒出的 panic 已经被边界收住
+			// （见 tunnel.ErrAcceptPanic）：本层与监听器都还活着，继续接纳。
+			// 走到下面"底层已不可用"那条 return 的话，一次 panic 就把这个入站永久停摆——
+			// 没有退出码、没有重启，只是再也接纳不了新连接，比进程崩了更难发现。
+			// 但不能裸 continue：出错速率由对端决定，线性退避 + 每 10 次一条 Error
+			// 才不会把单条 accept 协程变成满 CPU 自转 + 日志洪泛（口径同 trojan/simplesocks）。
+			if errors.Is(err, tunnel.ErrAcceptPanic) {
+				failures++
+				if failures%10 == 1 {
+					log.Error(common.NewError("tls accept recovered from a panic in the underlay").Base(err))
+				} else if log.ShouldLog(log.DebugLevel) {
+					log.Debug("tls accept failed (suppressed) x", failures)
+				}
+				delay := min(time.Duration(failures)*acceptBackoffStep, acceptBackoffCap)
+				select {
+				case <-time.After(delay):
+				case <-s.ctx.Done():
+					return
+				}
+				continue
+			}
 			// 底层已不可用，accept 循环终止；用 Error 而非 Fatal，进程不应被库代码杀死
 			log.Error(common.NewError("transport accept error" + err.Error()))
 			return
 		}
+		failures = 0
 		s.wg.Go(func() {
 			defer func() {
 				if r := recover(); r != nil {
