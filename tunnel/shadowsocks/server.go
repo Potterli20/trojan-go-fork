@@ -28,6 +28,12 @@ type Server struct {
 	pendingMutex sync.Mutex
 	pendingConns map[tunnel.Conn]struct{}
 	closing      bool
+
+	// 幂等闸：与 websocket/tls.Server 同型，proxy/stack.go 明确共享下层会被
+	// 重复命中、依赖各 tunnel 的幂等 Close。无闸时并发 Close 会重复关
+	// underlay、重复快照关在途探测连接、重复关嵌入的 Redirector。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 // trackPending 登记一条还在探测中的连接，返回 false 表示服务已进入关停。
@@ -135,6 +141,11 @@ func (s *Server) AcceptPacket(t tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (s *Server) Close() error {
+	s.closeOnce.Do(func() { s.closeErr = s.close() })
+	return s.closeErr
+}
+
+func (s *Server) close() error {
 	s.cancel()
 	err := s.underlay.Close()
 	s.closePending()

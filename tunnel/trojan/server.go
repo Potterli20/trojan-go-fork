@@ -354,22 +354,32 @@ func (c *InboundConn) Hash() string {
 
 // Server is a trojan tunnel server
 type Server struct {
-	auth         statistic.Authenticator
-	authRef      *authInstance
-	redir        *redirector.Redirector
-	redirAddr    *tunnel.Address
-	underlay     tunnel.Server
-	connChan     chan tunnel.Conn
-	muxChan      chan tunnel.Conn
-	packetChan   chan tunnel.PacketConn
-	ctx          context.Context
-	cancel       context.CancelFunc
-	wg           sync.WaitGroup
-	closeOnce    sync.Once
+	auth       statistic.Authenticator
+	authRef    *authInstance
+	redir      *redirector.Redirector
+	redirAddr  *tunnel.Address
+	underlay   tunnel.Server
+	connChan   chan tunnel.Conn
+	muxChan    chan tunnel.Conn
+	packetChan chan tunnel.PacketConn
+	ctx        context.Context
+	cancel     context.CancelFunc
+	wg         sync.WaitGroup
+	closeOnce  sync.Once // 只保护 releaseAuth（引用计数）
+	// 整体幂等闸：与 tls/websocket/shadowsocks.Server 同型，proxy/stack.go 明确
+	// 共享下层会被重复命中、依赖各 tunnel 的幂等 Close。无闸时并发 Close 会
+	// 重复关 underlay、重复跑三个 channel 的排空、重复关 redir。
+	closeAllOnce sync.Once
+	closeErr     error
 	trustHeaders bool
 }
 
 func (s *Server) Close() error {
+	s.closeAllOnce.Do(func() { s.closeErr = s.close() })
+	return s.closeErr
+}
+
+func (s *Server) close() error {
 	s.cancel()
 	// 先关闭底层 transport 再等待 acceptLoop 退出：
 	// acceptLoop 阻塞在 underlay.AcceptConn 上，若先 wg.Wait() 会永久死锁

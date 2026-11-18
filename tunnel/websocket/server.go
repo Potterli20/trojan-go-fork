@@ -39,6 +39,12 @@ type Server struct {
 	pendingMutex sync.Mutex
 	pendingConns map[tunnel.Conn]struct{}
 	closing      bool
+
+	// 幂等闸：与 tls.Server 同型，proxy/stack.go 明确共享下层会被重复命中、
+	// 依赖各 tunnel 的幂等 Close。无闸时并发 Close 会重复关 underlay、
+	// 重复快照关在途握手连接、重复关 redir。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 // trackPending 登记一条还在握手里的连接，返回 false 表示服务已进入关停，
@@ -77,6 +83,11 @@ func (s *Server) closePending() {
 }
 
 func (s *Server) Close() error {
+	s.closeOnce.Do(func() { s.closeErr = s.close() })
+	return s.closeErr
+}
+
+func (s *Server) close() error {
 	s.cancel()
 	err := s.underlay.Close()
 	// 先关掉在途握手的连接：只靠 handshakeTimeout(30s) 的时限自己退出的话，
