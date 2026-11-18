@@ -2,6 +2,7 @@ package custom
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -12,18 +13,34 @@ import (
 	"github.com/Potterli20/trojan-go-fork/tunnel"
 )
 
-func buildNodes(ctx context.Context, nodeConfigList []NodeConfig) (map[string]*proxy.Node, error) {
+// buildNodes 用与顶层配置相同的解析器还原每个节点的 config（any 字段）。
+// JSON 来源解析出下划线键（local_addr），必须走 JSON 标签；YAML 来源是 hyphen
+// 键（local-addr），必须走 YAML 标签。混用会让节点参数被静默丢弃——进程照常启动，
+// 用户以为配好的监听地址/端口实际是全默认。
+func buildNodes(ctx context.Context, nodeConfigList []NodeConfig, isJSON bool) (map[string]*proxy.Node, error) {
 	nodes := make(map[string]*proxy.Node)
 	for _, nodeCfg := range nodeConfigList {
 		nodeCfg.Protocol = strings.ToUpper(nodeCfg.Protocol)
 		if _, err := tunnel.GetTunnel(nodeCfg.Protocol); err != nil {
 			return nil, common.NewError("invalid protocol name:" + nodeCfg.Protocol)
 		}
-		data, err := yaml.Marshal(nodeCfg.Config)
-		if err != nil {
-			return nil, common.NewError("failed to marshal node config for " + nodeCfg.Tag).Base(err)
+		var nodeContext context.Context
+		var err error
+		if isJSON {
+			var data []byte
+			data, err = json.Marshal(nodeCfg.Config)
+			if err != nil {
+				return nil, common.NewError("failed to marshal node config for " + nodeCfg.Tag).Base(err)
+			}
+			nodeContext, err = config.WithJSONConfig(ctx, data)
+		} else {
+			var data []byte
+			data, err = yaml.Marshal(nodeCfg.Config)
+			if err != nil {
+				return nil, common.NewError("failed to marshal node config for " + nodeCfg.Tag).Base(err)
+			}
+			nodeContext, err = config.WithYAMLConfig(ctx, data)
 		}
-		nodeContext, err := config.WithYAMLConfig(ctx, data)
 		if err != nil {
 			return nil, common.NewError("failed to parse config data for " + nodeCfg.Tag + " with protocol" + nodeCfg.Protocol).Base(err)
 		}
@@ -61,7 +78,8 @@ func init() {
 			}
 		}()
 		// inbound
-		nodes, err := buildNodes(ctx, cfg.Inbound.Node)
+		isJSON := proxy.IsJSONConfig(ctx)
+		nodes, err := buildNodes(ctx, cfg.Inbound.Node, isJSON)
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +145,7 @@ func init() {
 		}
 
 		// outbound
-		nodes, err = buildNodes(ctx, cfg.Outbound.Node)
+		nodes, err = buildNodes(ctx, cfg.Outbound.Node, isJSON)
 		if err != nil {
 			return nil, err
 		}

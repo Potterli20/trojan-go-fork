@@ -571,8 +571,25 @@ func RegisterProxyCreator(name string, creator Creator) {
 // earlySignalKey 把建栈期就先挂上的信号通道经 ctx 交给 NewProxy。
 type earlySignalKey struct{}
 
+// configFormatKey 把顶层配置的格式（JSON / YAML）经 ctx 传给需要重新解析嵌套
+// config（any 字段）的 creator。custom 模式的 NodeConfig.Config 是 any：JSON 来源
+// 解析出下划线键，YAML 来源是 hyphen 键；必须用与顶层相同的解析器还原，否则
+// JSON 配置下节点参数会被 YAML 标签静默丢弃（进程照常启动，参数却没生效）。
+type configFormatKey struct{}
+
+func withConfigFormat(ctx context.Context, isJSON bool) context.Context {
+	return context.WithValue(ctx, configFormatKey{}, isJSON)
+}
+
+// IsJSONConfig 报告 NewProxyFromConfigData 收到的顶层配置是否为 JSON 格式。
+// 供需要重新解析嵌套 config（any 字段）的 proxy creator 使用。
+func IsJSONConfig(ctx context.Context) bool {
+	isJSON, _ := ctx.Value(configFormatKey{}).(bool)
+	return isJSON
+}
+
 func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
-	ctx := context.Background()
+	ctx := withConfigFormat(context.Background(), isJSON)
 	var err error
 	if isJSON {
 		ctx, err = config.WithJSONConfig(ctx, data)
