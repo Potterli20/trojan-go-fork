@@ -406,7 +406,8 @@ func (s *Server) closeAssociations() {
 func (s *Server) packetDispatchLoop() {
 	buf := make([]byte, MaxPacketSize)
 	readErrors := 0
-	limitDrops := 0 // 会话上限丢弃计数，只用于日志限流
+	limitDrops := 0  // 会话上限丢弃计数，只用于日志限流
+	parseErrors := 0 // 畸形地址块丢弃计数，只用于日志限流
 	for {
 		n, src, err := s.listenPacketConn.ReadFrom(buf)
 		if err != nil {
@@ -441,6 +442,29 @@ func (s *Server) packetDispatchLoop() {
 		// 永远投递不出负载的会话。口径同 tunnel/freedom/conn.go 的同型闸门。
 		if n < 4 {
 			log.Debug("socks dropping short udp packet from", src.String())
+			continue
+		}
+		// 地址块必须在**建会话之前**解析：对端是未认证的 UDP 源，ATYP 非法或域名
+		// 长度越界的废包若先建好会话才发现解析失败，就会凭空留下一条带子 ctx、
+		// 两条通道和一个守护协程的空会话，活到 UDPTimeout(60s)。源地址可伪造，
+		// 高速重放即可顶满 maxUDPSessions 挤掉合法用户。
+		r := bytes.NewReader(buf[3:n])
+		address := new(tunnel.Address)
+		_, err = address.ReadFrom(r)
+		if err != nil {
+			// 限流：这条路径的触发速率等于对端发包速率，且源可伪造；每包一条 Error
+			// 会把日志变成攻击面（口径同上面的会话上限/读错误限流）。
+			parseErrors++
+			if parseErrors%10 == 1 {
+				log.Error(common.NewError("socks failed to parse incoming packet").Base(err))
+			} else if log.ShouldLog(log.DebugLevel) {
+				log.Debug("socks udp parse failed (suppressed) x", parseErrors)
+			}
+			continue
+		}
+		remaining := r.Len()
+		if remaining <= 0 {
+			// 地址块之后没有负载：同样不能建会话，否则又是一条空会话。
 			continue
 		}
 		log.Debug("socks recv udp packet from", src)
@@ -548,17 +572,6 @@ func (s *Server) packetDispatchLoop() {
 				log.Debug("exiting")
 				return
 			}
-		}
-		r := bytes.NewReader(buf[3:n])
-		address := new(tunnel.Address)
-		_, err = address.ReadFrom(r)
-		if err != nil {
-			log.Error(common.NewError("socks failed to parse incoming packet").Base(err))
-			continue
-		}
-		remaining := r.Len()
-		if remaining <= 0 {
-			continue
 		}
 		// 从池里借一块装这个包的负载；借用权随 packetInfo 交给会话，
 		// 最后由 ReadWithMetadata 归还（或会话被拆时由 Close 的排空归还）。
