@@ -421,6 +421,11 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	if cfg.RemoteHost == "" {
 		return nil, common.NewError("QUIC remote address is empty")
 	}
+	// 负值会被 uint64/duration 转换毒化 quic.Config（窗口变约 1.8e19 字节等），
+	// 必须在建栈前拒绝。0 是合法的"库默认/关保活"语义，校验只拒绝负值。
+	if err := ValidateQuicParams(cfg.QUIC); err != nil {
+		return nil, err
+	}
 
 	if cfg.QUIC.ALPN == "" {
 		cfg.QUIC.ALPN = "hq-29"

@@ -1,6 +1,7 @@
 package quic
 
 import (
+	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/config"
 )
 
@@ -45,6 +46,31 @@ func newDefaultConfig() *Config {
 			BrutalDown:          0,
 		},
 	}
+}
+
+// ValidateQuicParams 拒绝会被无符号/时长转换毒化的负值配置。
+// 这几个字段都是 int，却在建栈时直接 uint64(cfg.InitialStreamWindow) 喂给
+// quic.Config，或 time.Duration(cfg.MaxIdleTimeout) 变成负 duration：
+//   - 窗口 -1 → uint64 约 1.8e19 字节的流控窗口，对端可据此灌入海量数据；
+//   - MaxIncomingStreams -1 → int64 负值；
+//   - MaxIdleTimeout -1 → 负 duration，且 KeepAlivePeriod=idle/2 也变负。
+//
+// 0 是合法语义（窗口交给 quic-go 库默认、idle=0 关保活），所以只拒绝负值，
+// 不擅自收紧 0。BrutalUp/Down 本身是 uint64，不在此检查。
+func ValidateQuicParams(cfg QUICConfig) error {
+	if cfg.MaxIdleTimeout < 0 {
+		return common.NewError("quic: max_idle_timeout must not be negative")
+	}
+	if cfg.MaxIncomingStreams < 0 {
+		return common.NewError("quic: max_incoming_streams must not be negative")
+	}
+	if cfg.InitialStreamWindow < 0 {
+		return common.NewError("quic: initial_stream_window must not be negative")
+	}
+	if cfg.InitialConnWindow < 0 {
+		return common.NewError("quic: initial_conn_window must not be negative")
+	}
+	return nil
 }
 
 func init() {

@@ -325,6 +325,15 @@ func (c *Client) Close() error {
 
 func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 	cfg := config.FromContext(ctx, Name).(*Config)
+	// 启用了上游代理却没给完整地址时必须在启动期拒绝，而不是拼出 ":0" 让建栈
+	// 假装成功、直到第一次拨号才报 "via socks proxy" 失败。口径同 shadowsocks/quic
+	// 的空 remote-addr 闸、quic brutal 缺码率：策略性拒绝同步返回。
+	// 这个检查要在任何资源分配（SetGlobalOutbound、context.WithCancel）之前。
+	if cfg.ForwardProxy.Enabled {
+		if cfg.ForwardProxy.ProxyHost == "" || cfg.ForwardProxy.ProxyPort <= 0 {
+			return nil, common.NewError("freedom: forward_proxy is enabled but proxy_addr or proxy_port is missing")
+		}
+	}
 	addr := tunnel.NewAddressFromHostPort("tcp", cfg.ForwardProxy.ProxyHost, cfg.ForwardProxy.ProxyPort)
 
 	var outboundLocalIP net.IP

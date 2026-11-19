@@ -275,6 +275,11 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	if cfg.RemoteHost == "" {
 		return nil, common.NewError("QUIC listen address is empty")
 	}
+	// 负值会被 uint64/duration 转换毒化 quic.Config（窗口变约 1.8e19 字节等），
+	// 必须在 cert 加载与 UDP bind 之前拒绝，口径同 ValidateBrutalParams。
+	if err := ValidateQuicParams(cfg.QUIC); err != nil {
+		return nil, err
+	}
 
 	if cfg.QUIC.ALPN == "" {
 		cfg.QUIC.ALPN = "hq-29"
