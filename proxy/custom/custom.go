@@ -70,6 +70,21 @@ func rootCanStandAlone(protocol string) bool {
 	}
 }
 
+// clientCanBeInnermost 报告某协议能否作为 custom 出站链的最内层（NewClient(ctx, nil) 合法）。
+// 这些层自己拨号、不解引用 underlay；其余层（trojan/tls/websocket/mux/...）在
+// DialConn 时才对 underlay 解引用。出站首层配成它们时建栈照样成功，直到首个连接
+// 到达才 SIGSEGV（在无 recover 的中继协程里，整个进程崩掉）——必须在配置层拒绝。
+// 集合与入站 rootCanStandAlone 不同：freedom/transport 自拨号但不监听，adapter/
+// dokodemo/tproxy 只监听不拨号。新增自拨号层时需同步登记到这里。
+func clientCanBeInnermost(protocol string) bool {
+	switch protocol {
+	case "FREEDOM", "TRANSPORT", "QUIC":
+		return true
+	default:
+		return false
+	}
+}
+
 func init() {
 	proxy.RegisterProxyCreator(Name, func(ctx context.Context) (*proxy.Proxy, error) {
 		cfg := config.FromContext(ctx, Name).(*Config)
@@ -179,6 +194,13 @@ func init() {
 		for _, tag := range cfg.Outbound.Path[0] {
 			if _, found := nodes[tag]; !found {
 				return nil, common.NewError("invalid node tag: " + tag)
+			}
+			// 最内层（client==nil）必须是自拨号层：其余层的 NewClient 只把 nil
+			// 存进 underlay、不立即解引用，建栈会"成功"，直到首个连接到达才
+			// DialConn 对 nil 解引用 SIGSEGV（在无 recover 的中继协程里崩进程）。
+			// 与入站 rootCanStandAlone 对称，在配置层挡下并给出可读错误。
+			if client == nil && !clientCanBeInnermost(nodes[tag].Name) {
+				return nil, common.NewError("outbound root protocol " + nodes[tag].Name + " requires an underlay; use a self-dialing layer (FREEDOM/TRANSPORT/QUIC) as the first node")
 			}
 			t, err := tunnel.GetTunnel(nodes[tag].Name)
 			if err != nil {
