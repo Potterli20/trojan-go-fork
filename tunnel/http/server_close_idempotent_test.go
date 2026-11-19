@@ -41,7 +41,7 @@ func TestConcurrentServerCloseIsIdempotent(t *testing.T) {
 	start.Add(1)
 	errs := make([]error, n)
 	var wg sync.WaitGroup
-	for i := 0; i < n; i++ {
+	for i := range n {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()

@@ -12,10 +12,11 @@ import (
 // 旧实现是 Load(hash) → meter.Close()（含 wg.Wait，窗口不小）→ Delete(hash)：
 // Delete 无条件按键删，而不是"只有表里仍是我 Close 掉的那个对象时才删"。
 // 真实并发序列（API SetUsers 的 Delete/Add 与 mysql syncUsers 可对同一 hash 撞上）：
-//   A: Load(H)→u1，停在 Close 之后
-//   B: 完整 DelUser(H) → Close(u1)、删掉 u1
-//   C: AddUser(H) → 建 u2、起 speedUpdater/ipCleaner
-//   A: Delete(H) → 把 u2 删掉
+//
+//	A: Load(H)→u1，停在 Close 之后
+//	B: 完整 DelUser(H) → Close(u1)、删掉 u1
+//	C: AddUser(H) → 建 u2、起 speedUpdater/ipCleaner
+//	A: Delete(H) → 把 u2 删掉
 //
 // 后果：u2 仍被 relay/API 当作活用户持有，却已从 users 表摘除；它的后台协程、
 // ctx、ipTable 无人 Close，永久泄漏。这与 AddUser 用 LoadOrStore 是两回事——

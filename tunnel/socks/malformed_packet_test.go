@@ -34,7 +34,7 @@ func TestMalformedUDPPacketDoesNotCreateSession(t *testing.T) {
 
 	// 3 个畸形包，源地址互不相同——旧实现会各建一条会话。
 	const malformedCount = 3
-	for i := 0; i < malformedCount; i++ {
+	for i := range malformedCount {
 		src := &net.UDPAddr{IP: net.IPv4(10, 0, 0, byte(i+1)), Port: 4000 + i}
 		listen.feed <- srcPacket{payload: malformedUDPPacket(), src: src}
 	}

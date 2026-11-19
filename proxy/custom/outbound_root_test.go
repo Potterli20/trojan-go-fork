@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/Potterli20/trojan-go-fork/proxy"
+	_ "github.com/Potterli20/trojan-go-fork/tunnel/freedom"   // 注册 freedom（出站自拨号根，正向对照）
 	_ "github.com/Potterli20/trojan-go-fork/tunnel/transport" // 注册 transport（入站根节点层）
-	_ "github.com/Potterli20/trojan-go-fork/tunnel/freedom"  // 注册 freedom（出站自拨号根，正向对照）
-	_ "github.com/Potterli20/trojan-go-fork/tunnel/trojan"   // 注册 trojan（需要 underlay 的层）
+	_ "github.com/Potterli20/trojan-go-fork/tunnel/trojan"    // 注册 trojan（需要 underlay 的层）
 )
 
 // TestOutboundRootWithoutUnderlayReturnsError 钉住 custom 出站链的根节点防御：

@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/Potterli20/trojan-go-fork/proxy"
+	_ "github.com/Potterli20/trojan-go-fork/tunnel/freedom"   // 注册 freedom（出站根）
 	_ "github.com/Potterli20/trojan-go-fork/tunnel/transport" // 注册 transport
-	_ "github.com/Potterli20/trojan-go-fork/tunnel/freedom"  // 注册 freedom（出站根）
 )
 
 // TestSelfBindingLayerMustBeInboundRoot 钉住入站 path 的自绑层位置约束：

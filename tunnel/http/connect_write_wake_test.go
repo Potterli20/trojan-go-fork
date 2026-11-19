@@ -64,11 +64,11 @@ func (c *blockingWriteConn) Close() error {
 	})
 	return nil
 }
-func (c *blockingWriteConn) LocalAddr() net.Addr                { return c.remote }
-func (c *blockingWriteConn) RemoteAddr() net.Addr               { return c.remote }
-func (c *blockingWriteConn) SetDeadline(time.Time) error        { return nil }
-func (c *blockingWriteConn) SetReadDeadline(time.Time) error    { return nil }
-func (c *blockingWriteConn) SetWriteDeadline(time.Time) error   { return nil }
+func (c *blockingWriteConn) LocalAddr() net.Addr              { return c.remote }
+func (c *blockingWriteConn) RemoteAddr() net.Addr             { return c.remote }
+func (c *blockingWriteConn) SetDeadline(time.Time) error      { return nil }
+func (c *blockingWriteConn) SetReadDeadline(time.Time) error  { return nil }
+func (c *blockingWriteConn) SetWriteDeadline(time.Time) error { return nil }
 
 // oneConnServer 只吐一条连接，之后 AcceptConn 阻塞到 ctx 取消，避免 acceptLoop 空转。
 type oneConnServer struct {
