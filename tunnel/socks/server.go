@@ -101,6 +101,13 @@ type Server struct {
 	wg           sync.WaitGroup
 }
 
+// acceptBackoffStep / acceptBackoffCap 是 accept 出错后的退避参数（线性、封顶 3s），
+// 与 tunnel/adapter、tunnel/http、tunnel/mux 的同名常量同参。
+const (
+	acceptBackoffStep = 100 * time.Millisecond
+	acceptBackoffCap  = 3 * time.Second
+)
+
 // associationMaxLife 是单条 ASSOCIATE 控制连接的最长生命。
 // RFC 1928 把这条连接当作 UDP 关联的生命周期，所以不能「回完响应就关」；
 // 但只靠对端 FIN 回收也不行：custom 栈可以把 socks 入站放到公网监听上，
@@ -127,24 +134,41 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (s *Server) acceptConnLoop() {
+	acceptErrors := 0
 	for {
 		conn, err := tunnel.AcceptConnGuarded(s.underlay, &Tunnel{})
 		if err != nil {
-			// 下层解析未认证对端字节时的 panic 已被边界收住，本层继续接纳
-			// （见 tunnel/accept_guard.go）
-			if errors.Is(err, tunnel.ErrAcceptPanic) {
-				log.Error(common.NewError("socks accept recovered from a panic in the underlay").Base(err))
-				continue
-			}
 			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中；
-			// 直接检查 ctx.Err()
+			// 直接检查 ctx.Err()。必须在 panic 分支之前：下层解析未认证字节若持续
+			// panic，裸 continue 不看 ctx 会让 Close 的 wg.Wait 永久挂死。
 			if s.ctx.Err() != nil {
 				log.Debug("exiting")
 				return
 			}
-			log.Error(common.NewError("socks failed to accept conn").Base(err))
+			// 下层解析未认证对端字节时的 panic 已被边界收住，本层继续接纳
+			// （见 tunnel/accept_guard.go）。panic 与普通 accept 错误共用同一套
+			// 线性退避 + 每 10 次一条日志：出错速率由对端决定，裸 continue 会把
+			// 单条 accept 协程变成满 CPU 自转 + 日志洪泛（口径同 tls/http/mux）。
+			isPanic := errors.Is(err, tunnel.ErrAcceptPanic)
+			acceptErrors++
+			if acceptErrors%10 == 1 {
+				if isPanic {
+					log.Error(common.NewError("socks accept recovered from a panic in the underlay").Base(err))
+				} else {
+					log.Error(common.NewError("socks failed to accept conn").Base(err))
+				}
+			} else if log.ShouldLog(log.DebugLevel) {
+				log.Debug("socks accept failed (suppressed) x", acceptErrors)
+			}
+			delay := min(time.Duration(acceptErrors)*acceptBackoffStep, acceptBackoffCap)
+			select {
+			case <-s.ctx.Done():
+				return
+			case <-time.After(delay):
+			}
 			continue
 		}
+		acceptErrors = 0
 		s.wg.Go(func() {
 			// 握手期间对端可能静默(如端口扫描);截止时间覆盖 version/method/
 			// command/address 全部握手读,移交下游前解除

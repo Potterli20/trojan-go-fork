@@ -127,21 +127,25 @@ func (s *Server) acceptLoop() {
 	for {
 		conn, err := tunnel.AcceptConnGuarded(s.underlay, &Tunnel{})
 		if err != nil {
-			// 下层解析未认证对端字节时的 panic 已被边界收住，本层继续接纳
-			// （见 tunnel/accept_guard.go）
-			if errors.Is(err, tunnel.ErrAcceptPanic) {
-				log.Error(common.NewError("http accept recovered from a panic in the underlay").Base(err))
-				continue
-			}
 			// 不能用 "select ctx.Done / default" 判断关闭：ctx 恰已取消时两分支随机命中；
-			// 直接检查 ctx.Err()
+			// 直接检查 ctx.Err()。必须在 panic 分支之前：下层解析未认证字节若持续
+			// panic，裸 continue 不看 ctx 会让 Close 的 wg.Wait 永久挂死。
 			if s.ctx.Err() != nil {
 				log.Error(common.NewError("http closed"))
 				return
 			}
+			// 下层解析未认证对端字节时的 panic 已被边界收住，本层继续接纳
+			// （见 tunnel/accept_guard.go）。panic 与普通 accept 错误共用同一套
+			// 线性退避 + 每 10 次一条日志：出错速率由对端决定，裸 continue 会把
+			// 单条 accept 协程变成满 CPU 自转 + 日志洪泛（tls 已按此口径修好）。
+			isPanic := errors.Is(err, tunnel.ErrAcceptPanic)
 			acceptErrors++
 			if acceptErrors%10 == 1 {
-				log.Error(common.NewError("http failed to accept connection").Base(err))
+				if isPanic {
+					log.Error(common.NewError("http accept recovered from a panic in the underlay").Base(err))
+				} else {
+					log.Error(common.NewError("http failed to accept connection").Base(err))
+				}
 			} else if log.ShouldLog(log.DebugLevel) {
 				log.Debug("http accept failed (suppressed) x", acceptErrors)
 			}
