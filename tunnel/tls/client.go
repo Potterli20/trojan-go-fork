@@ -228,6 +228,11 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	if err := fingerprint.ValidateCurvePreferences(cfg.TLS.CurvePreferences); err != nil {
 		return nil, err
 	}
+	// cipher 名字同样必须在建栈期校验：ParseCipher 对认不出的名字静默跳过，
+	// 全配错时 CipherSuites 拿到 nil 走 Go 默认全套，"限制加密套件"的意图被架空。
+	if err := fingerprint.ValidateCipher(strings.Split(cfg.TLS.Cipher, ":")); err != nil {
+		return nil, err
+	}
 
 	log.Info("[TLS] Creating client")
 	if log.ShouldLog(log.DebugLevel) {

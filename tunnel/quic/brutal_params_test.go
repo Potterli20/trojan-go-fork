@@ -11,13 +11,24 @@ import (
 // 选了 brutal 却没给码率，过去只打一行 Warn，连接照常用库默认 BBR 上线：用户以为链路被
 // 固定码率整形（brutal 存在的唯一理由），实际没有任何东西生效，运行期也没有观测点。
 func TestValidateBrutalParamsRejectsZeroRates(t *testing.T) {
+	// brutal：实际速率取 up/down 二者较小值，两者都必须 > 0。
+	if err := ValidateBrutalParams(CongestionConfig{Algorithm: "brutal", BrutalUp: 0, BrutalDown: 1000}); err == nil {
+		t.Error("brutal 且 brutal-up=0 时必须报错")
+	}
+	if err := ValidateBrutalParams(CongestionConfig{Algorithm: "brutal", BrutalUp: 1000, BrutalDown: 0}); err == nil {
+		t.Error("brutal 且 brutal-down=0 时必须报错")
+	}
+	// force-brutal：运行期只读 BrutalUp（congestion.go 的 force-brutal 分支），
+	// 文档 docs/configuration.md:174 / docs/quic_usage.md:152 / docs/features.md:213
+	// 三处明确承诺"只需 brutal-up"。启动校验过去按 brutal 规则连 down 一起要求，
+	// 把文档支持的最小合法配置判死。
+	if err := ValidateBrutalParams(CongestionConfig{Algorithm: "force-brutal", BrutalUp: 0, BrutalDown: 1000}); err == nil {
+		t.Error("force-brutal 且 brutal-up=0 时必须报错（up 是唯一必要参数）")
+	}
+	if err := ValidateBrutalParams(CongestionConfig{Algorithm: "force-brutal", BrutalUp: 1000, BrutalDown: 0}); err != nil {
+		t.Errorf("force-brutal 只需 brutal-up：给了 up 却因 down=0 报错，把文档承诺的配置判死：%v", err)
+	}
 	for _, algo := range []string{"brutal", "force-brutal"} {
-		if err := ValidateBrutalParams(CongestionConfig{Algorithm: algo, BrutalUp: 0, BrutalDown: 1000}); err == nil {
-			t.Errorf("%s 且 brutal-up=0 时必须报错", algo)
-		}
-		if err := ValidateBrutalParams(CongestionConfig{Algorithm: algo, BrutalUp: 1000, BrutalDown: 0}); err == nil {
-			t.Errorf("%s 且 brutal-down=0 时必须报错", algo)
-		}
 		if err := ValidateBrutalParams(CongestionConfig{Algorithm: algo, BrutalUp: 1, BrutalDown: 1}); err != nil {
 			t.Errorf("%s 且两侧码率都为正时不该报错：%v", algo, err)
 		}

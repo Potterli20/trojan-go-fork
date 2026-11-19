@@ -531,6 +531,9 @@ func NewServer(ctx context.Context, underlay tunnel.Server) (*Server, error) {
 	if err := fingerprint.ValidateCurvePreferences(cfg.TLS.CurvePreferences); err != nil {
 		return nil, err
 	}
+	if err := fingerprint.ValidateCipher(strings.Split(cfg.TLS.Cipher, ":")); err != nil {
+		return nil, err
+	}
 	curvePrefs := fingerprint.ParseCurvePreferences(cfg.TLS.CurvePreferences)
 
 	ctx, cancel := context.WithCancel(ctx)

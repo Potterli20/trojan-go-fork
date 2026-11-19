@@ -46,8 +46,16 @@ func ValidateBrutalParams(c CongestionConfig) error {
 	if c.Algorithm != "brutal" && c.Algorithm != "force-brutal" {
 		return nil
 	}
-	if c.BrutalUp == 0 || c.BrutalDown == 0 {
-		return common.NewErrorf("congestion %q requires positive brutal-up and brutal-down (got up=%d down=%d)",
+	// brutal 的实际速率取 up/down 二者较小值，两者都必须为正；
+	// force-brutal 运行期只读 BrutalUp（ApplyCongestionControl 的 force-brutal 分支），
+	// 文档 docs/configuration.md:174 等三处也承诺"只需 brutal-up"。若按 brutal 规则
+	// 连 down 一起要求，就会把文档支持的最小合法配置在启动期判死。
+	if c.BrutalUp == 0 {
+		return common.NewErrorf("congestion %q requires positive brutal-up (got up=%d down=%d)",
+			c.Algorithm, c.BrutalUp, c.BrutalDown)
+	}
+	if c.Algorithm == "brutal" && c.BrutalDown == 0 {
+		return common.NewErrorf("congestion %q requires positive brutal-down (got up=%d down=%d)",
 			c.Algorithm, c.BrutalUp, c.BrutalDown)
 	}
 	return nil

@@ -14,6 +14,9 @@ func ParseCipher(s []string) []uint16 {
 	all := tls.CipherSuites()
 	var result []uint16
 	for _, p := range s {
+		// 与 ValidateCipher 同口径 TrimSpace：配置里 "cipher1: cipher2" 的空格很常见，
+		// 校验放行却在这里被丢弃的话，用户配的套件就没生效。curve 的两侧也都 trim。
+		p = strings.TrimSpace(p)
 		for _, q := range all {
 			if q.Name == p {
 				result = append(result, q.ID)
@@ -22,6 +25,41 @@ func ParseCipher(s []string) []uint16 {
 		}
 	}
 	return result
+}
+
+// ValidateCipher 在启动期拒绝未知 cipher 名字。ParseCipher 对认不出的名字静默跳过：
+// 配了非空 cipher 却解析出 0 个套件时，tls.Config.CipherSuites 拿到 nil 会走 Go 默认
+// 全套，用户以为收紧了加密套件、实际没有任何限制，握手照常成功也不报错——正是
+// curve_preferences 已修过的同型"接受但不生效"。空项按既有口径跳过。
+func ValidateCipher(names []string) error {
+	all := tls.CipherSuites()
+	for _, name := range names {
+		name = strings.TrimSpace(name)
+		if name == "" {
+			continue
+		}
+		found := false
+		for _, q := range all {
+			if q.Name == name {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return common.NewErrorf("unknown cipher suite %q (supported: %s)", name, knownCipherNames())
+		}
+	}
+	return nil
+}
+
+func knownCipherNames() string {
+	all := tls.CipherSuites()
+	names := make([]string, 0, len(all))
+	for _, q := range all {
+		names = append(names, q.Name)
+	}
+	slices.Sort(names)
+	return strings.Join(names, ", ")
 }
 
 // curveNameMap 将配置中的字符串名称映射到标准库 tls.CurveID
