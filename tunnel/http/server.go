@@ -111,7 +111,19 @@ type Server struct {
 	closeErr  error
 }
 
+// acceptBackoffStep / acceptBackoffCap 是 accept 出错后的退避参数（线性、封顶 3s），
+// 与 tunnel/adapter、tunnel/simplesocks 的同名常量同参。
+const (
+	acceptBackoffStep = 100 * time.Millisecond
+	acceptBackoffCap  = 3 * time.Second
+)
+
 func (s *Server) acceptLoop() {
+	// acceptErrors 只用于退避与日志限流。下层一旦**持续**报错（fd 耗尽、共享监听
+	// 被关掉而本层 ctx 未取消），原来的裸 continue 就是满 CPU 热循环且每轮一条
+	// Error，日志速率等于错误速率。同型循环在 adapter/simplesocks 等层已修，
+	// 这里照同一口径补退避 + 限流。
+	acceptErrors := 0
 	for {
 		conn, err := tunnel.AcceptConnGuarded(s.underlay, &Tunnel{})
 		if err != nil {
@@ -127,9 +139,21 @@ func (s *Server) acceptLoop() {
 				log.Error(common.NewError("http closed"))
 				return
 			}
-			log.Error(common.NewError("http failed to accept connection").Base(err))
+			acceptErrors++
+			if acceptErrors%10 == 1 {
+				log.Error(common.NewError("http failed to accept connection").Base(err))
+			} else if log.ShouldLog(log.DebugLevel) {
+				log.Debug("http accept failed (suppressed) x", acceptErrors)
+			}
+			delay := min(time.Duration(acceptErrors)*acceptBackoffStep, acceptBackoffCap)
+			select {
+			case <-s.ctx.Done():
+				return
+			case <-time.After(delay):
+			}
 			continue
 		}
+		acceptErrors = 0
 
 		s.wg.Go(func() {
 			// 首请求读取窗口（含 h2c 嗅探）也要能被 Server.Close 立即唤醒：GET/POST
