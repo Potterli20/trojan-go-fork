@@ -208,6 +208,23 @@ func (s *Server) acceptLoop() {
 					conn.Close()     //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 					return
 				}
+				// 首读 watcher 已在 stopFirstRead 处退出，而下面写 200 响应的 conn.Write
+				// 既无写截止也无独立 watcher：对端读完请求后停读（TCP 零窗口）时这次写
+				// 永久阻塞，Close 的 wg.Wait 只能挂到 Proxy.Close 的 5s 兜底。这里补一个
+				// 只在 handler 存活期有效的关停 watcher：s.ctx 取消时关掉裸连接唤醒在途
+				// Write；handler 返回时 connectDone 让它退出，既不 park 到 Server.Close，
+				// 也不误关已通过 ConnectConn 交给下游 relay 的连接（那条由下游按自己的
+				// ctx 关闭；TCP conn 重复 Close 安全）。口径同下面 GET/POST 分支的
+				// closeRawConn + connDone。
+				connectDone := make(chan struct{})
+				defer close(connectDone)
+				s.wg.Go(func() {
+					select {
+					case <-s.ctx.Done():
+						conn.Close() //gosec:disable -- 关停唤醒路径，错误无处可报
+					case <-connectDone:
+					}
+				})
 				resp := fmt.Sprintf("HTTP/%d.%d 200 Connection established\r\n\r\n", req.ProtoMajor, req.ProtoMinor)
 				_, err = conn.Write([]byte(resp))
 				if err != nil {
