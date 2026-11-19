@@ -41,7 +41,10 @@ func TestMySQLConfigFromKeepsCredentialsOutOfTheParameterSection(t *testing.T) {
 		t.Fatalf("连接目标不对：net=%q addr=%q db=%q", cfg.Net, cfg.Addr, cfg.DBName)
 	}
 
-	// 走一遍 FormatDSN → ParseDSN：必须逐字还原，且参数段里只有 charset 这一项。
+	// 走一遍 FormatDSN → ParseDSN：必须逐字还原。注意往返后 back.Params 里**不该再有
+	// charset**——charset 现在走 charsets 字段（SET NAMES），ParseDSN 把 DSN 里的
+	// charset=utf8 识别成驱动参数而不是系统变量；这一段只能证明"参数段没有被凭据注入"，
+	// charset 本身的语义由 TestMySQLConfigFromCharsetUsesSetNamesNotSystemVariableSET 钉。
 	dsn := cfg.FormatDSN()
 	back, err := mysqldriver.ParseDSN(dsn)
 	if err != nil {
@@ -51,10 +54,31 @@ func TestMySQLConfigFromKeepsCredentialsOutOfTheParameterSection(t *testing.T) {
 		t.Fatalf("DSN 往返后连接参数被改写：user=%q pass=%q addr=%q db=%q（dsn=%s）",
 			back.User, back.Passwd, back.Addr, back.DBName, dsn)
 	}
-	for k := range back.Params {
-		if k != "charset" {
-			t.Fatalf("参数段里多出一项 %q，等于允许凭据注入驱动参数（dsn=%s）", k, dsn)
-		}
+	if _, ok := back.Params["charset"]; ok {
+		t.Fatalf("往返后 Params 里还有 charset：说明源头放在了系统变量表里（dsn=%s）", dsn)
+	}
+}
+
+func TestMySQLConfigFromCharsetUsesSetNamesNotSystemVariableSET(t *testing.T) {
+	// cfg.Params 的语义是「连接建立后逐条执行 SET <name>=<value>」（驱动 connection.go 的
+	// handleParams），而 MySQL 没有名叫 charset 的系统变量 ⇒ 每条新连接先撞
+	// Error 1193 Unknown system variable 'charset'，补列查询失败，认证器建不起来，
+	// 整个代理拒启（2026-11-19 用户实测）。旧手拼 DSN 的 ?charset=utf8 是驱动识别的
+	// 参数，parseDSN 映射进 charsets 字段、连接期发 SET NAMES utf8；两条路在
+	// FormatDSN 输出里渲染成同一个 "charset=utf8"，所以 DSN 字符串往返测试抓不到
+	// 这个语义差——必须分两半钉：
+	// ① Params 里不许有 charset（塞回去这条立刻红）；
+	// ② DSN 里仍要有 charset=utf8（ charset 整条丢掉时这条红；①成立时它唯一来源
+	//    就是 charsets 字段，即 SET NAMES）。
+	cfg, err := mysqlConfigFrom("u", "p", "h", 3306, "d", "", "", "")
+	if err != nil {
+		t.Fatalf("mysqlConfigFrom: %v", err)
+	}
+	if _, ok := cfg.Params["charset"]; ok {
+		t.Fatal("charset 出现在 Params 里：连接期会执行 SET charset=utf8，MySQL 报 Error 1193 Unknown system variable 'charset'")
+	}
+	if dsn := cfg.FormatDSN(); !strings.Contains(dsn, "charset=utf8") {
+		t.Fatalf("连接字符集没有配置成 utf8（SET NAMES 不会发出）：dsn=%s", dsn)
 	}
 }
 

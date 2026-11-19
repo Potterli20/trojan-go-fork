@@ -298,7 +298,16 @@ func mysqlConfigFrom(username, password, host string, port int, dbName, keyPath,
 	cfg.Net = "tcp"
 	cfg.Addr = net.JoinHostPort(host, strconv.Itoa(port))
 	cfg.DBName = dbName
-	cfg.Params = map[string]string{"charset": "utf8"}
+	// 连接字符集必须走 Charset option（连接期发 SET NAMES utf8），不能塞进 Params：
+	// Params 的语义是「连接建立后逐条执行 SET <name>=<value>」，而 MySQL 没有
+	// 名叫 charset 的系统变量 ⇒ 每条新连接先撞 Error 1193 Unknown system variable
+	// 'charset'，补列查询（ensureUsersTable）全部失败，认证器建不起来，整个代理拒启。
+	// 旧手拼 DSN 的 ?charset=utf8 是驱动识别的参数，parseDSN 会映射进 charsets 字段；
+	// 两条路在 FormatDSN 输出里渲染成同一个 "charset=utf8"，DSN 字符串往返测试抓不到
+	// 这个语义差（判据 TestMySQLConfigFromCharsetUsesSetNamesNotSystemVariableSET）。
+	if err := cfg.Apply(mysql.Charset("utf8", "")); err != nil {
+		return nil, common.NewError("failed to apply mysql charset option").Base(err)
+	}
 	cfg.Timeout = mysqlDialTimeout
 	cfg.ReadTimeout = mysqlIOTimeout
 	cfg.WriteTimeout = mysqlIOTimeout
