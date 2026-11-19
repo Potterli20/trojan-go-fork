@@ -762,13 +762,24 @@ func (a *Authenticator) AddUser(hash string) error {
 	return nil
 }
 
+// delUserAfterClose 是 DelUser 在 Close 掉旧用户之后、删除表项之前的同步点，
+// 真实实现是空函数。判据（del_user_compare_delete_test.go）用它把
+// "Load → Close → Delete" 的竞态窗口钉成确定性的先后，形态参照 var dialUDP，
+// 别当冗余删掉。
+var delUserAfterClose = func() {}
+
 func (a *Authenticator) DelUser(hash string) error {
 	meter, found := a.users.Load(hash)
 	if !found {
 		return common.NewError("hash " + hash + " not found")
 	}
 	meter.(*User).Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-	a.users.Delete(hash)
+	delUserAfterClose()
+	// 必须 compare-and-delete：Close 含 wg.Wait，窗口不小。若这期间另一个调用方
+	// 完整删掉旧用户并 AddUser 重建了同 hash 的新用户，无条件 Delete(hash) 会把
+	// 那个新用户从表里摘掉——它还被 relay/API 当作活对象持有，后台协程与 ipTable
+	// 从此无人 Close。只有表项仍是刚才 Close 的那个对象时才删。
+	a.users.CompareAndDelete(hash, meter)
 	if a.pst != nil {
 		a.pst.DeleteUser(hash) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	}
