@@ -47,8 +47,14 @@ type User struct {
 	password      string
 	passLock      sync.RWMutex
 	ipTable       map[string]*ipSlot
-	ipNum         atomic.Int32
-	MaxIPNum      int
+	// ipTombstones 记录被 sweepStaleIPs 强制回收（refs 尚>0）的那些 IP 欠下的
+	// DelIP 次数。旧连接被 sweep 掉后还会调一次 DelIP(ip)；若同 IP 已被新连接
+	// 重建了 slot，那次 DelIP 必须抵扣这里的旧账，而不是删掉新连接的活 slot。
+	// 由 ipLock 保护，惰性 make（零值 nil 可读、只在 sweep 写入时初始化），
+	// 这样不必改所有 User 构造点。墓碑不占 ipNum（不占 MaxIPNum 名额）。
+	ipTombstones map[string]int
+	ipNum        atomic.Int32
+	MaxIPNum     int
 	limiterLock   sync.RWMutex
 	ipLock        sync.Mutex
 	SendLimiter   *rate.Limiter
@@ -98,6 +104,15 @@ func (u *User) ipCleaner() {
 func (u *User) sweepStaleIPs(now time.Time) {
 	for ip, slot := range u.ipTable {
 		if now.Sub(slot.lastSeen) >= ipStaleAfter {
+			// 强制回收时槽位可能仍挂着 refs>0（连接还没走到 DelIP）。把这些
+			// 未释放的引用记成墓碑：旧连接随后到来的 DelIP 应抵扣这份旧账，
+			// 而不是误删同 IP 已被新连接重建的活 slot（否则 MaxIPNum 被绕过）。
+			if slot.refs > 0 {
+				if u.ipTombstones == nil {
+					u.ipTombstones = make(map[string]int)
+				}
+				u.ipTombstones[ip] += slot.refs
+			}
 			delete(u.ipTable, ip)
 			u.ipNum.Add(-1)
 		}
@@ -137,6 +152,18 @@ func (u *User) DelIP(ip string) bool {
 	defer u.ipLock.Unlock()
 
 	if u.MaxIPNum <= 0 {
+		return true
+	}
+
+	// 先抵扣墓碑：这个 IP 若曾被 sweep 强制回收，旧连接欠下的 DelIP 次数记在那里。
+	// 这些旧连接此刻才关闭，它们的 DelIP 绝不能落到同 IP 新连接的活 slot 上——
+	// 否则新连接还在用，槽位却被删掉，ipNum 少于真实活跃 IP 数，MaxIPNum 被绕过。
+	if owed := u.ipTombstones[ip]; owed > 0 {
+		if owed == 1 {
+			delete(u.ipTombstones, ip)
+		} else {
+			u.ipTombstones[ip] = owed - 1
+		}
 		return true
 	}
 
