@@ -122,6 +122,14 @@ func (u *URLOption) Handle() error {
 	if err != nil {
 		return common.NewError("failed to parse URL").Base(err)
 	}
+	// share_link.go 严格解析并校验 plugin 参数，但这里（以及 UrlConfig）没有任何
+	// 字段承接它：历史上 info.Plugin 解析完就被丢掉，用户写了 ?plugin=obfs 以为
+	// 插件链路已启用，进程却照常启动、静默不上插件。裸 plugin 字符串没有约定格式，
+	// 也不能安全映射到需要 command/arg 的 transport_plugin（擅自拼命令有执行外部
+	// 程序风险），所以显式拒绝，绝不静默吞掉这个参数。
+	if info.Plugin != "" {
+		return common.NewErrorf("plugin is not supported in share link: %q", info.Plugin)
+	}
 
 	opts, err := parseOptions(*u.options)
 	if err != nil {

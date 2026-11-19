@@ -638,6 +638,11 @@ func NewProxyFromConfigData(data []byte, isJSON bool) (*Proxy, error) {
 	}
 	if p == nil {
 		signal.Stop(earlySig)
+		// 与上面的 err != nil 分支同源：log.SetOutput(file) 已经生效，这里不 detach
+		// 的话，调用方拿到 error 后打的那行日志全落进已关闭的文件、静默丢失。
+		if cerr := detachLogFile(logFile); cerr != nil {
+			log.Warn(common.NewError("failed to close log file").Base(cerr))
+		}
 		return nil, common.NewError("proxy creator returned nil without error")
 	}
 	if p.sigChan != earlySig {

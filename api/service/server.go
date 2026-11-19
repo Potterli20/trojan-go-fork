@@ -170,6 +170,10 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 				}
 			}
 			err = s.auth.SetUserIPLimit(req.Status.User.Hash, int(req.Status.IpLimit)) //gosec:disable -- IpLimit 是 int32，int 转换在 64 位平台安全
+		default:
+			// proto3 开放枚举：未知数值能合法上线。没有 default 时 err 保持 nil，
+			// 走到末尾回 Success:true——什么都没做却告诉调用方改成功了。
+			err = common.NewErrorf("unknown operation: %d", req.Operation)
 		}
 		if err != nil {
 			stream.Send(&SetUsersResponse{ //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
