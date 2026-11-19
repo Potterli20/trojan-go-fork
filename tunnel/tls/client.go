@@ -40,6 +40,7 @@ const handshakeTimeout = 30 * time.Second
 type Client struct {
 	ctx            context.Context
 	verify         bool
+	verifyHostname bool
 	sni            string
 	serverName     string
 	ca             *x509.CertPool
@@ -87,6 +88,41 @@ func (c *Client) close() error {
 func (c *Client) DialPacket(tunnel tunnel.Tunnel) (tunnel.PacketConn, error) {
 	log.Warn("[TLS] DialPacket is not supported")
 	return nil, common.NewError("DialPacket is not supported")
+}
+
+// verifyChainOnly 只校验证书链、不校验主机名。
+//
+// 用途：ssl.verify=true + ssl.verify_hostname=false 时，用户要的是"校验证书链但允许
+// IP 连接域名证书"。Go 的 InsecureSkipVerify 会连链带主机名一起关掉，粒度太粗；
+// 这里配合 VerifyConnection 回调手工补回链校验——只做 x509.Verify 且不传 DNSName。
+//
+// 安全不变量：绝不能因为"跳过主机名"就连链也跳过。roots 为 nil 时用系统根池，
+// 行为与 InsecureSkipVerify=false 的标准校验的链环节一致。
+func verifyChainOnly(certs []*x509.Certificate, roots *x509.CertPool) error {
+	if len(certs) == 0 {
+		return common.NewError("no peer certificates to verify")
+	}
+	opts := x509.VerifyOptions{
+		Roots:     roots,
+		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		// 刻意不设 DNSName：这正是 verify_hostname=false 的语义。
+	}
+	intermediates := x509.NewCertPool()
+	for _, c := range certs[1:] {
+		intermediates.AddCert(c)
+	}
+	opts.Intermediates = intermediates
+	if _, err := certs[0].Verify(opts); err != nil {
+		return common.NewError("certificate chain verification failed").Base(err)
+	}
+	return nil
+}
+
+// chainOnlyVerifyConnection 返回给 tls.Config.VerifyConnection 的回调。
+// 两个库（crypto/tls 与 utls）的 ConnectionState 类型不同，但都带 PeerCertificates，
+// 所以这里只取证书切片交给共用的 verifyChainOnly。
+func (c *Client) chainOnlyVerifyConnection(certs []*x509.Certificate) error {
+	return verifyChainOnly(certs, c.ca)
 }
 
 func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel.Conn, error) {
@@ -143,21 +179,37 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 	}
 	log.Info("[TLS] Starting handshake with ServerName:", tlsServerName)
 
+	// ssl.verify / ssl.verify_hostname 的组合：
+	//   verify=false                    → 全关（原语义，保持兼容）
+	//   verify=true  + hostname=true    → 标准校验（链 + 主机名）
+	//   verify=true  + hostname=false   → 只跳主机名，用 VerifyConnection 手工补回链校验
+	// 不能只用 !verify 设 InsecureSkipVerify：那会把"只跳主机名"误变成"链也不校"的安全降级。
+	skipVerify := !c.verify || !c.verifyHostname
+	chainOnly := c.verify && !c.verifyHostname
+
 	if c.fingerprint != "" {
 		if log.ShouldLog(log.DebugLevel) {
 			log.Debug("[TLS] Using uTLS fingerprint:", c.helloID)
 		}
-		uconn := utls.UClient(conn, &utls.Config{
+		utlsConfig := &utls.Config{
 			RootCAs:                c.ca,
 			ServerName:             tlsServerName,
-			InsecureSkipVerify:     !c.verify,
+			InsecureSkipVerify:     skipVerify,
 			KeyLogWriter:           c.keyLogger,
 			CipherSuites:           c.cipher,
 			SessionTicketsDisabled: !c.sessionTicket,
 			ClientSessionCache:     c.utlsSessionCache,
 			NextProtos:             c.alpn,
 			CurvePreferences:       c.utlsCurvePrefs,
-		}, c.helloID)
+		}
+		if chainOnly {
+			// InsecureSkipVerify 下标准库/utls 都不会再校链，VerifyConnection 仍会调用且
+			// PeerCertificates 已填充——在这里手工补回链校验（不传 DNSName = 跳主机名）。
+			utlsConfig.VerifyConnection = func(cs utls.ConnectionState) error {
+				return c.chainOnlyVerifyConnection(cs.PeerCertificates)
+			}
+		}
+		uconn := utls.UClient(conn, utlsConfig, c.helloID)
 
 		conn.SetDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 		err := uconn.HandshakeContext(c.handshakeContext())
@@ -181,8 +233,8 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 	if log.ShouldLog(log.DebugLevel) {
 		log.Debug("[TLS] Using standard Go TLS library")
 	}
-	tlsConn := tls.Client(conn, &tls.Config{
-		InsecureSkipVerify:     !c.verify,
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify:     skipVerify,
 		ServerName:             tlsServerName,
 		RootCAs:                c.ca,
 		KeyLogWriter:           c.keyLogger,
@@ -191,7 +243,13 @@ func (c *Client) DialConn(address *tunnel.Address, tunnel tunnel.Tunnel) (tunnel
 		ClientSessionCache:     c.sessionCache,
 		NextProtos:             c.alpn,
 		CurvePreferences:       c.curvePrefs,
-	})
+	}
+	if chainOnly {
+		tlsConfig.VerifyConnection = func(cs tls.ConnectionState) error {
+			return c.chainOnlyVerifyConnection(cs.PeerCertificates)
+		}
+	}
+	tlsConn := tls.Client(conn, tlsConfig)
 
 	conn.SetDeadline(time.Now().Add(handshakeTimeout)) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	err = tlsConn.HandshakeContext(c.handshakeContext())
@@ -292,6 +350,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 		ctx:            ctx,
 		underlay:       underlay,
 		verify:         cfg.TLS.Verify,
+		verifyHostname: cfg.TLS.VerifyHostName,
 		sni:            cfg.TLS.SNI,
 		serverName:     cfg.TLS.ServerName,
 		cipher:         fingerprint.ParseCipher(strings.Split(cfg.TLS.Cipher, ":")),
