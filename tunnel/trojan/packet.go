@@ -89,7 +89,15 @@ func (c *PacketConn) WriteWithMetadata(payload []byte, metadata *tunnel.Metadata
 	frame = append(frame, '\r', '\n')
 	frame = append(frame, payload...)
 
-	_, err = c.Conn.Write(frame)
+	// 用 WriteFrameWithTraffic 写整帧，但只按 payload 长度计费：帧里的地址块、
+	// length 与 CRLF 是协议开销，算进 sent 会让长域名每包多计 100+ 字节，受限速时
+	// 用户还要为这些自己没发的字节白等。TCP 路径仍走 Write（按写入字节计费）。
+	// 用可选接口而非改 Conn 的静态类型，兼容直接用别的 net.Conn 构造的测试夹具。
+	if fc, ok := c.Conn.(frameWithTrafficWriter); ok {
+		_, err = fc.WriteFrameWithTraffic(frame, length)
+	} else {
+		_, err = c.Conn.Write(frame)
+	}
 
 	if log.ShouldLog(log.DebugLevel) {
 		log.Debug("udp packet remote", c.RemoteAddr(), "metadata", metadata, "size", length)

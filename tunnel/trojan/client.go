@@ -93,6 +93,27 @@ func (c *OutboundConn) WriteHeader(payload []byte) (bool, error) {
 }
 
 func (c *OutboundConn) Write(p []byte) (int, error) {
+	return c.writeWithAccounting(p, len(p))
+}
+
+// frameWithTrafficWriter 由 OutboundConn 实现：写整帧，但只按 payloadBytes 计费。
+// PacketConn.WriteWithMetadata 用它避免把 UDP 的地址块与 length/CRLF 算进用户流量。
+// 做成可选接口而非改 PacketConn.Conn 的静态类型，是为了兼容直接用别的 net.Conn
+// 构造 PacketConn 的测试夹具（它们没有这个方法，回退到普通 Write 即可）。
+type frameWithTrafficWriter interface {
+	WriteFrameWithTraffic(frame []byte, payloadBytes int) (int, error)
+}
+
+// WriteFrameWithTraffic 写一条 trojan UDP 帧，但只按 payloadBytes 计入用户流量与限速。
+func (c *OutboundConn) WriteFrameWithTraffic(frame []byte, payloadBytes int) (int, error) {
+	return c.writeWithAccounting(frame, payloadBytes)
+}
+
+// writeWithAccounting 是 Write 与 UDP 帧写入共用的实现。trafficBytes 是本帧计入
+// 流量/限速的字节数：TCP 路径等于 len(p)；UDP 路径只传 payload 长度——帧里的地址块、
+// length 与 CRLF 是协议开销，算进 sent 会让长域名每包多计 100+ 字节，且受限速时
+// 用户为这些自己没发的字节白等。TCP 路径 trafficBytes==len(p)，行为逐字不变。
+func (c *OutboundConn) writeWithAccounting(p []byte, trafficBytes int) (int, error) {
 	written, err := c.WriteHeader(p)
 	if err != nil {
 		log.Error("[Trojan] Failed to flush header with payload:", err)
@@ -102,14 +123,21 @@ func (c *OutboundConn) Write(p []byte) (int, error) {
 		// 首个负载是跟帧头合成一次 Write 发出去的，同样要计流量。旧实现在这里直接
 		// return len(p)：每条连接的首块（最多一个 relay buffer，8KB）既不计入用户
 		// 流量/限速，也不计入 tracker 的 sent，统计与限速会系统性偏低。
-		c.accountSent(len(p))
-		c.sent.Add(uint64(len(p)))
+		c.accountSent(trafficBytes)
+		c.sent.Add(uint64(trafficBytes))
 		return len(p), nil
 	}
 	n, err := c.Conn.Write(p)
-	c.accountSent(n)
-	if n >= 0 {
-		c.sent.Add(uint64(n)) //gosec:disable -- n >= 0 已保证安全
+	// 完整写出时按 trafficBytes 计费；短写（底层 Writer 违反契约的异常路径）时
+	// 保守按实际写出的 n 计费，与改造前一致。TCP 路径 trafficBytes==len(p)，
+	// 两种情况都等于原来的 n，行为逐字不变。
+	accounted := n
+	if n == len(p) {
+		accounted = trafficBytes
+	}
+	c.accountSent(accounted)
+	if accounted >= 0 {
+		c.sent.Add(uint64(accounted)) //gosec:disable -- accounted >= 0 已保证
 	}
 	return n, err
 }
