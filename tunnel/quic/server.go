@@ -199,6 +199,12 @@ func (s *Server) handleConnection(conn *quic.Conn, tracker *log.ConnectionTracke
 				case <-s.ctx.Done():
 					connectionEnding = true
 					return
+				case <-connCtx.Done():
+					// 连接已结束（streamChan 关闭 → handleConnection return → connCancel）。
+					// udpSession 还没交出去、无人关它的 done，若不等 connCtx 就会 park 到
+					// s.ctx.Done()——每命中一次残留 1 goroutine + 1 连接 + activeConns 条目。
+					connectionEnding = true
+					return
 				case <-udpSession.done:
 					return
 				}

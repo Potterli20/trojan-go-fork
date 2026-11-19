@@ -393,6 +393,12 @@ func (u *User) GetHash() string {
 func (u *User) setTraffic(send, recv uint64) {
 	u.Sent.Store(send)
 	u.Recv.Store(recv)
+	// 与 ResetTraffic 同口径：管理员通过 SetUserTraffic 调低累计用量是"重置"，
+	// 不是产生了负流量。不同步last*的话，speedUpdater 下一 tick 的
+	// sent - lastSent.Swap(sent) 会 uint64 下溢成约 1.8e19 的伪速率，经 GetSpeed
+	// 冒到 API 的 GetUsers 输出里。
+	u.lastSent.Store(send)
+	u.lastRecv.Store(recv)
 }
 
 func (u *User) GetTraffic() (uint64, uint64) {
@@ -409,6 +415,15 @@ func (u *User) ResetTraffic() (uint64, uint64) {
 	return sent, recv
 }
 
+// saturatingSub 避免流量计数被调低时 uint64 减法回绕成天文数字。
+// 正常增量路径 cur>=last 时结果不变；只在异常（管理员重置用量）时把速度钳到 0。
+func saturatingSub(cur, last uint64) uint64 {
+	if cur < last {
+		return 0
+	}
+	return cur - last
+}
+
 func (u *User) speedUpdater() {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
@@ -418,8 +433,8 @@ func (u *User) speedUpdater() {
 			return
 		case <-ticker.C:
 			sent, recv := u.GetTraffic()
-			u.sendSpeed.Store(sent - u.lastSent.Swap(sent))
-			u.recvSpeed.Store(recv - u.lastRecv.Swap(recv))
+			u.sendSpeed.Store(saturatingSub(sent, u.lastSent.Swap(sent)))
+			u.recvSpeed.Store(saturatingSub(recv, u.lastRecv.Swap(recv)))
 		}
 	}
 }
