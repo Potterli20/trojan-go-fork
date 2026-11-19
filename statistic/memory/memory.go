@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -55,13 +56,13 @@ type User struct {
 	ipTombstones map[string]int
 	ipNum        atomic.Int32
 	MaxIPNum     int
-	limiterLock   sync.RWMutex
-	ipLock        sync.Mutex
-	SendLimiter   *rate.Limiter
-	RecvLimiter   *rate.Limiter
-	ctx           context.Context
-	wg            sync.WaitGroup
-	cancel        context.CancelFunc
+	limiterLock  sync.RWMutex
+	ipLock       sync.Mutex
+	SendLimiter  *rate.Limiter
+	RecvLimiter  *rate.Limiter
+	ctx          context.Context
+	wg           sync.WaitGroup
+	cancel       context.CancelFunc
 	// expire 是到期时间（Unix 秒，<= 0 = 永不过期）。只有从持久化后端装载的用户会带值，
 	// 配置里的内存用户恒为 0。用 atomic：装载时写一次，AuthUser 并发读。
 	expire atomic.Int64
@@ -352,13 +353,24 @@ func (u *User) SetSpeedLimit(send, recv int) {
 	if send <= 0 {
 		u.SendLimiter = nil
 	} else {
-		u.SendLimiter = rate.NewLimiter(rate.Limit(send), send*2)
+		u.SendLimiter = rate.NewLimiter(rate.Limit(send), limiterBurst(send))
 	}
 	if recv <= 0 {
 		u.RecvLimiter = nil
 	} else {
-		u.RecvLimiter = rate.NewLimiter(rate.Limit(recv), recv*2)
+		u.RecvLimiter = rate.NewLimiter(rate.Limit(recv), limiterBurst(recv))
 	}
+}
+
+// limiterBurst 返回 2*limit 作为令牌桶容量，但先把 limit 钳到 MaxInt/2，避免
+// send*2 按有符号 int 回绕成负数（gRPC SetUsers 可把 speed_limit 设成 MaxInt）。
+// rate.NewLimiter 不校验 burst：负 burst 会让 waitPaced 的 take=min(n,burst) 变负，
+// WaitN(负) 恒立即成功、n 每次增大，会话协程就此 100% CPU 空转。
+func limiterBurst(limit int) int {
+	if limit > math.MaxInt/2 {
+		return math.MaxInt
+	}
+	return limit * 2
 }
 
 func (u *User) GetSpeedLimit() (send, recv int) {

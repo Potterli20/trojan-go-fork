@@ -20,8 +20,12 @@ import (
 
 type Dial func(net.Addr) (net.Conn, error)
 
-func defaultDial(addr net.Addr) (net.Conn, error) {
-	return defaultDialContext(context.Background(), &net.Dialer{Timeout: 30 * time.Second}, addr)
+// defaultDial 是诱饵重定向的默认拨号。ctx 必须由调用方传入（生产路径传 Redirector.ctx）：
+// 旧签名内部写死 context.Background()，R10-2 虽然加了 ctx-aware 的 defaultDialContext，
+// 但唯一生产调用方仍传 Background——诱饵是 SYN 黑洞/慢 DNS 时 Redirector.Close 的
+// wg.Wait 会白等满 30s，ctx 取消叫不醒。把 ctx 收到签名里，调用方就没法漏接。
+func defaultDial(ctx context.Context, addr net.Addr) (net.Conn, error) {
+	return defaultDialContext(ctx, &net.Dialer{Timeout: 30 * time.Second}, addr)
 }
 
 var dialTCPContext = func(ctx context.Context, d *net.Dialer, network, address string) (net.Conn, error) {
@@ -343,7 +347,11 @@ func (r *Redirector) worker() {
 					return
 				}
 				if redirection.Dial == nil {
-					redirection.Dial = defaultDial
+					// 绑定 Redirector 的 ctx：关停时 cancel 会打断阻塞中的诱饵拨号，
+					// Close 的 wg.Wait 不必白等 30s 超时。调用方显式给的 Dial 保持原样。
+					redirection.Dial = func(addr net.Addr) (net.Conn, error) {
+						return defaultDial(r.ctx, addr)
+					}
 				}
 				log.Warn("redirecting connection from", redirection.InboundConn.RemoteAddr(), "to", redirection.RedirectTo.String())
 				outboundConn, err := redirection.Dial(redirection.RedirectTo)
