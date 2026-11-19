@@ -162,6 +162,13 @@ func init() {
 						lastNode = root
 					}
 				} else {
+					// 自绑层（TRANSPORT/QUIC/...）的 NewServer 忽略传入的 underlay、
+					// 自己另开监听。若链在非首节点，父层绑的监听端口虽有连接进来，
+					// 却因父层不是 endpoint 而没有 relay 消费——连接悬挂、fd/协程
+					// 堆积且无报错。自绑层只能是 path 首节点，在接线前挡下。
+					if rootCanStandAlone(nodes[tag].Name) {
+						return nil, common.NewError("inbound self-listening protocol " + nodes[tag].Name + " must be the first node of a path; it ignores the underlay and would leave the parent listener unconsumed")
+					}
 					var err error
 					lastNode, err = lastNode.LinkNextNode(nodes[tag])
 					if err != nil {
