@@ -2,6 +2,7 @@ package simplesocks
 
 import (
 	"context"
+	"sync"
 
 	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/log"
@@ -15,6 +16,12 @@ const (
 
 type Client struct {
 	underlay tunnel.Client
+
+	// 幂等闸：proxy/stack.go 明确共享下层会被重复命中、依赖各 tunnel 的幂等
+	// Close。本层 Close 只有一句 underlay.Close，无闸时并发/重复调用会把
+	// 同一下层关多次。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 func (c *Client) DialConn(addr *tunnel.Address, t tunnel.Tunnel) (tunnel.Conn, error) {
@@ -70,7 +77,8 @@ func (c *Client) DialPacket(t tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (c *Client) Close() error {
-	return c.underlay.Close()
+	c.closeOnce.Do(func() { c.closeErr = c.underlay.Close() })
+	return c.closeErr
 }
 
 func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {

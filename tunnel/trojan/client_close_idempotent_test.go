@@ -1,0 +1,58 @@
+package trojan
+
+import (
+	"context"
+	"errors"
+	"sync"
+	"sync/atomic"
+	"testing"
+
+	"github.com/Potterli20/trojan-go-fork/tunnel"
+)
+
+type countingTrojanClientUnderlay struct{ closes atomic.Int64 }
+
+func (u *countingTrojanClientUnderlay) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
+	return nil, errors.New("not used")
+}
+func (u *countingTrojanClientUnderlay) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
+	return nil, errors.New("not used")
+}
+func (u *countingTrojanClientUnderlay) Close() error { u.closes.Add(1); return nil }
+
+// TestConcurrentClientCloseIsIdempotent 钉住 trojan.Client.Close 的并发安全：
+// cancel → wg.Wait → ReleaseAuthenticator → underlay.Close。ReleaseAuthenticator
+// 自带锁内查删、二次调用安全；underlay 无闸时会被重复关并级联放大到更下层
+// （proxy/stack.go:147 明确共享下层会被重复命中、依赖各 tunnel 的幂等 Close）。
+// 变异对照：去掉 closeOnce，本用例 underlay 关闭计数变 N。
+func TestConcurrentClientCloseIsIdempotent(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	underlay := &countingTrojanClientUnderlay{}
+	c := &Client{ctx: ctx, cancel: cancel, underlay: underlay}
+
+	const n = 8
+	var start sync.WaitGroup
+	start.Add(1)
+	errs := make([]error, n)
+	var wg sync.WaitGroup
+	for i := 0; i < n; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			start.Wait()
+			errs[i] = c.Close()
+		}(i)
+	}
+	start.Done()
+	wg.Wait()
+
+	for i, err := range errs {
+		if err != nil {
+			t.Fatalf("第 %d 次 Close 返回错误：%v", i, err)
+		}
+	}
+	if got := underlay.closes.Load(); got != 1 {
+		t.Fatalf("underlay.Close 被调用 %d 次，幂等 Close 应为 1 次", got)
+	}
+}

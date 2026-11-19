@@ -168,9 +168,19 @@ type Client struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	wg       sync.WaitGroup
+	// 幂等闸：proxy/stack.go 明确共享下层会被重复命中、依赖各 tunnel 的幂等
+	// Close。无闸时并发 Close 会重复关 underlay（级联放大到更下层）并重复走
+	// ReleaseAuthenticator/排空（后者自身安全，前者才是要挡的）。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 func (c *Client) Close() error {
+	c.closeOnce.Do(func() { c.closeErr = c.close() })
+	return c.closeErr
+}
+
+func (c *Client) close() error {
 	log.Info("[Trojan] Closing client")
 	c.cancel()
 	c.wg.Wait()

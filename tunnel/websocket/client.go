@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/coder/websocket"
@@ -24,6 +25,11 @@ type Client struct {
 	hostname string
 	path     string
 	headers  map[string]string
+	// 幂等闸：proxy/stack.go 明确共享下层会被重复命中、依赖各 tunnel 的幂等
+	// Close。本层 Close 只有一句 underlay.Close，无闸时并发/重复调用会把
+	// 同一下层关多次。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 func (c *Client) DialConn(*tunnel.Address, tunnel.Tunnel) (tunnel.Conn, error) {
@@ -105,6 +111,11 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (c *Client) Close() error {
+	c.closeOnce.Do(func() { c.closeErr = c.close() })
+	return c.closeErr
+}
+
+func (c *Client) close() error {
 	log.Info("[WebSocket] Closing client")
 	if err := c.underlay.Close(); err != nil {
 		log.Error("[WebSocket] Failed to close underlay:", err)

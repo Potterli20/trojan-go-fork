@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 
 	v2geodata "github.com/xtls/xray-core/common/geodata"
 
@@ -208,6 +209,10 @@ type Client struct {
 	direct         *freedom.Client
 	ctx            context.Context
 	cancel         context.CancelFunc
+	// 幂等闸：proxy/stack.go 明确共享下层会被重复命中、依赖各 tunnel 的幂等
+	// Close。无闸时并发/重复 Close 会把同一下层关多次。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 func (c *Client) Route(address *tunnel.Address) int {
@@ -315,6 +320,11 @@ func (c *Client) DialPacket(overlay tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (c *Client) Close() error {
+	c.closeOnce.Do(func() { c.closeErr = c.close() })
+	return c.closeErr
+}
+
+func (c *Client) close() error {
 	c.cancel()
 	return c.underlay.Close()
 }

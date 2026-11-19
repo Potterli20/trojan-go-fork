@@ -25,6 +25,12 @@ type Server struct {
 	// underlay.Close 只关监听器），所以必须留一份登记表供 Close 显式关闭。
 	sessionLock sync.Mutex
 	sessions    map[*smux.Session]struct{}
+
+	// 幂等闸：与 tls/websocket Server 同型，proxy/stack.go 明确共享下层会被
+	// 重复命中、依赖各 tunnel 的幂等 Close。无闸时并发 Close 会重复关
+	// underlay（级联放大到更下层）、重复关在途会话并重复排空 connChan。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 func (s *Server) addSession(session *smux.Session) bool {
@@ -161,6 +167,11 @@ func (s *Server) AcceptPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 }
 
 func (s *Server) Close() error {
+	s.closeOnce.Do(func() { s.closeErr = s.close() })
+	return s.closeErr
+}
+
+func (s *Server) close() error {
 	s.cancel()
 	// AcceptStream 不看 ctx，且会话的底层连接不属于本层监听器：只 cancel +
 	// underlay.Close 的话，每个已建立的会话都会让下面的 wg.Wait 永久挂住，

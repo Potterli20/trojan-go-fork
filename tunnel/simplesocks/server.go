@@ -23,9 +23,20 @@ type Server struct {
 	ctx        context.Context
 	cancel     context.CancelFunc
 	wg         sync.WaitGroup
+
+	// 幂等闸：与 tls/websocket Server 同型，proxy/stack.go 明确共享下层会被
+	// 重复命中、依赖各 tunnel 的幂等 Close。无闸时并发 Close 会重复关
+	// underlay（级联放大到更下层）并重复排空两条队列。
+	closeOnce sync.Once
+	closeErr  error
 }
 
 func (s *Server) Close() error {
+	s.closeOnce.Do(func() { s.closeErr = s.close() })
+	return s.closeErr
+}
+
+func (s *Server) close() error {
 	s.cancel()
 	err := s.underlay.Close()
 	s.wg.Wait()
