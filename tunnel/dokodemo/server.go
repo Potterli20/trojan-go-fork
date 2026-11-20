@@ -171,9 +171,8 @@ func (s *Server) dispatchLoop() {
 						log.Error(common.NewError("dokodemo udp write error").Base(err))
 						return
 					}
-					if !timer.Stop() {
-						<-timer.C
-					}
+					// Go 1.23+ timer 通道是同步的，Reset 自带清除旧值语义，
+					// 无需（也不该）再手写 Stop+drain 那段永不命中的死代码。
 					timer.Reset(s.timeout)
 				case <-s.ctx.Done():
 					return

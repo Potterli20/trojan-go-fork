@@ -466,9 +466,8 @@ func (s *Server) packetDispatchLoop() {
 							return
 						}
 						log.Debug("recv packet, send back to", sessionConn.src, "payload", len(info.payload), "sent", n)
-						if !timer.Stop() {
-							<-timer.C
-						}
+						// Go 1.23+ timer 通道是同步的，Reset 自带清除旧值语义，
+						// 无需（也不该）再手写 Stop+drain 那段永不命中的死代码。
 						timer.Reset(s.timeout)
 					case <-s.ctx.Done():
 						log.Debug("exiting")

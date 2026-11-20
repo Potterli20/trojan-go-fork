@@ -577,9 +577,8 @@ func (s *Server) packetDispatchLoop() {
 							return
 						}
 						log.Debug("socks respond udp packet to", conn.src, "metadata", info.metadata)
-						if !timer.Stop() {
-							<-timer.C
-						}
+						// Go 1.23+ timer 通道是同步的，Reset 自带清除旧值语义，
+						// 无需（也不该）再手写 Stop+drain 那段永不命中的死代码。
 						timer.Reset(timeout)
 					case <-timer.C:
 						log.Info("socks udp session timeout, closed")
