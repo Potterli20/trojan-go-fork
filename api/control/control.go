@@ -140,7 +140,7 @@ func (o *apiController) setUsers(apiClient service.TrojanServerServiceClient) er
 				Password: *o.password,
 				Hash:     *o.hash,
 			},
-			IpLimit: ipLimitVal,
+			IpLimit: &ipLimitVal,
 			SpeedLimit: &service.Speed{
 				UploadSpeed:   ulSpeed,
 				DownloadSpeed: dlSpeed,

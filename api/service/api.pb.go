@@ -227,13 +227,15 @@ func (x *User) GetHash() string {
 }
 
 type UserStatus struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	User          *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
-	TrafficTotal  *Traffic               `protobuf:"bytes,2,opt,name=traffic_total,json=trafficTotal,proto3" json:"traffic_total,omitempty"`
-	SpeedCurrent  *Speed                 `protobuf:"bytes,3,opt,name=speed_current,json=speedCurrent,proto3" json:"speed_current,omitempty"`
-	SpeedLimit    *Speed                 `protobuf:"bytes,4,opt,name=speed_limit,json=speedLimit,proto3" json:"speed_limit,omitempty"`
-	IpCurrent     int32                  `protobuf:"varint,5,opt,name=ip_current,json=ipCurrent,proto3" json:"ip_current,omitempty"`
-	IpLimit       int32                  `protobuf:"varint,6,opt,name=ip_limit,json=ipLimit,proto3" json:"ip_limit,omitempty"`
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	User         *User                  `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
+	TrafficTotal *Traffic               `protobuf:"bytes,2,opt,name=traffic_total,json=trafficTotal,proto3" json:"traffic_total,omitempty"`
+	SpeedCurrent *Speed                 `protobuf:"bytes,3,opt,name=speed_current,json=speedCurrent,proto3" json:"speed_current,omitempty"`
+	SpeedLimit   *Speed                 `protobuf:"bytes,4,opt,name=speed_limit,json=speedLimit,proto3" json:"speed_limit,omitempty"`
+	IpCurrent    int32                  `protobuf:"varint,5,opt,name=ip_current,json=ipCurrent,proto3" json:"ip_current,omitempty"`
+	// optional 让「省略」与「显式 0=不限」可区分：Modify 只改限速时省略此字段，
+	// 不应把已有 IP 上限静默清零。proto3 optional 的 wire 格式与普通 int32 兼容。
+	IpLimit       *int32 `protobuf:"varint,6,opt,name=ip_limit,json=ipLimit,proto3,oneof" json:"ip_limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -304,8 +306,8 @@ func (x *UserStatus) GetIpCurrent() int32 {
 }
 
 func (x *UserStatus) GetIpLimit() int32 {
-	if x != nil {
-		return x.IpLimit
+	if x != nil && x.IpLimit != nil {
+		return *x.IpLimit
 	}
 	return 0
 }
@@ -1076,7 +1078,7 @@ const file_api_proto_rawDesc = "" +
 	"\x0edownload_speed\x18\x02 \x01(\x04R\rdownloadSpeed\"6\n" +
 	"\x04User\x12\x1a\n" +
 	"\bpassword\x18\x01 \x01(\tR\bpassword\x12\x12\n" +
-	"\x04hash\x18\x02 \x01(\tR\x04hash\"\x92\x02\n" +
+	"\x04hash\x18\x02 \x01(\tR\x04hash\"\xa4\x02\n" +
 	"\n" +
 	"UserStatus\x12$\n" +
 	"\x04user\x18\x01 \x01(\v2\x10.trojan.api.UserR\x04user\x128\n" +
@@ -1085,8 +1087,9 @@ const file_api_proto_rawDesc = "" +
 	"\vspeed_limit\x18\x04 \x01(\v2\x11.trojan.api.SpeedR\n" +
 	"speedLimit\x12\x1d\n" +
 	"\n" +
-	"ip_current\x18\x05 \x01(\x05R\tipCurrent\x12\x19\n" +
-	"\bip_limit\x18\x06 \x01(\x05R\aipLimit\"9\n" +
+	"ip_current\x18\x05 \x01(\x05R\tipCurrent\x12\x1e\n" +
+	"\bip_limit\x18\x06 \x01(\x05H\x00R\aipLimit\x88\x01\x01B\v\n" +
+	"\t_ip_limit\"9\n" +
 	"\x11GetTrafficRequest\x12$\n" +
 	"\x04user\x18\x01 \x01(\v2\x10.trojan.api.UserR\x04user\"\xb4\x01\n" +
 	"\x12GetTrafficResponse\x12\x18\n" +
@@ -1230,6 +1233,7 @@ func file_api_proto_init() {
 	if File_api_proto != nil {
 		return
 	}
+	file_api_proto_msgTypes[3].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

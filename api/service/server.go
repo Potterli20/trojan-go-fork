@@ -79,7 +79,7 @@ func (s *ServerAPI) GetUsers(stream TrojanServerService_GetUsersServer) error {
 					UploadSpeed:   usLimit,
 				},
 				IpCurrent: ipCurrentVal,
-				IpLimit:   ipLimitVal,
+				IpLimit:   &ipLimitVal,
 			},
 		})
 		if err != nil {
@@ -143,7 +143,13 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 					break
 				}
 			}
-			err = s.auth.SetUserIPLimit(req.Status.User.Hash, int(req.Status.IpLimit)) //gosec:disable -- IpLimit 是 int32，int 转换在 64 位平台安全
+			// Add 是新建用户：ip_limit 省略时给 0（不限），与内置 CLI 总是显式填
+			// 该字段的既有行为一致；没有"保留旧值"的可能。
+			if req.Status.IpLimit != nil {
+				err = s.auth.SetUserIPLimit(req.Status.User.Hash, int(*req.Status.IpLimit)) //gosec:disable -- IpLimit 是 int32，int 转换在 64 位平台安全
+			} else {
+				err = s.auth.SetUserIPLimit(req.Status.User.Hash, 0)
+			}
 		case SetUsersRequest_Delete:
 			err = s.auth.DelUser(req.Status.User.Hash)
 		case SetUsersRequest_Modify:
@@ -169,7 +175,11 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 					break
 				}
 			}
-			err = s.auth.SetUserIPLimit(req.Status.User.Hash, int(req.Status.IpLimit)) //gosec:disable -- IpLimit 是 int32，int 转换在 64 位平台安全
+			// proto3 optional 让省略与显式 0 可区分：Modify 只改限速等其它字段时
+			// 省略 ip_limit，绝不能把用户已有的 IP 上限静默清零。
+			if req.Status.IpLimit != nil {
+				err = s.auth.SetUserIPLimit(req.Status.User.Hash, int(*req.Status.IpLimit)) //gosec:disable -- IpLimit 是 int32，int 转换在 64 位平台安全
+			}
 		default:
 			// proto3 开放枚举：未知数值能合法上线。没有 default 时 err 保持 nil，
 			// 走到末尾回 Success:true——什么都没做却告诉调用方改成功了。
@@ -226,7 +236,7 @@ func (s *ServerAPI) ListUsers(req *ListUsersRequest, stream TrojanServerService_
 					DownloadSpeed: dsLimit,
 					UploadSpeed:   usLimit,
 				},
-				IpLimit:   ipLimitVal,
+				IpLimit:   &ipLimitVal,
 				IpCurrent: ipCurrentVal,
 			},
 		})

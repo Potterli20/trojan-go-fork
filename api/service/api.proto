@@ -24,7 +24,9 @@ message UserStatus {
     Speed speed_current = 3;
     Speed speed_limit = 4;
     int32 ip_current = 5;
-    int32 ip_limit = 6;
+    // optional 让「省略」与「显式 0=不限」可区分：Modify 只改限速时省略此字段，
+    // 不应把已有 IP 上限静默清零。proto3 optional 的 wire 格式与普通 int32 兼容。
+    optional int32 ip_limit = 6;
 }
 
 message GetTrafficRequest {
