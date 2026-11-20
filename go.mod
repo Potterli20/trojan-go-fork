@@ -16,7 +16,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.12.1
 	github.com/xtaci/smux v1.5.60
-	github.com/xtls/xray-core v1.260327.1-0.20261119134804-f73471e6b491
+	github.com/xtls/xray-core v1.260327.1-0.20261119171328-02cf0f60ea82
 	golang.org/x/crypto v0.59.0
 	golang.org/x/net v0.63.0
 	golang.org/x/sys v0.50.0
@@ -37,7 +37,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jtolds/gls v4.20.0+incompatible // indirect
-	github.com/klauspost/compress v1.20.1 // indirect
+	github.com/klauspost/compress v1.20.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.2 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/molecule-man/go-brrr v1.2.0 // indirect
