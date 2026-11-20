@@ -56,7 +56,7 @@ func TestUDPMissingOriginalDstDoesNotKillServer(t *testing.T) {
 	defer sender.Close()
 
 	// 发 15 个没有 ORIGDST cmsg 的包：足够旧实现撞满自杀阈值（10）。
-	for i := 0; i < 15; i++ {
+	for range 15 {
 		if _, err := sender.Write([]byte("no-cmsg-packet")); err != nil {
 			t.Fatalf("send udp: %v", err)
 		}

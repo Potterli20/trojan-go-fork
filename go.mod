@@ -58,7 +58,7 @@ require (
 	golang.org/x/tools v0.52.1-0.20261106145633-d407941a339a // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20261118221215-c8830f628b3f // indirect
 	layeh.com/gopher-luar v1.0.11 // indirect
-	modernc.org/libc v1.82.2 // indirect
+	modernc.org/libc v1.82.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.13.0 // indirect
 	modernc.org/sqlite v1.62.0 // indirect
