@@ -3,6 +3,7 @@
 package tproxy
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -11,6 +12,12 @@ import (
 	"syscall"
 	"unsafe"
 )
+
+// errNoOriginalDst 标记"这一包没有可用的 ORIGDST 信息"——这是**包属性**，
+// 不是 socket 故障：任何直连 tproxy 端口、未经 TPROXY 规则注入 cmsg 的 UDP 包
+// 都会命中（扫描器、本机进程、loopback）。读循环必须把它和真正的 OS 层错误
+// 分开，否则 10 个这样的包就会把整个 tproxy 入站（连 TCP）自杀式关停。
+var errNoOriginalDst = errors.New("no IP_RECVORIGDSTADDR control message")
 
 // ipv6RecvOrigDstAddr 即 IPV6_RECVORIGDSTADDR(74)：stdlib 的 syscall 包仅在部分
 // 架构(如 loong64)导出该常量，amd64/arm64 缺失；该值在 Linux 各架构上一致
@@ -93,7 +100,7 @@ func ReadFromUDP(conn *net.UDPConn, b []byte) (int, *net.UDPAddr, *net.UDPAddr, 
 
 	msgs, err := syscall.ParseSocketControlMessage(oob[:oobn])
 	if err != nil {
-		return 0, nil, nil, fmt.Errorf("parsing socket control message: %s", err)
+		return 0, nil, nil, fmt.Errorf("parsing socket control message: %v: %w", err, errNoOriginalDst)
 	}
 
 	var originalDst *net.UDPAddr
@@ -102,8 +109,9 @@ func ReadFromUDP(conn *net.UDPConn, b []byte) (int, *net.UDPAddr, *net.UDPAddr, 
 		// 旧代码用 v4 的 Type(20) 同时匹配两层，导致 IPv6 包永远取不到 originalDst
 		switch {
 		case msg.Header.Level == syscall.SOL_IP && msg.Header.Type == syscall.IP_RECVORIGDSTADDR:
+			// 截断的 cmsg 同样是包属性错误（对端经 TPROXY 注入了畸形 cmsg），不是 socket 故障。
 			if len(msg.Data) < int(unsafe.Sizeof(syscall.RawSockaddrInet4{})) {
-				return 0, nil, nil, fmt.Errorf("truncated IPv4 original destination address")
+				return 0, nil, nil, fmt.Errorf("truncated IPv4 original destination address: %w", errNoOriginalDst)
 			}
 			pp := (*syscall.RawSockaddrInet4)(unsafe.Pointer(&msg.Data[0]))
 			p := (*[2]byte)(unsafe.Pointer(&pp.Port))
@@ -114,7 +122,7 @@ func ReadFromUDP(conn *net.UDPConn, b []byte) (int, *net.UDPAddr, *net.UDPAddr, 
 
 		case msg.Header.Level == syscall.SOL_IPV6 && msg.Header.Type == ipv6RecvOrigDstAddr:
 			if len(msg.Data) < int(unsafe.Sizeof(syscall.RawSockaddrInet6{})) {
-				return 0, nil, nil, fmt.Errorf("truncated IPv6 original destination address")
+				return 0, nil, nil, fmt.Errorf("truncated IPv6 original destination address: %w", errNoOriginalDst)
 			}
 			pp := (*syscall.RawSockaddrInet6)(unsafe.Pointer(&msg.Data[0]))
 			p := (*[2]byte)(unsafe.Pointer(&pp.Port))
@@ -132,7 +140,7 @@ func ReadFromUDP(conn *net.UDPConn, b []byte) (int, *net.UDPAddr, *net.UDPAddr, 
 	}
 
 	if originalDst == nil {
-		return 0, nil, nil, fmt.Errorf("unable to obtain original destination: no IP_RECVORIGDSTADDR control message received")
+		return 0, nil, nil, fmt.Errorf("unable to obtain original destination: %w", errNoOriginalDst)
 	}
 
 	return n, addr, originalDst, nil

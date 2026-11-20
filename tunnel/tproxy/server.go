@@ -4,6 +4,7 @@ package tproxy
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net"
 	"net/netip"
@@ -202,6 +203,13 @@ func (s *Server) packetDispatchLoop() {
 			if err != nil {
 				if s.ctx.Err() != nil {
 					return
+				}
+				// "没有 ORIGDST cmsg / cmsg 畸形"是这一包本身的属性：任何直连
+				// tproxy 端口、没经 TPROXY 规则注入 cmsg 的 UDP 包都会命中，
+				// 源地址可伪造。把它当作 socket 故障累计到 10 次就自杀关停
+				// 整个入站（连 TCP），等于一个远程 DoS。这类包直接丢弃、不计数。
+				if errors.Is(err, errNoOriginalDst) {
+					continue
 				}
 				readErrors++
 				log.Error(common.NewError("tproxy failed to read from udp socket").Base(err))
