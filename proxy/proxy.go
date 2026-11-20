@@ -334,8 +334,12 @@ func (p *Proxy) relayConnLoop() {
 				p.wg.Go(func() {
 					defer inbound.Close()
 					metadata := inbound.Metadata()
-					if metadata == nil {
-						log.Error("inbound connection has no metadata; check the protocol stack configuration")
+					// 与 packet 路径同口径拦空地址：有些入站（如 QUIC 的 StreamConn）交回的
+					// 是非 nil 空壳 Metadata，Address 仍为 nil。把 nil 地址交给出站 DialConn
+					// 后，sink 里一句 addr.String() 就在中继协程内 panic，而 proxy 包没有
+					// recover —— 那是整个进程崩掉，不是拆一条会话。判据 addressless_metadata_test.go。
+					if metadata == nil || metadata.Address == nil {
+						log.Error("inbound connection has no destination address; check the protocol stack configuration")
 						return
 					}
 					outbound, err := p.sink.DialConn(metadata.Address, nil)

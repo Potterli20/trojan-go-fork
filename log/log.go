@@ -314,7 +314,10 @@ var SensitivePatterns = []sensitiveRule{
 	{regexp.MustCompile(`(?i)((?:secret|token|credential|passwd)\s*[=:]\s*)["']?[^\s"']*["']?`), "${1}[REDACTED]", []string{"secret", "token", "credential", "passwd"}, 0, nil},
 	{regexp.MustCompile(`[a-f0-9]{40,}`), "[REDACTED]", nil, 40, isLowerHex},
 	// 一整段 JWT 连同它的三段一起吃掉（字符类里带 '.'）
-	{regexp.MustCompile(`eyJhbGciOiJ[a-zA-Z0-9_.=-]+`), "[REDACTED]", []string{"eyjhbggcioj"}, 0, nil},
+	// required 是 ruleMayMatch 对正则做的必要字面量预判，必须与正则前缀逐字一致；
+	// 旧值 "eyjhbggcioj" 与前缀 eyJhbGciOiJ 的小写 "eyjhbgcioij" 漂移了四位，
+	// 预判恒为假 ⇒ 整条规则从不执行，短段 JWT 明文落进日志（判据 jwt_short_test.go）。
+	{regexp.MustCompile(`eyJhbGciOiJ[a-zA-Z0-9_.=-]+`), "[REDACTED]", []string{"eyjhbgcioij"}, 0, nil},
 	{regexp.MustCompile(`[a-zA-Z0-9]{32,}`), "[REDACTED]", nil, 32, isASCIIAlnum},
 }
 
