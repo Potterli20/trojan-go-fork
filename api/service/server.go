@@ -98,6 +98,10 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 		if err != nil {
 			return err
 		}
+		// 本次请求是否真的由 AddUser 创建了用户：只有它为真时，后续失败才允许
+		// 回滚 DelUser。否则 AddUser 本身就失败（例如 hash 已存在）时，公共错误
+		// 分支的回滚会把那个已配置好的用户删掉——SQLite 下是真实的删库。
+		added := false
 		if req.Status == nil || req.Status.User == nil {
 			// 只判 Status 不够：Status.User 是被直接解引用的（下一行取 .Hash），
 			// 而 grpc-go 默认不 recover handler 里的 panic（除非挂 RecoveryHandler），
@@ -114,6 +118,7 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 				err = common.NewError("failed to add new user").Base(err)
 				break
 			}
+			added = true
 			// Set password for the new user
 			if memoryAuth, ok := s.auth.(interface{ SetKeyShare(string, string) error }); ok {
 				if err = memoryAuth.SetKeyShare(req.Status.User.Hash, req.Status.User.Password); err != nil {
@@ -190,7 +195,10 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 			// 没有密码的半成品用户：后台协程照常跑，而运维重试同名 Add 会被
 			// AddUser 的"already exist"永久拒绝，只能手工删库。这里按 hash 回滚，
 			// DelUser 会 DeleteUser/Close 清理持久化与后台资源，幂等且只删本次新建的。
-			if req.Operation == SetUsersRequest_Add {
+			// 只有本次调用确实创建了用户时才回滚半成品。AddUser 本身失败
+			// （hash 已存在）时 added=false：那个用户是既有的、配置完整，
+			// 回滚 DelUser 会把它（SQLite 下连库行一起）删掉。
+			if req.Operation == SetUsersRequest_Add && added {
 				s.auth.DelUser(req.Status.User.Hash) //gosec:disable -- 错误忽略：回滚失败不覆写原始失败原因
 			}
 			stream.Send(&SetUsersResponse{ //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
