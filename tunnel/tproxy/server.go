@@ -47,15 +47,27 @@ const maxReplySocksPerSession = 32
 // replySockKey 是回包 socket 的复用键。刻意不用字符串——这条是每包一次的查找，
 // 格式化一次就是每包一次分配。v4-mapped-v6 经 Unmap 归一后与纯 v4 同键，与旧的
 // addr.String() 分组口径一致（那串字符串本来就把两种写法渲染成同一个键）。
-func replySockKey(m *tunnel.Metadata) (netip.AddrPort, bool) {
+//
+// Zone 必须进键：IPv6 链路本地地址 fe80::1 在 eth0/eth1 上是**不同**的目的地，
+// 回包 socket 的 SockaddrInet6.ZoneId 也不同。只用 netip.AddrPort 会把它们合并，
+// 后到者的包被写进先到者绑在别的接口上的 socket。
+type replyKey struct {
+	addrPort netip.AddrPort
+	zone     string
+}
+
+func replySockKey(m *tunnel.Metadata) (replyKey, bool) {
 	if len(m.IP) == 0 {
-		return netip.AddrPort{}, false
+		return replyKey{}, false
 	}
 	addr, ok := netip.AddrFromSlice(m.IP)
 	if !ok {
-		return netip.AddrPort{}, false
+		return replyKey{}, false
 	}
-	return netip.AddrPortFrom(addr.Unmap(), uint16(m.Port)), true // Port 由 wire 解析而来，恒在 0..65535
+	return replyKey{
+		addrPort: netip.AddrPortFrom(addr.Unmap(), uint16(m.Port)), // Port 由 wire 解析而来，恒在 0..65535
+		zone:     m.Zone,
+	}, true
 }
 
 // udpSessionQueueSize 是每个 UDP 会话收发队列的深度，与 dokodemo/socks 的 16 对齐。
@@ -388,11 +400,15 @@ func (s *Server) packetDispatchLoop() {
 				// 一条会话几十包就是几十套系统调用加同数量的一次性 fd。
 				// 存活期跟随会话即可，不需要全局缓存也不需要 TTL。
 				//
+				// 旧写法是**每个出向包**一次 DialUDP：socket()+IP_TRANSPARENT+bind+connect+
+				// os.NewFile+FileConn，再立刻 Close。一条会话几十包就是几十套系统调用加同
+				// 数量的一次性 fd。存活期跟随会话即可，不需要全局缓存也不需要 TTL。
+				//
 				// 上限是必须的：会话按**源地址**复用，目的地却由对端决定，一条会话可以
 				// 轮番打向任意多个目的地；只 append 不删的缓存等于把 fd 数交给对端。
-				// 超了按 FIFO 淘汰最旧的一条。键用 netip.AddrPort，这条是每包一次的查找。
-				replySocks := make(map[netip.AddrPort]*net.UDPConn)
-				var replyOrder []netip.AddrPort
+				// 超了按 FIFO 淘汰最旧的一条。键用 replyKey（AddrPort + zone），这条是每包一次的查找。
+				replySocks := make(map[replyKey]*net.UDPConn)
+				var replyOrder []replyKey
 				defer func() {
 					for _, rs := range replySocks {
 						rs.Close() //gosec:disable -- 错误忽略：会话结束尽力关闭
@@ -429,6 +445,7 @@ func (s *Server) packetDispatchLoop() {
 								&net.UDPAddr{
 									IP:   info.metadata.IP,
 									Port: info.metadata.Port,
+									Zone: info.metadata.Zone,
 								},
 								sessionConn.src.(*net.UDPAddr),
 							)

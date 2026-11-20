@@ -87,6 +87,12 @@ type Address struct {
 	net.IP
 	AddressType
 
+	// Zone 是 IPv6 链路本地地址的作用域（net.UDPAddr.Zone），仅用于进程内传递：
+	// tproxy 收到带 Scope_id 的 ORIGDST 后要把它带到回包 socket，否则 fe80::/10
+	// 的回包会绑到错误的接口。**不参与 wire 序列化**（AppendTo/ReadFrom 只读写
+	// IP+Port，线上格式没有 zone 字段），跨隧道边界的对端无需理解它。
+	Zone string
+
 	// resolveMu 保护 resolvedIP。为什么需要锁：一个 *Address 会被多条并发会话**共享**
 	// ——dokodemo 的 s.targetAddr 每实例一个，却塞进每条 TCP 会话的 targetMetadata 和
 	// 每个 UDP 会话的 fixedMetadata（server.go:34/:135）；freedom 的 c.proxyAddr 同理。
@@ -218,11 +224,12 @@ func NewAddressFromHostPort(network string, host string, port int) *Address {
 func NewAddressFromNetAddr(network string, addr net.Addr) (*Address, error) {
 	var ip net.IP
 	var port int
+	var zone string
 	switch a := addr.(type) {
 	case *net.UDPAddr:
-		ip, port = a.IP, a.Port
+		ip, port, zone = a.IP, a.Port, a.Zone
 	case *net.TCPAddr:
-		ip, port = a.IP, a.Port
+		ip, port, zone = a.IP, a.Port, a.Zone
 	default:
 		return NewAddressFromAddr(network, addr.String())
 	}
@@ -233,6 +240,7 @@ func NewAddressFromNetAddr(network string, addr net.Addr) (*Address, error) {
 		IP:          ip,
 		Port:        port,
 		NetworkType: network,
+		Zone:        zone,
 	}
 	if ip.To4() != nil {
 		address.AddressType = IPv4
