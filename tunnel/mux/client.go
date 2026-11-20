@@ -96,7 +96,11 @@ func (c *Client) cleanLoop() {
 					delete(c.clientPool, id)
 					dead = append(dead, info)
 					log.Info("mux client", id, "is dead")
-				} else if info.client.NumStreams() == 0 && time.Since(time.Unix(0, info.lastActiveTime.Load())) > idleTimeout {
+				} else if info.pendingStreams == 0 && info.client.NumStreams() == 0 && time.Since(time.Unix(0, info.lastActiveTime.Load())) > idleTimeout {
+					// 回收判据与 DialConn 的选路判据对称：pendingStreams>0 表示已有拨号方
+					// 在锁内选中了这条会话、正要去锁外 OpenStream（此时 NumStreams() 还是
+					// 0，lastActiveTime 也还没刷新）。不挡住它就是在"已预约未开流"窗口
+					// 把底层连接关掉，让合法拨号拿到 ErrClosedPipe。判据 clean_reservation_test.go。
 					delete(c.clientPool, id)
 					dead = append(dead, info)
 					log.Info("mux client", id, "is closed due to inactivity")

@@ -176,6 +176,13 @@ func (s *ServerAPI) SetUsers(stream TrojanServerService_SetUsersServer) error {
 			err = common.NewErrorf("unknown operation: %d", req.Operation)
 		}
 		if err != nil {
+			// Add 分支在 AddUser 成功后、SetKeyShare/限额设置中途失败时会留下一个
+			// 没有密码的半成品用户：后台协程照常跑，而运维重试同名 Add 会被
+			// AddUser 的"already exist"永久拒绝，只能手工删库。这里按 hash 回滚，
+			// DelUser 会 DeleteUser/Close 清理持久化与后台资源，幂等且只删本次新建的。
+			if req.Operation == SetUsersRequest_Add {
+				s.auth.DelUser(req.Status.User.Hash) //gosec:disable -- 错误忽略：回滚失败不覆写原始失败原因
+			}
 			stream.Send(&SetUsersResponse{ //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 				Success: false,
 				Info:    err.Error(),

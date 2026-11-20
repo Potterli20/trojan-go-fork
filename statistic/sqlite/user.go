@@ -22,6 +22,12 @@ func (u *User) setSent(sent uint64) {
 	binary.BigEndian.PutUint64(u.Sent, sent)
 }
 func (u *User) getSent() uint64 {
+	// 面板/运维直接 INSERT 的用户行可能没写流量列（NULL / 短切片）。这是明确支持的
+	// 部署形态，而 GetTraffic 在 NewAuthenticator 启动同步路径上、没有 recover：
+	// binary.BigEndian.Uint64(nil) 越界会打挂整个进程。缺列一律按零流量装载。
+	if len(u.Sent) != 8 {
+		return 0
+	}
 	return binary.BigEndian.Uint64(u.Sent)
 }
 
@@ -29,6 +35,9 @@ func (u *User) setRecv(recv uint64) {
 	binary.BigEndian.PutUint64(u.Recv, recv)
 }
 func (u *User) getRecv() uint64 {
+	if len(u.Recv) != 8 {
+		return 0
+	}
 	return binary.BigEndian.Uint64(u.Recv)
 }
 

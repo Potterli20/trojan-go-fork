@@ -465,7 +465,11 @@ func (s *Server) packetDispatchLoop() {
 		// 把整个进程打崩（relay 这条链上没有 recover）；n=3 的包虽然不 panic，但会先建出一条
 		// 永远投递不出负载的会话。口径同 tunnel/freedom/conn.go 的同型闸门。
 		if n < 4 {
-			log.Debug("socks dropping short udp packet from", src.String())
+			// 与下面 parseErrors/limitDrops 两分支同口径：src.String() 是实参，
+			// 必须在 ShouldLog 之后才算，否则默认级别下每个短包白付一次格式化。
+			if log.ShouldLog(log.DebugLevel) {
+				log.Debug("socks dropping short udp packet from", src.String())
+			}
 			continue
 		}
 		// 地址块必须在**建会话之前**解析：对端是未认证的 UDP 源，ATYP 非法或域名

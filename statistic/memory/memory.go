@@ -555,8 +555,11 @@ func (a *Authenticator) batchTrafficUpdater() {
 					return true
 				}
 				changedUsers++
-				deltaSent := sent - lastSent
-				deltaRecv := recv - lastRecv
+				// 与 speedUpdater 同口径：管理员 SetUserTraffic 调低累计量、或 User.Close
+				// 的 ResetTraffic 插在读基线与读当前值之间时，裸减法会 uint64 下溢成
+				// 天文数字，污染本轮 sentBytes/recvBytes 汇总日志。
+				deltaSent := saturatingSub(sent, lastSent)
+				deltaRecv := saturatingSub(recv, lastRecv)
 				sentBytes += deltaSent
 				recvBytes += deltaRecv
 
