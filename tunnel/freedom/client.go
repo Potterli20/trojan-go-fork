@@ -296,6 +296,19 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 			socksClient: socksClient,
 		}, nil
 	}
+	udpConn, err := c.DialUDPDirect()
+	if err != nil {
+		return nil, err
+	}
+	return &PacketConn{
+		UDPConn: udpConn,
+	}, nil
+}
+
+// DialUDPDirect 建立一个遵循全局出站配置（local_addr / outbound_fwmark）
+// 与 prefer_ipv4 的裸 UDP socket。router 的 bypass 分支直接拨号时也必须走它，
+// 否则策略路由下这些包的源地址/路由标记与代理流量不一致（R17-3）。
+func (c *Client) DialUDPDirect() (*net.UDPConn, error) {
 	network := "udp"
 	if c.preferIPv4 {
 		network = "udp4"
@@ -313,9 +326,7 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 	if err != nil {
 		return nil, common.NewError("freedom failed to listen udp socket").Base(err)
 	}
-	return &PacketConn{
-		UDPConn: udpConn.(*net.UDPConn),
-	}, nil
+	return udpConn.(*net.UDPConn), nil
 }
 
 func (c *Client) Close() error {

@@ -292,7 +292,9 @@ func (c *Client) DialPacket(overlay tunnel.Tunnel) (tunnel.PacketConn, error) {
 	tracker := log.NewConnectionTracker("Router", "DialPacket").
 		WithField("protocol", "udp")
 
-	directConn, err := net.ListenPacket("udp", "")
+	// bypass 的 UDP 直连必须走 freedom 的出站配置（local_addr / outbound_fwmark /
+	// prefer_ipv4），否则策略路由下这些包的源地址与路由标记跟代理流量不一致。
+	directConn, err := c.direct.DialUDPDirect()
 	if err != nil {
 		_ = tracker.Error(err)
 		return nil, common.NewError("router failed to dial udp (direct)").Base(err)

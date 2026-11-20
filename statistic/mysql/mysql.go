@@ -139,20 +139,47 @@ func (a *Authenticator) updater() {
 	}
 }
 
+// setTrafficQuery 是面板 SetUsers(Modify) 携带 TrafficTotal 时的绝对写语句。
+// TrafficTotal 是"当前累计量"而非"本次新增量"，不能走 updateTrafficQuery 的
+// `+=`：那会把绝对量当增量，下一轮 flush 重复累加进 DB（R17-2）。
+// 两列方向刻意互换：download 列存 sent（上行），upload 列存 recv（下行）。
+const setTrafficQuery = "UPDATE `users` SET `upload`=?, `download`=? WHERE `password`=?;"
+
 // updateTrafficQuery 把内存中的流量增量累加进 users 表。两个方向的取值是**刻意互换**的
 // （原注释 "swap upload and download for users"）：upload 列累加 recv、download 列累加 sent。
 const updateTrafficQuery = "UPDATE `users` SET `upload`=`upload`+?, `download`=`download`+? WHERE `password`=?;"
 
+// SetUserTraffic 覆盖内嵌 memory 的同名方法：面板下发的 TrafficTotal 是绝对
+// 累计量，直接绝对写库并同步内存基线，后续 flushUser 不会再把它当增量累加。
+func (a *Authenticator) SetUserTraffic(hash string, sent, recv uint64) error {
+	var target statistic.User
+	for _, u := range a.ListUsers() {
+		if u.GetHash() == hash {
+			target = u
+			break
+		}
+	}
+	if target == nil {
+		return common.NewErrorf("user %v not found", hash)
+	}
+	_, err := a.db.ExecContext(a.ctx, setTrafficQuery, recv, sent, hash)
+	if err != nil {
+		return common.NewErrorf("failed to persist traffic for user %v", hash).Base(err)
+	}
+	target.(*memory.User).PanelSetTraffic(sent, recv)
+	return nil
+}
+
 // flushUser 把这一个用户内存里尚未刷库的增量写回 users 表。
-func (a *Authenticator) flushUser(user statistic.User) {
-	hash := user.GetHash()
-	sent, recv := user.ResetTraffic()
+func (a *Authenticator) flushUser(u statistic.User) {
+	hash := u.GetHash()
+	sent, recv := u.ResetTraffic()
 
 	_, err := a.db.ExecContext(a.ctx, updateTrafficQuery, recv, sent, hash)
 	if err != nil {
 		// ResetTraffic 已经把增量清零，写库失败必须原样加回去，否则这段流量
 		// 在本轮被丢弃、下一轮从 0 重新累计，永远补不回来（RestoreTraffic 不过限速器）。
-		user.RestoreTraffic(sent, recv)
+		u.RestoreTraffic(sent, recv)
 		log.Error(common.NewError("failed to update data to user table").Base(err))
 		return
 	}

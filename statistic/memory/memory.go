@@ -401,6 +401,16 @@ func (u *User) setTraffic(send, recv uint64) {
 	u.lastRecv.Store(recv)
 }
 
+// PanelSetTraffic 处理面板下发的绝对累计流量：MySQL 后端的 Sent/Recv 是
+// "自上次刷库的增量"，绝对写库之后必须清掉内存增量，否则下一轮 flushUser
+// 会把它当新增量 `UPDATE ... +=` 重复累加。清增量后 quotaBase 必须同步改为
+// 新的绝对量——否则额度判定会少算这段流量，超额用户在下一轮同步前被放行。
+// 仅供已用绝对写语句把 sent/recv 落库的后端调用（mysql.SetUserTraffic）。
+func (u *User) PanelSetTraffic(sent, recv uint64) {
+	u.ResetTraffic()
+	u.quotaBase.Store(sent + recv)
+}
+
 func (u *User) GetTraffic() (uint64, uint64) {
 	return u.Sent.Load(), u.Recv.Load()
 }
@@ -836,8 +846,9 @@ func (a *Authenticator) DelUser(hash string) error {
 	// 完整删掉旧用户并 AddUser 重建了同 hash 的新用户，无条件 Delete(hash) 会把
 	// 那个新用户从表里摘掉——它还被 relay/API 当作活对象持有，后台协程与 ipTable
 	// 从此无人 Close。只有表项仍是刚才 Close 的那个对象时才删。
-	a.users.CompareAndDelete(hash, meter)
-	if a.pst != nil {
+	// 持久化行同理：输掉比较说明表项已是重建的 u2，它的 DB 行（限速、到期、
+	// 凭据）属于新用户，绝不能跟着这次过期删除一起抹掉（R17-1）。
+	if a.users.CompareAndDelete(hash, meter) && a.pst != nil {
 		a.pst.DeleteUser(hash) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 	}
 	return nil
