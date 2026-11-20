@@ -227,8 +227,12 @@ func (a *Authenticator) syncUsers() {
 			continue
 		}
 		if download+upload < quota || quota < 0 {
-			a.AddUser(hash)               //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
-			a.SetKeyShare(hash, username) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			a.AddUser(hash) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+			// 不再 SetKeyShare(hash, username)：那是 2023 年 commit 081672fc 为绕开
+			// 旧 IP limit bug 加的权宜之计，把人类可读的 username 塞进 key share。
+			// 今天的 writeBackTraffic 按 hash 做 WHERE、也不再检查 RowsAffected，
+			// 不再依赖 key share 非空；保留这一行只会在双后端部署下用 username
+			// 覆盖 sqlite 镜像行里面板写入的真实凭据（判据 key_share_test.go）。
 			a.SetUserIPLimit(hash, maxip) //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
 			// 把库里的到期时刻与额度推进内存用户。只靠每轮 DelUser 的话，刚到期或刚用尽
 			// 的用户在下一轮同步之前（最长一个 check_rate）还能通过认证；memory.Authenticator
