@@ -29,7 +29,11 @@ type apiController struct {
 	uploadSpeedLimit   *int
 	downloadSpeedLimit *int
 	ipLimit            *int
-	ctx                context.Context
+	// explicitFlags 记录哪些 flag 是用户在命令行上显式给出的（flag.Visit 填充）。
+	// Modify 操作里省略的限速/IP 字段必须构造为 nil，不能拿默认值 0 冒充"不限"，
+	// 否则 `--modify-profile` 只改密码也会把已有用户的限速和 IP 上限静默清零。
+	explicitFlags map[string]bool
+	ctx           context.Context
 }
 
 func (apiController) Name() string {
@@ -113,37 +117,19 @@ func (o *apiController) getUsers(apiClient service.TrojanServerServiceClient) er
 	return nil
 }
 
-func (o *apiController) setUsers(apiClient service.TrojanServerServiceClient) error {
-	stream, err := apiClient.SetUsers(o.ctx)
-	if err != nil {
-		return err
-	}
-	defer stream.CloseSend()
-
-	// 使用安全类型转换，避免整数溢出。早先这里把错误吞掉了：越界/负值会被静默
-	// 变成 0（即“不限”），用户以为设了限制、实际什么也没设——改成显式失败。
-	ipLimitVal, err := common.SafeInt32FromInt(*o.ipLimit)
-	if err != nil {
-		return common.NewError("ip-limit out of range").Base(err)
-	}
-	ulSpeed, err := common.SafeUint64FromInt(*o.uploadSpeedLimit)
-	if err != nil {
-		return common.NewError("upload-speed-limit out of range").Base(err)
-	}
-	dlSpeed, err := common.SafeUint64FromInt(*o.downloadSpeedLimit)
-	if err != nil {
-		return common.NewError("download-speed-limit out of range").Base(err)
-	}
+// buildSetUsersRequest 把 CLI 参数翻译成 SetUsers 请求。提取成独立方法是为了
+// 判据能在不连 gRPC 的情况下检查请求形态（setusers_flags_test.go）。
+//
+// 关键语义：Modify 只改用户显式给出的字段。SpeedLimit 是 message、IpLimit 是
+// optional，两者都为 nil 时服务端不会触碰原值；而 CLI flag 若不显式判断，
+// 默认值 0 会被当成"显式清零"发出去——`--modify-profile` 只改密码就会把已有
+// 的限速和 IP 上限静默抹掉。Add/Delete 没有"保留旧值"语义，照旧发显式默认。
+func (o *apiController) buildSetUsersRequest() (*service.SetUsersRequest, error) {
 	req := &service.SetUsersRequest{
 		Status: &service.UserStatus{
 			User: &service.User{
 				Password: *o.password,
 				Hash:     *o.hash,
-			},
-			IpLimit: &ipLimitVal,
-			SpeedLimit: &service.Speed{
-				UploadSpeed:   ulSpeed,
-				DownloadSpeed: dlSpeed,
 			},
 		},
 	}
@@ -156,7 +142,51 @@ func (o *apiController) setUsers(apiClient service.TrojanServerServiceClient) er
 	case *o.delete:
 		req.Operation = service.SetUsersRequest_Delete
 	default:
-		return common.NewError("Invalid operation")
+		return nil, common.NewError("Invalid operation")
+	}
+
+	// Modify 时，未显式给出的 flag 一律不填字段（nil=不改）。Add/Delete 则保留
+	// 原有的"总是发显式值"行为（0=不限）；Delete 的这些字段服务端根本不读。
+	includeSpeed := req.Operation != service.SetUsersRequest_Modify ||
+		o.explicitFlags["upload-speed-limit"] || o.explicitFlags["download-speed-limit"]
+	includeIP := req.Operation != service.SetUsersRequest_Modify || o.explicitFlags["ip-limit"]
+
+	// 使用安全类型转换，避免整数溢出。早先这里把错误吞掉了：越界/负值会被静默
+	// 变成 0（即“不限”），用户以为设了限制、实际什么也没设——改成显式失败。
+	if includeIP {
+		ipLimitVal, err := common.SafeInt32FromInt(*o.ipLimit)
+		if err != nil {
+			return nil, common.NewError("ip-limit out of range").Base(err)
+		}
+		req.Status.IpLimit = &ipLimitVal
+	}
+	if includeSpeed {
+		ulSpeed, err := common.SafeUint64FromInt(*o.uploadSpeedLimit)
+		if err != nil {
+			return nil, common.NewError("upload-speed-limit out of range").Base(err)
+		}
+		dlSpeed, err := common.SafeUint64FromInt(*o.downloadSpeedLimit)
+		if err != nil {
+			return nil, common.NewError("download-speed-limit out of range").Base(err)
+		}
+		req.Status.SpeedLimit = &service.Speed{
+			UploadSpeed:   ulSpeed,
+			DownloadSpeed: dlSpeed,
+		}
+	}
+	return req, nil
+}
+
+func (o *apiController) setUsers(apiClient service.TrojanServerServiceClient) error {
+	stream, err := apiClient.SetUsers(o.ctx)
+	if err != nil {
+		return err
+	}
+	defer stream.CloseSend()
+
+	req, err := o.buildSetUsersRequest()
+	if err != nil {
+		return err
 	}
 
 	err = stream.Send(req)
@@ -182,6 +212,13 @@ func (o *apiController) Handle() error {
 		// 命令行里没有 -api：本 handler 不适用，交给下一个 handler
 		return option.NotSet()
 	}
+	// 记录哪些 flag 是用户显式给出的：Modify 里未显式给出的限速/IP 字段
+	// 必须构造为 nil（不改），不能拿默认值 0 冒充"不限"。main.go 已 flag.Parse，
+	// 这里 flag.Visit 看到的就是本次命令行真正出现过的 flag。
+	if o.explicitFlags == nil {
+		o.explicitFlags = make(map[string]bool)
+	}
+	flag.Visit(func(f *flag.Flag) { o.explicitFlags[f.Name] = true })
 	dialOpts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
 	// 服务端配了 api.token 就必须带上，否则每个 RPC 都会收到 Unauthenticated。
 	// 用客户端拦截器注入 metadata 而不是每次调用手动传，这样一元与流式（GetRecords /
