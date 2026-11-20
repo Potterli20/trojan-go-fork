@@ -206,8 +206,17 @@ func init() {
 			// 存进 underlay、不立即解引用，建栈会"成功"，直到首个连接到达才
 			// DialConn 对 nil 解引用 SIGSEGV（在无 recover 的中继协程里崩进程）。
 			// 与入站 rootCanStandAlone 对称，在配置层挡下并给出可读错误。
-			if client == nil && !clientCanBeInnermost(nodes[tag].Name) {
-				return nil, common.NewError("outbound root protocol " + nodes[tag].Name + " requires an underlay; use a self-dialing layer (FREEDOM/TRANSPORT/QUIC) as the first node")
+			if client == nil {
+				if !clientCanBeInnermost(nodes[tag].Name) {
+					return nil, common.NewError("outbound root protocol " + nodes[tag].Name + " requires an underlay; use a self-dialing layer (FREEDOM/TRANSPORT/QUIC) as the first node")
+				}
+			} else if clientCanBeInnermost(nodes[tag].Name) {
+				// 自拨号层忽略传入的 underlay（FREEDOM/TRANSPORT 的 NewClient 参数名
+				// 是 `_`，QUIC 存了但拨号只用 quic.DialAddr）。若它出现在非最内层，
+				// 内层节点被完整建好（ctx/TLS/全局出网状态/QUIC 资源）却永远不被
+				// 流量经过——内层配置静默失效、资源孤立，建栈还成功、无日志。
+				// 与入站 rootCanStandAlone 的"自绑层只能是首节点"那道闸对称。
+				return nil, common.NewError("outbound self-dialing protocol " + nodes[tag].Name + " must be the innermost node; it ignores the underlay and would silently discard the inner stack")
 			}
 			t, err := tunnel.GetTunnel(nodes[tag].Name)
 			if err != nil {
