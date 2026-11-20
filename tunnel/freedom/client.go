@@ -173,12 +173,23 @@ func (c *Client) DialConn(addr *tunnel.Address, _ tunnel.Tunnel) (tunnel.Conn, e
 	return c.DialConnDirect(addr, nil)
 }
 
+// effectiveOutbound 返回本次拨号应使用的源绑定：API 运行期覆盖（SetGlobalOutbound
+// 置位 override）对所有实例生效；否则用本实例构造时的配置。此前拨号路径直接读
+// 进程级全局——后建实例的 NewClient 会用配置覆盖全局，先建实例（router 的 bypass
+// 直连、热重载前的旧栈）的绑定被静默顶掉（R18-1）。
+func (c *Client) effectiveOutbound() (net.IP, int) {
+	if outboundOverridden() {
+		return getGlobalOutbound()
+	}
+	return c.outboundLocalIP, c.outboundFwmark
+}
+
 // newDialConfig 组装一份拨号选项。直连与转发代理两跳共用同一份，避免两处漂移：
 // common.Dial 在返回前会无条件执行 SetKeepAlive(cfg.KeepAlive) 与
 // SetNoDelay(cfg.NoDelay)，这两个零值不是"沿用系统默认"，而是显式关闭保活、
 // 显式打开 Nagle。
 func (c *Client) newDialConfig(network, address string) (common.DialConfig, net.IP, int) {
-	localIP, fwmark := getGlobalOutbound()
+	localIP, fwmark := c.effectiveOutbound()
 	var localAddr net.Addr
 	if localIP != nil {
 		localAddr = &net.TCPAddr{IP: localIP}
@@ -261,7 +272,7 @@ func (c *Client) DialPacket(tunnel.Tunnel) (tunnel.PacketConn, error) {
 		}
 		// 转发代理的 UDP relay socket 同样要带 fwmark 与本地绑定：直连分支早就
 		// 这么做，转发分支漏了——策略路由下这部分回包会走错路由。
-		localIP, fwmark := getGlobalOutbound()
+		localIP, fwmark := c.effectiveOutbound()
 		listenAddr := "0.0.0.0:0"
 		if localIP != nil {
 			listenAddr = (&net.UDPAddr{IP: localIP, Port: 0}).String()
@@ -313,7 +324,7 @@ func (c *Client) DialUDPDirect() (*net.UDPConn, error) {
 	if c.preferIPv4 {
 		network = "udp4"
 	}
-	localIP, fwmark := getGlobalOutbound()
+	localIP, fwmark := c.effectiveOutbound()
 	listenAddr := ""
 	if localIP != nil {
 		listenAddr = (&net.UDPAddr{IP: localIP, Port: 0}).String()
@@ -362,7 +373,7 @@ func NewClient(ctx context.Context, _ tunnel.Client) (*Client, error) {
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	SetGlobalOutbound(outboundLocalIP, fwmark)
+	outboundLocalIP, fwmark = applyConfiguredOutbound(outboundLocalIP, fwmark)
 	return &Client{
 		ctx:             ctx,
 		cancel:          cancel,
