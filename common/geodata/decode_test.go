@@ -2,56 +2,61 @@ package geodata_test
 
 import (
 	"bytes"
-	"errors"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
 
-	"github.com/Potterli20/trojan-go-fork/common"
 	"github.com/Potterli20/trojan-go-fork/common/geodata"
 )
 
-func init() {
-	const (
-		geoipURL   = "https://raw.githubusercontent.com/v2fly/geoip/release/geoip.dat"
-		geositeURL = "https://raw.githubusercontent.com/v2fly/domain-list-community/release/dlc.dat"
-	)
+// 最小 protobuf 夹具：一条 code="TEST" 的 GeoIP（CIDR 127.0.0.0/8）与一条
+// code="TEST" 的 GeoSite（域名 test.example.com）。这两个字节串由 v2ray 的
+// GeoIPList/GeoSiteList protobuf 生成，Decode("test") 的结果与原先从 GitHub
+// 下载的 23MB 官方数据里的 "test" 条目逐字节一致（大小写不敏感）。
+//
+// 测试彻底不再依赖外网：旧实现在 init 里从远端下载 23MB 的 geoip.dat，
+// HTTP 503 时直接 panic，整个包在测试开始前就 FAIL——CI 上同一提交一成一败。
+var (
+	geoipFixture = []byte{
+		0x0a, 0x10, 0x0a, 0x04, 0x54, 0x45, 0x53, 0x54,
+		0x12, 0x08, 0x0a, 0x04, 0x7f, 0x00, 0x00, 0x00, 0x10, 0x08,
+	}
+	geositeFixture = []byte{
+		0x0a, 0x1c, 0x0a, 0x04, 0x54, 0x45, 0x53, 0x54,
+		0x12, 0x14, 0x08, 0x03, 0x12, 0x10, 0x74, 0x65, 0x73, 0x74,
+		0x2e, 0x65, 0x78, 0x61, 0x6d, 0x70, 0x6c, 0x65, 0x2e, 0x63, 0x6f, 0x6d,
+	}
+)
 
+// 保留 benchmark 原有的数据目录指向（本地若有完整 geoip.dat/geosite.dat，
+// BenchmarkLoad* 仍可从 test/temp 读）；但绝不在这里下载——下载曾导致 CI
+// 因网络 503 在 init 阶段 panic。Decode 的两个测试用内嵌夹具，与该目录无关。
+func TestMain(m *testing.M) {
 	wd, err := os.Getwd()
-	common.Must(err)
-
-	tempPath := filepath.Join(wd, "..", "..", "test", "temp")
-	os.Setenv("TROJAN_GO_LOCATION_ASSET", tempPath)
-
-	geoipPath, err := common.GetAssetLocation("geoip.dat")
-	common.Must(err)
-	geositePath, err := common.GetAssetLocation("geosite.dat")
-	common.Must(err)
-
-	if _, err := os.Stat(geoipPath); err != nil && errors.Is(err, fs.ErrNotExist) {
-		common.Must(os.MkdirAll(tempPath, 0o755))
-		geoipBytes, err := common.FetchHTTPContent(geoipURL)
-		common.Must(err)
-		common.Must(common.WriteFile(geoipPath, geoipBytes))
+	if err == nil {
+		_ = os.Setenv("TROJAN_GO_LOCATION_ASSET", filepath.Join(wd, "..", "..", "test", "temp"))
 	}
-	if _, err := os.Stat(geositePath); err != nil && errors.Is(err, fs.ErrNotExist) {
-		common.Must(os.MkdirAll(tempPath, 0o755))
-		geositeBytes, err := common.FetchHTTPContent(geositeURL)
-		common.Must(err)
-		common.Must(common.WriteFile(geositePath, geositeBytes))
+	os.Exit(m.Run())
+}
+
+// writeFixture 把内嵌夹具写进测试自己的临时目录，并返回 .dat 文件路径。
+// 用 t.TempDir 而非共享的 test/temp：每个测试独立、并行安全、无跨 run 缓存。
+func writeFixture(t *testing.T, name string, data []byte) string {
+	t.Helper()
+	dir := t.TempDir()
+	path := filepath.Join(dir, name)
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		t.Fatalf("write fixture %s: %v", name, err)
 	}
+	return path
 }
 
 func TestDecodeGeoIP(t *testing.T) {
-	filename, err := common.GetAssetLocation("geoip.dat")
-	if err != nil {
-		t.Fatal(err)
-	}
+	filename := writeFixture(t, "geoip.dat", geoipFixture)
 	result, err := geodata.Decode(filename, "test")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	expected := []byte{10, 4, 84, 69, 83, 84, 18, 8, 10, 4, 127, 0, 0, 0, 16, 8}
@@ -61,13 +66,10 @@ func TestDecodeGeoIP(t *testing.T) {
 }
 
 func TestDecodeGeoSite(t *testing.T) {
-	filename, err := common.GetAssetLocation("geosite.dat")
-	if err != nil {
-		t.Fatal(err)
-	}
+	filename := writeFixture(t, "geosite.dat", geositeFixture)
 	result, err := geodata.Decode(filename, "test")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	expected := []byte{10, 4, 84, 69, 83, 84, 18, 20, 8, 3, 18, 16, 116, 101, 115, 116, 46, 101, 120, 97, 109, 112, 108, 101, 46, 99, 111, 109}
