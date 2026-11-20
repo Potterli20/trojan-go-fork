@@ -135,7 +135,6 @@ func (s *Server) handleConnection(conn *quic.Conn, tracker *log.ConnectionTracke
 	}()
 
 	streamChan := make(chan *quic.Stream, 16)
-	packetBuffer := make(chan []byte, 16)
 	packetDone := make(chan struct{})
 	// connCtx 由 handleConnection 的 defer connCancel() 结束:两个泵 goroutine 都
 	// select connCtx,连接结束即唤醒阻塞的 AcceptStream/ReceiveDatagram,不留 parked goroutine。
@@ -158,19 +157,23 @@ func (s *Server) handleConnection(conn *quic.Conn, tracker *log.ConnectionTracke
 		}
 	})
 
-	// 这一条 PacketConn 在泵启动前就构造好：泵要靠它的 done 退出。
-	// 服务端形态没有 ctx/cancel（读的是 packetBuffer 而不是直读数据报），
-	// 过去 Close() 等于空操作，relay 拆掉会话（proxy.go 的 defer Close）之后
-	// 没有任何东西再排空 packetBuffer —— 泵写满 16 个就永久阻塞在发送上，
-	// 而 connCtx 只在 handleConnection 返回时取消、handleConnection 又等 packetDone，
-	// 于是 1 个 goroutine + 16 个数据报缓冲 + activeConns 条目一起被钉住，
-	// 这条连接的 UDP 后续全丢。
-	udpSession := &PacketConn{conn: conn, packetBuffer: packetBuffer, done: make(chan struct{})}
+	// 数据报泵与 QUIC 连接同生命周期。一条连接可被客户端多次 DialPacket 复用
+	// （client.go 的 getOrCreateConnection 缓存同一个 *quic.Conn），因此每条 UDP
+	// 会话结束后泵不能退出——否则后续数据报无人 ReceiveDatagram，同一连接上的
+	// 第二条 UDP 会话永久挂死（判据 second_udp_session_test.go）。
+	// 会话级 udpSession.done 只结束"当前这条 UDP 会话"：关掉它的 packetBuffer
+	// 让已投递会话的读端拿到 EOF，然后重建一套 session/buffer 继续接收。
+	newPacketSession := func() (*PacketConn, chan []byte) {
+		buf := make(chan []byte, 16)
+		return &PacketConn{conn: conn, packetBuffer: buf, done: make(chan struct{})}, buf
+	}
+	udpSession, packetBuffer := newPacketSession()
 
 	s.wg.Go(func() {
-		var handlerSent bool
-		defer close(packetBuffer)
-		// packetDone 只表示"这条连接到头了"。会话级关闭（udpSession.done）刻意不点它：
+		// 用闭包读变量当前值：直接 `defer close(packetBuffer)` 会在注册时捕获
+		// 旧 buffer，重建之后退出时关错对象。
+		defer func() { close(packetBuffer) }()
+		// packetDone 只表示"这条连接到头了"。会话级关闭（udpSession.done）绝不点它：
 		// handleConnection 见到 packetDone 就 return，而它的 defer 会把整个连接
 		// CloseWithError 掉——殃及同一条连接上还在正常工作的 stream。
 		connectionEnding := false
@@ -179,6 +182,7 @@ func (s *Server) handleConnection(conn *quic.Conn, tracker *log.ConnectionTracke
 				close(packetDone)
 			}
 		}()
+		handlerSent := false
 		for {
 			// ReceiveDatagram 返回调用方自有的新切片(quic-go 内部 make+copy),
 			// 无需再维护每连接 64KB 中转 buf 或手工 copy。
@@ -192,6 +196,16 @@ func (s *Server) handleConnection(conn *quic.Conn, tracker *log.ConnectionTracke
 			if len(data) == 0 {
 				continue
 			}
+			// 非阻塞检查：上游 relay 是否已拆掉当前 UDP 会话。是则关掉旧缓冲、
+			// 重建一套新 session/buffer，并把下面这包作为新会话的首包投递。
+			// 只在连接级 ctx 取消时退出，会话关闭不再终止泵。
+			select {
+			case <-udpSession.done:
+				close(packetBuffer)
+				udpSession, packetBuffer = newPacketSession()
+				handlerSent = false
+			default:
+			}
 			if !handlerSent {
 				handlerSent = true
 				select {
@@ -200,12 +214,7 @@ func (s *Server) handleConnection(conn *quic.Conn, tracker *log.ConnectionTracke
 					connectionEnding = true
 					return
 				case <-connCtx.Done():
-					// 连接已结束（streamChan 关闭 → handleConnection return → connCancel）。
-					// udpSession 还没交出去、无人关它的 done，若不等 connCtx 就会 park 到
-					// s.ctx.Done()——每命中一次残留 1 goroutine + 1 连接 + activeConns 条目。
 					connectionEnding = true
-					return
-				case <-udpSession.done:
 					return
 				}
 			}
@@ -214,10 +223,8 @@ func (s *Server) handleConnection(conn *quic.Conn, tracker *log.ConnectionTracke
 			case <-connCtx.Done():
 				connectionEnding = true
 				return
-			case <-udpSession.done:
-				// 上游 relay 已经关掉这条 UDP 会话：停止转发即可，连接本身留给 stream 继续用。
-				// 不从这里出去的话，泵会带着 16 个数据报缓冲长期占住一个 goroutine，
-				// 而这条连接后续的 UDP 全部丢弃。
+			case <-s.ctx.Done():
+				connectionEnding = true
 				return
 			}
 		}

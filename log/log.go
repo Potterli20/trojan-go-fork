@@ -252,6 +252,11 @@ func Logf(level LogLevel, format string, v ...any) {
 	msg := linef(format, v...)
 	l := getLogger()
 	switch level {
+	case TraceLevel:
+		// TraceLevel(-1) 的门禁在 ShouldLog 里已归一到 Debug 档放行（见该函数注释），
+		// 这里必须给出口，否则 LogConnectionEvent(TraceLevel, ...) 这类经 Logf
+		// 的调用点会"门禁放行却静默丢弃"。golog 自身在 log_level==0 时输出 Trace。
+		l.Trace(msg)
 	case DebugLevel:
 		l.Debug(msg)
 	case InfoLevel:
