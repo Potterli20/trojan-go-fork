@@ -433,8 +433,23 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 
 	remoteAddr := tunnel.NewAddressFromHostPort("udp", cfg.RemoteHost, cfg.RemotePort)
 
+	// ssl.sni / ssl.server_name 与 tls 层同口径（tunnel/tls/client.go：sni 缺省回退
+	// remote-addr，server_name 缺省回退 sni）：最终值既作 ClientHello 的 SNI 也作
+	// 证书校验名。此前 ServerName 恒取 RemoteHost，配置键被接受但不生效——按 IP
+	// 连接 + 域名证书时校验对象是 IP，证书没有 IP SAN 就握手失败且毫无线索
+	// （configuration.md 的通用 ssl 键表与 quic_usage.md 示例都写了这两个键）。
+	// 判据 sni_wiring_test.go。
+	sni := tlsCfg.TLS.SNI
+	if sni == "" {
+		sni = cfg.RemoteHost
+	}
+	serverName := tlsCfg.TLS.ServerName
+	if serverName == "" {
+		serverName = sni
+	}
+
 	tlsConfig := &tls.Config{
-		ServerName:         cfg.RemoteHost,
+		ServerName:         serverName,
 		InsecureSkipVerify: cfg.QUIC.Insecure,
 		NextProtos:         []string{cfg.QUIC.ALPN},
 		CurvePreferences:   fingerprint.ParseCurvePreferences(tlsCfg.TLS.CurvePreferences),
@@ -481,7 +496,7 @@ func NewClient(ctx context.Context, underlay tunnel.Client) (*Client, error) {
 	return &Client{
 		underlay:       underlay,
 		remoteAddr:     remoteAddr,
-		sni:            cfg.RemoteHost,
+		sni:            sni,
 		tlsConfig:      tlsConfig,
 		quicConfig:     quicConfig,
 		maxIdleTimeout: time.Second * time.Duration(cfg.QUIC.MaxIdleTimeout),

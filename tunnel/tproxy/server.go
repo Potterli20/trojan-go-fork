@@ -340,7 +340,13 @@ func (s *Server) packetDispatchLoop() {
 			}
 			s.mappingLock.Unlock()
 
-			log.Info("new tproxy udp session from", srcKey, "metadata", info.dst.String())
+			// 建会话日志的实参 info.dst.String() 是每会话一次的 IP 格式化，先过级别
+			// 门禁再求值（「日志调用点先判级别，再动昂贵实参」口径）。同函数的拒绝
+			// 分支早已限流；本条做不出稳定的端到端判据，接线由
+			// session_log_gate_test.go 的结构门禁钉住。
+			if log.ShouldLog(log.InfoLevel) {
+				log.Info("new tproxy udp session from", srcKey, "metadata", info.dst.String())
+			}
 			select {
 			case s.packetChan <- conn:
 			case <-s.ctx.Done():

@@ -56,7 +56,8 @@ outbound:
           brutal-up: 0                # 单位 bps，0 = 不生效
           brutal-down: 0              # 单位 bps
         ssl:
-          sni: localhost
+          sni: localhost              # ClientHello 的 SNI 与证书校验名；未给时回退 remote-addr
+          server-name: ""             # 覆盖 sni 作为校验名（与 TLS 层同语义）
           verify: false
     - protocol: tls
       tag: tls
