@@ -38,6 +38,13 @@ func resolveProxyTarget(host string) (*tunnel.Address, error) {
 		return nil, common.NewError("http proxy request has no target host")
 	}
 	if addr, err := tunnel.NewAddressFromAddr("tcp", host); err == nil {
+		// SplitHostPort 会接受 ":80"（空主机名 + 合法端口），NewAddressFromAddr
+		// 于是造出 DomainName="" 的地址，而 net.Dial("tcp", ":80") 实测连的是
+		// 127.0.0.1——代理替请求方访问本机服务，还绕过按域名匹配的路由规则。
+		// 必须检查解析后的主机名，不能只看传入字符串是否为空。
+		if addr.DomainName == "" && addr.IP == nil {
+			return nil, common.NewError("http proxy request has no target host")
+		}
 		return addr, nil
 	}
 	return tunnel.NewAddressFromHostPort("tcp", host, 80), nil
@@ -205,7 +212,9 @@ func (s *Server) acceptLoop() {
 			}
 
 			if strings.ToUpper(req.Method) == "CONNECT" { // CONNECT
-				addr, err := tunnel.NewAddressFromAddr("tcp", req.Host)
+				// 必须走 resolveProxyTarget：它拦 "CONNECT :80 HTTP/1.1" 这种空主机名
+				// （net/url 接受、net.Dial(":80") 连 127.0.0.1 的 SSRF 形态）。
+				addr, err := resolveProxyTarget(req.Host)
 				if err != nil {
 					log.Error(common.NewError("invalid http dest address").Base(err))
 					req.Body.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
@@ -238,8 +247,12 @@ func (s *Server) acceptLoop() {
 					return
 				}
 				req.Body.Close() //gosec:disable -- 错误忽略：非关键路径或已通过其他方式处理
+				// 必须把嗅探/解析阶段预读进 reqBufReader 的字节一并交给下游：Peek(h2PrefaceProbe)
+				// 一次 fill 可把 CONNECT 请求与隧道首包（TLS ClientHello）一起读进 bufio，
+				// http.ReadRequest 只消耗请求头，残留字节若随裸 conn 丢掉，下游读到的就是
+				// EOF、握手永久挂起。h2 分支的 bufferedConn 正是为同一问题而加，这里复用它。
 				connectConn := &ConnectConn{
-					Conn: conn,
+					Conn: &bufferedConn{Conn: conn, r: reqBufReader},
 					metadata: &tunnel.Metadata{
 						Address: addr,
 					},

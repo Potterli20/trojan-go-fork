@@ -146,7 +146,9 @@ func TestResolveProxyTargetTable(t *testing.T) {
 		{"example.com:8080", "example.com:8080", false},
 		{"example.com", "example.com:80", false},
 		{"127.0.0.1:6379", "127.0.0.1:6379", false},
-		{"", ":80", true}, // 旧行为会给出这个目的地，正是它把代理变成访问本机
+		{"", ":80", true},    // 旧行为会给出这个目的地，正是它把代理变成访问本机
+		{":80", ":80", true}, // 空主机名+合法端口：net/url 接受，net.Dial(":80") 连的是 127.0.0.1
+		{":443", ":443", true},
 	}
 	for _, c := range cases {
 		addr, err := resolveProxyTarget(c.host)
