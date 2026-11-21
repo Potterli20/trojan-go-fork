@@ -24,7 +24,7 @@ func TestQuicSecondUDPSessionOnSameConnection(t *testing.T) {
 	// 服务端：连续接受两条 UDP 会话，各自回显一个包。
 	serverDone := make(chan error, 2)
 	go func() {
-		for i := 0; i < 2; i++ {
+		for i := range 2 {
 			pc, err := pair.server.AcceptPacket(nil)
 			if err != nil {
 				serverDone <- fmt.Errorf("第 %d 条 AcceptPacket: %w", i+1, err)
@@ -51,7 +51,7 @@ func TestQuicSecondUDPSessionOnSameConnection(t *testing.T) {
 	// 客户端：在同一 pair.client 上依次 DialPacket 两次，各发一个包、读回显。
 	clientDone := make(chan error, 2)
 	go func() {
-		for i := 0; i < 2; i++ {
+		for i := range 2 {
 			pc, err := pair.client.DialPacket(nil)
 			if err != nil {
 				clientDone <- fmt.Errorf("第 %d 条 DialPacket: %w", i+1, err)
@@ -92,7 +92,7 @@ func TestQuicSecondUDPSessionOnSameConnection(t *testing.T) {
 		}
 	}()
 
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		select {
 		case err := <-clientDone:
 			if err != nil {
