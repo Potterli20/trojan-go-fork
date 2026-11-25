@@ -79,8 +79,8 @@ github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae h1:ArVM1jIC
 github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
 github.com/xtaci/smux v1.5.62 h1:RcrLeqTqsrQC6WUGTM2+/5SEurw5Dbq5pA6OcvRC1KM=
 github.com/xtaci/smux v1.5.62/go.mod h1:GuWFG2+NPLwbD/RE0cximAvK/W7uG5LImrSyOtzLE1w=
-github.com/xtls/xray-core v1.260327.1-0.20261124182046-e17392a96e17 h1:QAz/ymBxo+pfn+8qCIKpnpgrWCJzK9cnZL4rnoNHEqY=
-github.com/xtls/xray-core v1.260327.1-0.20261124182046-e17392a96e17/go.mod h1:GimE/sabFdJ/O1XRBvC6aeyHEh7LD9pboaemVZsnKUQ=
+github.com/xtls/xray-core v1.260327.1-0.20261124230344-5d8b20239ff6 h1:/pMAVKQIZUUj2/ZJ1GH6R/eVWn9bJsV0baS3qM+/rKo=
+github.com/xtls/xray-core v1.260327.1-0.20261124230344-5d8b20239ff6/go.mod h1:GimE/sabFdJ/O1XRBvC6aeyHEh7LD9pboaemVZsnKUQ=
 github.com/yuin/gopher-lua v0.0.0-20190206043414-8bfc7677f583/go.mod h1:gqRgreBUhTSL0GeU64rtZ3Uq3wtjOa/TB2YfrtkCbVQ=
 github.com/yuin/gopher-lua v1.1.2 h1:yF/FjE3hD65tBbt0VXLE13HWS9h34fdzJmrWRXwobGA=
 github.com/yuin/gopher-lua v1.1.2/go.mod h1:7aRmXIWl37SqRf0koeyylBEzJ+aPt8A+mmkQ4f1ntR8=
