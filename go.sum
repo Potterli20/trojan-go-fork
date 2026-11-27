@@ -19,8 +19,8 @@ github.com/database64128/tfo-go/v2 v2.4.3-0.20261109215501-399a516e76df h1:h5Ayg
 github.com/database64128/tfo-go/v2 v2.4.3-0.20261109215501-399a516e76df/go.mod h1:6sB50M6XxS/2SnyengwLkCmIrYXUkhMI9l5x/YW/uzk=
 github.com/dustin/go-humanize v1.1.0 h1:dbKTrvD0klcbBV/h4AWJdMuZogJACoMlvWIWZ5b2xWg=
 github.com/dustin/go-humanize v1.1.0/go.mod h1:hc1CvRkJMsgxqjmjMQF3QNRAZBwY8AXBAzKYoSX9sFI=
-github.com/go-sql-driver/mysql v1.10.2 h1:5TRvGvczDohUMOCRA5aCAXgfSZOo/oNDSFD/2RrChS0=
-github.com/go-sql-driver/mysql v1.10.2/go.mod h1:M+cqaI7+xxXGG9swrdeUIoPG3Y3KCkF0pZej+SK+nWk=
+github.com/go-sql-driver/mysql v1.11.0 h1:0dFnuu2mR7g+8Smo/rL18y1WnTLgVrHttzSahf20Gb4=
+github.com/go-sql-driver/mysql v1.11.0/go.mod h1:evJsoGjlO/9BFsnfXyjtluDYb3OSGzPNOnUaBl/2Dao=
 github.com/golang/mock v1.7.0-rc.1 h1:YojYx61/OLFsiv6Rw1Z96LpldJIy31o+UHmwAUMJ6/U=
 github.com/golang/mock v1.7.0-rc.1/go.mod h1:s42URUywIqd+OcERslBJvOjepvNymP31m3q8d/GkuRs=
 github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek=
@@ -79,8 +79,8 @@ github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae h1:ArVM1jIC
 github.com/txthinking/runnergroup v0.0.0-20250224021307-5864ffeb65ae/go.mod h1:cldYm15/XHcGt7ndItnEWHwFZo7dinU+2QoyjfErhsI=
 github.com/xtaci/smux v1.5.62 h1:RcrLeqTqsrQC6WUGTM2+/5SEurw5Dbq5pA6OcvRC1KM=
 github.com/xtaci/smux v1.5.62/go.mod h1:GuWFG2+NPLwbD/RE0cximAvK/W7uG5LImrSyOtzLE1w=
-github.com/xtls/xray-core v1.260327.1-0.20261126211821-4d0bfb4d0d54 h1:ZmvOI0kfLISd11OXslrOoqo/N4a0/b4EvYPR7A7NjpU=
-github.com/xtls/xray-core v1.260327.1-0.20261126211821-4d0bfb4d0d54/go.mod h1:vE3mewSE/byCjql9p+TZdpKAypT7dWP2sN5AYZLByKY=
+github.com/xtls/xray-core v1.260327.1-0.20261127182534-ded8443fee25 h1:rvWq2FQshXQWlwUVuLg1KyZSsIgAsRy1nlwiJwcQmQY=
+github.com/xtls/xray-core v1.260327.1-0.20261127182534-ded8443fee25/go.mod h1:vE3mewSE/byCjql9p+TZdpKAypT7dWP2sN5AYZLByKY=
 github.com/yuin/gopher-lua v0.0.0-20190206043414-8bfc7677f583/go.mod h1:gqRgreBUhTSL0GeU64rtZ3Uq3wtjOa/TB2YfrtkCbVQ=
 github.com/yuin/gopher-lua v1.1.2 h1:yF/FjE3hD65tBbt0VXLE13HWS9h34fdzJmrWRXwobGA=
 github.com/yuin/gopher-lua v1.1.2/go.mod h1:7aRmXIWl37SqRf0koeyylBEzJ+aPt8A+mmkQ4f1ntR8=

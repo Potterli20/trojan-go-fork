@@ -11,12 +11,12 @@ require (
 	github.com/apernet/quic-go v0.65.1-0.20261109005002-2895f039137a
 	github.com/coder/websocket v1.8.15
 	github.com/database64128/tfo-go/v2 v2.4.3-0.20261109215501-399a516e76df
-	github.com/go-sql-driver/mysql v1.10.2
+	github.com/go-sql-driver/mysql v1.11.0
 	github.com/refraction-networking/utls v1.8.3-0.20261118233537-360383f893fb
 	github.com/smartystreets/goconvey v1.8.2-0.20240306062457-a50310f1e3e5
 	github.com/stretchr/testify v1.12.1
 	github.com/xtaci/smux v1.5.62
-	github.com/xtls/xray-core v1.260327.1-0.20261126211821-4d0bfb4d0d54
+	github.com/xtls/xray-core v1.260327.1-0.20261127182534-ded8443fee25
 	golang.org/x/crypto v0.59.0
 	golang.org/x/net v0.63.0
 	golang.org/x/sys v0.50.0
